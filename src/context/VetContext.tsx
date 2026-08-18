@@ -178,6 +178,33 @@ interface VetContextType {
   openMonitor: (patientId?: string) => void;
   closeMonitor: () => void;
 
+  // Next-Gen Modals (VET SYSTEM 3.0)
+  isDentalChartOpen: boolean;
+  dentalPatientId: string | null;
+  openDentalChart: (patientId?: string) => void;
+  closeDentalChart: () => void;
+
+  isBodyMapOpen: boolean;
+  bodyMapPatientId: string | null;
+  openBodyMap: (patientId?: string) => void;
+  closeBodyMap: () => void;
+
+  isAnesthesiaChartOpen: boolean;
+  anesthesiaPatientId: string | null;
+  anesthesiaSurgeryName: string;
+  openAnesthesiaChart: (patientId?: string, surgeryName?: string) => void;
+  closeAnesthesiaChart: () => void;
+
+  isWhatsAppHubOpen: boolean;
+  whatsAppData: any | null;
+  openWhatsAppHub: (data?: any) => void;
+  closeWhatsAppHub: () => void;
+
+  isImagingAnnotatorOpen: boolean;
+  imagingAnnotatorData: any | null;
+  openImagingAnnotator: (data?: any) => void;
+  closeImagingAnnotator: () => void;
+
   // Toast System
   toasts: ToastMessage[];
   showToast: (type: 'success' | 'warning' | 'error' | 'info', title: string, message: string) => void;
@@ -336,6 +363,64 @@ export const VetProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const closeMonitor = () => {
     setIsMonitorOpen(false);
     setMonitorPatientId(null);
+  };
+
+  // Next-Gen Modals State (VET SYSTEM 3.0)
+  const [isDentalChartOpen, setIsDentalChartOpen] = useState<boolean>(false);
+  const [dentalPatientId, setDentalPatientId] = useState<string | null>(null);
+  const openDentalChart = (patientId?: string) => {
+    setDentalPatientId(patientId || selectedPatientId || 'pat-1');
+    setIsDentalChartOpen(true);
+  };
+  const closeDentalChart = () => {
+    setIsDentalChartOpen(false);
+    setDentalPatientId(null);
+  };
+
+  const [isBodyMapOpen, setIsBodyMapOpen] = useState<boolean>(false);
+  const [bodyMapPatientId, setBodyMapPatientId] = useState<string | null>(null);
+  const openBodyMap = (patientId?: string) => {
+    setBodyMapPatientId(patientId || selectedPatientId || 'pat-1');
+    setIsBodyMapOpen(true);
+  };
+  const closeBodyMap = () => {
+    setIsBodyMapOpen(false);
+    setBodyMapPatientId(null);
+  };
+
+  const [isAnesthesiaChartOpen, setIsAnesthesiaChartOpen] = useState<boolean>(false);
+  const [anesthesiaPatientId, setAnesthesiaPatientId] = useState<string | null>(null);
+  const [anesthesiaSurgeryName, setAnesthesiaSurgeryName] = useState<string>('Cirugía Quirúrgica');
+  const openAnesthesiaChart = (patientId?: string, surgeryName?: string) => {
+    setAnesthesiaPatientId(patientId || selectedPatientId || 'pat-1');
+    if (surgeryName) setAnesthesiaSurgeryName(surgeryName);
+    setIsAnesthesiaChartOpen(true);
+  };
+  const closeAnesthesiaChart = () => {
+    setIsAnesthesiaChartOpen(false);
+    setAnesthesiaPatientId(null);
+  };
+
+  const [isWhatsAppHubOpen, setIsWhatsAppHubOpen] = useState<boolean>(false);
+  const [whatsAppData, setWhatsAppData] = useState<any | null>(null);
+  const openWhatsAppHub = (data?: any) => {
+    if (data) setWhatsAppData(data);
+    setIsWhatsAppHubOpen(true);
+  };
+  const closeWhatsAppHub = () => {
+    setIsWhatsAppHubOpen(false);
+    setWhatsAppData(null);
+  };
+
+  const [isImagingAnnotatorOpen, setIsImagingAnnotatorOpen] = useState<boolean>(false);
+  const [imagingAnnotatorData, setImagingAnnotatorData] = useState<any | null>(null);
+  const openImagingAnnotator = (data?: any) => {
+    if (data) setImagingAnnotatorData(data);
+    setIsImagingAnnotatorOpen(true);
+  };
+  const closeImagingAnnotator = () => {
+    setIsImagingAnnotatorOpen(false);
+    setImagingAnnotatorData(null);
   };
 
   // Supabase Cloud State
@@ -1193,6 +1278,33 @@ Hoy hemos evaluado a ${petName} en nuestro centro hospitalario. Queremos transmi
         monitorPatientId,
         openMonitor,
         closeMonitor,
+
+        // Next-Gen Modals (VET SYSTEM 3.0)
+        isDentalChartOpen,
+        dentalPatientId,
+        openDentalChart,
+        closeDentalChart,
+
+        isBodyMapOpen,
+        bodyMapPatientId,
+        openBodyMap,
+        closeBodyMap,
+
+        isAnesthesiaChartOpen,
+        anesthesiaPatientId,
+        anesthesiaSurgeryName,
+        openAnesthesiaChart,
+        closeAnesthesiaChart,
+
+        isWhatsAppHubOpen,
+        whatsAppData,
+        openWhatsAppHub,
+        closeWhatsAppHub,
+
+        isImagingAnnotatorOpen,
+        imagingAnnotatorData,
+        openImagingAnnotator,
+        closeImagingAnnotator,
 
         // Toast System
         toasts,

@@ -7,6 +7,11 @@ import { QuickModals } from './components/QuickModals';
 import { ClinicalCalculatorsModal } from './components/ClinicalCalculatorsModal';
 import { MedicalPrintModal } from './components/MedicalPrintModal';
 import { MultiparameterMonitorModal } from './components/MultiparameterMonitorModal';
+import { DentalChartModal } from './components/DentalChartModal';
+import { AnatomicalBodyMapModal } from './components/AnatomicalBodyMapModal';
+import { AnesthesiaChartModal } from './components/AnesthesiaChartModal';
+import { WhatsAppHubModal } from './components/WhatsAppHubModal';
+import { ImagingAnnotatorModal } from './components/ImagingAnnotatorModal';
 import { ToastNotification } from './components/ToastNotification';
 
 // Views
@@ -40,6 +45,25 @@ const MainLayout: React.FC = () => {
     isMonitorOpen,
     closeMonitor,
     monitorPatientId,
+
+    // Next-Gen Modals
+    isDentalChartOpen,
+    dentalPatientId,
+    closeDentalChart,
+    isBodyMapOpen,
+    bodyMapPatientId,
+    closeBodyMap,
+    isAnesthesiaChartOpen,
+    anesthesiaPatientId,
+    anesthesiaSurgeryName,
+    closeAnesthesiaChart,
+    isWhatsAppHubOpen,
+    whatsAppData,
+    closeWhatsAppHub,
+    isImagingAnnotatorOpen,
+    imagingAnnotatorData,
+    closeImagingAnnotator,
+
     toasts,
     dismissToast,
   } = useVet();
@@ -122,6 +146,34 @@ const MainLayout: React.FC = () => {
         isOpen={isMonitorOpen}
         onClose={closeMonitor}
         patientId={monitorPatientId || undefined}
+      />
+      <DentalChartModal
+        isOpen={isDentalChartOpen}
+        onClose={closeDentalChart}
+        patientId={dentalPatientId}
+      />
+      <AnatomicalBodyMapModal
+        isOpen={isBodyMapOpen}
+        onClose={closeBodyMap}
+        patientId={bodyMapPatientId}
+      />
+      <AnesthesiaChartModal
+        isOpen={isAnesthesiaChartOpen}
+        onClose={closeAnesthesiaChart}
+        patientId={anesthesiaPatientId}
+        surgeryProcedureName={anesthesiaSurgeryName}
+      />
+      <WhatsAppHubModal
+        isOpen={isWhatsAppHubOpen}
+        onClose={closeWhatsAppHub}
+        initialData={whatsAppData}
+      />
+      <ImagingAnnotatorModal
+        isOpen={isImagingAnnotatorOpen}
+        onClose={closeImagingAnnotator}
+        patientId={imagingAnnotatorData?.patientId}
+        imageUrl={imagingAnnotatorData?.imageUrl}
+        studyTitle={imagingAnnotatorData?.studyTitle}
       />
 
       {/* Global Floating Toast Notifications */}

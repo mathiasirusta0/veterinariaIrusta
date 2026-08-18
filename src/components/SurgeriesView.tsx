@@ -23,6 +23,7 @@ export const SurgeriesView: React.FC = () => {
     setQuickModal,
     openMonitor,
     openCalculators,
+    openAnesthesiaChart,
   } = useVet();
 
   return (
@@ -56,6 +57,15 @@ export const SurgeriesView: React.FC = () => {
           >
             <Calculator className="w-3.5 h-3.5 text-teal-600" />
             <span>Calculadora Dosis</span>
+          </button>
+
+          <button
+            onClick={() => openAnesthesiaChart()}
+            className="flex items-center gap-1.5 px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-lg shadow-sm transition-all"
+            title="Abrir hoja de registro y monitoreo anestésico intraoperatorio"
+          >
+            <span className="text-sm">🫁</span>
+            <span>Hoja Anestésica en Vivo</span>
           </button>
 
           <button
@@ -133,22 +143,31 @@ export const SurgeriesView: React.FC = () => {
                 </p>
               </div>
 
-              <div className="flex items-center justify-between pt-2 border-t border-slate-100 text-xs">
+              <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-100 text-xs">
                 <span className="text-slate-500">
                   Posoperatorio: <span className="text-slate-800 font-medium">{surg.postOpOrders || (surg as any).postOpInstructions || 'Analgesia y monitoreo'}</span>
                 </span>
-                {patient && (
+                <div className="flex items-center gap-3">
                   <button
-                    onClick={() => {
-                      setSelectedPatientId(patient.id);
-                      setActivePatientTab('CIRUGIAS');
-                      setActiveView('PACIENTES');
-                    }}
-                    className="text-teal-600 hover:text-teal-700 font-bold"
+                    onClick={() => openAnesthesiaChart(surg.patientId, surg.procedureName)}
+                    className="flex items-center gap-1 text-emerald-700 hover:text-emerald-800 font-bold bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200"
                   >
-                    Ver en Ficha 360° →
+                    <span>🫁</span>
+                    <span>Hoja Anestésica</span>
                   </button>
-                )}
+                  {patient && (
+                    <button
+                      onClick={() => {
+                        setSelectedPatientId(patient.id);
+                        setActivePatientTab('CIRUGIAS');
+                        setActiveView('PACIENTES');
+                      }}
+                      className="text-teal-600 hover:text-teal-700 font-bold"
+                    >
+                      Ver en Ficha 360° →
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
           );

@@ -59,6 +59,9 @@ export const Patient360View: React.FC = () => {
     openCalculators,
     openMonitor,
     openPrintModal,
+    openDentalChart,
+    openBodyMap,
+    openWhatsAppHub,
   } = useVet();
 
   const [aiGenerating, setAiGenerating] = useState(false);
@@ -169,6 +172,40 @@ export const Patient360View: React.FC = () => {
           >
             <Calculator className="w-3.5 h-3.5 text-teal-600" />
             <span>Calculadora Dosis</span>
+          </button>
+
+          <button
+            onClick={() =>
+              openWhatsAppHub({
+                ownerPhone: owner?.whatsapp || owner?.phone || '',
+                ownerName: owner ? `${owner.firstName} ${owner.lastName}` : 'Tutor',
+                patientName: patient.name,
+                type: 'TURNO',
+              })
+            }
+            className="flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold px-3 py-2 rounded-lg shadow-sm transition-all active:scale-95"
+            title="Enviar mensaje o reporte por WhatsApp al tutor"
+          >
+            <MessageCircle className="w-3.5 h-3.5" />
+            <span>WhatsApp Tutor</span>
+          </button>
+
+          <button
+            onClick={() => openDentalChart(patient.id)}
+            className="flex items-center gap-1.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-bold px-3 py-2 rounded-lg shadow-2xs transition-colors"
+            title="Abrir odontograma veterinario"
+          >
+            <span className="text-sm">🦷</span>
+            <span>Odontograma</span>
+          </button>
+
+          <button
+            onClick={() => openBodyMap(patient.id)}
+            className="flex items-center gap-1.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-bold px-3 py-2 rounded-lg shadow-2xs transition-colors"
+            title="Abrir mapa anatómico de lesiones"
+          >
+            <span className="text-sm">🐾</span>
+            <span>Mapa de Lesiones</span>
           </button>
 
           <button

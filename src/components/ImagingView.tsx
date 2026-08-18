@@ -9,7 +9,7 @@ import {
 import { useVet } from '../context/VetContext';
 
 export const ImagingView: React.FC = () => {
-  const { imagingStudies, patients, setQuickModal } = useVet();
+  const { imagingStudies, patients, setQuickModal, openImagingAnnotator } = useVet();
 
   return (
     <div className="space-y-6 pb-12">
@@ -64,13 +64,28 @@ export const ImagingView: React.FC = () => {
                 {study.imageUrls && study.imageUrls.length > 0 && (
                   <div className="grid grid-cols-2 gap-2 my-3">
                     {study.imageUrls.map((url, i) => (
-                      <img
+                      <div
                         key={i}
-                        src={url}
-                        alt="Estudio de imagen"
-                        className="w-full h-36 object-cover rounded-xl border border-slate-200"
-                        referrerPolicy="no-referrer"
-                      />
+                        onClick={() =>
+                          openImagingAnnotator({
+                            patientId: study.patientId,
+                            imageUrl: url,
+                            studyTitle: `${study.modality} ${study.region} (${study.studyNumber})`,
+                          })
+                        }
+                        className="relative group cursor-pointer overflow-hidden rounded-xl border border-slate-200"
+                      >
+                        <img
+                          src={url}
+                          alt="Estudio de imagen"
+                          className="w-full h-36 object-cover group-hover:scale-105 transition-transform"
+                          referrerPolicy="no-referrer"
+                        />
+                        <div className="absolute inset-0 bg-slate-950/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white font-bold text-xs gap-1.5">
+                          <Scan className="w-4 h-4" />
+                          <span>Abrir Visor / Medición</span>
+                        </div>
+                      </div>
                     ))}
                   </div>
                 )}
@@ -97,7 +112,19 @@ export const ImagingView: React.FC = () => {
 
               <div className="flex items-center justify-between pt-3 border-t border-slate-100 text-xs text-slate-500">
                 <span>Informó: {study.specialistName}</span>
-                <span>{new Date(study.date).toLocaleDateString('es-AR')}</span>
+                <button
+                  onClick={() =>
+                    openImagingAnnotator({
+                      patientId: study.patientId,
+                      imageUrl: study.imageUrls?.[0] || 'https://images.unsplash.com/photo-1579684385127-1ef15d508118?w=800',
+                      studyTitle: `${study.modality} ${study.region} (${study.studyNumber})`,
+                    })
+                  }
+                  className="font-bold text-teal-600 hover:text-teal-700 flex items-center gap-1"
+                >
+                  <Scan className="w-3.5 h-3.5" />
+                  <span>Visor & Medición IA →</span>
+                </button>
               </div>
             </div>
           );

@@ -38,6 +38,9 @@ export const Sidebar: React.FC<{ isOpenMobile?: boolean; onCloseMobile?: () => v
     activeBranch,
     openCalculators,
     openMonitor,
+    openWhatsAppHub,
+    openDentalChart,
+    openBodyMap,
   } = useVet();
 
   const activeHospitalCount = hospitalizations.filter((h) => h.status === 'ACTIVA').length;
@@ -191,6 +194,51 @@ export const Sidebar: React.FC<{ isOpenMobile?: boolean; onCloseMobile?: () => v
             </div>
             <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-900/60 text-emerald-300">
               VIVO
+            </span>
+          </button>
+          <button
+            onClick={() => {
+              openWhatsAppHub();
+              if (onCloseMobile) onCloseMobile();
+            }}
+            className="w-full flex items-center justify-between px-3 py-2 text-xs font-medium text-slate-400 hover:text-white hover:bg-slate-800/80 rounded-md transition-all group"
+          >
+            <div className="flex items-center gap-2.5">
+              <span className="text-emerald-400 font-bold text-sm">💬</span>
+              <span>WhatsApp Tutores Hub</span>
+            </div>
+            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-900/60 text-emerald-300">
+              DIRECTO
+            </span>
+          </button>
+          <button
+            onClick={() => {
+              openDentalChart();
+              if (onCloseMobile) onCloseMobile();
+            }}
+            className="w-full flex items-center justify-between px-3 py-2 text-xs font-medium text-slate-400 hover:text-white hover:bg-slate-800/80 rounded-md transition-all group"
+          >
+            <div className="flex items-center gap-2.5">
+              <span className="text-teal-400 font-bold text-sm">🦷</span>
+              <span>Odontograma Triadan</span>
+            </div>
+            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-teal-900/60 text-teal-300">
+              ODONTO
+            </span>
+          </button>
+          <button
+            onClick={() => {
+              openBodyMap();
+              if (onCloseMobile) onCloseMobile();
+            }}
+            className="w-full flex items-center justify-between px-3 py-2 text-xs font-medium text-slate-400 hover:text-white hover:bg-slate-800/80 rounded-md transition-all group"
+          >
+            <div className="flex items-center gap-2.5">
+              <span className="text-amber-400 font-bold text-sm">🐾</span>
+              <span>Mapa de Lesiones</span>
+            </div>
+            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-900/60 text-amber-300">
+              CUERPO
             </span>
           </button>
         </div>
