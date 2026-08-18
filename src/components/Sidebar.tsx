@@ -61,6 +61,7 @@ export const Sidebar: React.FC<{ isOpenMobile?: boolean; onCloseMobile?: () => v
         { id: 'AGENDA', label: 'Agenda', icon: CalendarDays, badge: todayAppointments },
         { id: 'SALA_ESPERA', label: 'Sala de Espera', icon: Clock, badge: waitingTriageCount, badgeColor: 'bg-amber-500' },
         { id: 'CONSULTAS', label: 'Consultas & SOAP', icon: Stethoscope },
+        { id: 'SIGNOS_VITALES', label: 'Signos Vitales', icon: Activity },
       ],
     },
     {

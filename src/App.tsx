@@ -23,6 +23,7 @@ import { HospitalizationWhiteboardView } from './components/HospitalizationWhite
 import { TriageView } from './components/TriageView';
 import { AppointmentsView } from './components/AppointmentsView';
 import { ConsultationsView } from './components/ConsultationsView';
+import { VitalSignsView } from './components/VitalSignsView';
 import { SurgeriesView } from './components/SurgeriesView';
 import { LaboratoryView } from './components/LaboratoryView';
 import { ImagingView } from './components/ImagingView';
@@ -85,6 +86,10 @@ const MainLayout: React.FC = () => {
         return <AppointmentsView />;
       case 'CONSULTAS':
         return <ConsultationsView />;
+      case 'SIGNOS_VITALES':
+      case 'SIGNOS':
+      case 'BIOMETRIA':
+        return <VitalSignsView />;
       case 'CIRUGIAS':
         return <SurgeriesView />;
       case 'LABORATORIO':
