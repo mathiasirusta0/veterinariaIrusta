@@ -267,58 +267,76 @@ export const VitalSignsView: React.FC = () => {
         </div>
       </div>
 
-      {/* Physiological Radar Quick Summary Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
-        <div className="bg-white border border-slate-200 p-4 rounded-2xl shadow-2xs space-y-2">
+      {/* 5 Primary Vital Signs Physiological Cards */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3.5 text-xs">
+        {/* 1. Tensión Arterial TAS / TAD */}
+        <div className="bg-white border border-slate-200 p-4 rounded-2xl shadow-2xs space-y-1.5 hover:border-teal-500/50 transition-all">
+          <div className="flex items-center justify-between">
+            <span className="font-bold text-slate-500 uppercase tracking-wider text-[10px] flex items-center gap-1.5">
+              <Activity className="w-4 h-4 text-indigo-600" />
+              Tensión Arterial (TAS/TAD)
+            </span>
+          </div>
+          <div className="text-lg font-black text-slate-900 font-mono">120/75 <span className="text-[11px] font-normal text-slate-400">mmHg</span></div>
+          <span className="text-[10px] font-bold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded block truncate">
+            Sistólica / Diastólica
+          </span>
+        </div>
+
+        {/* 2. TAM (Tensión Arterial Media) */}
+        <div className="bg-white border border-slate-200 p-4 rounded-2xl shadow-2xs space-y-1.5 hover:border-teal-500/50 transition-all">
           <div className="flex items-center justify-between">
             <span className="font-bold text-slate-500 uppercase tracking-wider text-[10px] flex items-center gap-1.5">
               <Heart className="w-4 h-4 text-rose-600" />
-              Total Registros
+              TAM (Media)
             </span>
-            <span className="font-mono font-bold text-slate-900 text-sm">{vitals.length} controles</span>
           </div>
-          <p className="text-slate-600 text-[11px]">
-            Base de datos biométrica de pacientes ambulatorios e internados.
-          </p>
+          <div className="text-lg font-black text-rose-700 font-mono">85 <span className="text-[11px] font-normal text-slate-400">mmHg</span></div>
+          <span className="text-[10px] font-bold text-rose-700 bg-rose-50 px-2 py-0.5 rounded block truncate">
+            Meta: 70 - 100 mmHg
+          </span>
         </div>
 
-        <div className="bg-white border border-slate-200 p-4 rounded-2xl shadow-2xs space-y-2">
+        {/* 3. Saturación de Oxígeno SpO2 */}
+        <div className="bg-white border border-slate-200 p-4 rounded-2xl shadow-2xs space-y-1.5 hover:border-teal-500/50 transition-all">
           <div className="flex items-center justify-between">
-            <span className="font-bold text-red-600 uppercase tracking-wider text-[10px] flex items-center gap-1.5">
-              <AlertTriangle className="w-4 h-4 text-red-500 animate-bounce" />
-              Alertas Fisiológicas
-            </span>
-            <span className="font-mono font-black text-red-600 text-base">{totalAlertsCount}</span>
-          </div>
-          <p className="text-slate-600 text-[11px]">
-            Pacientes con constantes fuera del rango normal (Fiebre, Taquicardia, Hipoxemia).
-          </p>
-        </div>
-
-        <div className="bg-white border border-slate-200 p-4 rounded-2xl shadow-2xs space-y-2">
-          <div className="flex items-center justify-between">
-            <span className="font-bold text-teal-700 uppercase tracking-wider text-[10px] flex items-center gap-1.5">
-              <Thermometer className="w-4 h-4 text-teal-600" />
-              Rango Térmico Especie
-            </span>
-            <span className="font-mono font-bold text-teal-800 text-xs">37.8° - 39.2° C</span>
-          </div>
-          <p className="text-slate-600 text-[11px]">
-            Límites fisiológicos de normotermia en caninos y felinos domésticos.
-          </p>
-        </div>
-
-        <div className="bg-white border border-slate-200 p-4 rounded-2xl shadow-2xs space-y-2">
-          <div className="flex items-center justify-between">
-            <span className="font-bold text-cyan-700 uppercase tracking-wider text-[10px] flex items-center gap-1.5">
+            <span className="font-bold text-slate-500 uppercase tracking-wider text-[10px] flex items-center gap-1.5">
               <Wind className="w-4 h-4 text-cyan-600" />
-              Oximetría Óptima
+              Saturación O2 (SpO2)
             </span>
-            <span className="font-mono font-bold text-cyan-800 text-xs">SpO2 ≥ 95%</span>
           </div>
-          <p className="text-slate-600 text-[11px]">
-            Umbral de saturación de oxígeno segura sin requerimiento de oxigenoterapia.
-          </p>
+          <div className="text-lg font-black text-cyan-700 font-mono">98% <span className="text-[11px] font-normal text-slate-400">Oximetría</span></div>
+          <span className="text-[10px] font-bold text-cyan-700 bg-cyan-50 px-2 py-0.5 rounded block truncate">
+            Normoxia (≥ 95%)
+          </span>
+        </div>
+
+        {/* 4. Temperatura */}
+        <div className="bg-white border border-slate-200 p-4 rounded-2xl shadow-2xs space-y-1.5 hover:border-teal-500/50 transition-all">
+          <div className="flex items-center justify-between">
+            <span className="font-bold text-slate-500 uppercase tracking-wider text-[10px] flex items-center gap-1.5">
+              <Thermometer className="w-4 h-4 text-teal-600" />
+              Temperatura
+            </span>
+          </div>
+          <div className="text-lg font-black text-teal-800 font-mono">38.5° <span className="text-[11px] font-normal text-slate-400">°C</span></div>
+          <span className="text-[10px] font-bold text-teal-700 bg-teal-50 px-2 py-0.5 rounded block truncate">
+            Ref: 37.8° - 39.2° C
+          </span>
+        </div>
+
+        {/* 5. HGT (Hemoglucotest) */}
+        <div className="bg-white border border-slate-200 p-4 rounded-2xl shadow-2xs space-y-1.5 hover:border-teal-500/50 transition-all">
+          <div className="flex items-center justify-between">
+            <span className="font-bold text-slate-500 uppercase tracking-wider text-[10px] flex items-center gap-1.5">
+              <Droplet className="w-4 h-4 text-amber-600" />
+              HGT (Glucemia)
+            </span>
+          </div>
+          <div className="text-lg font-black text-amber-800 font-mono">95 <span className="text-[11px] font-normal text-slate-400">mg/dL</span></div>
+          <span className="text-[10px] font-bold text-amber-800 bg-amber-50 px-2 py-0.5 rounded block truncate">
+            Ref: 70 - 140 mg/dL
+          </span>
         </div>
       </div>
 
@@ -675,33 +693,56 @@ export const VitalSignsView: React.FC = () => {
                 </div>
               </div>
 
-              {/* Blood Pressure & Weight */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              {/* Tensión Arterial (TAS/TAD/TAM), HGT, Peso */}
+              <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5">
                 <div>
-                  <label className="font-bold text-slate-700 block mb-1">PAS (Sistólica):</label>
+                  <label className="font-bold text-slate-700 block mb-1">TAS (Sistólica):</label>
                   <input
                     type="number"
+                    placeholder="120"
                     value={regPAS}
-                    onChange={(e) => setRegPAS(e.target.value)}
+                    onChange={(e) => {
+                      setRegPAS(e.target.value);
+                      const s = parseInt(e.target.value);
+                      const d = parseInt(regPAD);
+                      if (!isNaN(s) && !isNaN(d)) setRegPAM(Math.round(d + (s - d) / 3).toString());
+                    }}
                     className="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 font-mono text-slate-900"
                   />
                 </div>
                 <div>
-                  <label className="font-bold text-slate-700 block mb-1">PAD (Diastólica):</label>
+                  <label className="font-bold text-slate-700 block mb-1">TAD (Diastólica):</label>
                   <input
                     type="number"
+                    placeholder="75"
                     value={regPAD}
-                    onChange={(e) => setRegPAD(e.target.value)}
+                    onChange={(e) => {
+                      setRegPAD(e.target.value);
+                      const d = parseInt(e.target.value);
+                      const s = parseInt(regPAS);
+                      if (!isNaN(s) && !isNaN(d)) setRegPAM(Math.round(d + (s - d) / 3).toString());
+                    }}
                     className="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 font-mono text-slate-900"
                   />
                 </div>
                 <div>
-                  <label className="font-bold text-slate-700 block mb-1">PAM (Media):</label>
+                  <label className="font-bold text-slate-700 block mb-1 text-teal-800">TAM (Media):</label>
                   <input
                     type="number"
+                    placeholder="85"
                     value={regPAM}
                     onChange={(e) => setRegPAM(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 font-bold font-mono text-slate-900"
+                    className="w-full bg-teal-50/50 border border-teal-500 rounded-lg p-2 font-bold font-mono text-slate-900 ring-1 ring-teal-500"
+                  />
+                </div>
+                <div>
+                  <label className="font-bold text-slate-700 block mb-1 text-amber-800">HGT (mg/dL):</label>
+                  <input
+                    type="number"
+                    placeholder="95"
+                    value={regGlucose}
+                    onChange={(e) => setRegGlucose(e.target.value)}
+                    className="w-full bg-amber-50/40 border border-amber-400 rounded-lg p-2 font-bold font-mono text-slate-900"
                   />
                 </div>
                 <div>

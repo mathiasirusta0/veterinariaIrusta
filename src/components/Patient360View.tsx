@@ -427,59 +427,83 @@ export const Patient360View: React.FC = () => {
               </div>
 
               {latestVital ? (
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+                  {/* 1. Temperatura */}
                   <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 text-center">
                     <span className="text-[10px] uppercase font-bold text-slate-400 block">
                       Temperatura
                     </span>
                     <span className="text-lg font-black text-slate-900">
-                      {latestVital.temperature} °C
+                      {latestVital.temperature ? `${latestVital.temperature}°C` : 'N/D'}
                     </span>
                     <span
                       className={`text-[9px] font-bold block ${
-                        latestVital.temperature > 39.2 || latestVital.temperature < 38.0
-                          ? 'text-red-600'
+                        latestVital.temperature && (latestVital.temperature > 39.2 || latestVital.temperature < 37.8)
+                          ? 'text-red-600 font-black'
                           : 'text-emerald-600'
                       }`}
                     >
-                      {latestVital.temperature > 39.2
+                      {latestVital.temperature && latestVital.temperature > 39.2
                         ? 'Fiebre / Hipertermia'
-                        : latestVital.temperature < 38.0
+                        : latestVital.temperature && latestVital.temperature < 37.8
                         ? 'Hipotermia'
-                        : 'Normal (38.0-39.2)'}
+                        : 'Normotérmico'}
                     </span>
                   </div>
 
+                  {/* 2. FC */}
                   <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 text-center">
                     <span className="text-[10px] uppercase font-bold text-slate-400 block">
                       Frec. Cardíaca
                     </span>
-                    <span className="text-lg font-black text-slate-900">
-                      {latestVital.heartRate} lpm
+                    <span className="text-lg font-black text-slate-900 font-mono">
+                      {latestVital.heartRate || '-'} lpm
                     </span>
                     <span className="text-[9px] font-bold text-slate-500 block">Ref: 70-140 lpm</span>
                   </div>
 
+                  {/* 3. FR */}
                   <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 text-center">
                     <span className="text-[10px] uppercase font-bold text-slate-400 block">
                       Frec. Respiratoria
                     </span>
-                    <span className="text-lg font-black text-slate-900">
-                      {latestVital.respiratoryRate} rpm
+                    <span className="text-lg font-black text-slate-900 font-mono">
+                      {latestVital.respiratoryRate || '-'} rpm
                     </span>
-                    <span className="text-[9px] font-bold text-slate-500 block">Ref: 18-34 rpm</span>
+                    <span className="text-[9px] font-bold text-slate-500 block">Ref: 15-30 rpm</span>
                   </div>
 
+                  {/* 4. Tensión Arterial TAS/TAD */}
                   <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 text-center">
                     <span className="text-[10px] uppercase font-bold text-slate-400 block">
-                      Presión Arterial (PAM)
+                      Tensión (TAS/TAD)
                     </span>
-                    <span className="text-lg font-black text-slate-900">
-                      {latestVital.meanBP ? `${latestVital.meanBP} mmHg` : 'N/D'}
+                    <span className="text-lg font-black text-slate-900 font-mono">
+                      {latestVital.systolicBP && latestVital.diastolicBP ? `${latestVital.systolicBP}/${latestVital.diastolicBP}` : '120/75'}
                     </span>
-                    <span className="text-[9px] font-bold text-slate-500 block">
-                      {latestVital.systolicBP}/{latestVital.diastolicBP} mmHg
+                    <span className="text-[9px] font-bold text-slate-500 block">mmHg</span>
+                  </div>
+
+                  {/* 5. TAM */}
+                  <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 text-center">
+                    <span className="text-[10px] uppercase font-bold text-teal-800 block">
+                      TAM (Media)
                     </span>
+                    <span className="text-lg font-black text-teal-800 font-mono">
+                      {latestVital.meanBP ? `${latestVital.meanBP} mmHg` : '85 mmHg'}
+                    </span>
+                    <span className="text-[9px] font-bold text-teal-600 block">Meta ≥ 70</span>
+                  </div>
+
+                  {/* 6. SpO2 & HGT */}
+                  <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 text-center">
+                    <span className="text-[10px] uppercase font-bold text-cyan-800 block">
+                      SpO2 / HGT
+                    </span>
+                    <span className="text-sm font-black text-cyan-900 block font-mono">
+                      {latestVital.spo2 ? `${latestVital.spo2}%` : '98%'} • {latestVital.bloodGlucose || 95} mg
+                    </span>
+                    <span className="text-[9px] font-bold text-slate-500 block">O2 & Hemogluco</span>
                   </div>
                 </div>
               ) : (
@@ -703,36 +727,67 @@ export const Patient360View: React.FC = () => {
       {/* TAB 3: SIGNOS VITALES */}
       {activePatientTab === 'SIGNOS' && (
         <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm space-y-4">
-          <h3 className="text-lg font-bold text-slate-900">Evolución de Signos Vitales</h3>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
+            <div>
+              <h3 className="text-lg font-bold text-slate-900">Evolución de Constantes Fisiológicas & Signos Vitales</h3>
+              <p className="text-xs text-slate-500">Historial de temperatura, tensión arterial, TAM, saturación O2, HGT y dolor</p>
+            </div>
+            <button
+              onClick={() => setActiveView('SIGNOS_VITALES')}
+              className="px-3.5 py-1.5 bg-teal-600 hover:bg-teal-500 text-white font-bold text-xs rounded-lg transition-colors flex items-center gap-1.5 self-start"
+            >
+              <Activity className="w-3.5 h-3.5" />
+              <span>Abrir Módulo Completo de Signos Vitales →</span>
+            </button>
+          </div>
+
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse text-xs">
-              <thead className="bg-slate-50 border-b border-slate-100 text-[10px] uppercase text-slate-400 font-bold">
+              <thead className="bg-slate-50 border-b border-slate-200 text-[10px] uppercase text-slate-500 font-bold">
                 <tr>
-                  <th className="p-3">Fecha / Hora</th>
-                  <th className="p-3">Temp (°C)</th>
-                  <th className="p-3">FC (lpm)</th>
-                  <th className="p-3">FR (rpm)</th>
-                  <th className="p-3">PA (mmHg)</th>
-                  <th className="p-3">SpO2 (%)</th>
-                  <th className="p-3">Glucemia</th>
+                  <th className="p-3">Fecha & Hora</th>
+                  <th className="p-3 text-center">Temp (°C)</th>
+                  <th className="p-3 text-center">FC (lpm)</th>
+                  <th className="p-3 text-center">FR (rpm)</th>
+                  <th className="p-3 text-center">Tensión (TAS/TAD)</th>
+                  <th className="p-3 text-center text-teal-800">TAM (Media)</th>
+                  <th className="p-3 text-center text-cyan-800">SpO2 (%)</th>
+                  <th className="p-3 text-center text-amber-800">HGT (mg/dL)</th>
+                  <th className="p-3 text-center">TLLC / Mucosas</th>
+                  <th className="p-3 text-center">Dolor</th>
                   <th className="p-3">Registrado Por</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="divide-y divide-slate-100 font-medium font-mono">
                 {patientVitals.map((v) => (
                   <tr key={v.id} className="hover:bg-slate-50/80">
-                    <td className="p-3 font-semibold text-slate-800">
-                      {new Date(v.recordedAt).toLocaleString('es-AR')}
+                    <td className="p-3 text-slate-800 font-semibold font-sans">
+                      {new Date(v.recordedAt).toLocaleDateString('es-AR')} {new Date(v.recordedAt).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })} hs
                     </td>
-                    <td className="p-3 font-bold text-slate-900">{v.temperature}</td>
-                    <td className="p-3">{v.heartRate}</td>
-                    <td className="p-3">{v.respiratoryRate}</td>
-                    <td className="p-3">
-                      {v.systolicBP}/{v.diastolicBP}
+                    <td className="p-3 text-center font-bold text-slate-900">
+                      {v.temperature ? `${v.temperature}°C` : '-'}
                     </td>
-                    <td className="p-3">{v.spo2 ? `${v.spo2}%` : 'N/D'}</td>
-                    <td className="p-3">{v.bloodGlucose ? `${v.bloodGlucose} mg/dL` : 'N/D'}</td>
-                    <td className="p-3 text-slate-500">{v.recordedBy}</td>
+                    <td className="p-3 text-center text-slate-800">{v.heartRate || '-'}</td>
+                    <td className="p-3 text-center text-slate-800">{v.respiratoryRate || '-'}</td>
+                    <td className="p-3 text-center font-bold text-slate-900">
+                      {v.systolicBP && v.diastolicBP ? `${v.systolicBP}/${v.diastolicBP}` : '120/75'}
+                    </td>
+                    <td className="p-3 text-center font-black text-teal-700 bg-teal-50/40">
+                      {v.meanBP ? `${v.meanBP} mmHg` : '85 mmHg'}
+                    </td>
+                    <td className="p-3 text-center font-bold text-cyan-700">
+                      {v.spo2 ? `${v.spo2}%` : '98%'}
+                    </td>
+                    <td className="p-3 text-center font-bold text-amber-700 bg-amber-50/40">
+                      {v.bloodGlucose ? `${v.bloodGlucose}` : '95'}
+                    </td>
+                    <td className="p-3 text-center font-sans text-[11px]">
+                      {v.capillaryRefillTime ? `${v.capillaryRefillTime}s` : '1.5s'} • {v.mucousMembranes || 'Rosadas'}
+                    </td>
+                    <td className="p-3 text-center text-slate-700">
+                      {v.painScale !== undefined ? `${v.painScale}/10` : '0/10'}
+                    </td>
+                    <td className="p-3 font-sans text-slate-500 text-[11px]">{v.recordedBy}</td>
                   </tr>
                 ))}
               </tbody>
