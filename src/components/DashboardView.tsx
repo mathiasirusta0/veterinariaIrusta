@@ -51,7 +51,7 @@ export const DashboardView: React.FC = () => {
   let upcomingMedsCount = 0;
   let overdueMedsCount = 0;
   activeHospital.forEach((h) => {
-    h.medications.forEach((m) => {
+    (h.medications || []).forEach((m) => {
       if (m.status === 'PROXIMA' || m.status === 'PROGRAMADA') upcomingMedsCount++;
       if (m.status === 'ATRASADA') overdueMedsCount++;
     });
@@ -69,6 +69,9 @@ export const DashboardView: React.FC = () => {
   const todayAppointments = appointments.filter(
     (a) => a.date === new Date().toISOString().split('T')[0] && a.status !== 'CANCELADO'
   );
+
+  const totalRevenue = invoices.reduce((sum, inv) => sum + (inv.totalAmount || 0), 0);
+  const globalOccupancyPercent = Math.min(100, Math.round((activeHospital.length / 18) * 100));
 
   const openPatientDetail = (patientId: string, tab = 'RESUMEN') => {
     setSelectedPatientId(patientId);
@@ -516,15 +519,15 @@ export const DashboardView: React.FC = () => {
                 <BedDouble className="w-4 h-4 text-teal-600" />
                 Ocupación de Caniles
               </span>
-              <span className="text-teal-700 font-bold font-mono">75% Global</span>
+              <span className="text-teal-700 font-bold font-mono">{globalOccupancyPercent}% Global</span>
             </div>
 
             <div className="space-y-2">
               {[
-                { sector: 'UCI Críticos (4 caniles)', occupied: 3, total: 4, percent: 75, color: 'bg-red-500' },
-                { sector: 'Canil General (8 caniles)', occupied: 6, total: 8, percent: 75, color: 'bg-teal-600' },
-                { sector: 'Gaterío Felinos (4 caniles)', occupied: 2, total: 4, percent: 50, color: 'bg-purple-600' },
-                { sector: 'Aislamiento (2 caniles)', occupied: 1, total: 2, percent: 50, color: 'bg-amber-500' },
+                { sector: 'UCI Críticos (4 caniles)', occupied: activeHospital.filter(h => h.sector === 'UCI_CRITICOS').length, total: 4, percent: Math.min(100, Math.round((activeHospital.filter(h => h.sector === 'UCI_CRITICOS').length / 4) * 100)), color: 'bg-red-500' },
+                { sector: 'Canil General (8 caniles)', occupied: activeHospital.filter(h => h.sector === 'CANIL_GENERAL').length, total: 8, percent: Math.min(100, Math.round((activeHospital.filter(h => h.sector === 'CANIL_GENERAL').length / 8) * 100)), color: 'bg-teal-600' },
+                { sector: 'Gaterío Felinos (4 caniles)', occupied: activeHospital.filter(h => h.sector === 'FELINOS').length, total: 4, percent: Math.min(100, Math.round((activeHospital.filter(h => h.sector === 'FELINOS').length / 4) * 100)), color: 'bg-purple-600' },
+                { sector: 'Aislamiento (2 caniles)', occupied: activeHospital.filter(h => h.sector === 'AISLAMIENTO_INFECCIOSO').length, total: 2, percent: Math.min(100, Math.round((activeHospital.filter(h => h.sector === 'AISLAMIENTO_INFECCIOSO').length / 2) * 100)), color: 'bg-amber-500' },
               ].map((s, idx) => (
                 <div key={idx} className="space-y-1">
                   <div className="flex items-center justify-between text-[11px]">
@@ -547,9 +550,9 @@ export const DashboardView: React.FC = () => {
             <div className="flex items-center justify-between">
               <span className="font-bold text-slate-800 uppercase tracking-wider text-[11px] flex items-center gap-1.5">
                 <DollarSign className="w-4 h-4 text-emerald-600" />
-                Ingresos por Especialidad
+                Ingresos por Facturación
               </span>
-              <span className="text-emerald-700 font-bold font-mono">$1.280.000</span>
+              <span className="text-emerald-700 font-bold font-mono">${totalRevenue.toLocaleString('es-AR')}</span>
             </div>
 
             <div className="space-y-2">

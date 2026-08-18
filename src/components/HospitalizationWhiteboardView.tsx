@@ -302,7 +302,7 @@ export const HospitalizationWhiteboardView: React.FC = () => {
                       <Droplet className="w-3.5 h-3.5 text-cyan-600" />
                       <span>Fluidoterapia</span>
                     </div>
-                    {hosp.fluidTherapy.isActive ? (
+                    {hosp.fluidTherapy?.isActive ? (
                       <div>
                         <span className="font-bold text-slate-900 block">
                           {hosp.fluidTherapy.solutionType}
@@ -322,10 +322,10 @@ export const HospitalizationWhiteboardView: React.FC = () => {
                       <span>Ronda Horaria</span>
                     </div>
                     <span className="font-bold text-slate-900 block">
-                      Cada {hosp.intervalHours} horas
+                      Cada {hosp.intervalHours || 2} horas
                     </span>
                     <span className="text-[11px] text-slate-500">
-                      Próx. Signos: <strong>{hosp.nextVitalsTime} hs</strong>
+                      Próx. Signos: <strong>{hosp.nextVitalsTime || '14:00'} hs</strong>
                     </span>
                   </div>
                 </div>
@@ -337,7 +337,7 @@ export const HospitalizationWhiteboardView: React.FC = () => {
                   </span>
 
                   <div className="space-y-1.5">
-                    {hosp.medications.map((med) => {
+                    {(hosp.medications || []).map((med) => {
                       const isOverdue = med.status === 'ATRASADA';
                       const isDone = med.status === 'REALIZADA';
 

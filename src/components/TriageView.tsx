@@ -179,7 +179,7 @@ export const TriageView: React.FC = () => {
                       Tiempo en espera
                     </span>
                     <span className="font-mono text-base font-black text-amber-600">
-                      ⏱️ {entry.waitTimeMinutes} min
+                      ⏱️ {Math.max(1, Math.floor((Date.now() - new Date(entry.arrivedAt).getTime()) / 60000))} min
                     </span>
                   </div>
 

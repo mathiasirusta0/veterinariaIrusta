@@ -481,35 +481,45 @@ export const Patient360View: React.FC = () => {
                     {/* Background grid line */}
                     <div className="absolute inset-x-0 top-1/2 border-b border-dashed border-slate-300"></div>
 
-                    {/* Chart Points */}
-                    {[
-                      { label: 'Ene 2026', weight: Math.max(1, patient.weight - 1.2), temp: 38.4 },
-                      { label: 'Mar 2026', weight: Math.max(1, patient.weight - 0.8), temp: 38.6 },
-                      { label: 'May 2026', weight: Math.max(1, patient.weight - 0.4), temp: 39.1 },
-                      { label: 'Jul 2026', weight: Math.max(1, patient.weight - 0.1), temp: 38.5 },
-                      { label: 'Hoy', weight: patient.weight, temp: latestVital?.temperature || 38.5 },
-                    ].map((pt, idx) => (
-                      <div key={idx} className="flex-1 flex flex-col items-center gap-1 z-10 group">
-                        {/* Tooltip on hover */}
-                        <div className="opacity-0 group-hover:opacity-100 transition-opacity absolute -top-4 bg-slate-900 text-white px-2 py-0.5 rounded text-[10px] font-mono whitespace-nowrap shadow-md">
-                          {pt.weight.toFixed(1)} kg • {pt.temp} °C
-                        </div>
+                    {/* Dynamic Chart Points from Real Vitals */}
+                    {(() => {
+                      const points = patientVitals.length >= 2
+                        ? patientVitals.slice(0, 5).reverse().map((v, i) => ({
+                            label: new Date(v.recordedAt).toLocaleDateString('es-AR', { day: '2-digit', month: 'short' }),
+                            weight: v.weight || patient.weight,
+                            temp: v.temperature || 38.5,
+                          }))
+                        : [
+                            { label: 'Anterior', weight: Math.max(1, patient.weight - 0.5), temp: 38.4 },
+                            { label: 'Control', weight: Math.max(1, patient.weight - 0.2), temp: 38.6 },
+                            { label: 'Hoy', weight: patient.weight, temp: latestVital?.temperature || 38.5 },
+                          ];
 
-                        {/* Visual Bar / Point */}
-                        <div className="w-full flex justify-center items-end h-20">
-                          <div
-                            style={{ height: `${Math.min(100, Math.max(30, (pt.weight / (patient.weight * 1.3)) * 80))}%` }}
-                            className="w-4 bg-teal-600/80 hover:bg-teal-500 rounded-t-md transition-all flex items-start justify-center pt-1 shadow-2xs"
-                          >
-                            <span className="text-[9px] font-mono font-bold text-white leading-none">
-                              {pt.weight.toFixed(1)}
-                            </span>
+                      const maxWeight = Math.max(...points.map((p) => p.weight), patient.weight * 1.1);
+
+                      return points.map((pt, idx) => (
+                        <div key={idx} className="flex-1 flex flex-col items-center gap-1 z-10 group">
+                          {/* Tooltip on hover */}
+                          <div className="opacity-0 group-hover:opacity-100 transition-opacity absolute -top-4 bg-slate-900 text-white px-2 py-0.5 rounded text-[10px] font-mono whitespace-nowrap shadow-md">
+                            {pt.weight.toFixed(1)} kg • {pt.temp} °C
                           </div>
-                        </div>
 
-                        <span className="text-[10px] text-slate-500 font-medium">{pt.label}</span>
-                      </div>
-                    ))}
+                          {/* Visual Bar / Point */}
+                          <div className="w-full flex justify-center items-end h-20">
+                            <div
+                              style={{ height: `${Math.min(100, Math.max(25, (pt.weight / maxWeight) * 85))}%` }}
+                              className="w-4 bg-teal-600/80 hover:bg-teal-500 rounded-t-md transition-all flex items-start justify-center pt-1 shadow-2xs"
+                            >
+                              <span className="text-[9px] font-mono font-bold text-white leading-none">
+                                {pt.weight.toFixed(1)}
+                              </span>
+                            </div>
+                          </div>
+
+                          <span className="text-[10px] text-slate-500 font-medium">{pt.label}</span>
+                        </div>
+                      ));
+                    })()}
                   </div>
                 </div>
               </div>

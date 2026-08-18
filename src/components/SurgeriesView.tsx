@@ -106,15 +106,21 @@ export const SurgeriesView: React.FC = () => {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs bg-slate-50 p-3.5 rounded-xl border border-slate-200">
                 <div>
                   <span className="text-slate-400 font-bold uppercase text-[10px] block">Riesgo ASA:</span>
-                  <span className="font-extrabold text-amber-700">Grado {surg.preOpAssessment.asaGrade}</span>
+                  <span className="font-extrabold text-amber-700">
+                    Grado {surg.preOpAssessment?.asaGrade || (surg as any).asaGrade || 'I'}
+                  </span>
                 </div>
                 <div>
                   <span className="text-slate-400 font-bold uppercase text-[10px] block">Inducción:</span>
-                  <span className="text-slate-700 font-semibold">{surg.anesthesiaProtocol.induction}</span>
+                  <span className="text-slate-700 font-semibold">
+                    {surg.anesthesiaProtocol?.induction || 'Protocolo multimodal'}
+                  </span>
                 </div>
                 <div>
                   <span className="text-slate-400 font-bold uppercase text-[10px] block">Mantenimiento:</span>
-                  <span className="text-slate-700 font-semibold">{surg.anesthesiaProtocol.maintenance}</span>
+                  <span className="text-slate-700 font-semibold">
+                    {surg.anesthesiaProtocol?.maintenance || 'Inhalatoria O2 / Iso'}
+                  </span>
                 </div>
               </div>
 
@@ -123,13 +129,13 @@ export const SurgeriesView: React.FC = () => {
                   Técnica Quirúrgica & Hallazgos:
                 </span>
                 <p className="text-xs text-slate-600 bg-slate-50 p-2.5 rounded-xl border border-slate-100">
-                  {surg.surgicalTechnique}
+                  {surg.surgicalTechnique || 'Procedimiento sin complicaciones.'}
                 </p>
               </div>
 
               <div className="flex items-center justify-between pt-2 border-t border-slate-100 text-xs">
                 <span className="text-slate-500">
-                  Posoperatorio: <span className="text-slate-800 font-medium">{surg.postOpInstructions}</span>
+                  Posoperatorio: <span className="text-slate-800 font-medium">{surg.postOpOrders || (surg as any).postOpInstructions || 'Analgesia y monitoreo'}</span>
                 </span>
                 {patient && (
                   <button

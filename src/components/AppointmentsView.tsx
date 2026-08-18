@@ -24,11 +24,19 @@ export const AppointmentsView: React.FC = () => {
     setActiveView,
   } = useVet();
 
+  const [viewMode, setViewMode] = useState<'HOY' | 'TODOS' | 'FECHA'>('HOY');
   const [filterDate, setFilterDate] = useState(new Date().toISOString().split('T')[0]);
   const [filterVet, setFilterVet] = useState('TODOS');
 
+  const todayStr = new Date().toISOString().split('T')[0];
+
   const filteredAppointments = appointments.filter((a) => {
-    const matchesDate = a.date === filterDate;
+    const matchesDate =
+      viewMode === 'TODOS'
+        ? true
+        : viewMode === 'HOY'
+        ? a.date === todayStr
+        : a.date === filterDate;
     const matchesVet = filterVet === 'TODOS' || a.vetId === filterVet;
     return matchesDate && matchesVet;
   });
@@ -58,14 +66,39 @@ export const AppointmentsView: React.FC = () => {
 
       {/* Date & Vet Filter */}
       <div className="bg-white border border-slate-200 p-4 rounded-xl shadow-sm flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-3">
-          <label className="text-xs font-bold uppercase text-slate-500">Fecha:</label>
-          <input
-            type="date"
-            value={filterDate}
-            onChange={(e) => setFilterDate(e.target.value)}
-            className="bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 text-xs text-slate-900 font-semibold focus:outline-none focus:ring-2 focus:ring-teal-500"
-          />
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            onClick={() => setViewMode('HOY')}
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+              viewMode === 'HOY'
+                ? 'bg-teal-600 text-white shadow-xs'
+                : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+            }`}
+          >
+            Turnos de Hoy
+          </button>
+          <button
+            onClick={() => setViewMode('TODOS')}
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+              viewMode === 'TODOS'
+                ? 'bg-teal-600 text-white shadow-xs'
+                : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+            }`}
+          >
+            Todos los Turnos ({appointments.length})
+          </button>
+          <div className="flex items-center gap-2 ml-1">
+            <label className="text-xs font-bold uppercase text-slate-500">Fecha:</label>
+            <input
+              type="date"
+              value={filterDate}
+              onChange={(e) => {
+                setFilterDate(e.target.value);
+                setViewMode('FECHA');
+              }}
+              className="bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1 text-xs text-slate-900 font-semibold focus:outline-none focus:ring-2 focus:ring-teal-500"
+            />
+          </div>
         </div>
 
         <div className="flex items-center gap-3">
