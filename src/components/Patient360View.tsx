@@ -62,6 +62,7 @@ export const Patient360View: React.FC = () => {
     openDentalChart,
     openBodyMap,
     openWhatsAppHub,
+    setActiveView,
   } = useVet();
 
   const [aiGenerating, setAiGenerating] = useState(false);

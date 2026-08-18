@@ -119,8 +119,8 @@ export async function syncConsultationToSupabase(cons: Consultation) {
       diagnoses: cons.diagnoses,
       prescriptions: cons.prescriptions,
       requires_hospitalization: cons.requiresHospitalization,
-      requires_surgery: cons.requiresSurgery,
-      next_checkup_date: cons.nextCheckupDate,
+      requires_surgery: (cons as any).requiresSurgery,
+      next_checkup_date: (cons as any).nextCheckupDate,
     });
     if (error) console.error('Error syncing consultation to Supabase:', error);
   } catch (err) {
@@ -176,14 +176,14 @@ export async function syncSurgeryToSupabase(surg: SurgeryRecord) {
       date: surg.date,
       start_time: surg.startTime,
       end_time: surg.endTime,
-      estimated_duration_minutes: surg.estimatedDurationMinutes,
-      asa_grade: surg.asaGrade,
+      estimated_duration_minutes: (surg as any).estimatedDurationMinutes,
+      asa_grade: (surg as any).asaGrade || (surg as any).asaScore,
       status: surg.status,
       pre_op_assessment: surg.preOpAssessment,
       anesthesia_protocol: surg.anesthesiaProtocol,
       surgical_technique: surg.surgicalTechnique,
-      intra_op_events: surg.intraOpEvents,
-      post_op_instructions: surg.postOpInstructions,
+      intra_op_events: (surg as any).intraOpEvents,
+      post_op_instructions: (surg as any).postOpInstructions || (surg as any).postOpOrders,
     });
     if (error) console.error('Error syncing surgery to Supabase:', error);
   } catch (err) {

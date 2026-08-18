@@ -19,6 +19,7 @@ import {
   Building2,
   Calculator,
   Radio,
+  Activity,
 } from 'lucide-react';
 import { useVet } from '../context/VetContext';
 
