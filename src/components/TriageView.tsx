@@ -34,7 +34,7 @@ export const TriageView: React.FC = () => {
   });
 
   const handleCallPatient = (triageId: string, patientId: string) => {
-    updateTriageStatus(triageId, 'EN_CONSULTA');
+    updateTriageStatus(triageId, 'LLAMADO');
     setSelectedPatientId(patientId);
     setActivePatientTab('CONSULTAS');
     setActiveView('PACIENTES');

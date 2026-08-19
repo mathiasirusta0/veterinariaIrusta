@@ -32,10 +32,10 @@ export const SettingsAndUsersView: React.FC = () => {
       </div>
 
       {/* Tabs */}
-      <div className="flex items-center gap-2 border-b border-slate-200 pb-2">
+      <div className="flex items-center gap-2 border-b border-slate-200 pb-2 overflow-x-auto">
         <button
           onClick={() => setActiveTab('AUDITORIA')}
-          className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${
+          className={`px-4 py-2 rounded-lg text-xs font-bold whitespace-nowrap transition-all ${
             activeTab === 'AUDITORIA'
               ? 'bg-teal-600 text-white shadow-xs'
               : 'text-slate-500 hover:text-slate-900 hover:bg-slate-100'
@@ -45,7 +45,7 @@ export const SettingsAndUsersView: React.FC = () => {
         </button>
         <button
           onClick={() => setActiveTab('USUARIOS')}
-          className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${
+          className={`px-4 py-2 rounded-lg text-xs font-bold whitespace-nowrap transition-all ${
             activeTab === 'USUARIOS'
               ? 'bg-teal-600 text-white shadow-xs'
               : 'text-slate-500 hover:text-slate-900 hover:bg-slate-100'
@@ -55,7 +55,7 @@ export const SettingsAndUsersView: React.FC = () => {
         </button>
         <button
           onClick={() => setActiveTab('SUCURSALES')}
-          className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${
+          className={`px-4 py-2 rounded-lg text-xs font-bold whitespace-nowrap transition-all ${
             activeTab === 'SUCURSALES'
               ? 'bg-teal-600 text-white shadow-xs'
               : 'text-slate-500 hover:text-slate-900 hover:bg-slate-100'
@@ -65,7 +65,7 @@ export const SettingsAndUsersView: React.FC = () => {
         </button>
         <button
           onClick={() => setActiveTab('ROLES')}
-          className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${
+          className={`px-4 py-2 rounded-lg text-xs font-bold whitespace-nowrap transition-all ${
             activeTab === 'ROLES'
               ? 'bg-teal-600 text-white shadow-xs'
               : 'text-slate-500 hover:text-slate-900 hover:bg-slate-100'
@@ -163,18 +163,16 @@ export const SettingsAndUsersView: React.FC = () => {
               <div className="flex items-start justify-between">
                 <div>
                   <h3 className="text-base font-bold text-slate-900">{b.name}</h3>
-                  <p className="text-xs text-slate-500">{b.address}, {b.city}</p>
+                  <p className="text-xs text-slate-500">{b.address}</p>
                 </div>
-                {b.isMain && (
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-teal-50 text-teal-700 border border-teal-200">
-                    SEDE CENTRAL
-                  </span>
-                )}
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-teal-50 text-teal-700 border border-teal-200">
+                  {b.code}
+                </span>
               </div>
 
               <div className="text-xs text-slate-600 space-y-1 pt-2 border-t border-slate-100">
-                <p>Tel: {b.phone}</p>
-                <p>Punto de Venta Fiscal: #{b.pointOfSale}</p>
+                <p>Tel: {b.phone} • WhatsApp: {b.whatsapp}</p>
+                <p>CUIT: {b.cuit} • Condición: {b.taxCondition}</p>
               </div>
             </div>
           ))}

@@ -38,6 +38,12 @@ export const ImagingView: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         {imagingStudies.map((study) => {
           const patient = patients.find((p) => p.id === study.patientId);
+          const imgList: string[] =
+            (study.images && study.images.map((im) => im.url)) ||
+            (study as any).imageUrls || [
+              'https://images.unsplash.com/photo-1579684385127-1ef15d508118?w=800',
+            ];
+          const reportFindings = study.report || (study as any).findings || 'Estudio sin particularidades.';
 
           return (
             <div
@@ -51,7 +57,7 @@ export const ImagingView: React.FC = () => {
                       {study.modality} — {study.region}
                     </h3>
                     <p className="text-xs text-slate-500">
-                      Paciente: <span className="text-slate-900 font-bold">{patient?.name}</span> • Estudio:{' '}
+                      Paciente: <span className="text-slate-900 font-bold">{patient?.name || 'N/A'}</span> ({patient?.species || 'Canino'}) • Estudio:{' '}
                       <span className="font-mono text-teal-700 font-bold">{study.studyNumber}</span>
                     </p>
                   </div>
@@ -61,9 +67,9 @@ export const ImagingView: React.FC = () => {
                 </div>
 
                 {/* Image Previews if available */}
-                {study.imageUrls && study.imageUrls.length > 0 && (
+                {imgList.length > 0 && (
                   <div className="grid grid-cols-2 gap-2 my-3">
-                    {study.imageUrls.map((url, i) => (
+                    {imgList.map((url, i) => (
                       <div
                         key={i}
                         onClick={() =>
@@ -96,7 +102,7 @@ export const ImagingView: React.FC = () => {
                     <span className="text-slate-400 font-bold block text-[10px] uppercase">
                       Hallazgos Radiológicos / Ecográficos:
                     </span>
-                    <p className="text-slate-700 mt-0.5">{study.findings}</p>
+                    <p className="text-slate-700 mt-0.5">{reportFindings}</p>
                   </div>
 
                   {study.conclusion && (
@@ -110,20 +116,23 @@ export const ImagingView: React.FC = () => {
                 </div>
               </div>
 
-              <div className="flex items-center justify-between pt-3 border-t border-slate-100 text-xs text-slate-500">
-                <span>Informó: {study.specialistName}</span>
+              {/* Action Toolbar */}
+              <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
+                <span className="text-[11px] text-slate-400 font-mono">
+                  {study.date} • Especialista: {study.performedBy || (study as any).specialistName || 'Especialista'}
+                </span>
                 <button
                   onClick={() =>
                     openImagingAnnotator({
                       patientId: study.patientId,
-                      imageUrl: study.imageUrls?.[0] || 'https://images.unsplash.com/photo-1579684385127-1ef15d508118?w=800',
+                      imageUrl: imgList[0],
                       studyTitle: `${study.modality} ${study.region} (${study.studyNumber})`,
                     })
                   }
-                  className="font-bold text-teal-600 hover:text-teal-700 flex items-center gap-1"
+                  className="px-3 py-1.5 bg-teal-50 hover:bg-teal-100 text-teal-800 text-xs font-bold rounded-lg transition-colors flex items-center gap-1"
                 >
                   <Scan className="w-3.5 h-3.5" />
-                  <span>Visor & Medición IA →</span>
+                  <span>Visor IA →</span>
                 </button>
               </div>
             </div>
