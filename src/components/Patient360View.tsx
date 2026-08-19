@@ -305,22 +305,11 @@ export const Patient360View: React.FC = () => {
 
           <button
             onClick={() =>
-              openPrintModal(
-                'RECETA_MEDICA',
-                {
-                  patientName: patient.name,
-                  species: patient.species,
-                  breed: patient.breed,
-                  age: patient.calculatedAge,
-                  weight: patient.weight,
-                  ownerName: owner ? `${owner.firstName} ${owner.lastName}` : 'N/A',
-                  ownerDni: owner?.dni,
-                  prescriptions: patientConsultations[0]?.prescriptions || [
-                    { drugName: 'Amoxicilina + Ác. Clavulánico', presentation: 'Comprimidos 500mg', dose: '12.5 mg/kg', frequency: 'Cada 12 horas', duration: '7 días', instructions: 'Administrar junto con alimento.' },
-                  ],
-                },
-                'Receta Médica Digital'
-              )
+              openPrintModal({
+                type: 'RECETA',
+                patientId: patient.id,
+                consultationId: patientConsultations[0]?.id,
+              })
             }
             className="flex items-center gap-1.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-bold px-3 py-2 rounded-xl shadow-2xs transition-colors"
           >
@@ -369,7 +358,7 @@ export const Patient360View: React.FC = () => {
                 referrerPolicy="no-referrer"
               />
               <span className="absolute -bottom-1 -right-1 text-sm bg-white p-0.5 rounded-full shadow-2xs">
-                {patient.species === 'Canino' ? '🐕' : patient.species === 'Felino' ? '🐈' : '🦜'}
+                {patient.species?.toUpperCase() === 'CANINO' ? '🐕' : patient.species?.toUpperCase() === 'FELINO' ? '🐈' : '🦜'}
               </span>
             </div>
 

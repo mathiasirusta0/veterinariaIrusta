@@ -57,7 +57,10 @@ export const PatientsListView: React.FC = () => {
       ownerName.includes(q) ||
       ownerPhone.includes(q);
 
-    const matchesSpecies = speciesFilter === 'TODOS' || p.species === speciesFilter;
+    const matchesSpecies =
+      speciesFilter === 'TODOS' ||
+      p.species?.toUpperCase() === speciesFilter.toUpperCase() ||
+      (speciesFilter.toUpperCase().startsWith('EX') && p.species?.toUpperCase().startsWith('EX'));
     
     let matchesStatus = true;
     if (statusFilter === 'INTERNADO') {
@@ -115,9 +118,9 @@ export const PatientsListView: React.FC = () => {
   };
 
   // Counts for fast badges
-  const canineCount = patients.filter((p) => p.species === 'Canino').length;
-  const felineCount = patients.filter((p) => p.species === 'Felino').length;
-  const exoticCount = patients.filter((p) => p.species === 'Exótico').length;
+  const canineCount = patients.filter((p) => p.species?.toUpperCase() === 'CANINO').length;
+  const felineCount = patients.filter((p) => p.species?.toUpperCase() === 'FELINO').length;
+  const exoticCount = patients.filter((p) => p.species?.toUpperCase() === 'EXOTICO' || p.species?.toUpperCase() === 'EXÓTICO').length;
   const internedCount = patients.filter((p) => p.status === 'INTERNADO' || hospitalizations.some((h) => h.patientId === p.id && h.status === 'ACTIVA')).length;
   const allergicCount = patients.filter((p) => p.alerts && p.alerts.length > 0).length;
 
