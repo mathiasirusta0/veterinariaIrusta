@@ -496,7 +496,7 @@ export const Patient360View: React.FC = () => {
                 </h3>
                 {latestVital && (
                   <span className="text-[11px] font-mono text-slate-400">
-                    {new Date(latestVital.recordedAt).toLocaleString('es-AR')}
+                    {formatDateTime(latestVital.recordedAt)}
                   </span>
                 )}
               </div>
@@ -748,7 +748,7 @@ export const Patient360View: React.FC = () => {
                   <div>
                     <h4 className="font-bold text-slate-900 text-sm">Motivo: {c.reason}</h4>
                     <span className="text-xs text-slate-400">
-                      {new Date(c.dateTime).toLocaleString('es-AR')} • Atendido por: <strong>{c.vetName}</strong>
+                      {formatDateTime(c.dateTime)} • Atendido por: <strong>{c.vetName || 'Dr. Médico Veterinario'}</strong>
                     </span>
                   </div>
                 </div>

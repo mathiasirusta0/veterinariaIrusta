@@ -12,6 +12,7 @@ import {
   Building2,
 } from 'lucide-react';
 import { useVet } from '../context/VetContext';
+import { formatDate, formatDateTime, formatCurrency, formatInvoiceNumber } from '../utils/formatters';
 
 export interface MedicalPrintData {
   type: 'RECETA' | 'VACUNACION' | 'EPICRISIS' | 'FACTURA' | 'CONSENTIMIENTO';
@@ -325,8 +326,8 @@ export const MedicalPrintModal: React.FC<{
                       <tr key={item.id}>
                         <td className="py-2 font-semibold text-slate-900">{item.description}</td>
                         <td className="py-2 text-center">{item.quantity}</td>
-                        <td className="py-2 text-right font-mono">${item.unitPrice.toLocaleString()}</td>
-                        <td className="py-2 text-right font-mono font-bold text-slate-900">${item.subtotal.toLocaleString()}</td>
+                        <td className="py-2 text-right font-mono">${(item.unitPrice || 0).toLocaleString('es-AR')}</td>
+                        <td className="py-2 text-right font-mono font-bold text-slate-900">${(item.subtotal || 0).toLocaleString('es-AR')}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -334,7 +335,7 @@ export const MedicalPrintModal: React.FC<{
 
                 <div className="border-t border-slate-200 pt-2 flex items-center justify-between text-base font-black">
                   <span>TOTAL A PAGAR:</span>
-                  <span className="font-mono text-teal-800 text-xl">${invoice.totalAmount.toLocaleString()}</span>
+                  <span className="font-mono text-teal-800 text-xl">${(invoice.totalAmount || 0).toLocaleString('es-AR')}</span>
                 </div>
 
                 <div className="border-t border-slate-200 pt-3 flex items-center justify-between text-xs bg-slate-50 p-3 rounded-lg">
@@ -342,9 +343,11 @@ export const MedicalPrintModal: React.FC<{
                     <span className="font-bold text-slate-800 block">CAE N°: {invoice.caeNumber}</span>
                     <span className="text-slate-500 block text-[11px]">Vencimiento CAE: {invoice.caeExpirationDate}</span>
                   </div>
-                  <span className="text-[10px] font-bold uppercase bg-emerald-100 text-emerald-800 px-2 py-1 rounded">
-                    Comprobante Autorizado AFIP
-                  </span>
+                  <div className="text-right">
+                    <span className="px-2.5 py-1 rounded bg-teal-100 text-teal-900 font-bold font-mono text-[11px]">
+                      PAGO: {invoice.paymentMethod}
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -352,11 +355,10 @@ export const MedicalPrintModal: React.FC<{
 
           {/* 5. CONSENTIMIENTO INFORMADO */}
           {printData.type === 'CONSENTIMIENTO' && document && (
-            <div className="space-y-4 pt-2">
-              <div className="text-center border-b border-slate-200 pb-2">
-                <h2 className="text-base font-bold uppercase tracking-wider text-teal-800">
-                  {document.title}
-                </h2>
+            <div className="space-y-4">
+              <div className="border-b border-slate-200 pb-2">
+                <h3 className="font-black text-slate-900 text-base uppercase">{document.title}</h3>
+                <span className="text-xs text-slate-500 font-medium">Categoría: {document.type}</span>
               </div>
 
               <div className="text-xs text-slate-700 leading-relaxed bg-slate-50 p-4 rounded-xl border border-slate-200">
@@ -368,7 +370,7 @@ export const MedicalPrintModal: React.FC<{
                   <div>
                     <span className="text-[10px] uppercase font-bold text-emerald-800 block">Firmado Digitalmente por el Tutor:</span>
                     <p className="font-bold text-slate-900 text-xs">{document.signedByOwnerName} (DNI: {document.signedByOwnerDni})</p>
-                    <span className="text-[10px] text-slate-500 font-mono">Registro: {new Date(document.createdAt).toLocaleString('es-AR')}</span>
+                    <span className="text-[10px] text-slate-500 font-mono">Registro: {formatDateTime(document.createdAt)}</span>
                   </div>
                   {document.signatureDataUrl && (
                     <img

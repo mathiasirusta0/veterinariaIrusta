@@ -254,10 +254,10 @@ export const GlobalSearchModal: React.FC = () => {
                       <span className="text-sm font-bold text-slate-900">{pr.commercialName}</span>
                       <p className="text-xs text-slate-500">
                         {pr.activeIngredient} • Stock:{' '}
-                        <span className={pr.currentStock <= pr.minStock ? 'text-red-600 font-bold' : 'text-teal-700 font-bold'}>
-                          {pr.currentStock} unid.
+                        <span className={(pr.currentStock ?? 0) <= (pr.minStock ?? 0) ? 'text-red-600 font-bold' : 'text-teal-700 font-bold'}>
+                          {pr.currentStock ?? 0} unid.
                         </span>{' '}
-                        • ${pr.salePrice.toLocaleString()}
+                        • ${(pr.salePrice ?? 0).toLocaleString('es-AR')}
                       </p>
                     </div>
                     <span className="text-[10px] font-mono bg-slate-200 px-2 py-0.5 rounded text-slate-800 font-bold">
@@ -283,7 +283,7 @@ export const GlobalSearchModal: React.FC = () => {
                   <div
                     key={inv.id}
                     onClick={() => {
-                      setActiveView('CAJA_FACTURAS');
+                      setActiveView('CAJA_FACTURACION');
                       setIsGlobalSearchOpen(false);
                     }}
                     className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 hover:bg-slate-100/80 border border-slate-200 cursor-pointer text-left"
@@ -291,7 +291,7 @@ export const GlobalSearchModal: React.FC = () => {
                     <div>
                       <span className="text-sm font-bold text-slate-900">{inv.invoiceNumber}</span>
                       <p className="text-xs text-slate-500">
-                        Cliente: {inv.customerName} • Total: ${inv.totalAmount.toLocaleString()}
+                        Cliente: {inv.customerName || 'Consumidor Final'} • Total: ${(inv.totalAmount ?? 0).toLocaleString('es-AR')}
                       </p>
                     </div>
                     <span className="text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 rounded font-mono">

@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { useVet } from '../context/VetContext';
 import { Invoice, Estimate } from '../types';
+import { formatDate, formatDateTime, formatCurrency, formatInvoiceNumber } from '../utils/formatters';
 
 export interface CashExpense {
   id: string;
@@ -75,18 +76,18 @@ export const CashAndBillingView: React.FC = () => {
   const [expMethod, setExpMethod] = useState<CashExpense['paymentMethod']>('EFECTIVO');
   const [expReceipt, setExpReceipt] = useState('');
 
-  const totalInvoiced = invoices.reduce((acc, curr) => acc + curr.totalAmount, 0);
-  const totalExpenses = expenses.reduce((acc, curr) => acc + curr.amount, 0);
+  const totalInvoiced = invoices.reduce((acc, curr) => acc + (curr.totalAmount || 0), 0);
+  const totalExpenses = expenses.reduce((acc, curr) => acc + (curr.amount || 0), 0);
 
   // Breakdown by payment method
-  const revenueCash = invoices.filter((i) => i.paymentMethod === 'EFECTIVO').reduce((a, b) => a + b.totalAmount, 0);
-  const revenueDebit = invoices.filter((i) => i.paymentMethod === 'DEBITO').reduce((a, b) => a + b.totalAmount, 0);
-  const revenueCredit = invoices.filter((i) => i.paymentMethod === 'CREDITO').reduce((a, b) => a + b.totalAmount, 0);
-  const revenueTransfer = invoices.filter((i) => i.paymentMethod === 'TRANSFERENCIA').reduce((a, b) => a + b.totalAmount, 0);
-  const revenueMP = invoices.filter((i) => i.paymentMethod === 'MERCADOPAGO').reduce((a, b) => a + b.totalAmount, 0);
+  const revenueCash = invoices.filter((i) => i.paymentMethod === 'EFECTIVO').reduce((a, b) => a + (b.totalAmount || 0), 0);
+  const revenueDebit = invoices.filter((i) => i.paymentMethod === 'DEBITO' || (i.paymentMethod as string) === 'TARJETA_DEBITO').reduce((a, b) => a + (b.totalAmount || 0), 0);
+  const revenueCredit = invoices.filter((i) => i.paymentMethod === 'CREDITO' || (i.paymentMethod as string) === 'TARJETA_CREDITO').reduce((a, b) => a + (b.totalAmount || 0), 0);
+  const revenueTransfer = invoices.filter((i) => i.paymentMethod === 'TRANSFERENCIA').reduce((a, b) => a + (b.totalAmount || 0), 0);
+  const revenueMP = invoices.filter((i) => i.paymentMethod === 'MERCADOPAGO' || (i.paymentMethod as string) === 'MERCADOPAGO_QR').reduce((a, b) => a + (b.totalAmount || 0), 0);
 
-  const expensesCash = expenses.filter((e) => e.paymentMethod === 'EFECTIVO').reduce((a, b) => a + b.amount, 0);
-  const netCashInDrawer = cashSession.initialCash + revenueCash - expensesCash;
+  const expensesCash = expenses.filter((e) => e.paymentMethod === 'EFECTIVO').reduce((a, b) => a + (b.amount || 0), 0);
+  const netCashInDrawer = (cashSession?.initialCash || 0) + revenueCash - expensesCash;
 
   const handleAddExpense = (e: React.FormEvent) => {
     e.preventDefault();
@@ -246,11 +247,10 @@ export const CashAndBillingView: React.FC = () => {
                 {invoices.map((inv) => (
                   <tr key={inv.id} className="hover:bg-slate-50/80 transition-colors">
                     <td className="p-3.5 font-bold font-mono text-slate-900">
-                      {inv.type || (inv as any).invoiceType || 'B'}-{String(inv.pointOfSale ?? 1).padStart(4, '0')}-
-                      {String(inv.invoiceNumber ?? '1').padStart(8, '0')}
+                      {formatInvoiceNumber(inv.type || (inv as any).invoiceType, inv.pointOfSale, inv.invoiceNumber)}
                     </td>
                     <td className="p-3.5 text-slate-500 font-mono">
-                      {new Date(inv.date || (inv as any).issuedAt || Date.now()).toLocaleDateString('es-AR')}
+                      {formatDate(inv.date || (inv as any).issuedAt)}
                     </td>
                     <td className="p-3.5 font-bold text-slate-900">{inv.customerName || (inv as any).clientName || 'Consumidor Final'}</td>
                     <td className="p-3.5 text-slate-600">
@@ -471,7 +471,7 @@ export const CashAndBillingView: React.FC = () => {
             <div>
               <h3 className="text-lg font-bold text-slate-900">Balance de Turno & Arqueo Z</h3>
               <p className="text-xs text-slate-500">
-                Apertura: {new Date(cashSession.openedAt).toLocaleString('es-AR')} • Responsable: {cashSession.openedBy}
+                Apertura: {formatDateTime(cashSession.openedAt)} • Responsable: {cashSession.openedBy || 'Personal de Caja'}
               </p>
             </div>
             <div className="flex items-center gap-2">

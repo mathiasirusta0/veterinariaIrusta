@@ -146,3 +146,32 @@ export function getDefaultViewForRole(role: UserRole | undefined): SystemView {
       return 'DASHBOARD';
   }
 }
+
+export const QUICK_ACTION_VIEW_MAP: Record<string, SystemView> = {
+  NUEVA_CONSULTA: 'CONSULTAS',
+  NUEVO_PACIENTE: 'PACIENTES',
+  NUEVO_PROPIETARIO: 'PROPIETARIOS',
+  NUEVO_TURNO: 'AGENDA',
+  NUEVO_TRIAGE: 'SALA_ESPERA',
+  INGRESO_INTERNACION: 'INTERNACION',
+  NUEVA_CIRUGIA: 'CIRUGIAS',
+  NUEVO_LAB: 'LABORATORIO',
+  NUEVA_IMAGEN: 'IMAGENES',
+  NUEVA_VACUNA: 'VACUNAS',
+  NUEVA_FACTURA: 'CAJA_FACTURACION',
+  NUEVO_CONSENTIMIENTO: 'DOCUMENTOS',
+  NUEVO_PRODUCTO: 'INVENTARIO',
+  NUEVO_PRESUPUESTO: 'CAJA_FACTURACION',
+};
+
+/**
+ * Verifica si un rol tiene permiso para ejecutar una acción rápida en el modal.
+ */
+export function hasQuickActionPermission(role: UserRole | undefined, actionId: string): boolean {
+  if (!role) return false;
+  if (role === 'SUPERADMIN' || role === 'ADMINISTRADOR') return true;
+  const targetView = QUICK_ACTION_VIEW_MAP[actionId];
+  if (!targetView) return true;
+  return hasViewPermission(role, targetView);
+}
+

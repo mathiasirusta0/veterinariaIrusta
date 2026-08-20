@@ -20,9 +20,11 @@ import {
   Plus,
 } from 'lucide-react';
 import { useVet } from '../context/VetContext';
+import { hasQuickActionPermission } from '../utils/rbac';
 
 export const QuickModals: React.FC = () => {
   const {
+    currentUser,
     quickModal,
     setQuickModal,
     patients,
@@ -534,25 +536,27 @@ export const QuickModals: React.FC = () => {
               { id: 'NUEVA_VACUNA', label: 'Aplicar Vacuna', icon: Syringe, color: 'bg-emerald-600' },
               { id: 'NUEVA_FACTURA', label: 'Factura AFIP', icon: Receipt, color: 'bg-emerald-700' },
               { id: 'NUEVO_CONSENTIMIENTO', label: 'Consentimiento', icon: FileText, color: 'bg-slate-800' },
-            ].map((action) => {
-              const Icon = action.icon;
-              return (
-                <button
-                  key={action.id}
-                  onClick={() => setQuickModal(action.id)}
-                  className="p-4 rounded-xl bg-slate-50 border border-slate-200 hover:border-teal-500/50 hover:bg-slate-100/80 text-left transition-all group flex flex-col justify-between cursor-pointer"
-                >
-                  <div
-                    className={`w-10 h-10 rounded-lg ${action.color} flex items-center justify-center text-white mb-3 shadow-sm`}
+            ]
+              .filter((action) => hasQuickActionPermission(currentUser?.role, action.id))
+              .map((action) => {
+                const Icon = action.icon;
+                return (
+                  <button
+                    key={action.id}
+                    onClick={() => setQuickModal(action.id)}
+                    className="p-4 rounded-xl bg-slate-50 border border-slate-200 hover:border-teal-500/50 hover:bg-slate-100/80 text-left transition-all group flex flex-col justify-between cursor-pointer"
                   >
-                    <Icon className="w-5 h-5" />
-                  </div>
-                  <span className="text-xs font-bold text-slate-800 group-hover:text-teal-700">
-                    {action.label}
-                  </span>
-                </button>
-              );
-            })}
+                    <div
+                      className={`w-10 h-10 rounded-lg ${action.color} flex items-center justify-center text-white mb-3 shadow-sm`}
+                    >
+                      <Icon className="w-5 h-5" />
+                    </div>
+                    <span className="text-xs font-bold text-slate-800 group-hover:text-teal-700">
+                      {action.label}
+                    </span>
+                  </button>
+                );
+              })}
           </div>
         )}
 

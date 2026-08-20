@@ -23,6 +23,7 @@ import {
 } from 'lucide-react';
 import { useVet } from '../context/VetContext';
 import { VitalSigns, Patient } from '../types';
+import { formatDate, formatTime, formatDateTime, formatWeight } from '../utils/formatters';
 
 // Physiological normal reference ranges by species
 export const SPECIES_RANGES = {
@@ -462,9 +463,9 @@ export const VitalSignsView: React.FC = () => {
 
                         {/* Date & User */}
                         <td className="p-3.5 font-mono text-slate-500 text-[11px]">
-                          <div>{new Date(v.recordedAt).toLocaleDateString('es-AR')}</div>
+                          <div>{formatDate(v.recordedAt)}</div>
                           <div className="text-[10px] text-slate-400">
-                            {new Date(v.recordedAt).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })} hs
+                            {formatTime(v.recordedAt)} hs
                           </div>
                         </td>
 

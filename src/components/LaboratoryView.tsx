@@ -10,6 +10,7 @@ import {
   ArrowRight,
 } from 'lucide-react';
 import { useVet } from '../context/VetContext';
+import { formatDateTime } from '../utils/formatters';
 
 export const LaboratoryView: React.FC = () => {
   const {
@@ -19,6 +20,7 @@ export const LaboratoryView: React.FC = () => {
     setActivePatientTab,
     setActiveView,
     setQuickModal,
+    openPrintModal,
   } = useVet();
 
   const [search, setSearch] = useState('');
@@ -144,14 +146,14 @@ export const LaboratoryView: React.FC = () => {
                       </span>
                     </div>
                     <p className="text-xs text-slate-500 mt-0.5">
-                      Paciente: <span className="text-slate-900 font-bold">{patient?.name}</span> ({patient?.species} • {patient?.weight} kg) • Solicitado por:{' '}
-                      <span className="text-teal-800 font-bold">{lab.requestedBy}</span>
+                      Paciente: <span className="text-slate-900 font-bold">{patient?.name || 'Paciente Registrado'}</span> ({patient?.species || 'Canino'} • {patient?.weight || 10} kg) • Solicitado por:{' '}
+                      <span className="text-teal-800 font-bold">{lab.requestedBy || 'Dr. Médico Veterinario'}</span>
                     </p>
                   </div>
 
                   <div className="flex items-center gap-2">
                     <span className="text-xs text-slate-500 font-mono bg-slate-50 px-2.5 py-1 rounded-xl border border-slate-100">
-                      {new Date(lab.requestedAt).toLocaleString('es-AR')}
+                      {formatDateTime(lab.requestedAt)}
                     </span>
                     {patient && (
                       <button

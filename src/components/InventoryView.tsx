@@ -32,15 +32,19 @@ export const InventoryView: React.FC = () => {
     const name = (p.commercialName || '').toLowerCase();
     const active = (p.activeIngredient || '').toLowerCase();
     const code = (p.code || '').toLowerCase();
-    const matchesSearch = name.includes(q) || active.includes(q) || code.includes(q);
-    const matchesCategory = categoryFilter === 'TODOS' || p.category === categoryFilter;
+    const matchesSearch = !q || name.includes(q) || active.includes(q) || code.includes(q);
+    const matchesCategory =
+      categoryFilter === 'TODOS' ||
+      p.category === categoryFilter ||
+      (categoryFilter === 'FARMACO' && (p.category === 'MEDICAMENTO' || p.category === 'FARMACO')) ||
+      (categoryFilter === 'MEDICAMENTO' && (p.category === 'MEDICAMENTO' || p.category === 'FARMACO'));
     const matchesCritical = filterCriticalOnly ? (p.currentStock ?? 0) <= (p.minStock ?? 0) : true;
     return matchesSearch && matchesCategory && matchesCritical;
   });
 
-  const lowStockCount = products.filter((p) => p.currentStock <= p.minStock).length;
-  const totalStockUnits = products.reduce((acc, p) => acc + p.currentStock, 0);
-  const totalStockValuation = products.reduce((acc, p) => acc + p.currentStock * p.salePrice, 0);
+  const lowStockCount = products.filter((p) => (p.currentStock || 0) <= (p.minStock || 0)).length;
+  const totalStockUnits = products.reduce((acc, p) => acc + (p.currentStock || 0), 0);
+  const totalStockValuation = products.reduce((acc, p) => acc + (p.currentStock || 0) * (p.salePrice || 0), 0);
 
   const handleSaveStock = (e: React.FormEvent) => {
     e.preventDefault();
@@ -196,18 +200,18 @@ export const InventoryView: React.FC = () => {
                       </span>
                     </td>
                     <td className="p-3.5 font-mono text-[11px]">
-                      <span className="text-slate-700 block font-bold">Lote: {prod.batchNumber || 'N/A'}</span>
-                      <span className="text-slate-400 text-[10px]">Vence: {prod.expirationDate || 'N/A'}</span>
+                      <span className="text-slate-700 block font-bold">Lote: {prod.batchNumber || (prod as any).currentBatch || 'N/A'}</span>
+                      <span className="text-slate-400 text-[10px]">Vence: {prod.expirationDate || (prod as any).expiresAt || 'N/A'}</span>
                     </td>
                     <td className="p-3.5">
                       <div className="flex items-center gap-1.5 font-mono">
                         <span className={`text-sm font-black ${isCritical ? 'text-red-600 font-black animate-pulse' : 'text-slate-900'}`}>
-                          {prod.currentStock} {prod.presentationUnit}
+                          {prod.currentStock ?? 0} {prod.presentation || (prod as any).presentationUnit || 'uds'}
                         </span>
-                        <span className="text-[10px] text-slate-400">(Mín: {prod.minStock})</span>
+                        <span className="text-[10px] text-slate-400">(Mín: {prod.minStock ?? 0})</span>
                       </div>
                     </td>
-                    <td className="p-3.5 font-mono font-bold text-slate-900">${prod.salePrice.toLocaleString('es-AR')}</td>
+                    <td className="p-3.5 font-mono font-bold text-slate-900">${(prod.salePrice ?? 0).toLocaleString('es-AR')}</td>
                     <td className="p-3.5 text-right">
                       <button
                         onClick={() => setStockModalProduct(prod)}

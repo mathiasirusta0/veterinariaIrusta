@@ -10,6 +10,7 @@ import {
   History,
 } from 'lucide-react';
 import { useVet } from '../context/VetContext';
+import { formatDateTime } from '../utils/formatters';
 
 export const SettingsAndUsersView: React.FC = () => {
   const { users, branches, auditLogs, currentUser } = useVet();
@@ -103,7 +104,7 @@ export const SettingsAndUsersView: React.FC = () => {
                 {auditLogs.map((log) => (
                   <tr key={log.id} className="hover:bg-slate-50/80">
                     <td className="p-3 text-[11px] text-slate-500">
-                      {new Date(log.timestamp).toLocaleString('es-AR')}
+                      {formatDateTime(log.timestamp)}
                     </td>
                     <td className="p-3">
                       <span className="text-slate-900 font-bold">{log.userName}</span>

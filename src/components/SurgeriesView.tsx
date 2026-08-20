@@ -16,6 +16,7 @@ import {
   Filter,
 } from 'lucide-react';
 import { useVet } from '../context/VetContext';
+import { formatDate } from '../utils/formatters';
 
 export const SurgeriesView: React.FC = () => {
   const {
@@ -179,8 +180,8 @@ export const SurgeriesView: React.FC = () => {
                       </span>
                     </div>
                     <p className="text-xs text-slate-500 mt-0.5">
-                      Paciente: <span className="text-slate-900 font-bold">{patient?.name}</span> ({patient?.species} • {patient?.weight} kg) • Fecha:{' '}
-                      <span className="text-slate-700 font-semibold">{surg.date} a las {surg.startTime} hs</span>
+                      Paciente: <span className="text-slate-900 font-bold">{patient?.name || 'Paciente Registrado'}</span> ({patient?.species || 'Canino'} • {patient?.weight || 10} kg) • Fecha:{' '}
+                      <span className="text-slate-700 font-semibold">{formatDate(surg.date)} a las {surg.startTime || '09:00'} hs</span>
                     </p>
                   </div>
 

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { hasViewPermission, getDefaultViewForRole } from '../../utils/rbac';
+import { hasViewPermission, getDefaultViewForRole, hasQuickActionPermission } from '../../utils/rbac';
 
 describe('RBAC Permissions Matrix Unit Tests', () => {
   it('SUPERADMIN and ADMINISTRADOR should have access to all modules including CONFIGURACION', () => {
@@ -34,5 +34,22 @@ describe('RBAC Permissions Matrix Unit Tests', () => {
     expect(getDefaultViewForRole('RECEPCION')).toBe('AGENDA');
     expect(getDefaultViewForRole('ENFERMERIA')).toBe('INTERNACION');
     expect(getDefaultViewForRole('VETERINARIO')).toBe('DASHBOARD');
+  });
+
+  it('hasQuickActionPermission should filter quick action modals based on role', () => {
+    // Receptionist can create appointments and patients, but cannot schedule surgery or write prescriptions
+    expect(hasQuickActionPermission('RECEPCION', 'NUEVO_TURNO')).toBe(true);
+    expect(hasQuickActionPermission('RECEPCION', 'NUEVO_PACIENTE')).toBe(true);
+    expect(hasQuickActionPermission('RECEPCION', 'NUEVA_CIRUGIA')).toBe(false);
+    expect(hasQuickActionPermission('RECEPCION', 'NUEVO_LAB')).toBe(false);
+
+    // Cashier can create invoices, but not surgeries
+    expect(hasQuickActionPermission('CAJA', 'NUEVA_FACTURA')).toBe(true);
+    expect(hasQuickActionPermission('CAJA', 'NUEVA_CIRUGIA')).toBe(false);
+
+    // Veterinarian has full clinical quick action access
+    expect(hasQuickActionPermission('VETERINARIO', 'NUEVA_CONSULTA')).toBe(true);
+    expect(hasQuickActionPermission('VETERINARIO', 'NUEVA_CIRUGIA')).toBe(true);
+    expect(hasQuickActionPermission('VETERINARIO', 'NUEVO_LAB')).toBe(true);
   });
 });

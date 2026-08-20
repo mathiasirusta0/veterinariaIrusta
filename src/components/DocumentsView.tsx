@@ -8,6 +8,7 @@ import {
   CheckCircle2,
 } from 'lucide-react';
 import { useVet } from '../context/VetContext';
+import { formatDate } from '../utils/formatters';
 
 export const DocumentsView: React.FC = () => {
   const { documents, patients, owners, signDocument, setQuickModal, openPrintModal } = useVet();
@@ -118,7 +119,7 @@ export const DocumentsView: React.FC = () => {
                   <div>
                     <h3 className="text-base font-bold text-slate-900">{doc.title}</h3>
                     <p className="text-xs text-slate-500">
-                      Paciente: <span className="text-slate-900 font-bold">{patient?.name}</span> ({patient?.species})
+                      Paciente: <span className="text-slate-900 font-bold">{patient?.name || 'Paciente Registrado'}</span> ({patient?.species || 'Canino'})
                     </p>
                   </div>
                   <span
@@ -155,7 +156,7 @@ export const DocumentsView: React.FC = () => {
               </div>
 
               <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
-                <span className="text-slate-400 font-mono">{new Date(doc.createdAt).toLocaleDateString('es-AR')}</span>
+                <span className="text-slate-400 font-mono">{formatDate(doc.createdAt)}</span>
 
                 <div className="flex items-center gap-2">
                   {!doc.isSigned && (
