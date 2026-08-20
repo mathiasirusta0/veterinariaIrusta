@@ -13,6 +13,9 @@ import { AnesthesiaChartModal } from './components/AnesthesiaChartModal';
 import { WhatsAppHubModal } from './components/WhatsAppHubModal';
 import { ImagingAnnotatorModal } from './components/ImagingAnnotatorModal';
 import { ToastNotification } from './components/ToastNotification';
+import { AccessDeniedView } from './components/AccessDeniedView';
+import { ModuleErrorBoundary } from './components/ModuleErrorBoundary';
+import { hasViewPermission, SystemView } from './utils/rbac';
 
 // Icons for Mobile Bottom Navigation Bar
 import {
@@ -49,6 +52,7 @@ const MainLayout: React.FC = () => {
     activeView,
     setActiveView,
     selectedPatientId,
+    currentUser,
     hospitalizations,
     triageList,
     setQuickModal,
@@ -89,52 +93,148 @@ const MainLayout: React.FC = () => {
   const waitingTriageCount = triageList.filter((t) => t.status === 'EN_ESPERA').length;
 
   const renderActiveView = () => {
+    // Normalizar ID de vista
+    let viewKey: SystemView = 'DASHBOARD';
+    if (activeView === 'PACIENTES') viewKey = 'PACIENTES';
+    else if (activeView === 'PROPIETARIOS') viewKey = 'PROPIETARIOS';
+    else if (activeView === 'INTERNACION') viewKey = 'INTERNACION';
+    else if (activeView === 'SALA_ESPERA') viewKey = 'SALA_ESPERA';
+    else if (activeView === 'AGENDA') viewKey = 'AGENDA';
+    else if (activeView === 'CONSULTAS') viewKey = 'CONSULTAS';
+    else if (activeView === 'SIGNOS_VITALES' || activeView === 'SIGNOS' || activeView === 'BIOMETRIA') viewKey = 'SIGNOS_VITALES';
+    else if (activeView === 'CIRUGIAS') viewKey = 'CIRUGIAS';
+    else if (activeView === 'LABORATORIO') viewKey = 'LABORATORIO';
+    else if (activeView === 'IMAGENES') viewKey = 'IMAGENES';
+    else if (activeView === 'VACUNAS' || activeView === 'VACUNACION') viewKey = 'VACUNAS';
+    else if (activeView === 'INVENTARIO' || activeView === 'FARMACIA') viewKey = 'INVENTARIO';
+    else if (activeView === 'CAJA_FACTURACION' || activeView === 'CAJA_FACTURAS' || activeView === 'CAJA') viewKey = 'CAJA_FACTURACION';
+    else if (activeView === 'DOCUMENTOS') viewKey = 'DOCUMENTOS';
+    else if (activeView === 'ASISTENTE_IA' || activeView === 'IA_CLINICA') viewKey = 'ASISTENTE_IA';
+    else if (activeView === 'CONFIGURACION' || activeView === 'AUDITORIA_USUARIOS') viewKey = 'CONFIGURACION';
+
+    // Verificación de RBAC
+    if (!hasViewPermission(currentUser?.role, viewKey)) {
+      return <AccessDeniedView attemptedView={activeView} />;
+    }
+
     switch (activeView) {
       case 'DASHBOARD':
       case 'INICIO':
-        return <DashboardView />;
+        return (
+          <ModuleErrorBoundary moduleName="Dashboard Principal">
+            <DashboardView />
+          </ModuleErrorBoundary>
+        );
       case 'PACIENTES':
-        return selectedPatientId ? <Patient360View /> : <PatientsListView />;
+        return (
+          <ModuleErrorBoundary moduleName="Directorio de Pacientes">
+            {selectedPatientId ? <Patient360View /> : <PatientsListView />}
+          </ModuleErrorBoundary>
+        );
       case 'PROPIETARIOS':
-        return <OwnersView />;
+        return (
+          <ModuleErrorBoundary moduleName="Propietarios & Tutores">
+            <OwnersView />
+          </ModuleErrorBoundary>
+        );
       case 'INTERNACION':
-        return <HospitalizationWhiteboardView />;
+        return (
+          <ModuleErrorBoundary moduleName="Pizarra de Internación UCI">
+            <HospitalizationWhiteboardView />
+          </ModuleErrorBoundary>
+        );
       case 'SALA_ESPERA':
-        return <TriageView />;
+        return (
+          <ModuleErrorBoundary moduleName="Sala de Espera & Triage">
+            <TriageView />
+          </ModuleErrorBoundary>
+        );
       case 'AGENDA':
-        return <AppointmentsView />;
+        return (
+          <ModuleErrorBoundary moduleName="Agenda de Turnos">
+            <AppointmentsView />
+          </ModuleErrorBoundary>
+        );
       case 'CONSULTAS':
-        return <ConsultationsView />;
+        return (
+          <ModuleErrorBoundary moduleName="Consultas Médicas SOAP">
+            <ConsultationsView />
+          </ModuleErrorBoundary>
+        );
       case 'SIGNOS_VITALES':
       case 'SIGNOS':
       case 'BIOMETRIA':
-        return <VitalSignsView />;
+        return (
+          <ModuleErrorBoundary moduleName="Signos Vitales">
+            <VitalSignsView />
+          </ModuleErrorBoundary>
+        );
       case 'CIRUGIAS':
-        return <SurgeriesView />;
+        return (
+          <ModuleErrorBoundary moduleName="Quirófano & Cirugías">
+            <SurgeriesView />
+          </ModuleErrorBoundary>
+        );
       case 'LABORATORIO':
-        return <LaboratoryView />;
+        return (
+          <ModuleErrorBoundary moduleName="Laboratorio Clínico">
+            <LaboratoryView />
+          </ModuleErrorBoundary>
+        );
       case 'IMAGENES':
-        return <ImagingView />;
+        return (
+          <ModuleErrorBoundary moduleName="Diagnóstico por Imágenes">
+            <ImagingView />
+          </ModuleErrorBoundary>
+        );
       case 'VACUNAS':
       case 'VACUNACION':
-        return <VaccinationView />;
+        return (
+          <ModuleErrorBoundary moduleName="Plan de Vacunación">
+            <VaccinationView />
+          </ModuleErrorBoundary>
+        );
       case 'INVENTARIO':
       case 'FARMACIA':
-        return <InventoryView />;
+        return (
+          <ModuleErrorBoundary moduleName="Farmacia & Stock">
+            <InventoryView />
+          </ModuleErrorBoundary>
+        );
       case 'CAJA_FACTURACION':
       case 'CAJA_FACTURAS':
       case 'CAJA':
-        return <CashAndBillingView />;
+        return (
+          <ModuleErrorBoundary moduleName="Caja & Facturación AFIP">
+            <CashAndBillingView />
+          </ModuleErrorBoundary>
+        );
       case 'DOCUMENTOS':
-        return <DocumentsView />;
+        return (
+          <ModuleErrorBoundary moduleName="Documentos & Consentimientos">
+            <DocumentsView />
+          </ModuleErrorBoundary>
+        );
       case 'ASISTENTE_IA':
       case 'IA_CLINICA':
-        return <AiAssistantView />;
+        return (
+          <ModuleErrorBoundary moduleName="Asistente de IA Clínica">
+            <AiAssistantView />
+          </ModuleErrorBoundary>
+        );
       case 'CONFIGURACION':
       case 'AUDITORIA_USUARIOS':
-        return <SettingsAndUsersView />;
+        return (
+          <ModuleErrorBoundary moduleName="Configuración & Auditoría">
+            <SettingsAndUsersView />
+          </ModuleErrorBoundary>
+        );
       default:
-        return <DashboardView />;
+        return (
+          <ModuleErrorBoundary moduleName="Dashboard Principal">
+            <DashboardView />
+          </ModuleErrorBoundary>
+        );
     }
   };
 

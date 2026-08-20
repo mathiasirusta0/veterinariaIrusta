@@ -293,13 +293,21 @@ export const ClinicalCalculatorsModal: React.FC<{ isOpen: boolean; onClose: () =
 
   // Drug Safety Check
   const currentDrug = VADEMECUM_DATABASE[selectedDrugIndex] || VADEMECUM_DATABASE[0];
-  const patientAllergies = activePat?.alerts?.filter((a) => a.toLowerCase().includes('alergia')) || [];
-  const hasPotentialAllergyAlert = patientAllergies.some((al) =>
-    al.toLowerCase().includes(currentDrug.name.toLowerCase()) ||
-    (currentDrug.name.toLowerCase().includes('dipirona') && al.toLowerCase().includes('dipirona')) ||
-    (currentDrug.category.toLowerCase().includes('aine') && al.toLowerCase().includes('aine')) ||
-    (currentDrug.category.toLowerCase().includes('betalactámico') && al.toLowerCase().includes('penicilina'))
-  );
+  const patientAllergies = (activePat?.alerts || []).map((a: any) => {
+    if (typeof a === 'string') return a;
+    return `${a?.type || ''} ${a?.description || ''}`.trim();
+  });
+  const hasPotentialAllergyAlert = patientAllergies.some((al) => {
+    const alLower = al.toLowerCase();
+    const drugNameLower = (currentDrug.name || '').toLowerCase();
+    const catLower = (currentDrug.category || '').toLowerCase();
+    return (
+      alLower.includes(drugNameLower) ||
+      (drugNameLower.includes('dipirona') && alLower.includes('dipirona')) ||
+      (catLower.includes('aine') && (alLower.includes('aine') || alLower.includes('antiinflamatorio'))) ||
+      (catLower.includes('betalactámico') && (alLower.includes('penicilina') || alLower.includes('amoxicilina')))
+    );
+  });
 
   const filteredVademecum = VADEMECUM_DATABASE.filter((d) => {
     const q = vademecumSearch.toLowerCase();

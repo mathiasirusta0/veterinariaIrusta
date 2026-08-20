@@ -246,27 +246,27 @@ export const CashAndBillingView: React.FC = () => {
                 {invoices.map((inv) => (
                   <tr key={inv.id} className="hover:bg-slate-50/80 transition-colors">
                     <td className="p-3.5 font-bold font-mono text-slate-900">
-                      {inv.invoiceType}-{inv.pointOfSale.toString().padStart(4, '0')}-
-                      {inv.invoiceNumber.toString().padStart(8, '0')}
+                      {inv.type || (inv as any).invoiceType || 'B'}-{String(inv.pointOfSale ?? 1).padStart(4, '0')}-
+                      {String(inv.invoiceNumber ?? '1').padStart(8, '0')}
                     </td>
                     <td className="p-3.5 text-slate-500 font-mono">
-                      {new Date(inv.issuedAt).toLocaleDateString('es-AR')}
+                      {new Date(inv.date || (inv as any).issuedAt || Date.now()).toLocaleDateString('es-AR')}
                     </td>
-                    <td className="p-3.5 font-bold text-slate-900">{inv.clientName}</td>
+                    <td className="p-3.5 font-bold text-slate-900">{inv.customerName || (inv as any).clientName || 'Consumidor Final'}</td>
                     <td className="p-3.5 text-slate-600">
-                      {inv.items.map((i) => `${i.quantity}x ${i.description}`).join(', ')}
+                      {(inv.items || []).map((i) => `${i.quantity}x ${i.description}`).join(', ')}
                     </td>
                     <td className="p-3.5">
                       <span className="px-2 py-0.5 rounded bg-slate-100 text-slate-700 font-mono text-[10px] font-bold">
-                        {inv.paymentMethod}
+                        {inv.paymentMethod || 'EFECTIVO'}
                       </span>
                     </td>
                     <td className="p-3.5 text-right font-mono font-bold text-slate-900 text-sm">
-                      ${inv.totalAmount.toLocaleString('es-AR')}
+                      ${(inv.totalAmount ?? (inv as any).total ?? 0).toLocaleString('es-AR')}
                     </td>
                     <td className="p-3.5 text-center">
                       <button
-                        onClick={() => openPrintModal('FACTURA', inv)}
+                        onClick={() => openPrintModal({ type: 'FACTURA', invoiceId: inv.id })}
                         className="p-1.5 rounded-lg text-slate-400 hover:text-teal-600 hover:bg-slate-100 transition-colors"
                         title="Imprimir Comprobante Fiscal con QR AFIP"
                       >

@@ -12,6 +12,7 @@ import {
   Filter,
 } from 'lucide-react';
 import { useVet } from '../context/VetContext';
+import { formatTime, calculateWaitMinutes } from '../utils/formatters';
 
 export const TriageView: React.FC = () => {
   const {
@@ -162,12 +163,7 @@ export const TriageView: React.FC = () => {
                       <span>Tutor: {owner ? `${owner.firstName} ${owner.lastName}` : 'N/A'}</span>
                       <span>•</span>
                       <span>
-                        Llegada:{' '}
-                        {new Date(entry.arrivedAt).toLocaleTimeString('es-AR', {
-                          hour: '2-digit',
-                          minute: '2-digit',
-                        })}{' '}
-                        hs
+                        Llegada: {formatTime(entry.arrivedAt)}
                       </span>
                     </div>
                   </div>
@@ -179,7 +175,7 @@ export const TriageView: React.FC = () => {
                       Tiempo en espera
                     </span>
                     <span className="font-mono text-base font-black text-amber-600">
-                      ⏱️ {Math.max(1, Math.floor((Date.now() - new Date(entry.arrivedAt).getTime()) / 60000))} min
+                      ⏱️ {calculateWaitMinutes(entry.arrivedAt)} min
                     </span>
                   </div>
 

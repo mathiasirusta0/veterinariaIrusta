@@ -28,13 +28,13 @@ export const InventoryView: React.FC = () => {
   const [stockReason, setStockReason] = useState('Ingreso de compra a proveedor');
 
   const filtered = products.filter((p) => {
-    const q = search.toLowerCase();
-    const matchesSearch =
-      p.commercialName.toLowerCase().includes(q) ||
-      p.activeIngredient.toLowerCase().includes(q) ||
-      p.code.toLowerCase().includes(q);
+    const q = (search || '').toLowerCase().trim();
+    const name = (p.commercialName || '').toLowerCase();
+    const active = (p.activeIngredient || '').toLowerCase();
+    const code = (p.code || '').toLowerCase();
+    const matchesSearch = name.includes(q) || active.includes(q) || code.includes(q);
     const matchesCategory = categoryFilter === 'TODOS' || p.category === categoryFilter;
-    const matchesCritical = filterCriticalOnly ? p.currentStock <= p.minStock : true;
+    const matchesCritical = filterCriticalOnly ? (p.currentStock ?? 0) <= (p.minStock ?? 0) : true;
     return matchesSearch && matchesCategory && matchesCritical;
   });
 

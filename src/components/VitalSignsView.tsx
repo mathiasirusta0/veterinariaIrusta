@@ -319,9 +319,9 @@ export const VitalSignsView: React.FC = () => {
               Temperatura
             </span>
           </div>
-          <div className="text-lg font-black text-teal-800 font-mono">38.5° <span className="text-[11px] font-normal text-slate-400">°C</span></div>
+          <div className="text-lg font-black text-teal-800 font-mono">38.5 °C</div>
           <span className="text-[10px] font-bold text-teal-700 bg-teal-50 px-2 py-0.5 rounded block truncate">
-            Ref: 37.8° - 39.2° C
+            Ref: 37.8 - 39.2 °C
           </span>
         </div>
 
@@ -505,9 +505,8 @@ export const VitalSignsView: React.FC = () => {
                                 : 'bg-slate-50 text-teal-800 font-bold'
                             }`}
                           >
-                            {v.temperature ? `${v.temperature}°` : '-'}
+                            {v.temperature ? `${v.temperature} °C` : '-'}
                           </span>
-                          <span className="text-[9px] text-slate-400 block mt-0.5">°C</span>
                         </td>
 
                         {/* Blood Pressure */}

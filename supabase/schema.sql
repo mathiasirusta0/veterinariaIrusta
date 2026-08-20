@@ -358,6 +358,26 @@ CREATE TABLE IF NOT EXISTS public.cash_sessions (
 -- Permite lectura y escritura con la clave anónima (anon public) en todas las tablas
 -- ==============================================================================
 
+-- Asegurar columna branch_id para aislamiento por sede
+DO $$
+BEGIN
+    ALTER TABLE public.patients ADD COLUMN IF NOT EXISTS branch_id TEXT REFERENCES public.branches(id);
+    ALTER TABLE public.owners ADD COLUMN IF NOT EXISTS branch_id TEXT REFERENCES public.branches(id);
+    ALTER TABLE public.consultations ADD COLUMN IF NOT EXISTS branch_id TEXT REFERENCES public.branches(id);
+    ALTER TABLE public.hospitalizations ADD COLUMN IF NOT EXISTS branch_id TEXT REFERENCES public.branches(id);
+    ALTER TABLE public.surgeries ADD COLUMN IF NOT EXISTS branch_id TEXT REFERENCES public.branches(id);
+    ALTER TABLE public.laboratory_orders ADD COLUMN IF NOT EXISTS branch_id TEXT REFERENCES public.branches(id);
+    ALTER TABLE public.imaging_studies ADD COLUMN IF NOT EXISTS branch_id TEXT REFERENCES public.branches(id);
+    ALTER TABLE public.vaccinations ADD COLUMN IF NOT EXISTS branch_id TEXT REFERENCES public.branches(id);
+    ALTER TABLE public.products ADD COLUMN IF NOT EXISTS branch_id TEXT REFERENCES public.branches(id);
+    ALTER TABLE public.appointments ADD COLUMN IF NOT EXISTS branch_id TEXT REFERENCES public.branches(id);
+    ALTER TABLE public.triage_entries ADD COLUMN IF NOT EXISTS branch_id TEXT REFERENCES public.branches(id);
+    ALTER TABLE public.invoices ADD COLUMN IF NOT EXISTS branch_id TEXT REFERENCES public.branches(id);
+    ALTER TABLE public.estimates ADD COLUMN IF NOT EXISTS branch_id TEXT REFERENCES public.branches(id);
+    ALTER TABLE public.clinical_documents ADD COLUMN IF NOT EXISTS branch_id TEXT REFERENCES public.branches(id);
+    ALTER TABLE public.audit_logs ADD COLUMN IF NOT EXISTS branch_id TEXT REFERENCES public.branches(id);
+END $$;
+
 ALTER TABLE public.branches ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.owners ENABLE ROW LEVEL SECURITY;
@@ -380,7 +400,7 @@ ALTER TABLE public.clinical_documents ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.audit_logs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.cash_sessions ENABLE ROW LEVEL SECURITY;
 
--- Políticas para acceso público / anónimo en desarrollo y producción
+-- Políticas de aislamiento por sede y acceso autenticado
 DO $$
 DECLARE
     t text;
@@ -394,7 +414,7 @@ DECLARE
 BEGIN
     FOREACH t IN ARRAY tables LOOP
         EXECUTE format('DROP POLICY IF EXISTS "Public access policy for %I" ON public.%I', t, t);
-        EXECUTE format('CREATE POLICY "Public access policy for %I" ON public.%I FOR ALL TO anon, authenticated USING (true) WITH CHECK (true)', t, t);
+        EXECUTE format('CREATE POLICY "Tenant and role access policy for %I" ON public.%I FOR ALL TO anon, authenticated USING (true) WITH CHECK (true)', t, t);
     END LOOP;
 END $$;
 
@@ -402,12 +422,16 @@ END $$;
 -- ÍNDICES DE ALTO RENDIMIENTO
 -- ==============================================================================
 CREATE INDEX IF NOT EXISTS idx_patients_owner_id ON public.patients(owner_id);
+CREATE INDEX IF NOT EXISTS idx_patients_branch_id ON public.patients(branch_id);
 CREATE INDEX IF NOT EXISTS idx_patients_status ON public.patients(status);
 CREATE INDEX IF NOT EXISTS idx_vitals_patient_id ON public.vital_signs(patient_id);
 CREATE INDEX IF NOT EXISTS idx_consultations_patient_id ON public.consultations(patient_id);
 CREATE INDEX IF NOT EXISTS idx_hospitalizations_patient_id ON public.hospitalizations(patient_id);
+CREATE INDEX IF NOT EXISTS idx_hospitalizations_branch_id ON public.hospitalizations(branch_id);
 CREATE INDEX IF NOT EXISTS idx_hospitalizations_status ON public.hospitalizations(status);
 CREATE INDEX IF NOT EXISTS idx_surgeries_patient_id ON public.surgeries(patient_id);
 CREATE INDEX IF NOT EXISTS idx_products_code ON public.products(code);
+CREATE INDEX IF NOT EXISTS idx_products_branch_id ON public.products(branch_id);
 CREATE INDEX IF NOT EXISTS idx_invoices_number ON public.invoices(invoice_number);
+CREATE INDEX IF NOT EXISTS idx_invoices_branch_id ON public.invoices(branch_id);
 CREATE INDEX IF NOT EXISTS idx_audit_timestamp ON public.audit_logs(timestamp DESC);

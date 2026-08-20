@@ -24,6 +24,8 @@ import {
 } from 'lucide-react';
 import { useVet } from '../context/VetContext';
 
+import { hasViewPermission, SystemView } from '../utils/rbac';
+
 export const Sidebar: React.FC<{ isOpenMobile?: boolean; onCloseMobile?: () => void }> = ({
   isOpenMobile,
   onCloseMobile,
@@ -53,7 +55,7 @@ export const Sidebar: React.FC<{ isOpenMobile?: boolean; onCloseMobile?: () => v
   const pendingLabsCount = labOrders.filter((l) => l.status === 'SOLICITADO' || l.status === 'EN_PROCESO').length;
   const lowStockCount = products.filter((p) => p.currentStock <= p.minStock).length;
 
-  const navGroups = [
+  const rawNavGroups = [
     {
       group: 'CLÍNICA Y ATENCIÓN',
       items: [
@@ -87,6 +89,14 @@ export const Sidebar: React.FC<{ isOpenMobile?: boolean; onCloseMobile?: () => v
       ],
     },
   ];
+
+  // Filtrar grupos y elementos según los permisos del rol actual
+  const navGroups = rawNavGroups
+    .map((grp) => ({
+      ...grp,
+      items: grp.items.filter((it) => hasViewPermission(currentUser?.role, it.id as SystemView)),
+    }))
+    .filter((grp) => grp.items.length > 0);
 
   const handleSelect = (id: string) => {
     setActiveView(id);
