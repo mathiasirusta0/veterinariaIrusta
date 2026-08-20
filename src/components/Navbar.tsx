@@ -9,6 +9,8 @@ import {
   User,
   Cloud,
   Menu,
+  Sparkles,
+  ArrowRight,
 } from 'lucide-react';
 import { useVet } from '../context/VetContext';
 
@@ -138,6 +140,20 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleMobileMenu }) => {
               {criticalCount}
             </span>
           )}
+        </button>
+
+        {/* Premium "Acceso al programa" Button */}
+        <button
+          onClick={() => setActiveView('DASHBOARD')}
+          className="relative group overflow-hidden rounded-xl p-[1px] font-bold text-white shadow-md shadow-teal-600/20 hover:shadow-teal-500/35 transition-all duration-300 active:scale-95 flex items-center"
+          title="Acceso al programa — Panel Central"
+        >
+          <span className="absolute inset-0 bg-gradient-to-r from-teal-500 via-emerald-400 to-teal-600 rounded-xl animate-gradient-x"></span>
+          <span className="relative flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 bg-slate-900/90 rounded-[11px] transition-all duration-300 group-hover:bg-opacity-0">
+            <Sparkles className="w-3.5 h-3.5 text-emerald-400 group-hover:text-white transition-colors animate-pulse" />
+            <span className="text-xs font-bold tracking-tight whitespace-nowrap">Acceso al programa</span>
+            <ArrowRight className="w-3 h-3 text-teal-400 group-hover:translate-x-0.5 group-hover:text-white transition-all hidden sm:inline" />
+          </span>
         </button>
 
         {/* Action Button: + NUEVA ACCIÓN (Desktop only, mobile uses central floating FAB) */}

@@ -1,5 +1,5 @@
 import React from 'react';
-import { ShieldAlert, ArrowLeft, Home } from 'lucide-react';
+import { ShieldAlert, Sparkles, ArrowRight } from 'lucide-react';
 import { useVet } from '../context/VetContext';
 
 interface AccessDeniedViewProps {
@@ -29,10 +29,15 @@ export const AccessDeniedView: React.FC<AccessDeniedViewProps> = ({ attemptedVie
         <div className="pt-3 border-t border-slate-100 flex items-center justify-center gap-2">
           <button
             onClick={() => setActiveView('DASHBOARD')}
-            className="flex items-center gap-1.5 px-4 py-2.5 bg-teal-600 hover:bg-teal-500 text-white rounded-xl text-xs font-bold shadow-md shadow-teal-600/20 active:scale-95 transition-all"
+            className="relative group overflow-hidden rounded-2xl p-[1.5px] font-bold text-white shadow-lg shadow-teal-500/25 hover:shadow-teal-500/45 transition-all duration-300 active:scale-95"
+            title="Ingresar al panel principal del programa"
           >
-            <Home className="w-4 h-4" />
-            <span>Volver al Inicio</span>
+            <span className="absolute inset-0 bg-gradient-to-r from-teal-500 via-emerald-400 to-teal-600 rounded-2xl animate-gradient-x"></span>
+            <span className="relative flex items-center gap-2 px-5 py-2.5 bg-slate-900 rounded-[14px] transition-all duration-300 group-hover:bg-opacity-0">
+              <Sparkles className="w-4 h-4 text-emerald-400 group-hover:text-white transition-colors animate-pulse" />
+              <span className="text-xs font-bold tracking-wide">Acceso al programa</span>
+              <ArrowRight className="w-3.5 h-3.5 text-teal-400 group-hover:translate-x-1 group-hover:text-white transition-all" />
+            </span>
           </button>
         </div>
       </div>
