@@ -61,7 +61,14 @@ export function calculateWaitMinutes(arrivedAt: unknown): number {
     if (isNaN(arr.getTime())) return 0;
     const diffMs = Date.now() - arr.getTime();
     if (diffMs < 0) return 0; // fecha futura
-    return Math.max(1, Math.floor(diffMs / 60000));
+    const mins = Math.floor(diffMs / 60000);
+    if (mins > 1440) {
+      const now = new Date();
+      const todayArr = new Date(now.getFullYear(), now.getMonth(), now.getDate(), arr.getHours(), arr.getMinutes());
+      const todayDiff = Math.max(1, Math.floor((now.getTime() - todayArr.getTime()) / 60000));
+      return Math.min(180, Math.max(1, todayDiff));
+    }
+    return Math.max(1, Math.min(180, mins));
   } catch {
     return 0;
   }

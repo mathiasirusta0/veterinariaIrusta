@@ -87,9 +87,9 @@ export const OwnersView: React.FC = () => {
                 <div className="flex items-start justify-between">
                   <div>
                     <h3 className="text-base font-bold text-slate-900">
-                      {owner.firstName} {owner.lastName}
+                      {[owner.firstName, owner.lastName].filter(Boolean).join(' ') || 'Tutor Registrado'}
                     </h3>
-                    <p className="text-xs text-slate-500 font-mono">DNI: {owner.dni}</p>
+                    <p className="text-xs text-slate-500 font-mono">DNI: {owner.dni || 'S/D'}</p>
                   </div>
                   <span
                     className={`text-xs font-bold px-2.5 py-1 rounded-full ${
@@ -98,22 +98,22 @@ export const OwnersView: React.FC = () => {
                         : 'bg-emerald-50 text-emerald-700 border border-emerald-200'
                     }`}
                   >
-                    Saldo: ${owner.balance.toLocaleString()}
+                    Saldo: ${owner.balance.toLocaleString('es-AR')}
                   </span>
                 </div>
 
                 <div className="space-y-1.5 text-xs text-slate-600 pt-3 border-t border-slate-100">
                   <div className="flex items-center gap-2">
                     <Phone className="w-3.5 h-3.5 text-slate-400" />
-                    <span>{owner.phone}</span>
+                    <span>{owner.phone || 'Teléfono no registrado'}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <Mail className="w-3.5 h-3.5 text-slate-400" />
-                    <span>{owner.email}</span>
+                    <span>{owner.email || 'Email no registrado'}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <MapPin className="w-3.5 h-3.5 text-slate-400" />
-                    <span>{owner.address}, {owner.city}</span>
+                    <span>{owner.address ? `${owner.address}, ${owner.city || 'Buenos Aires'}` : 'Dirección no registrada'}</span>
                   </div>
                 </div>
 
@@ -122,21 +122,31 @@ export const OwnersView: React.FC = () => {
                   <span className="text-[10px] font-bold uppercase text-slate-400 block mb-2">
                     Mascotas Vinculadas ({linkedPets.length}):
                   </span>
-                  <div className="flex flex-wrap gap-1.5">
-                    {linkedPets.map((p) => (
-                      <button
-                        key={p.id}
-                        onClick={() => {
-                          setSelectedPatientId(p.id);
-                          setActiveView('PACIENTES');
-                        }}
-                        className="flex items-center gap-1.5 px-2.5 py-1 bg-slate-50 hover:bg-slate-100 rounded-lg text-xs font-semibold text-teal-800 border border-slate-200 hover:border-teal-400 transition-colors"
-                      >
-                        <PawPrint className="w-3 h-3 text-teal-600" />
-                        <span>{p.name} ({p.species})</span>
-                      </button>
-                    ))}
-                  </div>
+                  {linkedPets.length === 0 ? (
+                    <button
+                      onClick={() => setQuickModal('NUEVO_PACIENTE')}
+                      className="flex items-center gap-1 text-[11px] font-bold text-teal-600 hover:text-teal-700 bg-teal-50 hover:bg-teal-100/80 px-2.5 py-1.5 rounded-lg border border-teal-200/80 transition-colors"
+                    >
+                      <Plus className="w-3 h-3" />
+                      <span>+ Registrar y Vincular Mascota</span>
+                    </button>
+                  ) : (
+                    <div className="flex flex-wrap gap-1.5">
+                      {linkedPets.map((p) => (
+                        <button
+                          key={p.id}
+                          onClick={() => {
+                            setSelectedPatientId(p.id);
+                            setActiveView('PACIENTES');
+                          }}
+                          className="flex items-center gap-1.5 px-2.5 py-1 bg-slate-50 hover:bg-slate-100 rounded-lg text-xs font-semibold text-teal-800 border border-slate-200 hover:border-teal-400 transition-colors"
+                        >
+                          <PawPrint className="w-3 h-3 text-teal-600" />
+                          <span>{p.name || 'Paciente'} ({p.species || 'Canino'})</span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
 

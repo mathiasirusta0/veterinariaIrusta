@@ -182,7 +182,7 @@ export const DashboardView: React.FC = () => {
           </span>
           <span className="text-[10px] text-teal-600 font-bold mt-2 flex items-center gap-1">
             <BedDouble className="w-3 h-3" />
-            OCUPACIÓN: {Math.round((activeHospital.length / 12) * 100)}% (Capacidad 12)
+            OCUPACIÓN: {Math.round((activeHospital.length / 18) * 100)}% ({activeHospital.length}/18 camas)
           </span>
         </div>
 
@@ -546,35 +546,43 @@ export const DashboardView: React.FC = () => {
           </div>
 
           {/* Sector 2: Facturación por Servicio */}
-          <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3">
+          <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3 overflow-hidden">
             <div className="flex items-center justify-between">
               <span className="font-bold text-slate-800 uppercase tracking-wider text-[11px] flex items-center gap-1.5">
                 <DollarSign className="w-4 h-4 text-emerald-600" />
                 Ingresos por Facturación
               </span>
-              <span className="text-emerald-700 font-bold font-mono">${totalRevenue.toLocaleString('es-AR')}</span>
+              <span className="text-emerald-700 font-bold font-mono">${(totalRevenue || 1280000).toLocaleString('es-AR')}</span>
             </div>
 
             <div className="space-y-2">
               {[
-                { cat: 'Consultas & Urgencias', amount: '$450.000', percent: 35, color: 'bg-teal-600' },
-                { cat: 'Cirugías & Anestesia', amount: '$380.000', percent: 30, color: 'bg-indigo-600' },
-                { cat: 'Internación & UCI', amount: '$260.000', percent: 20, color: 'bg-red-600' },
-                { cat: 'Farmacia & Laboratorio', amount: '$190.000', percent: 15, color: 'bg-emerald-600' },
-              ].map((c, idx) => (
-                <div key={idx} className="space-y-1">
-                  <div className="flex items-center justify-between text-[11px]">
-                    <span className="text-slate-700 font-medium">{c.cat}</span>
-                    <span className="font-mono font-bold text-slate-900">{c.amount} ({c.percent}%)</span>
+                { cat: 'Consultas & Urgencias', val: 450000, color: 'bg-teal-600' },
+                { cat: 'Cirugías & Anestesia', val: 380000, color: 'bg-indigo-600' },
+                { cat: 'Internación & UCI', val: 260000, color: 'bg-red-600' },
+                { cat: 'Farmacia & Laboratorio', val: 190000, color: 'bg-emerald-600' },
+              ].map((c, idx) => {
+                const totalBase = totalRevenue || 1280000;
+                const pct = Math.round((c.val / 1280000) * 100);
+                const actualAmount = Math.round((c.val / 1280000) * totalBase);
+
+                return (
+                  <div key={idx} className="space-y-1">
+                    <div className="flex items-center justify-between text-[11px]">
+                      <span className="text-slate-700 font-medium truncate">{c.cat}</span>
+                      <span className="font-mono font-bold text-slate-900 shrink-0">
+                        ${actualAmount.toLocaleString('es-AR')} ({pct}%)
+                      </span>
+                    </div>
+                    <div className="w-full h-2 bg-slate-200 rounded-full overflow-hidden">
+                      <div
+                        style={{ width: `${pct}%` }}
+                        className={`h-full ${c.color} rounded-full transition-all`}
+                      ></div>
+                    </div>
                   </div>
-                  <div className="w-full h-2 bg-slate-200 rounded-full overflow-hidden">
-                    <div
-                      style={{ width: `${c.percent}%` }}
-                      className={`h-full ${c.color} rounded-full transition-all`}
-                    ></div>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
 

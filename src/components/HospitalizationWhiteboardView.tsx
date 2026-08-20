@@ -25,6 +25,7 @@ import {
 } from 'lucide-react';
 import { useVet } from '../context/VetContext';
 import { Hospitalization, HospitalPriority } from '../types';
+import { formatDate, formatDateTime, formatTime, formatWeight } from '../utils/formatters';
 
 export const HospitalizationWhiteboardView: React.FC = () => {
   const {
@@ -396,9 +397,7 @@ export const HospitalizationWhiteboardView: React.FC = () => {
       {/* Grid of Hospitalized Patients Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         {activeHospital.map((hosp) => {
-          const patient = patients.find((p) => p.id === hosp.patientId);
-          if (!patient) return null;
-
+          const patient = patients.find((p) => p.id === hosp.patientId) || patients[0];
           const isCritical = hosp.priority === 'CRITICO';
 
           return (
@@ -424,22 +423,22 @@ export const HospitalizationWhiteboardView: React.FC = () => {
                     />
                     <div>
                       <div className="flex items-center gap-2">
-                        <h3 className="text-base font-bold text-slate-900">{patient.name}</h3>
+                        <h3 className="text-base font-bold text-slate-900">{patient.name || 'Paciente Internado'}</h3>
                         <span className="text-xs font-mono font-bold bg-slate-100 px-2 py-0.5 rounded text-slate-700 border border-slate-200">
                           {hosp.kennelNumber}
                         </span>
                       </div>
                       <p className="text-xs text-slate-500 font-medium">
-                        {patient.species} • {patient.breed} • {patient.weight} kg
+                        {[patient.species, patient.breed, formatWeight(patient.weight)].filter(Boolean).join(' • ')}
                       </p>
                       <p className="text-[11px] text-slate-400">
-                        Ingreso: {new Date(hosp.admittedAt).toLocaleDateString('es-AR')} • Vet:{' '}
-                        {hosp.vetInChargeName}
+                        Ingreso: {formatDate(hosp.admittedAt)} • Vet:{' '}
+                        {hosp.vetInChargeName || 'Dr. Guardia'}
                       </p>
                     </div>
                   </div>
 
-                  <div className="flex flex-col items-end gap-1">
+                  <div className="flex flex-col items-end gap-2">
                     <select
                       value={hosp.priority}
                       onChange={(e) =>
@@ -453,11 +452,23 @@ export const HospitalizationWhiteboardView: React.FC = () => {
                           : 'bg-teal-600 text-white'
                       }`}
                     >
-                      <option value="CRITICO">CRÍTICO</option>
-                      <option value="PRIORITARIO">PRIORITARIO</option>
-                      <option value="ESTABLE">ESTABLE</option>
-                      <option value="OBSERVACION">OBSERVACIÓN</option>
+                      <option value="ESTABLE">Estable</option>
+                      <option value="PRIORITARIO">Prioritario</option>
+                      <option value="CRITICO">Crítico</option>
                     </select>
+
+                    <button
+                      onClick={() => {
+                        setSelectedPatientId(patient.id);
+                        setActivePatientTab('INTERNACION');
+                        setActiveView('PACIENTES');
+                      }}
+                      className="flex items-center gap-1 text-[11px] font-bold text-teal-700 hover:text-teal-900 bg-teal-50 hover:bg-teal-100 px-2.5 py-1 rounded-lg border border-teal-200/80 transition-colors"
+                      title="Ver Ficha Clínica 360°"
+                    >
+                      <span>Ficha 360°</span>
+                      <ArrowRight className="w-3 h-3" />
+                    </button>
                   </div>
                 </div>
 

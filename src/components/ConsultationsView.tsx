@@ -15,6 +15,7 @@ import {
   FileText,
 } from 'lucide-react';
 import { useVet } from '../context/VetContext';
+import { formatDateTime } from '../utils/formatters';
 
 export const ConsultationsView: React.FC = () => {
   const {
@@ -141,9 +142,9 @@ export const ConsultationsView: React.FC = () => {
                     />
                     <div>
                       <div className="flex items-center gap-2">
-                        <h3 className="text-base font-bold text-slate-900">{patient?.name || 'Paciente'}</h3>
+                        <h3 className="text-base font-bold text-slate-900">{patient?.name || 'Paciente Registrado'}</h3>
                         <span className="text-xs text-slate-500 font-mono font-bold bg-slate-100 px-2 py-0.5 rounded-lg border border-slate-200">
-                          {patient?.clinicalRecordNumber}
+                          {patient?.clinicalRecordNumber || 'HC-0000'}
                         </span>
                         <span
                           className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
@@ -156,15 +157,15 @@ export const ConsultationsView: React.FC = () => {
                         </span>
                       </div>
                       <p className="text-xs text-slate-500 font-medium mt-0.5">
-                        Tutor: <span className="font-bold text-slate-700">{owner ? `${owner.firstName} ${owner.lastName}` : 'N/A'}</span> • Profesional:{' '}
-                        <span className="text-teal-800 font-bold">{cons.vetName}</span>
+                        Tutor: <span className="font-bold text-slate-700">{owner ? `${owner.firstName} ${owner.lastName}` : (patient ? 'Tutor registrado' : 'Tutor general')}</span> • Profesional:{' '}
+                        <span className="text-teal-800 font-bold">{cons.vetName || 'Dr. Médico Veterinario'}</span>
                       </p>
                     </div>
                   </div>
 
                   <div className="flex flex-wrap items-center sm:justify-end gap-2">
                     <span className="text-xs font-mono text-slate-500 font-bold bg-slate-50 px-2.5 py-1 rounded-xl border border-slate-100">
-                      {new Date(cons.dateTime).toLocaleString('es-AR')}
+                      {formatDateTime(cons.dateTime)}
                     </span>
 
                     {owner && (

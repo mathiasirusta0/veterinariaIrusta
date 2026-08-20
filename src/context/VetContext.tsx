@@ -58,6 +58,7 @@ import {
   syncInvoiceToSupabase,
   syncAuditLogToSupabase,
 } from '../lib/supabaseSync';
+import { hasViewPermission, getDefaultViewForRole, SystemView } from '../utils/rbac';
 
 interface VetContextType {
   // Navigation & State
@@ -421,6 +422,53 @@ export const VetProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const closeImagingAnnotator = () => {
     setIsImagingAnnotatorOpen(false);
     setImagingAnnotatorData(null);
+  };
+
+  const closeAllModals = () => {
+    setQuickModal(null);
+    setIsCalculatorsOpen(false);
+    setIsMonitorOpen(false);
+    setIsPrintModalOpen(false);
+    setIsDentalChartOpen(false);
+    setIsBodyMapOpen(false);
+    setIsAnesthesiaChartOpen(false);
+    setIsWhatsAppHubOpen(false);
+    setIsImagingAnnotatorOpen(false);
+    setIsGlobalSearchOpen(false);
+  };
+
+  const switchCurrentUser = (newUser: User) => {
+    setCurrentUser(newUser);
+    closeAllModals();
+
+    // Re-evaluar permisos para la vista activa
+    let viewKey: SystemView = 'DASHBOARD';
+    if (activeView === 'PACIENTES') viewKey = 'PACIENTES';
+    else if (activeView === 'PROPIETARIOS') viewKey = 'PROPIETARIOS';
+    else if (activeView === 'INTERNACION') viewKey = 'INTERNACION';
+    else if (activeView === 'SALA_ESPERA') viewKey = 'SALA_ESPERA';
+    else if (activeView === 'AGENDA') viewKey = 'AGENDA';
+    else if (activeView === 'CONSULTAS') viewKey = 'CONSULTAS';
+    else if (activeView === 'SIGNOS_VITALES') viewKey = 'SIGNOS_VITALES';
+    else if (activeView === 'CIRUGIAS') viewKey = 'CIRUGIAS';
+    else if (activeView === 'LABORATORIO') viewKey = 'LABORATORIO';
+    else if (activeView === 'IMAGENES') viewKey = 'IMAGENES';
+    else if (activeView === 'VACUNAS') viewKey = 'VACUNAS';
+    else if (activeView === 'INVENTARIO') viewKey = 'INVENTARIO';
+    else if (activeView === 'CAJA_FACTURACION' || activeView === 'CAJA_FACTURAS' || activeView === 'CAJA') viewKey = 'CAJA_FACTURACION';
+    else if (activeView === 'DOCUMENTOS') viewKey = 'DOCUMENTOS';
+    else if (activeView === 'ASISTENTE_IA') viewKey = 'ASISTENTE_IA';
+    else if (activeView === 'CONFIGURACION') viewKey = 'CONFIGURACION';
+
+    if (!hasViewPermission(newUser.role, viewKey)) {
+      const defaultView = getDefaultViewForRole(newUser.role);
+      setActiveView(defaultView);
+    }
+  };
+
+  const switchActiveBranch = (newBranch: Branch) => {
+    setActiveBranch(newBranch);
+    closeAllModals();
   };
 
   // Supabase Cloud State
@@ -1194,9 +1242,9 @@ Hoy hemos evaluado a ${petName} en nuestro centro hospitalario. Queremos transmi
         setActivePatientTab,
 
         currentUser,
-        setCurrentUser,
+        setCurrentUser: switchCurrentUser,
         activeBranch,
-        setActiveBranch,
+        setActiveBranch: switchActiveBranch,
         users,
         branches,
 

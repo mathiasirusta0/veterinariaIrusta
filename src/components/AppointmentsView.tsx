@@ -109,11 +109,13 @@ export const AppointmentsView: React.FC = () => {
             className="bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 text-xs text-slate-900 font-semibold focus:outline-none focus:ring-2 focus:ring-teal-500"
           >
             <option value="TODOS">Todos los Profesionales</option>
-            {users.map((u) => (
-              <option key={u.id} value={u.id}>
-                {u.name}
-              </option>
-            ))}
+            {users
+              .filter((u) => u.role === 'VETERINARIO' || (u.role as string) === 'DIRECTOR_MEDICO')
+              .map((u) => (
+                <option key={u.id} value={u.id}>
+                  {u.name}
+                </option>
+              ))}
           </select>
         </div>
       </div>

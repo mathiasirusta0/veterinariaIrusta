@@ -34,6 +34,7 @@ import {
 } from 'lucide-react';
 import { useVet } from '../context/VetContext';
 import { ProblemStatus, PatientProblem } from '../types';
+import { formatDate, formatDateTime, formatTime, formatWeight } from '../utils/formatters';
 
 export const Patient360View: React.FC = () => {
   const {
@@ -364,9 +365,9 @@ export const Patient360View: React.FC = () => {
 
             <div>
               <div className="flex flex-wrap items-center gap-2 mb-1">
-                <h1 className="text-2xl font-black text-slate-900 tracking-tight">{patient.name}</h1>
+                <h1 className="text-2xl font-black text-slate-900 tracking-tight">{patient.name || 'Paciente'}</h1>
                 <span className="text-xs font-mono font-bold px-2 py-0.5 rounded-lg bg-slate-100 text-slate-700 border border-slate-200">
-                  HC: {patient.clinicalRecordNumber}
+                  HC: {patient.clinicalRecordNumber || 'HC-0000'}
                 </span>
                 <span
                   className={`text-xs font-bold px-2.5 py-0.5 rounded-full uppercase ${
@@ -380,10 +381,17 @@ export const Patient360View: React.FC = () => {
               </div>
 
               <p className="text-xs text-slate-600 font-medium">
-                <span className="font-bold text-slate-900">{patient.species}</span> • {patient.breed} •{' '}
-                <span className="text-slate-800 font-semibold">{patient.sex}</span> ({patient.reproductiveStatus}) •{' '}
-                <span className="text-amber-700 font-bold">{patient.calculatedAge}</span> • Peso:{' '}
-                <span className="text-teal-700 font-bold font-mono">{patient.weight} kg</span> • Color: {patient.color}
+                {[
+                  patient.species,
+                  patient.breed,
+                  patient.sex,
+                  patient.reproductiveStatus ? `(${patient.reproductiveStatus})` : null,
+                  patient.calculatedAge,
+                  patient.weight ? `Peso: ${formatWeight(patient.weight)}` : null,
+                  patient.color ? `Color: ${patient.color}` : null,
+                ]
+                  .filter(Boolean)
+                  .join(' • ')}
               </p>
 
               {patient.microchip && (
@@ -668,7 +676,7 @@ export const Patient360View: React.FC = () => {
                         <span>{evt.title}</span>
                       </span>
                     </div>
-                    <p className="text-[11px] text-slate-500">{new Date(evt.date).toLocaleDateString('es-AR')}</p>
+                    <p className="text-[11px] text-slate-500">{formatDate(evt.date)}</p>
                   </div>
                 ))}
               </div>
@@ -704,7 +712,7 @@ export const Patient360View: React.FC = () => {
                       {evt.tag}
                     </span>
                   </div>
-                  <p className="text-xs text-slate-500 font-medium">{evt.subtitle} • {new Date(evt.date).toLocaleDateString('es-AR')}</p>
+                  <p className="text-xs text-slate-500 font-medium">{evt.subtitle} • {formatDate(evt.date)}</p>
                   {evt.details && (
                     <p className="text-xs text-slate-700 bg-white p-2.5 rounded-xl border border-slate-200/80">
                       {evt.details}
@@ -798,7 +806,7 @@ export const Patient360View: React.FC = () => {
                 {patientVitals.map((v) => (
                   <tr key={v.id} className="hover:bg-slate-50/80">
                     <td className="p-3 text-slate-800 font-semibold font-sans">
-                      {new Date(v.recordedAt).toLocaleDateString('es-AR')} {new Date(v.recordedAt).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })} hs
+                      {formatDateTime(v.recordedAt)}
                     </td>
                     <td className="p-3 text-center font-bold text-slate-900">{v.temperature ? `${v.temperature}°C` : '-'}</td>
                     <td className="p-3 text-center text-slate-800">{v.heartRate || '-'}</td>
@@ -880,7 +888,7 @@ export const Patient360View: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <h4 className="font-bold text-slate-900 text-sm">Sector {hosp.sector} — Canil #{hosp.kennelNumber}</h4>
-                    <span className="text-slate-500 text-xs">Ingreso: {new Date(hosp.admittedAt).toLocaleDateString('es-AR')}</span>
+                    <span className="text-slate-500 text-xs">Ingreso: {formatDate(hosp.admittedAt)}</span>
                   </div>
                   <span className={`text-xs font-bold px-3 py-1 rounded-xl ${hosp.status === 'ACTIVA' ? 'bg-red-100 text-red-800 animate-pulse' : 'bg-slate-200 text-slate-800'}`}>
                     {hosp.status}
@@ -1060,7 +1068,7 @@ export const Patient360View: React.FC = () => {
               <div key={doc.id} className="p-4 bg-slate-50 border border-slate-200 rounded-2xl flex items-center justify-between text-xs">
                 <div>
                   <span className="font-bold text-slate-900 text-sm block">{doc.title}</span>
-                  <span className="text-slate-500 text-[11px]">{doc.type} • {new Date(doc.createdAt).toLocaleDateString('es-AR')}</span>
+                  <span className="text-slate-500 text-[11px]">{doc.type} • {formatDate(doc.createdAt)}</span>
                 </div>
                 <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-3 py-1 rounded-xl border border-emerald-200">
                   {doc.status}

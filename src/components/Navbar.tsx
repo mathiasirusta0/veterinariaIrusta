@@ -140,14 +140,13 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleMobileMenu }) => {
           )}
         </button>
 
-        {/* Action Button: + NUEVA ACCIÓN */}
+        {/* Action Button: + NUEVA ACCIÓN (Desktop only, mobile uses central floating FAB) */}
         <button
           onClick={() => setQuickModal('QUICK_ACTIONS')}
-          className="bg-teal-600 hover:bg-teal-500 text-white px-3.5 sm:px-4 py-2 rounded-xl text-xs font-bold shadow-md shadow-teal-600/20 transition-all active:scale-95 flex items-center gap-1.5"
+          className="hidden sm:flex bg-teal-600 hover:bg-teal-500 text-white px-3.5 sm:px-4 py-2 rounded-xl text-xs font-bold shadow-md shadow-teal-600/20 transition-all active:scale-95 items-center gap-1.5"
         >
           <Plus className="w-4 h-4" />
-          <span className="hidden sm:inline">+ NUEVA ACCIÓN</span>
-          <span className="sm:hidden">NUEVO</span>
+          <span>+ NUEVA ACCIÓN</span>
         </button>
       </div>
     </header>

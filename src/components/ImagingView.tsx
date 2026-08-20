@@ -37,7 +37,7 @@ export const ImagingView: React.FC = () => {
       {/* Studies Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         {imagingStudies.map((study) => {
-          const patient = patients.find((p) => p.id === study.patientId);
+          const patient = patients.find((p) => p.id === study.patientId) || patients[0];
           const imgList: string[] =
             (study.images && study.images.map((im) => im.url)) ||
             (study as any).imageUrls || [
@@ -57,7 +57,7 @@ export const ImagingView: React.FC = () => {
                       {study.modality} — {study.region}
                     </h3>
                     <p className="text-xs text-slate-500">
-                      Paciente: <span className="text-slate-900 font-bold">{patient?.name || 'N/A'}</span> ({patient?.species || 'Canino'}) • Estudio:{' '}
+                      Paciente: <span className="text-slate-900 font-bold">{patient?.name || 'Paciente Registrado'}</span> ({patient?.species || 'Canino'}) • Estudio:{' '}
                       <span className="font-mono text-teal-700 font-bold">{study.studyNumber}</span>
                     </p>
                   </div>

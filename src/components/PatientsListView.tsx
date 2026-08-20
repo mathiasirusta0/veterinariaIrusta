@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { useVet } from '../context/VetContext';
 import { Patient } from '../types';
+import { formatWeight } from '../utils/formatters';
 
 export const PatientsListView: React.FC = () => {
   const {
@@ -314,17 +315,24 @@ export const PatientsListView: React.FC = () => {
                       <div>
                         <div className="flex items-center gap-2">
                           <h3 className="text-base font-bold text-slate-900 group-hover:text-teal-700 transition-colors">
-                            {patient.name}
+                            {patient.name || 'Paciente'}
                           </h3>
                           <span className="text-[10px] font-mono bg-slate-100 px-1.5 py-0.5 rounded text-slate-600 border border-slate-200">
-                            {patient.clinicalRecordNumber}
+                            {patient.clinicalRecordNumber || 'HC-0000'}
                           </span>
                         </div>
                         <p className="text-xs text-slate-500 font-medium">
-                          {patient.species} • {patient.breed}
+                          {[patient.species, patient.breed].filter(Boolean).join(' • ') || 'Especie no especificada'}
                         </p>
                         <p className="text-xs text-slate-700 font-semibold mt-0.5">
-                          {patient.sex} • {patient.calculatedAge} • <span className="font-mono text-teal-800 font-bold">{patient.weight} kg</span>
+                          {[
+                            patient.sex,
+                            patient.reproductiveStatus ? `(${patient.reproductiveStatus})` : null,
+                            patient.calculatedAge,
+                          ]
+                            .filter(Boolean)
+                            .join(' • ')}{' '}
+                          • <span className="font-mono text-teal-800 font-bold">{formatWeight(patient.weight)}</span>
                         </p>
                       </div>
                     </div>

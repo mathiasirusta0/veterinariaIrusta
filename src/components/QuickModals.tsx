@@ -627,6 +627,7 @@ export const QuickModals: React.FC = () => {
                 <label className="text-slate-700 block font-bold mb-1">Fecha Nacimiento:</label>
                 <input
                   type="date"
+                  max={new Date().toISOString().split('T')[0]}
                   value={patBirth}
                   onChange={(e) => setPatBirth(e.target.value)}
                   className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-slate-900 font-mono"
@@ -637,6 +638,8 @@ export const QuickModals: React.FC = () => {
                 <input
                   type="number"
                   step="0.1"
+                  min="0.1"
+                  max="150"
                   value={patWeight}
                   onChange={(e) => setPatWeight(Number(e.target.value))}
                   required
@@ -1169,6 +1172,7 @@ export const QuickModals: React.FC = () => {
                 <label className="text-slate-700 block font-bold mb-1">Fecha:</label>
                 <input
                   type="date"
+                  min={new Date().toISOString().split('T')[0]}
                   value={surgDate}
                   onChange={(e) => setSurgDate(e.target.value)}
                   required
@@ -1295,6 +1299,7 @@ export const QuickModals: React.FC = () => {
                 <label className="text-slate-700 block font-bold mb-1">Fecha:</label>
                 <input
                   type="date"
+                  min={new Date().toISOString().split('T')[0]}
                   value={aptDate}
                   onChange={(e) => setAptDate(e.target.value)}
                   required
@@ -1336,11 +1341,13 @@ export const QuickModals: React.FC = () => {
                   onChange={(e) => setAptVetId(e.target.value)}
                   className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-slate-900 font-semibold"
                 >
-                  {users.map((u) => (
-                    <option key={u.id} value={u.id}>
-                      {u.name}
-                    </option>
-                  ))}
+                  {users
+                    .filter((u) => u.role === 'VETERINARIO' || (u.role as string) === 'DIRECTOR_MEDICO')
+                    .map((u) => (
+                      <option key={u.id} value={u.id}>
+                        {u.name}
+                      </option>
+                    ))}
                 </select>
               </div>
             </div>

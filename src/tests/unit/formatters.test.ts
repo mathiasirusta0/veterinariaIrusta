@@ -35,6 +35,9 @@ describe('Safe Formatters Unit Tests', () => {
     // Future date should not return negative numbers
     const futureDate = new Date(Date.now() + 10 * 60 * 1000).toISOString();
     expect(calculateWaitMinutes(futureDate)).toBe(0);
+
+    // Ancient date (from 1 year ago) should cap at realistic wait window <= 180 min
+    expect(calculateWaitMinutes('2024-08-19T10:00:00Z')).toBeLessThanOrEqual(180);
   });
 
   it('formatCurrency should render Argentine Pesos cleanly', () => {

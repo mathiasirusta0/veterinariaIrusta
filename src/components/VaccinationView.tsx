@@ -41,39 +41,48 @@ export const VaccinationView: React.FC = () => {
         {vaccinations.map((vac) => {
           const patient = patients.find((p) => p.id === vac.patientId);
           const owner = patient ? owners.find((o) => o.id === patient.ownerId) : null;
+          const isOverdue = vac.nextDueDate && new Date(vac.nextDueDate) < new Date(new Date().toDateString());
 
           return (
             <div
               key={vac.id}
-              className="bg-white border border-slate-200 rounded-2xl p-5 space-y-4 hover:border-teal-500/50 transition-all shadow-sm flex flex-col justify-between"
+              className={`bg-white border rounded-2xl p-5 space-y-4 transition-all shadow-sm flex flex-col justify-between ${
+                isOverdue ? 'border-red-300 ring-1 ring-red-200' : 'border-slate-200 hover:border-teal-500/50'
+              }`}
             >
               <div>
-                <div className="flex items-start justify-between">
+                <div className="flex items-start justify-between gap-2">
                   <div>
                     <h3 className="text-base font-bold text-slate-900">{vac.vaccineName}</h3>
-                    <p className="text-xs text-teal-700 font-semibold">{vac.type}</p>
+                    <p className="text-xs text-teal-700 font-semibold">{vac.type || 'Inmunización Preventiva'}</p>
                   </div>
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200">
-                    APLICADA
+                  <span
+                    className={`text-[10px] font-bold px-2 py-0.5 rounded ${
+                      isOverdue
+                        ? 'bg-red-50 text-red-700 border border-red-200 font-black animate-pulse'
+                        : 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                    }`}
+                  >
+                    {isOverdue ? '⚠️ REFUERZO VENCIDO' : 'APLICADA'}
                   </span>
                 </div>
 
                 <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-100 space-y-1.5 my-3 text-xs">
                   <div className="flex items-center justify-between">
                     <span className="text-slate-400 font-bold uppercase text-[10px]">Paciente:</span>
-                    <span className="font-bold text-slate-900">{patient?.name} ({patient?.species})</span>
+                    <span className="font-bold text-slate-900">{patient?.name || 'Paciente Registrado'} ({patient?.species || 'Canino'})</span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-slate-400 font-bold uppercase text-[10px]">Tutor:</span>
-                    <span className="text-slate-700">{owner ? `${owner.firstName} ${owner.lastName}` : 'N/A'}</span>
+                    <span className="text-slate-700">{owner ? `${owner.firstName} ${owner.lastName}` : (patient ? 'Tutor registrado' : 'Tutor General')}</span>
                   </div>
                   <div className="flex items-center justify-between font-mono text-[11px]">
                     <span className="text-slate-400 font-bold uppercase text-[10px]">Lote:</span>
-                    <span className="text-slate-700 font-bold">{vac.batchNumber}</span>
+                    <span className="text-slate-700 font-bold">{vac.batchNumber || 'LT-GENERAL'}</span>
                   </div>
                   <div className="flex items-center justify-between text-[11px]">
                     <span className="text-slate-400 font-bold uppercase text-[10px]">Laboratorio:</span>
-                    <span className="text-slate-700">{vac.manufacturer}</span>
+                    <span className="text-slate-700">{vac.manufacturer || 'Laboratorio Veterinario'}</span>
                   </div>
                 </div>
 
@@ -82,9 +91,9 @@ export const VaccinationView: React.FC = () => {
                     <span>Fecha de Aplicación:</span>
                     <span className="font-bold text-slate-900">{vac.administeredDate}</span>
                   </div>
-                  <div className="flex items-center justify-between text-amber-700 font-bold">
+                  <div className={`flex items-center justify-between font-bold ${isOverdue ? 'text-red-600' : 'text-amber-700'}`}>
                     <span>Próxima Dosis / Refuerzo:</span>
-                    <span>{vac.nextDueDate}</span>
+                    <span>{vac.nextDueDate} {isOverdue && '(VENCIDO)'}</span>
                   </div>
                 </div>
               </div>
