@@ -42,38 +42,48 @@ export const PatientsListView: React.FC = () => {
   const [speciesFilter, setSpeciesFilter] = useState('TODOS');
   const [statusFilter, setStatusFilter] = useState('TODOS');
   const [viewMode, setViewMode] = useState<'GRID' | 'TABLE'>('GRID');
+  const [sortBy, setSortBy] = useState<'NAME_ASC' | 'RECENT' | 'WEIGHT_DESC' | 'WEIGHT_ASC' | 'AGE_DESC'>('NAME_ASC');
 
   // Filter logic
-  const filteredPatients = patients.filter((p) => {
-    const q = search.toLowerCase();
-    const owner = owners.find((o) => o.id === p.ownerId);
-    const ownerName = owner ? `${owner.firstName} ${owner.lastName}`.toLowerCase() : '';
-    const ownerPhone = owner?.phone || '';
+  const filteredPatients = patients
+    .filter((p) => {
+      const q = search.toLowerCase();
+      const owner = owners.find((o) => o.id === p.ownerId);
+      const ownerName = owner ? `${owner.firstName} ${owner.lastName}`.toLowerCase() : '';
+      const ownerPhone = owner?.phone || '';
 
-    const matchesSearch =
-      p.name.toLowerCase().includes(q) ||
-      p.clinicalRecordNumber.toLowerCase().includes(q) ||
-      p.breed.toLowerCase().includes(q) ||
-      (p.microchip && p.microchip.includes(q)) ||
-      ownerName.includes(q) ||
-      ownerPhone.includes(q);
+      const matchesSearch =
+        p.name.toLowerCase().includes(q) ||
+        p.clinicalRecordNumber.toLowerCase().includes(q) ||
+        p.breed.toLowerCase().includes(q) ||
+        (p.microchip && p.microchip.includes(q)) ||
+        ownerName.includes(q) ||
+        ownerPhone.includes(q);
 
-    const matchesSpecies =
-      speciesFilter === 'TODOS' ||
-      p.species?.toUpperCase() === speciesFilter.toUpperCase() ||
-      (speciesFilter.toUpperCase().startsWith('EX') && p.species?.toUpperCase().startsWith('EX'));
-    
-    let matchesStatus = true;
-    if (statusFilter === 'INTERNADO') {
-      matchesStatus = p.status === 'INTERNADO' || hospitalizations.some((h) => h.patientId === p.id && h.status === 'ACTIVA');
-    } else if (statusFilter === 'ALERGIAS') {
-      matchesStatus = !!(p.alerts && p.alerts.length > 0);
-    } else if (statusFilter !== 'TODOS') {
-      matchesStatus = p.status === statusFilter;
-    }
+      const matchesSpecies =
+        speciesFilter === 'TODOS' ||
+        p.species?.toUpperCase() === speciesFilter.toUpperCase() ||
+        (speciesFilter.toUpperCase().startsWith('EX') && p.species?.toUpperCase().startsWith('EX'));
+      
+      let matchesStatus = true;
+      if (statusFilter === 'INTERNADO') {
+        matchesStatus = p.status === 'INTERNADO' || hospitalizations.some((h) => h.patientId === p.id && h.status === 'ACTIVA');
+      } else if (statusFilter === 'ALERGIAS') {
+        matchesStatus = !!(p.alerts && p.alerts.length > 0);
+      } else if (statusFilter !== 'TODOS') {
+        matchesStatus = p.status === statusFilter;
+      }
 
-    return matchesSearch && matchesSpecies && matchesStatus;
-  });
+      return matchesSearch && matchesSpecies && matchesStatus;
+    })
+    .sort((a, b) => {
+      if (sortBy === 'NAME_ASC') return a.name.localeCompare(b.name);
+      if (sortBy === 'RECENT') return new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime();
+      if (sortBy === 'WEIGHT_DESC') return (b.weight || 0) - (a.weight || 0);
+      if (sortBy === 'WEIGHT_ASC') return (a.weight || 0) - (b.weight || 0);
+      if (sortBy === 'AGE_DESC') return new Date(a.birthDate || '2020-01-01').getTime() - new Date(b.birthDate || '2020-01-01').getTime();
+      return 0;
+    });
 
   const handleOpenPatient = (id: string, tab = 'RESUMEN') => {
     setSelectedPatientId(id);
@@ -251,6 +261,21 @@ export const PatientsListView: React.FC = () => {
         </div>
 
         <div className="flex items-center gap-2 self-end md:self-auto flex-shrink-0">
+          <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 px-2.5 py-1.5 rounded-xl">
+            <span className="text-[10px] uppercase font-bold text-slate-400">Ordenar:</span>
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value as any)}
+              className="bg-transparent font-bold text-slate-700 text-xs focus:outline-none cursor-pointer"
+            >
+              <option value="NAME_ASC">Nombre (A - Z)</option>
+              <option value="RECENT">Más Recientes</option>
+              <option value="WEIGHT_DESC">Mayor Peso</option>
+              <option value="WEIGHT_ASC">Menor Peso</option>
+              <option value="AGE_DESC">Mayor Edad</option>
+            </select>
+          </div>
+
           <div className="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200">
             <button
               onClick={() => setViewMode('GRID')}
@@ -414,6 +439,17 @@ export const PatientsListView: React.FC = () => {
                 {/* Card Fast Action Bar */}
                 <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs gap-2">
                   <div className="flex items-center gap-1.5 text-[11px]">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedPatientId(patient.id);
+                        setQuickModal('NUEVA_CONSULTA');
+                      }}
+                      className="px-2 py-1 rounded-lg bg-teal-50 hover:bg-teal-100 text-teal-700 font-bold text-[10px] transition-colors border border-teal-200"
+                      title="Iniciar Nueva Consulta SOAP"
+                    >
+                      + SOAP
+                    </button>
                     <button
                       onClick={(e) => {
                         e.stopPropagation();

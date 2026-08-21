@@ -31,9 +31,14 @@ import {
   ExternalLink,
   Stethoscope,
   Heart,
+  Edit3,
+  Trash2,
+  Scale,
+  X,
+  Check,
 } from 'lucide-react';
 import { useVet } from '../context/VetContext';
-import { ProblemStatus, PatientProblem } from '../types';
+import { ProblemStatus, PatientProblem, Species, Sex, ReproductiveStatus, PatientStatus, PatientAlert, Patient } from '../types';
 import { formatDate, formatDateTime, formatTime, formatWeight } from '../utils/formatters';
 
 export const Patient360View: React.FC = () => {
@@ -56,6 +61,10 @@ export const Patient360View: React.FC = () => {
     setActivePatientTab,
     setActiveView,
     setQuickModal,
+    updatePatient,
+    addPatientAlert,
+    removePatientAlert,
+    recordPatientWeight,
     addProblem,
     updateProblemStatus,
     callAiAssistant,
@@ -78,6 +87,19 @@ export const Patient360View: React.FC = () => {
   const [newProblemTitle, setNewProblemTitle] = useState('');
   const [newProblemDesc, setNewProblemDesc] = useState('');
   const [newProblemStatus, setNewProblemStatus] = useState<ProblemStatus>('ACTIVO');
+
+  // Edit Patient Modal State
+  const [showEditPatientModal, setShowEditPatientModal] = useState(false);
+  const [editFormData, setEditFormData] = useState<Partial<Patient>>({});
+
+  // Manage Alerts Modal State
+  const [showAlertsModal, setShowAlertsModal] = useState(false);
+  const [newAlertType, setNewAlertType] = useState<PatientAlert>('ALERGIA');
+  const [newAlertDesc, setNewAlertDesc] = useState('');
+
+  // Quick Weight Modal State
+  const [showWeightModal, setShowWeightModal] = useState(false);
+  const [newWeightValue, setNewWeightValue] = useState<string>('');
 
   const patient = patients.find((p) => p.id === selectedPatientId) || patients[0];
   if (!patient) {
@@ -226,6 +248,60 @@ export const Patient360View: React.FC = () => {
     navigator.clipboard.writeText(chip);
     showToast('info', 'Microchip Copiado', `Código ISO ${chip} copiado al portapapeles.`);
   };
+
+  const handleOpenEditModal = () => {
+    setEditFormData({
+      name: patient.name,
+      species: patient.species,
+      breed: patient.breed,
+      sex: patient.sex,
+      reproductiveStatus: patient.reproductiveStatus,
+      birthDate: patient.birthDate,
+      calculatedAge: patient.calculatedAge,
+      weight: patient.weight,
+      color: patient.color,
+      microchip: patient.microchip || '',
+      photoUrl: patient.photoUrl || '',
+      status: patient.status,
+    });
+    setShowEditPatientModal(true);
+  };
+
+  const handleSavePatientEdit = (e: React.FormEvent) => {
+    e.preventDefault();
+    updatePatient(patient.id, editFormData);
+    setShowEditPatientModal(false);
+    showToast('success', 'Ficha Actualizada', `Datos clínicos de ${editFormData.name || patient.name} guardados.`);
+  };
+
+  const handleAddAlert = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newAlertDesc.trim()) return;
+    addPatientAlert(patient.id, { type: newAlertType, description: newAlertDesc.trim() });
+    setNewAlertDesc('');
+    showToast('success', 'Alerta Registrada', `Alerta de tipo ${newAlertType} añadida.`);
+  };
+
+  const handleRemoveAlert = (idx: number) => {
+    removePatientAlert(patient.id, idx);
+    showToast('info', 'Alerta Removida', 'La condición médica fue actualizada.');
+  };
+
+  const handleSaveWeight = (e: React.FormEvent) => {
+    e.preventDefault();
+    const w = parseFloat(newWeightValue);
+    if (!w || isNaN(w) || w <= 0) return;
+    recordPatientWeight(patient.id, w);
+    setShowWeightModal(false);
+    setNewWeightValue('');
+    showToast('success', 'Peso Actualizado', `Nuevo peso registrado: ${w} kg.`);
+  };
+
+  // Weight progression calculation
+  const vitalsWithWeight = patientVitals.filter((v) => v.weight && v.weight > 0);
+  const previousVitalWithWeight = vitalsWithWeight.find((v) => v.id !== latestVital?.id && v.weight && Math.abs(v.weight - patient.weight) > 0.01);
+  const weightDiff = previousVitalWithWeight?.weight ? Math.round((patient.weight - previousVitalWithWeight.weight) * 10) / 10 : null;
+  const weightPercentChange = previousVitalWithWeight?.weight ? ((weightDiff! / previousVitalWithWeight.weight) * 100).toFixed(1) : null;
 
   return (
     <div className="space-y-5 pb-12">
@@ -394,18 +470,53 @@ export const Patient360View: React.FC = () => {
                   .join(' • ')}
               </p>
 
-              {patient.microchip && (
-                <div className="flex items-center gap-1.5 mt-1 text-[11px] font-mono text-slate-500">
-                  <span>Microchip ISO: <strong className="text-slate-700">{patient.microchip}</strong></span>
-                  <button
-                    onClick={() => handleCopyMicrochip(patient.microchip!)}
-                    className="text-teal-600 hover:text-teal-800 p-0.5"
-                    title="Copiar código microchip"
-                  >
-                    <Copy className="w-3 h-3" />
-                  </button>
-                </div>
-              )}
+              {/* Quick Patient Identity Badges & Actions */}
+              <div className="flex flex-wrap items-center gap-2 mt-2">
+                {patient.microchip ? (
+                  <div className="flex items-center gap-1 bg-slate-100 px-2.5 py-1 rounded-lg border border-slate-200 text-[11px] font-mono text-slate-700">
+                    <span>CHIP: <strong className="text-slate-900">{patient.microchip}</strong></span>
+                    <button
+                      onClick={() => handleCopyMicrochip(patient.microchip!)}
+                      className="text-teal-600 hover:text-teal-800 p-0.5"
+                      title="Copiar código microchip"
+                    >
+                      <Copy className="w-3 h-3" />
+                    </button>
+                  </div>
+                ) : (
+                  <span className="text-[11px] text-slate-400 font-medium">Sin Microchip ISO</span>
+                )}
+
+                <button
+                  onClick={handleOpenEditModal}
+                  className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-teal-50 hover:bg-teal-100 text-teal-700 border border-teal-200 text-[11px] font-bold transition-colors"
+                  title="Editar datos del paciente"
+                >
+                  <Edit3 className="w-3 h-3" />
+                  <span>Editar Ficha</span>
+                </button>
+
+                <button
+                  onClick={() => setShowAlertsModal(true)}
+                  className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 text-[11px] font-bold transition-colors"
+                  title="Gestionar condiciones médicas críticas y alergias"
+                >
+                  <AlertTriangle className="w-3 h-3" />
+                  <span>Alertas ({patient.alerts?.length || 0})</span>
+                </button>
+
+                <button
+                  onClick={() => {
+                    setNewWeightValue(patient.weight ? patient.weight.toString() : '');
+                    setShowWeightModal(true);
+                  }}
+                  className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200 text-[11px] font-bold transition-colors"
+                  title="Registrar nuevo pesaje del paciente"
+                >
+                  <Scale className="w-3 h-3 text-teal-600" />
+                  <span>Registrar Peso</span>
+                </button>
+              </div>
             </div>
           </div>
 
@@ -555,14 +666,40 @@ export const Patient360View: React.FC = () => {
 
               {/* Weight & Temperature Evolution Curve */}
               <div className="mt-4 pt-4 border-t border-slate-100 space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
-                    <TrendingUp className="w-3.5 h-3.5 text-teal-600" />
-                    Curva de Evolución de Peso & Constantes
-                  </span>
-                  <span className="text-[11px] text-teal-700 font-bold font-mono">
-                    Peso Actual: {patient.weight} kg
-                  </span>
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <div>
+                    <span className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
+                      <TrendingUp className="w-3.5 h-3.5 text-teal-600" />
+                      Control Ponderal & Evolución de Peso
+                    </span>
+                    <p className="text-[11px] text-slate-400">Seguimiento nutricional y cálculo de variaciones biométricas</p>
+                  </div>
+                  
+                  <div className="flex items-center gap-2">
+                    {weightDiff !== null && (
+                      <span className={`text-[11px] font-bold px-2.5 py-1 rounded-xl border flex items-center gap-1 ${
+                        weightDiff > 0
+                          ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                          : weightDiff < 0
+                          ? 'bg-amber-50 text-amber-700 border-amber-200'
+                          : 'bg-slate-50 text-slate-600 border-slate-200'
+                      }`}>
+                        <span>{weightDiff > 0 ? '▲ +' : '▼ '}{weightDiff} kg</span>
+                        <span className="text-[10px] font-normal">({weightPercentChange}%)</span>
+                      </span>
+                    )}
+
+                    <button
+                      onClick={() => {
+                        setNewWeightValue(patient.weight ? patient.weight.toString() : '');
+                        setShowWeightModal(true);
+                      }}
+                      className="px-3 py-1 bg-teal-600 hover:bg-teal-500 text-white rounded-xl text-xs font-bold shadow-2xs transition-colors flex items-center gap-1"
+                    >
+                      <Plus className="w-3 h-3" />
+                      <span>Nuevo Pesaje</span>
+                    </button>
+                  </div>
                 </div>
 
                 <div className="bg-slate-50 p-3.5 rounded-2xl border border-slate-200">
@@ -572,12 +709,21 @@ export const Patient360View: React.FC = () => {
                       { date: 'Hace 3m', weight: (patient.weight * 0.94).toFixed(1), temp: 38.4 },
                       { date: 'Hace 2m', weight: (patient.weight * 0.97).toFixed(1), temp: 38.6 },
                       { date: 'Hace 1m', weight: (patient.weight * 0.99).toFixed(1), temp: 38.5 },
-                      { date: 'Hoy', weight: patient.weight.toFixed(1), temp: latestVital?.temperature || 38.5 },
+                      { date: 'Actual', weight: patient.weight.toFixed(1), temp: latestVital?.temperature || 38.5 },
                     ].map((pt, idx) => (
                       <div key={idx} className="flex-1 flex flex-col items-center gap-1 z-10">
-                        <span className="text-[10px] font-bold font-mono text-teal-700">{pt.weight} kg</span>
-                        <div className="w-3 rounded-t-lg bg-teal-500 transition-all hover:bg-teal-600" style={{ height: `${40 + idx * 12}px` }}></div>
-                        <span className="text-[9px] text-slate-400 font-medium">{pt.date}</span>
+                        <span className={`text-[10px] font-bold font-mono ${idx === 3 ? 'text-teal-700 font-black' : 'text-slate-500'}`}>
+                          {pt.weight} kg
+                        </span>
+                        <div
+                          className={`w-3.5 rounded-t-lg transition-all hover:scale-110 ${
+                            idx === 3 ? 'bg-teal-600' : 'bg-teal-400/60'
+                          }`}
+                          style={{ height: `${40 + idx * 14}px` }}
+                        ></div>
+                        <span className={`text-[9px] font-medium ${idx === 3 ? 'text-teal-800 font-bold' : 'text-slate-400'}`}>
+                          {pt.date}
+                        </span>
                       </div>
                     ))}
                   </div>
@@ -1150,6 +1296,372 @@ export const Patient360View: React.FC = () => {
                   className="px-5 py-2 bg-teal-600 hover:bg-teal-500 text-white rounded-xl text-xs font-bold shadow-sm active:scale-95 transition-all"
                 >
                   Guardar Diagnóstico
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* 1. EDIT PATIENT MODAL */}
+      {showEditPatientModal && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 p-4 overflow-y-auto">
+          <div className="bg-white rounded-3xl p-6 border border-slate-200 max-w-2xl w-full shadow-2xl space-y-4 max-h-[92vh] overflow-y-auto animate-in fade-in zoom-in-95 duration-150">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-xl bg-teal-50 text-teal-700 flex items-center justify-center font-bold">
+                  <Edit3 className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-slate-900">Editar Ficha Clínica del Paciente</h3>
+                  <p className="text-xs text-slate-400">Actualizar datos biológicos, identificación y estado clínico</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowEditPatientModal(false)}
+                className="p-1.5 text-slate-400 hover:text-slate-700 rounded-lg hover:bg-slate-100"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSavePatientEdit} className="space-y-4 text-xs">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="font-bold text-slate-700 block mb-1">Nombre de la Mascota *</label>
+                  <input
+                    type="text"
+                    value={editFormData.name || ''}
+                    onChange={(e) => setEditFormData({ ...editFormData, name: e.target.value })}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 font-bold text-slate-900 focus:ring-2 focus:ring-teal-500"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="font-bold text-slate-700 block mb-1">Especie *</label>
+                  <select
+                    value={editFormData.species || 'CANINO'}
+                    onChange={(e) => setEditFormData({ ...editFormData, species: e.target.value as Species })}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 font-bold text-slate-900 focus:ring-2 focus:ring-teal-500"
+                  >
+                    <option value="CANINO">🐕 Canino</option>
+                    <option value="FELINO">🐈 Felino</option>
+                    <option value="EXOTICO">🦜 Exótico / No Convencional</option>
+                    <option value="EQUINO">🐎 Equino</option>
+                    <option value="BOVINO">🐄 Bovino</option>
+                    <option value="AVE">🕊️ Ave</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="font-bold text-slate-700 block mb-1">Raza</label>
+                  <input
+                    type="text"
+                    value={editFormData.breed || ''}
+                    onChange={(e) => setEditFormData({ ...editFormData, breed: e.target.value })}
+                    placeholder="Ej: Golden Retriever, Mestizo, Siamés"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-slate-900 focus:ring-2 focus:ring-teal-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="font-bold text-slate-700 block mb-1">Sexo *</label>
+                  <select
+                    value={editFormData.sex || 'MACHO'}
+                    onChange={(e) => setEditFormData({ ...editFormData, sex: e.target.value as Sex })}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 font-bold text-slate-900 focus:ring-2 focus:ring-teal-500"
+                  >
+                    <option value="MACHO">Macho</option>
+                    <option value="HEMBRA">Hembra</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="font-bold text-slate-700 block mb-1">Estado Reproductivo</label>
+                  <select
+                    value={editFormData.reproductiveStatus || 'CASTRADO'}
+                    onChange={(e) => setEditFormData({ ...editFormData, reproductiveStatus: e.target.value as ReproductiveStatus })}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-slate-900 focus:ring-2 focus:ring-teal-500"
+                  >
+                    <option value="CASTRADO">Castrado / Esterilizado</option>
+                    <option value="ENTERO">Entero</option>
+                    <option value="GESTANTE">Gestante</option>
+                    <option value="LACTANTE">Lactante</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="font-bold text-slate-700 block mb-1">Peso Corporal (kg) *</label>
+                  <input
+                    type="number"
+                    step="0.1"
+                    min="0.1"
+                    max="250"
+                    value={editFormData.weight || ''}
+                    onChange={(e) => setEditFormData({ ...editFormData, weight: parseFloat(e.target.value) || 0 })}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 font-mono font-bold text-slate-900 focus:ring-2 focus:ring-teal-500"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="font-bold text-slate-700 block mb-1">Fecha de Nacimiento</label>
+                  <input
+                    type="date"
+                    max={new Date().toISOString().split('T')[0]}
+                    value={editFormData.birthDate || ''}
+                    onChange={(e) => setEditFormData({ ...editFormData, birthDate: e.target.value })}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-slate-900 focus:ring-2 focus:ring-teal-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="font-bold text-slate-700 block mb-1">Color y Señas Particulares</label>
+                  <input
+                    type="text"
+                    value={editFormData.color || ''}
+                    onChange={(e) => setEditFormData({ ...editFormData, color: e.target.value })}
+                    placeholder="Ej: Dorado, Atigrado, Blanco con manchas"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-slate-900 focus:ring-2 focus:ring-teal-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="font-bold text-slate-700 block mb-1">Microchip ISO (15 dígitos)</label>
+                  <input
+                    type="text"
+                    maxLength={15}
+                    value={editFormData.microchip || ''}
+                    onChange={(e) => setEditFormData({ ...editFormData, microchip: e.target.value })}
+                    placeholder="Ej: 981098123456789"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 font-mono text-slate-900 focus:ring-2 focus:ring-teal-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="font-bold text-slate-700 block mb-1">Estado Clínico del Paciente</label>
+                  <select
+                    value={editFormData.status || 'ACTIVO'}
+                    onChange={(e) => setEditFormData({ ...editFormData, status: e.target.value as PatientStatus })}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 font-bold text-slate-900 focus:ring-2 focus:ring-teal-500"
+                  >
+                    <option value="ACTIVO">🟢 Activo / Ambulatorio</option>
+                    <option value="INTERNADO">🏥 Internado en UCI</option>
+                    <option value="EN_CONSULTA">🩺 En Consulta</option>
+                    <option value="EN_CIRUGIA">✂️ En Quirófano</option>
+                    <option value="FALLECIDO">⚫ Fallecido / Óbito</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="font-bold text-slate-700 block mb-1">URL de Foto de Perfil</label>
+                <input
+                  type="url"
+                  value={editFormData.photoUrl || ''}
+                  onChange={(e) => setEditFormData({ ...editFormData, photoUrl: e.target.value })}
+                  placeholder="https://..."
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 font-mono text-[11px] text-slate-900 focus:ring-2 focus:ring-teal-500"
+                />
+              </div>
+
+              <div className="flex justify-end gap-2 pt-3 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setShowEditPatientModal(false)}
+                  className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  className="px-6 py-2.5 bg-teal-600 hover:bg-teal-500 text-white rounded-xl font-bold shadow-md shadow-teal-600/20 active:scale-95 transition-all"
+                >
+                  Guardar Cambios
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* 2. MANAGE MEDICAL ALERTS & ALLERGIES MODAL */}
+      {showAlertsModal && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-3xl p-6 border border-slate-200 max-w-lg w-full shadow-2xl space-y-4 animate-in fade-in zoom-in-95 duration-150">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-xl bg-red-50 text-red-600 flex items-center justify-center font-bold">
+                  <AlertTriangle className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-slate-900">Alertas Médicas & Alergias</h3>
+                  <p className="text-xs text-slate-400">{patient.name} ({patient.species} - {patient.breed})</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowAlertsModal(false)}
+                className="p-1.5 text-slate-400 hover:text-slate-700 rounded-lg hover:bg-slate-100"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* List of active alerts */}
+            <div className="space-y-2 max-h-48 overflow-y-auto">
+              {patient.alerts && patient.alerts.length > 0 ? (
+                patient.alerts.map((al, idx) => (
+                  <div
+                    key={idx}
+                    className="flex items-center justify-between p-2.5 rounded-xl bg-red-50/80 border border-red-200 text-xs"
+                  >
+                    <div>
+                      <span className="font-black text-red-700 block uppercase text-[10px]">{al.type}</span>
+                      <p className="text-slate-800 font-medium">{al.description}</p>
+                    </div>
+                    <button
+                      onClick={() => handleRemoveAlert(idx)}
+                      className="text-red-500 hover:text-red-700 p-1.5 rounded-lg hover:bg-red-100 transition-colors ml-2"
+                      title="Eliminar alerta médica"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                ))
+              ) : (
+                <div className="p-4 text-center text-slate-400 bg-slate-50 rounded-xl text-xs">
+                  No hay alertas médicas ni alergias registradas para este paciente.
+                </div>
+              )}
+            </div>
+
+            {/* Add new alert form */}
+            <form onSubmit={handleAddAlert} className="space-y-3 pt-3 border-t border-slate-100 text-xs">
+              <span className="font-bold text-slate-800 block text-xs">+ Agregar Nueva Alerta Clínica</span>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                <div>
+                  <label className="text-[10px] uppercase font-bold text-slate-500 block mb-1">Tipo:</label>
+                  <select
+                    value={newAlertType}
+                    onChange={(e) => setNewAlertType(e.target.value as PatientAlert)}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2 font-bold text-slate-900"
+                  >
+                    <option value="ALERGIA">⚠️ ALERGIA</option>
+                    <option value="RIESGO_ANESTESICO">🫁 RIESGO ANESTÉSICO</option>
+                    <option value="CARDIOPATIA">❤️ CARDIOPATÍA</option>
+                    <option value="MEDICACION_CRONICA">💊 MEDICACIÓN CRÓNICA</option>
+                    <option value="AISLAMIENTO">🛡️ AISLAMIENTO</option>
+                    <option value="AGRESIVO">⚡ AGRESIVO / MANEJO</option>
+                    <option value="EPILEPTICO">🧠 EPILÉPTICO</option>
+                    <option value="DIABETICO">💉 DIABÉTICO</option>
+                    <option value="RENAL">💧 INSUF. RENAL</option>
+                  </select>
+                </div>
+                <div className="sm:col-span-2">
+                  <label className="text-[10px] uppercase font-bold text-slate-500 block mb-1">Detalle / Fármaco:</label>
+                  <input
+                    type="text"
+                    value={newAlertDesc}
+                    onChange={(e) => setNewAlertDesc(e.target.value)}
+                    placeholder="Ej: Alérgico a Dipirona. Causa hipotensión."
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2 text-slate-900"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowAlertsModal(false)}
+                  className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold"
+                >
+                  Cerrar
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 bg-red-600 hover:bg-red-500 text-white rounded-xl font-bold shadow-sm active:scale-95 transition-all"
+                >
+                  + Agregar Alerta
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* 3. RECORD WEIGHT MODAL */}
+      {showWeightModal && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-3xl p-6 border border-slate-200 max-w-sm w-full shadow-2xl space-y-4 animate-in fade-in zoom-in-95 duration-150">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-xl bg-teal-50 text-teal-700 flex items-center justify-center font-bold">
+                  <Scale className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-slate-900">Control Ponderal</h3>
+                  <p className="text-xs text-slate-400">{patient.name} (Anterior: {formatWeight(patient.weight)})</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowWeightModal(false)}
+                className="p-1.5 text-slate-400 hover:text-slate-700 rounded-lg hover:bg-slate-100"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveWeight} className="space-y-4 text-xs">
+              <div>
+                <label className="font-bold text-slate-700 block mb-1">Nuevo Peso Registrado (kg):</label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="number"
+                    step="0.1"
+                    min="0.1"
+                    max="250"
+                    value={newWeightValue}
+                    onChange={(e) => setNewWeightValue(e.target.value)}
+                    placeholder="0.0"
+                    className="flex-1 bg-slate-50 border border-slate-200 rounded-xl p-3 font-mono font-black text-xl text-center text-slate-900 focus:ring-2 focus:ring-teal-500"
+                    required
+                    autoFocus
+                  />
+                  <span className="font-black text-slate-700 text-sm">kg</span>
+                </div>
+              </div>
+
+              {newWeightValue && parseFloat(newWeightValue) > 0 && (
+                <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-[11px] text-slate-600 flex items-center justify-between">
+                  <span>Variación:</span>
+                  <span className={`font-bold font-mono ${
+                    parseFloat(newWeightValue) > patient.weight
+                      ? 'text-emerald-600'
+                      : parseFloat(newWeightValue) < patient.weight
+                      ? 'text-amber-600'
+                      : 'text-slate-600'
+                  }`}>
+                    {parseFloat(newWeightValue) > patient.weight ? '+' : ''}
+                    {(parseFloat(newWeightValue) - patient.weight).toFixed(1)} kg
+                  </span>
+                </div>
+              )}
+
+              <div className="flex justify-end gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowWeightModal(false)}
+                  className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 bg-teal-600 hover:bg-teal-500 text-white rounded-xl font-bold shadow-md shadow-teal-600/20 active:scale-95 transition-all"
+                >
+                  Guardar Pesaje
                 </button>
               </div>
             </form>

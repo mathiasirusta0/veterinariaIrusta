@@ -23,6 +23,7 @@ import {
   ClinicalDocument,
   AuditLog,
   HospitalPriority,
+  PatientAlert,
 } from '../types';
 import {
   INITIAL_BRANCHES,
@@ -105,6 +106,10 @@ interface VetContextType {
   updateOwner: (id: string, data: Partial<Owner>) => void;
   addPatient: (patient: Omit<Patient, 'id' | 'createdAt' | 'clinicalRecordNumber'>) => Patient;
   updatePatient: (id: string, data: Partial<Patient>) => void;
+  deletePatient: (id: string) => void;
+  addPatientAlert: (patientId: string, alert: { type: PatientAlert; description: string }) => void;
+  removePatientAlert: (patientId: string, alertIndex: number) => void;
+  recordPatientWeight: (patientId: string, newWeight: number, recordedBy?: string) => void;
   addProblem: (problem: Omit<PatientProblem, 'id'>) => void;
   updateProblemStatus: (problemId: string, status: PatientProblem['status']) => void;
 
@@ -627,6 +632,75 @@ export const VetProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         return p;
       })
     );
+  };
+
+  const deletePatient = (id: string) => {
+    const p = patients.find((pat) => pat.id === id);
+    setPatients((prev) => prev.filter((pat) => pat.id !== id));
+    logAudit('ELIMINAR_PACIENTE', 'Patient', id, `Eliminación de paciente: ${p?.name || id}`);
+    if (selectedPatientId === id) {
+      setSelectedPatientId(patients.find((pat) => pat.id !== id)?.id || null);
+    }
+  };
+
+  const addPatientAlert = (patientId: string, alert: { type: PatientAlert; description: string }) => {
+    setPatients((prev) =>
+      prev.map((p) => {
+        if (p.id === patientId) {
+          const currentAlerts = p.alerts || [];
+          const updatedAlerts = [...currentAlerts, alert];
+          const updated = { ...p, alerts: updatedAlerts };
+          syncPatientToSupabase(updated);
+          logAudit('AGREGAR_ALERTA', 'Patient', patientId, `Alerta añadida a ${p.name}: ${alert.type} - ${alert.description}`);
+          return updated;
+        }
+        return p;
+      })
+    );
+  };
+
+  const removePatientAlert = (patientId: string, alertIndex: number) => {
+    setPatients((prev) =>
+      prev.map((p) => {
+        if (p.id === patientId) {
+          const updatedAlerts = (p.alerts || []).filter((_, idx) => idx !== alertIndex);
+          const updated = { ...p, alerts: updatedAlerts };
+          syncPatientToSupabase(updated);
+          logAudit('REMOVER_ALERTA', 'Patient', patientId, `Alerta removida de ${p.name} (índice ${alertIndex})`);
+          return updated;
+        }
+        return p;
+      })
+    );
+  };
+
+  const recordPatientWeight = (patientId: string, newWeight: number, recordedBy?: string) => {
+    const validWeight = Math.max(0.1, Math.min(250, Number(newWeight) || 1));
+    const now = new Date().toISOString();
+    const staff = recordedBy || currentUser?.name || 'Dr. Veterinario';
+
+    // 1. Update patient weight in patient record
+    setPatients((prev) =>
+      prev.map((p) => {
+        if (p.id === patientId) {
+          const updated = { ...p, weight: validWeight };
+          syncPatientToSupabase(updated);
+          return updated;
+        }
+        return p;
+      })
+    );
+
+    // 2. Add vital sign entry for longitudinal weight tracking
+    const newVital: VitalSigns = {
+      id: `vit-${Date.now()}`,
+      patientId,
+      recordedAt: now,
+      recordedBy: staff,
+      weight: validWeight,
+    };
+    setVitals((prev) => [newVital, ...prev]);
+    logAudit('REGISTRO_PESO', 'Patient', patientId, `Control de peso: ${validWeight} kg por ${staff}`);
   };
 
   const addProblem = (data: Omit<PatientProblem, 'id'>) => {
@@ -1272,6 +1346,10 @@ Hoy hemos evaluado a ${petName} en nuestro centro hospitalario. Queremos transmi
         updateOwner,
         addPatient,
         updatePatient,
+        deletePatient,
+        addPatientAlert,
+        removePatientAlert,
+        recordPatientWeight,
         addProblem,
         updateProblemStatus,
 
