@@ -307,9 +307,18 @@ export const Patient360View: React.FC = () => {
     <div className="space-y-5 pb-12">
       {/* Top Bar: Selector & Actions */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white border border-slate-200 p-4 rounded-2xl shadow-2xs">
-        <div className="flex items-center gap-2">
-          <label className="text-xs text-slate-500 font-bold uppercase tracking-wider">
-            Ver Paciente:
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            onClick={() => setSelectedPatientId(null)}
+            className="flex items-center gap-1.5 px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition-colors"
+            title="Volver a la lista de pacientes"
+          >
+            <span>←</span>
+            <span>Volver al Directorio</span>
+          </button>
+
+          <label className="text-xs text-slate-500 font-bold uppercase tracking-wider hidden sm:inline-block">
+            Paciente:
           </label>
           <select
             value={patient.id}

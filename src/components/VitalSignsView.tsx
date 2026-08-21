@@ -98,8 +98,11 @@ export const VitalSignsView: React.FC = () => {
   const [regNotes, setRegNotes] = useState('Paciente en buen estado general, alerta y responsivo.');
 
   // Helper to evaluate if vital sign is out of bounds
-  const getVitalAlerts = (v: VitalSigns, patientSpecies: 'Canino' | 'Felino' | 'Exótico' = 'Canino') => {
-    const range = SPECIES_RANGES[patientSpecies] || SPECIES_RANGES.Canino;
+  const getVitalAlerts = (v: VitalSigns, patientSpecies?: string) => {
+    const spUpper = (patientSpecies || 'Canino').toUpperCase();
+    const normalizedSpecies: 'Canino' | 'Felino' | 'Exótico' =
+      spUpper === 'FELINO' ? 'Felino' : spUpper.startsWith('EX') ? 'Exótico' : 'Canino';
+    const range = SPECIES_RANGES[normalizedSpecies] || SPECIES_RANGES.Canino;
     const alerts: { param: string; message: string; severity: 'HIGH' | 'MEDIUM' }[] = [];
 
     if (v.temperature !== undefined) {

@@ -447,7 +447,7 @@ export const CashAndBillingView: React.FC = () => {
                     <td className="p-3.5 font-mono text-slate-500">{exp.timestamp}</td>
                     <td className="p-3.5">
                       <span className="px-2 py-0.5 rounded bg-rose-50 text-rose-800 font-bold text-[10px] border border-rose-200">
-                        {exp.category.replace('_', ' ')}
+                        {exp.category ? exp.category.replace('_', ' ') : 'General'}
                       </span>
                     </td>
                     <td className="p-3.5 font-bold text-slate-900">{exp.description}</td>

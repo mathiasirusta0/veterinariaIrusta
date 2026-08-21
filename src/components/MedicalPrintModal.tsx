@@ -303,7 +303,7 @@ export const MedicalPrintModal: React.FC<{
               <div className="border border-slate-300 rounded-xl p-4 space-y-3">
                 <div className="flex items-start justify-between border-b border-slate-200 pb-3">
                   <div>
-                    <span className="text-2xl font-black text-slate-900">{invoice.type.replace('_', ' ')}</span>
+                    <span className="text-2xl font-black text-slate-900">{invoice.type ? invoice.type.replace('_', ' ') : 'FACTURA B'}</span>
                     <p className="text-xs text-slate-500 font-mono">N° {invoice.invoiceNumber}</p>
                   </div>
                   <div className="text-right text-xs">

@@ -32,11 +32,11 @@ export const AiAssistantView: React.FC = () => {
     setResultText(null);
 
     const res = await callAiAssistant(taskType, inputPrompt, {
-      name: activePatient.name,
-      species: activePatient.species,
-      breed: activePatient.breed,
-      age: activePatient.calculatedAge,
-      weight: activePatient.weight,
+      name: activePatient?.name || 'Paciente',
+      species: activePatient?.species || 'Canino',
+      breed: activePatient?.breed || 'Mestizo',
+      age: activePatient?.calculatedAge || 'Adulto',
+      weight: activePatient?.weight || 10,
     });
 
     setLoading(false);

@@ -181,6 +181,19 @@ export const AppointmentsView: React.FC = () => {
                     onClick={() => {
                       if (patient) {
                         setSelectedPatientId(patient.id);
+                        setQuickModal('NUEVA_CONSULTA');
+                      }
+                    }}
+                    className="px-3.5 py-1.5 bg-teal-600 hover:bg-teal-500 text-white text-xs font-bold rounded-lg transition-colors shadow-xs"
+                    title="Iniciar Consulta Médica SOAP"
+                  >
+                    + Atender
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      if (patient) {
+                        setSelectedPatientId(patient.id);
                         setActiveView('PACIENTES');
                       }
                     }}

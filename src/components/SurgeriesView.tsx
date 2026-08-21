@@ -52,10 +52,10 @@ export const SurgeriesView: React.FC = () => {
   const filteredSurgeries = surgeries.filter((surg) => {
     const q = search.toLowerCase();
     const patient = patients.find((p) => p.id === surg.patientId);
-    const petName = patient?.name.toLowerCase() || '';
-    const proc = surg.procedureName.toLowerCase();
-    const surgeon = surg.surgeonName.toLowerCase();
-    const anest = surg.anesthetistName.toLowerCase();
+    const petName = patient?.name?.toLowerCase() || '';
+    const proc = (surg.procedureName || '').toLowerCase();
+    const surgeon = (surg.surgeonName || '').toLowerCase();
+    const anest = (surg.anesthetistName || '').toLowerCase();
 
     const matchesSearch =
       petName.includes(q) || proc.includes(q) || surgeon.includes(q) || anest.includes(q);

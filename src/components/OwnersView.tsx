@@ -22,6 +22,7 @@ export const OwnersView: React.FC = () => {
     setSelectedPatientId,
     setActiveView,
     setQuickModal,
+    openWhatsAppHub,
   } = useVet();
 
   const [search, setSearch] = useState('');
@@ -152,15 +153,19 @@ export const OwnersView: React.FC = () => {
 
               {/* Footer buttons */}
               <div className="pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
-                <a
-                  href={`https://wa.me/${owner.whatsapp.replace(/[^0-9]/g, '')}`}
-                  target="_blank"
-                  rel="noreferrer"
+                <button
+                  onClick={() =>
+                    openWhatsAppHub({
+                      ownerName: `${owner.firstName} ${owner.lastName}`,
+                      ownerPhone: owner.phone || owner.whatsapp || '',
+                      diagnosis: 'Atención general en clínica veterinaria',
+                    })
+                  }
                   className="flex-1 py-2 text-center bg-teal-50 hover:bg-teal-100 text-teal-800 text-xs font-bold rounded-lg border border-teal-200 transition-colors flex items-center justify-center gap-1.5"
                 >
                   <MessageCircle className="w-3.5 h-3.5 text-teal-600" />
                   <span>Enviar WhatsApp</span>
-                </a>
+                </button>
               </div>
             </div>
           );

@@ -47,7 +47,7 @@ export const ConsultationsView: React.FC = () => {
       ownerName.includes(q) ||
       reason.includes(q) ||
       diag.includes(q) ||
-      cons.vetName.toLowerCase().includes(q);
+      (cons.vetName || '').toLowerCase().includes(q);
 
     const matchesStatus =
       filterStatus === 'TODOS' ? true : cons.status === filterStatus;
