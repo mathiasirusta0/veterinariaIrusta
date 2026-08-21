@@ -14,6 +14,7 @@ import {
   Sparkles,
 } from 'lucide-react';
 import { useVet } from '../context/VetContext';
+import { formatPhoneNumberE164 } from '../utils/formatters';
 
 export interface WhatsAppData {
   ownerPhone: string;
@@ -128,8 +129,8 @@ Este presupuesto tiene una validez de 15 días. Quedamos a su disposición para 
   };
 
   const handleSendWhatsApp = () => {
-    // Format phone: remove spaces, plus, hyphens
-    const cleanPhone = customPhone.replace(/[^0-9]/g, '');
+    // Format phone: remove spaces, plus, hyphens and enforce international prefix
+    const cleanPhone = formatPhoneNumberE164(customPhone);
     const encoded = encodeURIComponent(messageBody);
     const url = `https://wa.me/${cleanPhone}?text=${encoded}`;
 

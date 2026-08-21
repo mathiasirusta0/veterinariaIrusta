@@ -14,6 +14,7 @@ import {
   Pause,
 } from 'lucide-react';
 import { useVet } from '../context/VetContext';
+import { formatDurationMinutes } from '../utils/formatters';
 
 export interface AnesthesiaDataPoint {
   id: string;
@@ -134,7 +135,7 @@ export const AnesthesiaChartModal: React.FC<AnesthesiaChartModalProps> = ({
                 </h2>
                 <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-bold font-mono uppercase flex items-center gap-1">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
-                  Tiempo de Anestesia: {elapsedMinutes} min
+                  Tiempo Anestésico: {elapsedMinutes} min ({formatDurationMinutes(elapsedMinutes)})
                 </span>
               </div>
               <p className="text-xs text-slate-400">

@@ -124,3 +124,33 @@ export function formatInvoiceNumber(
   const invStr = invNum.toString().padStart(8, '0');
   return `${t}-${posStr}-${invStr}`;
 }
+
+/**
+ * Formatea duración en minutos a un texto legible (ej: 90 -> '1h 30m', 45 -> '45m').
+ */
+export function formatDurationMinutes(minutes: unknown, fallback = '0m'): string {
+  if (minutes === null || minutes === undefined) return fallback;
+  const num = typeof minutes === 'number' ? minutes : Number(minutes);
+  if (isNaN(num) || num <= 0) return fallback;
+  const h = Math.floor(num / 60);
+  const m = Math.round(num % 60);
+  if (h > 0 && m > 0) return `${h}h ${m}m`;
+  if (h > 0) return `${h}h`;
+  return `${m}m`;
+}
+
+/**
+ * Sanitiza y formatea un número de teléfono para enlaces internacionales WhatsApp / E.164.
+ * Si es un número local argentino (ej: 11 6789-1234), añade el prefijo +54 9.
+ */
+export function formatPhoneNumberE164(phone: unknown, fallback = '5491167891234'): string {
+  if (!phone || typeof phone !== 'string') return fallback;
+  const digits = phone.replace(/\D/g, '');
+  if (!digits) return fallback;
+  if (digits.startsWith('549')) return digits;
+  if (digits.startsWith('54')) return `549${digits.slice(2)}`;
+  if (digits.startsWith('0')) return `549${digits.slice(1)}`;
+  if (digits.length === 10) return `549${digits}`;
+  return digits;
+}
+

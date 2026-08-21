@@ -8,6 +8,8 @@ import {
   formatWeight,
   formatTemperature,
   formatInvoiceNumber,
+  formatDurationMinutes,
+  formatPhoneNumberE164,
 } from '../../utils/formatters';
 
 describe('Safe Formatters Unit Tests', () => {
@@ -61,5 +63,20 @@ describe('Safe Formatters Unit Tests', () => {
   it('formatInvoiceNumber should format standard AFIP point-of-sale invoice strings', () => {
     expect(formatInvoiceNumber('B', 2, 4921)).toBe('B-0002-00004921');
     expect(formatInvoiceNumber('A', null, null)).toBe('A-0001-00000001');
+  });
+
+  it('formatDurationMinutes should format durations in human-readable strings', () => {
+    expect(formatDurationMinutes(90)).toBe('1h 30m');
+    expect(formatDurationMinutes(60)).toBe('1h');
+    expect(formatDurationMinutes(25)).toBe('25m');
+    expect(formatDurationMinutes(null)).toBe('0m');
+    expect(formatDurationMinutes(0)).toBe('0m');
+  });
+
+  it('formatPhoneNumberE164 should normalize Argentine and international phone numbers', () => {
+    expect(formatPhoneNumberE164('+54 9 11 6789-1234')).toBe('5491167891234');
+    expect(formatPhoneNumberE164('1167891234')).toBe('5491167891234');
+    expect(formatPhoneNumberE164('01167891234')).toBe('5491167891234');
+    expect(formatPhoneNumberE164(null)).toBe('5491167891234');
   });
 });
