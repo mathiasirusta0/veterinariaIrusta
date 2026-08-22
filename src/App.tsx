@@ -46,6 +46,11 @@ import { CashAndBillingView } from './components/CashAndBillingView';
 import { DocumentsView } from './components/DocumentsView';
 import { AiAssistantView } from './components/AiAssistantView';
 import { SettingsAndUsersView } from './components/SettingsAndUsersView';
+import { RegulatoryComplianceView } from './components/RegulatoryComplianceView';
+import { ControlledDrugsView } from './components/ControlledDrugsView';
+import { PathologicalWasteView } from './components/PathologicalWasteView';
+import { PrescriptionsView } from './components/PrescriptionsView';
+import { SystemQaTestCenterView } from './components/SystemQaTestCenterView';
 
 const MainLayout: React.FC = () => {
   const {
@@ -220,6 +225,42 @@ const MainLayout: React.FC = () => {
         return (
           <ModuleErrorBoundary moduleName="Asistente de IA Clínica">
             <AiAssistantView />
+          </ModuleErrorBoundary>
+        );
+      case 'RECETAS_OFICIALES':
+      case 'RECETAS':
+        return (
+          <ModuleErrorBoundary moduleName="Recetario Veterinario Oficial SENASA">
+            <PrescriptionsView />
+          </ModuleErrorBoundary>
+        );
+      case 'CONTROL_PSICOTROPICOS':
+      case 'PSICOTROPICOS':
+        return (
+          <ModuleErrorBoundary moduleName="Control de Psicotrópicos & Ketamina">
+            <ControlledDrugsView />
+          </ModuleErrorBoundary>
+        );
+      case 'RESIDUOS_PATOLOGICOS':
+      case 'RESIDUOS':
+        return (
+          <ModuleErrorBoundary moduleName="Gestión de Residuos Patológicos">
+            <PathologicalWasteView />
+          </ModuleErrorBoundary>
+        );
+      case 'CUMPLIMIENTO_NORMATIVO':
+      case 'NORMATIVA':
+        return (
+          <ModuleErrorBoundary moduleName="Centro de Cumplimiento Normativo">
+            <RegulatoryComplianceView />
+          </ModuleErrorBoundary>
+        );
+      case 'CENTRO_QA':
+      case 'TESTS':
+      case 'TESTER':
+        return (
+          <ModuleErrorBoundary moduleName="Centro de Pruebas QA">
+            <SystemQaTestCenterView />
           </ModuleErrorBoundary>
         );
       case 'CONFIGURACION':

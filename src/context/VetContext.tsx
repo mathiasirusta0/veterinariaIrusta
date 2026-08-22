@@ -24,6 +24,13 @@ import {
   AuditLog,
   HospitalPriority,
   PatientAlert,
+  RegulatoryRule,
+  ControlledDrugItem,
+  ControlledDrugMovement,
+  PathologicalWasteRecord,
+  Prescription,
+  AntimicrobialRecord,
+  ClinicalAmendment,
 } from '../types';
 import {
   INITIAL_BRANCHES,
@@ -46,6 +53,12 @@ import {
   INITIAL_DOCUMENTS,
   INITIAL_AUDIT_LOGS,
   INITIAL_CASH_SESSION,
+  INITIAL_REGULATORY_RULES,
+  INITIAL_CONTROLLED_DRUGS,
+  INITIAL_CONTROLLED_MOVEMENTS,
+  INITIAL_PATHOLOGICAL_WASTE,
+  INITIAL_PRESCRIPTIONS,
+  INITIAL_ANTIMICROBIAL_RECORDS,
 } from '../mockData';
 import { ToastMessage } from '../components/ToastNotification';
 import { MedicalPrintData } from '../components/MedicalPrintModal';
@@ -100,6 +113,20 @@ interface VetContextType {
   cashSession: CashRegisterSession;
   documents: ClinicalDocument[];
   auditLogs: AuditLog[];
+  regulatoryRules: RegulatoryRule[];
+  controlledDrugs: ControlledDrugItem[];
+  controlledMovements: ControlledDrugMovement[];
+  pathologicalWaste: PathologicalWasteRecord[];
+  prescriptions: Prescription[];
+  antimicrobialRecords: AntimicrobialRecord[];
+
+  // Regulatory & Controlled Drugs & Waste Actions
+  addRegulatoryRule: (rule: Omit<RegulatoryRule, 'id' | 'lastReviewedAt'>) => void;
+  updateRegulatoryRuleStatus: (id: string, status: RegulatoryRule['status']) => void;
+  addControlledMovement: (mov: ControlledDrugMovement) => void;
+  addPathologicalWaste: (rec: PathologicalWasteRecord) => void;
+  addPrescription: (rx: Prescription) => void;
+  addClinicalAmendment: (consultationId: string, amendment: Omit<ClinicalAmendment, 'id' | 'amendedAt'>) => void;
 
   // Patient & Owner Actions
   addOwner: (owner: Omit<Owner, 'id' | 'createdAt' | 'balance'>) => Owner;
@@ -324,6 +351,89 @@ export const VetProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const saved = localStorage.getItem('vetsys_auditLogs');
     return saved ? JSON.parse(saved) : INITIAL_AUDIT_LOGS;
   });
+
+  const [regulatoryRules, setRegulatoryRules] = useState<RegulatoryRule[]>(() => {
+    const saved = localStorage.getItem('vetsys_regulatory_rules');
+    return saved ? JSON.parse(saved) : INITIAL_REGULATORY_RULES;
+  });
+
+  const [controlledDrugs, setControlledDrugs] = useState<ControlledDrugItem[]>(() => {
+    const saved = localStorage.getItem('vetsys_controlled_drugs');
+    return saved ? JSON.parse(saved) : INITIAL_CONTROLLED_DRUGS;
+  });
+
+  const [controlledMovements, setControlledMovements] = useState<ControlledDrugMovement[]>(() => {
+    const saved = localStorage.getItem('vetsys_controlled_movements');
+    return saved ? JSON.parse(saved) : INITIAL_CONTROLLED_MOVEMENTS;
+  });
+
+  const [pathologicalWaste, setPathologicalWaste] = useState<PathologicalWasteRecord[]>(() => {
+    const saved = localStorage.getItem('vetsys_pathological_waste');
+    return saved ? JSON.parse(saved) : INITIAL_PATHOLOGICAL_WASTE;
+  });
+
+  const [prescriptions, setPrescriptions] = useState<Prescription[]>(() => {
+    const saved = localStorage.getItem('vetsys_prescriptions');
+    return saved ? JSON.parse(saved) : INITIAL_PRESCRIPTIONS;
+  });
+
+  const [antimicrobialRecords, setAntimicrobialRecords] = useState<AntimicrobialRecord[]>(() => {
+    const saved = localStorage.getItem('vetsys_antimicrobial_records');
+    return saved ? JSON.parse(saved) : INITIAL_ANTIMICROBIAL_RECORDS;
+  });
+
+  // Regulatory & Controlled Drugs & Waste Handlers
+  const addRegulatoryRule = (ruleData: Omit<RegulatoryRule, 'id' | 'lastReviewedAt'>) => {
+    const newRule: RegulatoryRule = {
+      ...ruleData,
+      id: `reg-${Date.now()}`,
+      lastReviewedAt: new Date().toISOString().split('T')[0],
+    };
+    setRegulatoryRules((prev) => [newRule, ...prev]);
+  };
+
+  const updateRegulatoryRuleStatus = (id: string, status: RegulatoryRule['status']) => {
+    setRegulatoryRules((prev) =>
+      prev.map((r) => (r.id === id ? { ...r, status, lastReviewedAt: new Date().toISOString().split('T')[0] } : r))
+    );
+  };
+
+  const addControlledMovement = (mov: ControlledDrugMovement) => {
+    setControlledMovements((prev) => [mov, ...prev]);
+    setControlledDrugs((prev) =>
+      prev.map((d) => (d.id === mov.drugId ? { ...d, currentStock: mov.balanceAfter } : d))
+    );
+  };
+
+  const addPathologicalWaste = (rec: PathologicalWasteRecord) => {
+    setPathologicalWaste((prev) => [rec, ...prev]);
+  };
+
+  const addPrescription = (rx: Prescription) => {
+    setPrescriptions((prev) => [rx, ...prev]);
+  };
+
+  const addClinicalAmendment = (
+    consultationId: string,
+    amendmentData: Omit<ClinicalAmendment, 'id' | 'amendedAt'>
+  ) => {
+    const newAmendment: ClinicalAmendment = {
+      ...amendmentData,
+      id: `amd-${Date.now()}`,
+      consultationId,
+      amendedAt: new Date().toISOString(),
+    };
+    setConsultations((prev) =>
+      prev.map((c) =>
+        c.id === consultationId
+          ? {
+              ...c,
+              amendments: [...(c.amendments || []), newAmendment],
+            }
+          : c
+      )
+    );
+  };
 
   const [quickModal, setQuickModal] = useState<string | null>(null);
   const [isGlobalSearchOpen, setIsGlobalSearchOpen] = useState<boolean>(false);
@@ -556,7 +666,13 @@ export const VetProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   }, [documents]);
   useEffect(() => {
     localStorage.setItem('vetsys_auditLogs', JSON.stringify(auditLogs));
-  }, [auditLogs]);
+    localStorage.setItem('vetsys_regulatory_rules', JSON.stringify(regulatoryRules));
+    localStorage.setItem('vetsys_controlled_drugs', JSON.stringify(controlledDrugs));
+    localStorage.setItem('vetsys_controlled_movements', JSON.stringify(controlledMovements));
+    localStorage.setItem('vetsys_pathological_waste', JSON.stringify(pathologicalWaste));
+    localStorage.setItem('vetsys_prescriptions', JSON.stringify(prescriptions));
+    localStorage.setItem('vetsys_antimicrobial_records', JSON.stringify(antimicrobialRecords));
+  }, [regulatoryRules, controlledDrugs, controlledMovements, pathologicalWaste, prescriptions, antimicrobialRecords, auditLogs]);
 
   // Audit Logger helper
   const logAudit = (action: string, entity: string, entityId: string, details: string, prev?: string, next?: string) => {
@@ -1341,6 +1457,19 @@ Hoy hemos evaluado a ${petName} en nuestro centro hospitalario. Queremos transmi
         cashSession,
         documents,
         auditLogs,
+        regulatoryRules,
+        controlledDrugs,
+        controlledMovements,
+        pathologicalWaste,
+        prescriptions,
+        antimicrobialRecords,
+
+        addRegulatoryRule,
+        updateRegulatoryRuleStatus,
+        addControlledMovement,
+        addPathologicalWaste,
+        addPrescription,
+        addClinicalAmendment,
 
         addOwner,
         updateOwner,

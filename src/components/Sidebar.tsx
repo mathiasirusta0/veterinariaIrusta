@@ -21,6 +21,10 @@ import {
   Radio,
   Activity,
   X,
+  Scale,
+  Lock,
+  Trash2,
+  FileCheck,
 } from 'lucide-react';
 import { useVet } from '../context/VetContext';
 
@@ -55,7 +59,20 @@ export const Sidebar: React.FC<{ isOpenMobile?: boolean; onCloseMobile?: () => v
   const pendingLabsCount = labOrders.filter((l) => l.status === 'SOLICITADO' || l.status === 'EN_PROCESO').length;
   const lowStockCount = products.filter((p) => p.currentStock <= p.minStock).length;
 
-  const rawNavGroups = [
+interface SidebarNavItem {
+  id: string;
+  label: string;
+  icon: any;
+  badge?: number;
+  badgeColor?: string;
+}
+
+interface SidebarNavGroup {
+  group: string;
+  items: SidebarNavItem[];
+}
+
+  const rawNavGroups: SidebarNavGroup[] = [
     {
       group: 'CLÍNICA Y ATENCIÓN',
       items: [
@@ -66,6 +83,7 @@ export const Sidebar: React.FC<{ isOpenMobile?: boolean; onCloseMobile?: () => v
         { id: 'SALA_ESPERA', label: 'Sala de Espera', icon: Clock, badge: waitingTriageCount, badgeColor: 'bg-amber-500' },
         { id: 'CONSULTAS', label: 'Consultas & SOAP', icon: Stethoscope },
         { id: 'SIGNOS_VITALES', label: 'Signos Vitales', icon: Activity },
+        { id: 'RECETAS_OFICIALES', label: 'Recetario SENASA', icon: FileText },
       ],
     },
     {
@@ -79,11 +97,20 @@ export const Sidebar: React.FC<{ isOpenMobile?: boolean; onCloseMobile?: () => v
       ],
     },
     {
-      group: 'GESTIÓN & SISTEMA',
+      group: 'FARMACIA & NORMATIVA',
       items: [
         { id: 'INVENTARIO', label: 'Farmacia & Stock', icon: Boxes, badge: lowStockCount, badgeColor: 'bg-red-500' },
-        { id: 'CAJA_FACTURACION', label: 'Caja & Facturas', icon: Receipt },
-        { id: 'DOCUMENTOS', label: 'Documentos', icon: FileText },
+        { id: 'CONTROL_PSICOTROPICOS', label: 'Psicotrópicos & Ketamina', icon: Lock },
+        { id: 'RESIDUOS_PATOLOGICOS', label: 'Residuos Patológicos', icon: Trash2 },
+        { id: 'CUMPLIMIENTO_NORMATIVO', label: 'Cumplimiento Legal CMVC', icon: Scale },
+      ],
+    },
+    {
+      group: 'GESTIÓN & SISTEMA',
+      items: [
+        { id: 'CAJA_FACTURACION', label: 'Caja & Facturas ARCA', icon: Receipt },
+        { id: 'DOCUMENTOS', label: 'Documentos & Consentimientos', icon: FileCheck },
+        { id: 'CENTRO_QA', label: 'Centro de Pruebas QA', icon: FlaskConical },
         { id: 'ASISTENTE_IA', label: 'Asistente IA', icon: Sparkles, badgeColor: 'bg-teal-500' },
         { id: 'CONFIGURACION', label: 'Configuración', icon: ShieldCheck },
       ],

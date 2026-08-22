@@ -1,21 +1,33 @@
 // VET SYSTEM - Tipos de Datos y Modelos Hospitalarios Veterinarios
+// Conforme a Ley Provincial Córdoba Nº 11.076 / 5.142, CMVC, SENASA, Ley 25.326, Ley 25.506, Ley 24.051, ARCA
 
 export type UserRole =
   | 'SUPERADMIN'
   | 'ADMINISTRADOR'
+  | 'DIRECTOR_MEDICO'
   | 'VETERINARIO'
-  | 'ASISTENTE'
+  | 'ESPECIALISTA'
   | 'ENFERMERIA'
+  | 'ASISTENTE'
   | 'RECEPCION'
   | 'FARMACIA'
-  | 'CAJA';
+  | 'LABORATORIO'
+  | 'CAJA'
+  | 'AUDITOR';
 
 export interface User {
   id: string;
   name: string;
   email: string;
   role: UserRole;
-  licenseNumber?: string; // Matrícula profesional
+  dni?: string;
+  cuit?: string;
+  licenseNumber?: string; // Matrícula profesional (ej: MP 8412 CMVC)
+  licenseJurisdiction?: string; // ej: Colegio Médico Veterinario de Córdoba (CMVC)
+  licenseCategory?: string; // ej: Clínica & Cirugía Menores, Especialista
+  licenseValidUntil?: string; // ISO date
+  isLicenseVerified?: boolean;
+  digitalSignatureHash?: string;
   branchId: string;
   avatar?: string;
 }
@@ -30,6 +42,8 @@ export interface Branch {
   email: string;
   cuit: string;
   taxCondition: string; // ej: Responsable Inscripto
+  provincialLicenseNumber?: string;
+  municipalRegistrationNumber?: string;
 }
 
 export interface Owner {
@@ -45,15 +59,21 @@ export interface Owner {
   city: string;
   province: string;
   postalCode: string;
+  secondaryContactName?: string;
+  secondaryContactPhone?: string;
+  authorizedPersons?: string[]; // Personas autorizadas para retirar o consentir
+  taxCondition?: string; // Consumidor Final, Resp. Inscripto, Monotributo
+  privacyConsentSigned?: boolean; // Consentimiento Ley 25.326
+  communicationsConsentSigned?: boolean;
   notes?: string;
   balance: number; // Cuenta corriente (saldo positivo o deuda negativa)
   createdAt: string;
 }
 
-export type Species = 'CANINO' | 'FELINO' | 'EQUINO' | 'BOVINO' | 'AVE' | 'EXOTICO';
+export type Species = 'CANINO' | 'FELINO' | 'EQUINO' | 'BOVINO' | 'OVINO' | 'CAPRINO' | 'PORCINO' | 'AVE' | 'EXOTICO';
 export type Sex = 'MACHO' | 'HEMBRA';
 export type ReproductiveStatus = 'ENTERO' | 'CASTRADO' | 'GESTANTE' | 'LACTANTE';
-export type PatientStatus = 'ACTIVO' | 'INTERNADO' | 'EN_CONSULTA' | 'EN_CIRUGIA' | 'FALLECIDO';
+export type PatientStatus = 'ACTIVO' | 'INTERNADO' | 'EN_CONSULTA' | 'EN_CIRUGIA' | 'FALLECIDO' | 'DERIVADO';
 
 export type PatientAlert =
   | 'ALERGIA'
@@ -68,7 +88,7 @@ export type PatientAlert =
 
 export interface Patient {
   id: string;
-  clinicalRecordNumber: string; // Nº Historia Clínica ej: HC-2024-0042
+  clinicalRecordNumber: string; // Nº Historia Clínica ej: HC-10042
   name: string;
   species: Species;
   breed: string;
@@ -77,8 +97,15 @@ export interface Patient {
   birthDate: string;
   calculatedAge: string;
   weight: number; // kg
+  bodyConditionScore?: string; // 1/9 a 9/9
   color: string;
-  microchip?: string;
+  particularMarks?: string; // Señas particulares
+  microchip?: string; // 15 dígitos ISO
+  tattooNumber?: string;
+  officialIdSenasa?: string; // Caravana / RFID oficial SENASA
+  renspa?: string; // Registro Nacional Sanitario de Productores Agropecuarios
+  equinePassport?: string; // Pasaporte oficial equino
+  originBreeder?: string;
   photoUrl?: string;
   ownerId: string;
   primaryVetId?: string;
@@ -87,6 +114,9 @@ export interface Patient {
     type: PatientAlert;
     description: string;
   }[];
+  isProductionAnimal?: boolean;
+  withdrawalPeriodDays?: number; // Período de carencia/retiro en días (SENASA)
+  withdrawalEndDate?: string; // Fecha fin de carencia
   branchId: string;
   createdAt: string;
 }
@@ -156,11 +186,24 @@ export interface SoapNote {
   vetName: string;
 }
 
+export interface ClinicalAmendment {
+  id: string;
+  consultationId: string;
+  amendedAt: string; // ISO
+  amendedBy: string;
+  vetLicense: string;
+  fieldAmended: string;
+  previousValue: string;
+  newValue: string;
+  justificationReason: string;
+}
+
 export interface Consultation {
   id: string;
   patientId: string;
   vetId: string;
   vetName: string;
+  vetLicense?: string;
   branchId: string;
   dateTime: string;
   reason: string;
@@ -175,31 +218,65 @@ export interface Consultation {
   orderedStudies: string[];
   followUpDate?: string;
   requiresHospitalization?: boolean;
+  amendments?: ClinicalAmendment[];
+  digitalSignatureHash?: string;
+  isClosed?: boolean;
   status: 'EN_CURSO' | 'FINALIZADA' | 'CANCELADA';
 }
+
+// RECETARIO Y SENASA
+export type SENASACategory =
+  | 'CAT_I_OFICIAL_ARCHIVADA' // Psicotrópicos, Ketamina, Estupefacientes
+  | 'CAT_II_ARCHIVADA' // Antibióticos restringidos, etc.
+  | 'CAT_III_RECETA' // Venta bajo receta veterinaria
+  | 'VENTA_LIBRE';
 
 export interface PrescriptionItem {
   id: string;
   medicationName: string;
-  presentation: string; // ej: Comprimidos 500mg, Jarabe, Gotas
-  dose: string; // ej: 1 comp
-  route: 'ORAL' | 'IV' | 'IM' | 'SC' | 'TOPICA' | 'OFTALMICA' | 'OTICA';
+  activeIngredient?: string;
+  presentation: string; // ej: Comprimidos 500mg, Frasco ampolla
+  concentration?: string;
+  dose: string; // ej: 1 comp / 10 mg/kg
+  route: 'ORAL' | 'IV' | 'IM' | 'SC' | 'TOPICA' | 'OFTALMICA' | 'OTICA' | 'INHALATORIA' | 'EPIDURAL';
   frequency: string; // ej: Cada 12 horas
   duration: string; // ej: Durante 7 días
+  quantityPrescribed?: number;
+  senasaCategory?: SENASACategory;
+  requiresRVE?: boolean; // Requiere Receta Veterinaria Electrónica SENASA
   instructions: string;
 }
+
+export type PrescriptionType =
+  | 'RECETA_COMUN'
+  | 'RECETA_ARCHIVADA'
+  | 'RECETA_OFICIAL_ARCHIVADA'
+  | 'RECETA_ELECTRONICA_SENASA';
 
 export interface Prescription {
   id: string;
   prescriptionNumber: string;
+  prescriptionType: PrescriptionType;
   patientId: string;
   ownerId: string;
+  vetId: string;
   vetName: string;
   vetLicense: string;
+  vetCuit?: string;
+  establishmentName?: string;
+  establishmentAddress?: string;
   date: string;
+  diagnosis?: string;
+  senasaRveIdentifier?: string; // Código oficial RVE si aplica
+  rveCertificateUrl?: string;
   items: PrescriptionItem[];
   notes?: string;
+  isDispensed?: boolean;
+  dispensedAt?: string;
+  dispensedBy?: string;
+  dispensationBatch?: string;
   pdfGenerated?: boolean;
+  digitalSignatureHash?: string;
 }
 
 // HOSPITALIZACIÓN E INTERNACIÓN
@@ -449,7 +526,7 @@ export interface VaccinationRecord {
   certificateGenerated?: boolean;
 }
 
-// FARMACIA E INVENTARIO
+// FARMACIA, STOCK Y PSICOTRÓPICOS
 export type StockMovementType =
   | 'ENTRADA'
   | 'VENTA'
@@ -465,10 +542,11 @@ export interface Product {
   code: string;
   barcode?: string;
   commercialName: string;
-  activeIngredient: string; // Principio activo
-  category: 'MEDICAMENTO' | 'VACUNA' | 'DESCARTABLE' | 'ALIMENTO' | 'HIGIENE' | 'ACCESORIO';
-  concentration: string; // ej: 100 mg/ml
-  presentation: string; // ej: Frasco ampolla 50ml, Caja 20 comprimidos
+  activeIngredient: string;
+  category: 'MEDICAMENTO' | 'VACUNA' | 'DESCARTABLE' | 'ALIMENTO' | 'HIGIENE' | 'ACCESORIO' | 'PSICOTROPICO' | 'ESTUPEFACIENTE' | 'INSUMO_QUIRURGICO';
+  senasaCategory?: SENASACategory;
+  concentration: string;
+  presentation: string;
   laboratory: string;
   costPrice: number;
   salePrice: number;
@@ -477,6 +555,8 @@ export interface Product {
   currentBatch: string;
   expirationDate: string;
   supplier: string;
+  requiresPrescription?: boolean;
+  requiresOfficialArchive?: boolean;
   branchId: string;
 }
 
@@ -485,15 +565,178 @@ export interface InventoryMovement {
   productId: string;
   productName: string;
   type: StockMovementType;
-  quantity: number; // positivo o negativo
+  quantity: number;
   previousStock: number;
   newStock: number;
   batch: string;
   patientId?: string;
-  referenceId?: string; // id de consulta, internación o factura
+  referenceId?: string;
   reason: string;
   performedBy: string;
   timestamp: string;
+}
+
+// CONTROL DE PSICOTRÓPICOS Y KETAMINA (Leyes 17.818 y 19.303)
+export interface ControlledDrugItem {
+  id: string;
+  commercialName: string;
+  activeIngredient: string; // ej: Ketamina Clorhidrato 50mg/ml, Fentanilo, Midazolam
+  concentration: string;
+  presentation: string;
+  laboratory: string;
+  senasaCategory: SENASACategory;
+  currentStock: number;
+  unit: string;
+  minStock: number;
+  lawClassification: 'LEY_17818_ESTUPEFACIENTES' | 'LEY_19303_PSICOTROPICOS' | 'KETAMINA_RESOLUCION_SENASA';
+}
+
+export interface ControlledDrugMovement {
+  id: string;
+  timestamp: string; // ISO
+  movementType: 'INGRESO_COMPRA' | 'EGRESO_CLINICO' | 'AJUSTE_COMPENSATORIO';
+  drugId: string;
+  drugName: string;
+  activeIngredient: string;
+  batchNumber: string;
+  quantity: number;
+  balanceAfter: number;
+  patientId?: string;
+  patientName?: string;
+  species?: Species;
+  patientWeight?: number;
+  ownerId?: string;
+  ownerName?: string;
+  ownerDni?: string;
+  ownerAddress?: string;
+  vetId: string;
+  vetName: string;
+  vetLicense: string;
+  prescriptionNumber?: string;
+  officialRecipeFolio?: string;
+  supplierName?: string;
+  invoiceNumber?: string;
+  observations: string;
+  registeredBy: string;
+}
+
+// GESTIÓN DE RESIDUOS PATOLÓGICOS Y PELIGROSOS (Ley 24.051 / Río Cuarto)
+export type PathologicalWasteType =
+  | 'BIOPATOGENICO_INFECCIOSO'
+  | 'CORTOPUNZANTE'
+  | 'ANATOMOPATOLOGICO'
+  | 'QUIMICO_FARMACEUTICO';
+
+export interface PathologicalWasteRecord {
+  id: string;
+  manifestNumber: string; // Nº Manifiesto Oficial Ley 24.051
+  date: string; // ISO
+  generatingSector: 'QUIROFANO' | 'UCI_INTERNACION' | 'LABORATORIO' | 'CONSULTORIOS' | 'NECROPSIA';
+  wasteType: PathologicalWasteType;
+  weightKg: number;
+  containerType: 'BOLSA_ROJA_REGISTRO' | 'DESCARTADOR_RIGIDO' | 'CONTENEDOR_ESPECIAL';
+  containerCount: number;
+  storageLocation: string;
+  transportCompany?: string;
+  transportDriver?: string;
+  pickupDate?: string;
+  finalDisposalFacility?: string;
+  disposalCertificateNumber?: string;
+  disposalCertificateDate?: string;
+  municipalGeneratorRegistry: string; // ej: Registro Municipal Río Cuarto
+  status: 'ALMACENADO_TRANSITORIO' | 'RETIRADO_EN_TRANSITO' | 'DISPOSICION_FINAL_CERTIFICADA';
+  registeredBy: string;
+  branchId: string;
+}
+
+// MOTOR DE CUMPLIMIENTO NORMATIVO
+export type RegulatoryStatus = 'VIGENTE' | 'MODIFICADA' | 'DEROGADA' | 'EN_REVISION';
+
+export interface RegulatoryRule {
+  id: string;
+  country: string;
+  province: string;
+  municipality: string;
+  organism: 'COLEGIO_VETERINARIO_CORDOBA' | 'SENASA' | 'ARCA_AFIP' | 'GOBIERNO_CORDOBA' | 'MUNICIPALIDAD_RIO_CUARTO' | 'MINISTERIO_SALUD';
+  lawTitle: string;
+  lawNumber: string;
+  articleSection: string;
+  description: string;
+  clinicalImpactSummary: string;
+  affectedModule: 'EJERCICIO_PROFESIONAL' | 'RECETARIO_SENASA' | 'PSICOTROPICOS' | 'RESIDUOS_PATOLOGICOS' | 'PROTECCION_DATOS' | 'BIENESTAR_ANIMAL' | 'FACTURACION_ARCA';
+  isMandatory: boolean;
+  effectiveDate: string;
+  expirationDate?: string;
+  officialUrl?: string;
+  version: string;
+  lastReviewedAt: string;
+  reviewedBy: string;
+  status: RegulatoryStatus;
+}
+
+// GESTIÓN DE ANTIMICROBIANOS
+export interface AntimicrobialRecord {
+  id: string;
+  patientId: string;
+  patientName: string;
+  species: Species;
+  activeIngredient: string;
+  commercialName: string;
+  clinicalIndication: string;
+  definitiveDiagnosis: string;
+  cultureOrdered: boolean;
+  cultureResultDate?: string;
+  antibiogramReport?: string;
+  sensitivityPattern?: string;
+  startDate: string;
+  plannedDurationDays: number;
+  prescribingVetName: string;
+  prescribingVetLicense: string;
+  criticalAlertOverridden?: boolean;
+  overrideJustification?: string;
+  evolutionStatus: 'FAVORABLE' | 'SIN_RESPUESTA' | 'ROTACION_ANTIBIOTICA' | 'FINALIZADO';
+}
+
+// PROTOCOLO DE EUTANASIA
+export interface EuthanasiaRecord {
+  id: string;
+  patientId: string;
+  patientName: string;
+  species: Species;
+  ownerId: string;
+  ownerName: string;
+  ownerDni: string;
+  vetId: string;
+  vetName: string;
+  vetLicense: string;
+  date: string;
+  clinicalIndication: string;
+  informedConsentSigned: boolean;
+  consentDocumentId: string;
+  sedationPreMedication: string;
+  euthanasicDrugName: string;
+  drugBatch: string;
+  drugQuantityMl: number;
+  bodyDisposition: 'CREMACION_INDIVIDUAL' | 'CREMACION_COLECTIVA' | 'RETIRO_POR_TUTOR' | 'SERVICIO_MUNICIPAL';
+  observations?: string;
+  digitalSignatureHash: string;
+}
+
+// BIENESTAR ANIMAL (Ley 14.346)
+export interface AnimalWelfareReport {
+  id: string;
+  patientId: string;
+  patientName: string;
+  species: Species;
+  reportDate: string;
+  attendingVetName: string;
+  attendingVetLicense: string;
+  suspectedAbuseType: 'DESNUTRICION_EXTREMA' | 'TRAUMA_NO_ACCIDENTAL' | 'NEGLIGENCIA_ABANDONO' | 'CONDICIONES_INSALUBRES' | 'MUTILACION_NO_AUTORIZADA';
+  bodyConditionScore: string;
+  clinicalFindings: string;
+  photographicEvidenceUrls: string[];
+  actionTaken: 'INFORME_PERICIAL_ARCHIVADO' | 'DENUNCIA_AUTORIDADES_COMPETENTES' | 'SEGUIMIENTO_ESTRICTO';
+  observations?: string;
 }
 
 // AGENDA Y SALA DE ESPERA / TRIAGE
@@ -579,6 +822,7 @@ export interface Invoice {
   caeNumber: string; // CAE simulado ARCA/AFIP
   caeExpirationDate: string;
   qrFiscalData?: string;
+  isHomologationMode?: boolean;
   branchId: string;
 }
 
@@ -617,9 +861,12 @@ export type DocumentType =
   | 'CONSENTIMIENTO_INTERNACION'
   | 'CONSENTIMIENTO_CIRUGIA_ANESTESIA'
   | 'CONSENTIMIENTO_EUTANASIA'
+  | 'CERTIFICADO_VACUNACION_OFICIAL'
   | 'CERTIFICADO_SALUD_VIAJE'
   | 'PASE_DE_GUARDIA'
-  | 'INFORME_ALTA_MEDICA';
+  | 'INFORME_ALTA_MEDICA'
+  | 'TRATAMIENTO_DATOS_LEY_25326'
+  | 'INFORME_DERIVACION_CLINICA';
 
 export interface ClinicalDocument {
   id: string;
@@ -634,6 +881,7 @@ export interface ClinicalDocument {
   signedByOwnerDni?: string;
   signatureDataUrl?: string; // Firma digital en canvas
   isSigned: boolean;
+  documentVersion?: string;
 }
 
 // AUDITORÍA Y TRAZABILIDAD
@@ -648,4 +896,6 @@ export interface AuditLog {
   details: string;
   previousValue?: string;
   newValue?: string;
+  ipAddress?: string;
+  deviceInfo?: string;
 }
