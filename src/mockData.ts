@@ -1067,6 +1067,8 @@ export const INITIAL_PRODUCTS: Product[] = [
   },
 ];
 
+const todayIsoDate = new Date().toISOString().split('T')[0];
+
 export const INITIAL_APPOINTMENTS: Appointment[] = [
   {
     id: 'app-1',
@@ -1074,7 +1076,7 @@ export const INITIAL_APPOINTMENTS: Appointment[] = [
     ownerId: 'owner-3',
     vetId: 'user-1',
     branchId: 'branch-1',
-    date: '2025-02-18',
+    date: todayIsoDate,
     time: '10:30',
     durationMinutes: 30,
     type: 'CIRUGIA',
@@ -1087,7 +1089,7 @@ export const INITIAL_APPOINTMENTS: Appointment[] = [
     ownerId: 'owner-6',
     vetId: 'user-2',
     branchId: 'branch-1',
-    date: '2025-02-18',
+    date: todayIsoDate,
     time: '11:30',
     durationMinutes: 30,
     type: 'CONTROL',
@@ -1100,7 +1102,7 @@ export const INITIAL_APPOINTMENTS: Appointment[] = [
     ownerId: 'owner-6',
     vetId: 'user-2',
     branchId: 'branch-1',
-    date: '2025-02-18',
+    date: todayIsoDate,
     time: '15:00',
     durationMinutes: 30,
     type: 'CONSULTA_GENERAL',
@@ -1122,7 +1124,21 @@ export const INITIAL_TRIAGE: TriageEntry[] = [
     initialTemp: 39.4,
     initialHeartRate: 132,
     initialMucous: 'CONGESTIVAS',
-    status: 'DERIVADO_INTERNACION',
+    status: 'EN_ESPERA',
+  },
+  {
+    id: 'tri-2',
+    patientId: 'pat-3',
+    ownerId: 'owner-3',
+    arrivedAt: new Date(Date.now() - 10 * 60 * 1000).toISOString(),
+    waitTimeMinutes: 10,
+    priority: 'PRIORITARIO',
+    chiefComplaint: 'Disnea inspiratoria y estridor en reposo',
+    assignedVetId: 'user-1',
+    initialTemp: 38.8,
+    initialHeartRate: 120,
+    initialMucous: 'ROSADAS',
+    status: 'EN_ESPERA',
   },
 ];
 

@@ -523,25 +523,32 @@ export const DashboardView: React.FC = () => {
             </div>
 
             <div className="space-y-2">
-              {[
-                { sector: 'UCI Críticos (4 caniles)', occupied: activeHospital.filter(h => h.sector === 'UCI_CRITICOS').length, total: 4, percent: Math.min(100, Math.round((activeHospital.filter(h => h.sector === 'UCI_CRITICOS').length / 4) * 100)), color: 'bg-red-500' },
-                { sector: 'Canil General (8 caniles)', occupied: activeHospital.filter(h => h.sector === 'CANIL_GENERAL').length, total: 8, percent: Math.min(100, Math.round((activeHospital.filter(h => h.sector === 'CANIL_GENERAL').length / 8) * 100)), color: 'bg-teal-600' },
-                { sector: 'Gaterío Felinos (4 caniles)', occupied: activeHospital.filter(h => h.sector === 'FELINOS').length, total: 4, percent: Math.min(100, Math.round((activeHospital.filter(h => h.sector === 'FELINOS').length / 4) * 100)), color: 'bg-purple-600' },
-                { sector: 'Aislamiento (2 caniles)', occupied: activeHospital.filter(h => h.sector === 'AISLAMIENTO_INFECCIOSO').length, total: 2, percent: Math.min(100, Math.round((activeHospital.filter(h => h.sector === 'AISLAMIENTO_INFECCIOSO').length / 2) * 100)), color: 'bg-amber-500' },
-              ].map((s, idx) => (
-                <div key={idx} className="space-y-1">
-                  <div className="flex items-center justify-between text-[11px]">
-                    <span className="text-slate-700 font-medium">{s.sector}</span>
-                    <span className="font-mono font-bold text-slate-900">{s.occupied}/{s.total}</span>
+              {(() => {
+                const uciCount = activeHospital.filter(h => h.sector === 'UCI' || h.sector === 'UCI_CRITICOS').length;
+                const canilCount = activeHospital.filter(h => h.sector === 'CANIL' || h.sector === 'CANIL_GENERAL' || h.sector === 'PERROS').length;
+                const felinosCount = activeHospital.filter(h => h.sector === 'FELINOS' || h.sector === 'GATERIO_FELINOS').length;
+                const aislamientoCount = activeHospital.filter(h => h.sector === 'AISLAMIENTO' || h.sector === 'AISLAMIENTO_INFECCIOSO').length;
+
+                return [
+                  { sector: 'UCI Críticos (4 caniles)', occupied: uciCount, total: 4, percent: Math.min(100, Math.round((uciCount / 4) * 100)), color: 'bg-red-500' },
+                  { sector: 'Canil General (8 caniles)', occupied: canilCount, total: 8, percent: Math.min(100, Math.round((canilCount / 8) * 100)), color: 'bg-teal-600' },
+                  { sector: 'Gaterío Felinos (4 caniles)', occupied: felinosCount, total: 4, percent: Math.min(100, Math.round((felinosCount / 4) * 100)), color: 'bg-purple-600' },
+                  { sector: 'Aislamiento (2 caniles)', occupied: aislamientoCount, total: 2, percent: Math.min(100, Math.round((aislamientoCount / 2) * 100)), color: 'bg-amber-500' },
+                ].map((s, idx) => (
+                  <div key={idx} className="space-y-1">
+                    <div className="flex items-center justify-between text-[11px]">
+                      <span className="text-slate-700 font-medium">{s.sector}</span>
+                      <span className="font-mono font-bold text-slate-900">{s.occupied}/{s.total}</span>
+                    </div>
+                    <div className="w-full h-2 bg-slate-200 rounded-full overflow-hidden">
+                      <div
+                        style={{ width: `${s.percent}%` }}
+                        className={`h-full ${s.color} rounded-full transition-all`}
+                      ></div>
+                    </div>
                   </div>
-                  <div className="w-full h-2 bg-slate-200 rounded-full overflow-hidden">
-                    <div
-                      style={{ width: `${s.percent}%` }}
-                      className={`h-full ${s.color} rounded-full transition-all`}
-                    ></div>
-                  </div>
-                </div>
-              ))}
+                ));
+              })()}
             </div>
           </div>
 
