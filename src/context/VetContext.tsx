@@ -604,11 +604,21 @@ export const VetProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             if (cloudData && isMounted) {
               if (cloudData.owners && cloudData.owners.length > 0) setOwners(cloudData.owners);
               if (cloudData.patients && cloudData.patients.length > 0) setPatients(cloudData.patients);
+              if (cloudData.vitals && cloudData.vitals.length > 0) setVitals(cloudData.vitals);
+              if (cloudData.problems && cloudData.problems.length > 0) setProblems(cloudData.problems);
               if (cloudData.consultations && cloudData.consultations.length > 0) setConsultations(cloudData.consultations);
               if (cloudData.hospitalizations && cloudData.hospitalizations.length > 0) setHospitalizations(cloudData.hospitalizations);
               if (cloudData.surgeries && cloudData.surgeries.length > 0) setSurgeries(cloudData.surgeries);
               if (cloudData.products && cloudData.products.length > 0) setProducts(cloudData.products);
               if (cloudData.invoices && cloudData.invoices.length > 0) setInvoices(cloudData.invoices);
+              if (cloudData.labOrders && cloudData.labOrders.length > 0) setLabOrders(cloudData.labOrders);
+              if (cloudData.imagingStudies && cloudData.imagingStudies.length > 0) setImagingStudies(cloudData.imagingStudies);
+              if (cloudData.vaccinations && cloudData.vaccinations.length > 0) setVaccinations(cloudData.vaccinations);
+              if (cloudData.appointments && cloudData.appointments.length > 0) setAppointments(cloudData.appointments);
+              if (cloudData.triageList && cloudData.triageList.length > 0) setTriageList(cloudData.triageList);
+              if (cloudData.documents && cloudData.documents.length > 0) setDocuments(cloudData.documents);
+              if (cloudData.estimates && cloudData.estimates.length > 0) setEstimates(cloudData.estimates);
+              if (cloudData.auditLogs && cloudData.auditLogs.length > 0) setAuditLogs(cloudData.auditLogs);
             }
           } else {
             setCloudSyncStatus('OFFLINE_LOCAL');

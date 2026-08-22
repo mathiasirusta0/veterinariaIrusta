@@ -13,6 +13,14 @@ import {
   AuditLog,
   Appointment,
   TriageEntry,
+  LaboratoryOrder,
+  ImagingStudy,
+  VaccinationRecord,
+  Estimate,
+  RegulatoryRule,
+  ControlledDrugMovement,
+  PathologicalWasteRecord,
+  Prescription,
 } from '../types';
 
 /**
@@ -34,6 +42,10 @@ export async function fetchInitialDataFromSupabase() {
       auditLogsRes,
       appointmentsRes,
       triageRes,
+      labsRes,
+      imagingRes,
+      vaccinationsRes,
+      estimatesRes,
     ] = await Promise.all([
       supabase.from('owners').select('*'),
       supabase.from('patients').select('*'),
@@ -48,6 +60,10 @@ export async function fetchInitialDataFromSupabase() {
       supabase.from('audit_logs').select('*').order('timestamp', { ascending: false }).limit(100),
       supabase.from('appointments').select('*'),
       supabase.from('triage_entries').select('*'),
+      supabase.from('laboratory_orders').select('*'),
+      supabase.from('imaging_studies').select('*'),
+      supabase.from('vaccinations').select('*'),
+      supabase.from('estimates').select('*'),
     ]);
 
     return {
@@ -64,6 +80,10 @@ export async function fetchInitialDataFromSupabase() {
       auditLogs: (auditLogsRes.data as AuditLog[]) || null,
       appointments: (appointmentsRes.data as Appointment[]) || null,
       triageList: (triageRes.data as TriageEntry[]) || null,
+      labOrders: (labsRes.data as LaboratoryOrder[]) || null,
+      imagingStudies: (imagingRes.data as ImagingStudy[]) || null,
+      vaccinations: (vaccinationsRes.data as VaccinationRecord[]) || null,
+      estimates: (estimatesRes.data as Estimate[]) || null,
     };
   } catch (error) {
     console.warn('Supabase fetch failed, continuing with local storage cache:', error);
@@ -119,8 +139,6 @@ export async function syncConsultationToSupabase(cons: Consultation) {
       diagnoses: cons.diagnoses,
       prescriptions: cons.prescriptions,
       requires_hospitalization: cons.requiresHospitalization,
-      requires_surgery: (cons as any).requiresSurgery,
-      next_checkup_date: (cons as any).nextCheckupDate,
     });
     if (error) console.error('Error syncing consultation to Supabase:', error);
   } catch (err) {
@@ -171,28 +189,21 @@ export async function syncSurgeryToSupabase(surg: SurgeryRecord) {
       id: surg.id,
       patient_id: surg.patientId,
       procedure_name: surg.procedureName,
-      surgeon_name: surgSurgeonToDb(surg.surgeonName),
+      surgeon_name: surg.surgeonName || 'Dr. Veterinario',
       anesthetist_name: surg.anesthetistName,
       date: surg.date,
       start_time: surg.startTime,
       end_time: surg.endTime,
-      estimated_duration_minutes: (surg as any).estimatedDurationMinutes,
-      asa_grade: (surg as any).asaGrade || (surg as any).asaScore,
+      asa_grade: surg.preOpAssessment?.asaGrade || (surg as any).asaGrade || 'II',
       status: surg.status,
       pre_op_assessment: surg.preOpAssessment,
       anesthesia_protocol: surg.anesthesiaProtocol,
       surgical_technique: surg.surgicalTechnique,
-      intra_op_events: (surg as any).intraOpEvents,
-      post_op_instructions: (surg as any).postOpInstructions || (surg as any).postOpOrders,
     });
     if (error) console.error('Error syncing surgery to Supabase:', error);
   } catch (err) {
     console.warn('Offline: surgery cached locally');
   }
-}
-
-function surgSurgeonToDb(name: string) {
-  return name || 'Dr. Veterinario';
 }
 
 /**
