@@ -560,6 +560,9 @@ export interface Product {
   currentBatch: string;
   expirationDate: string;
   supplier: string;
+  location?: string; // ej: Estante A-2, Heladera #1, Caja de Seguridad Psicotrópicos
+  isPsychotropic?: boolean; // Psicotrópico (Lista II / III / IV)
+  isNarcotic?: boolean; // Estupefaciente (Lista I)
   requiresPrescription?: boolean;
   requiresOfficialArchive?: boolean;
   branchId: string;

@@ -195,6 +195,7 @@ interface VetContextType {
 
   // Inventory & Pharmacy
   addProduct: (product: Omit<Product, 'id' | 'branchId'>) => void;
+  updateProduct: (productId: string, updates: Partial<Product>) => void;
   updateProductStock: (productId: string, quantityChange: number, type: InventoryMovement['type'], reason: string) => void;
 
   // Appointments & Triage
@@ -1496,6 +1497,21 @@ export const VetProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     logAudit('CREAR_PRODUCTO', 'Product', newProd.id, `Alta de producto farmacia: ${newProd.commercialName} (${newProd.code})`);
   };
 
+  const updateProduct = (productId: string, updates: Partial<Product>) => {
+    setProducts((prev) =>
+      prev.map((prod) => {
+        if (prod.id === productId) {
+          const updated = { ...prod, ...updates };
+          syncProductToSupabase(updated);
+          logAudit('ACTUALIZAR_PRODUCTO', 'Product', productId, `Fármaco/Insumo ${prod.commercialName} actualizado`);
+          return updated;
+        }
+        return prod;
+      })
+    );
+    showToast('info', 'Producto Actualizado', 'Los datos del fármaco fueron actualizados.');
+  };
+
   const updateProductStock = (productId: string, quantityChange: number, type: InventoryMovement['type'], reason: string) => {
     setProducts((prev) =>
       prev.map((prod) => {
@@ -1933,6 +1949,7 @@ Hoy hemos evaluado a ${petName} en nuestro centro hospitalario. Queremos transmi
         addVaccination,
 
         addProduct,
+        updateProduct,
         updateProductStock,
 
         addAppointment,
