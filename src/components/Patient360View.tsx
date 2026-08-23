@@ -231,6 +231,7 @@ export const Patient360View: React.FC = () => {
   ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
   const tabs = [
+    { id: 'RESUMEN', label: '⚡ Todo a la Mano', icon: Activity },
     { id: 'SIGNOS', label: '1. Signos Vitales', icon: Heart, count: patientVitals.length },
     { id: 'RECETAS', label: '2. Medicación & Indicaciones', icon: Pill, count: patientPrescriptions.length + (patientHosp?.medications?.length || 0) },
     { id: 'HISTORIA', label: '3. Evolución Médica', icon: Sparkles, count: (clinicalEvolutions?.filter(e => e.patientId === patient.id).length || 0) + timelineEvents.length },
