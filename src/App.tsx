@@ -279,7 +279,7 @@ const MainLayout: React.FC = () => {
         />
 
         {/* Dynamic Main Content Workspace with safe bottom padding for fixed mobile nav */}
-        <main className="flex-1 overflow-y-auto overflow-x-hidden p-3 sm:p-5 md:p-6 lg:p-8 custom-scrollbar bg-[#F1F5F9] pb-[calc(88px+env(safe-area-inset-bottom,0px))] md:pb-8">
+        <main className="flex-1 overflow-y-auto overflow-x-hidden p-3 sm:p-5 md:p-6 lg:p-8 custom-scrollbar bg-[#F1F5F9] pb-[calc(70px+env(safe-area-inset-bottom,0px))] md:pb-8">
           <div className="max-w-7xl mx-auto w-full">{renderActiveView()}</div>
         </main>
       </div>

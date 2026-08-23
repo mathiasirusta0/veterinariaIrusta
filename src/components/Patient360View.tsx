@@ -648,7 +648,7 @@ export const Patient360View: React.FC = () => {
               })()}
             </div>
           ) : (
-            <div className="bg-amber-50 border border-amber-200 p-4 rounded-3xl text-xs space-y-1.5 min-w-[240px]">
+            <div className="bg-amber-50 border border-amber-200 p-4 rounded-3xl text-xs space-y-1.5 w-full md:w-auto md:min-w-[240px] max-w-full">
               <span className="text-[10px] font-bold text-amber-800 uppercase block">⚠️ Sin Tutor Asignado</span>
               <p className="text-slate-600 text-[11px]">Este paciente no tiene un tutor responsable vinculado.</p>
               <button

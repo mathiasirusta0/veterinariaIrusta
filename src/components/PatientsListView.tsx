@@ -144,28 +144,34 @@ export const PatientsListView: React.FC = () => {
   return (
     <div className="space-y-6 pb-12">
       {/* Top Module Subtabs: Pacientes vs Tutores */}
-      <div className="flex items-center gap-2 p-1.5 bg-slate-100/90 rounded-2xl w-fit border border-slate-200">
+      <div className="grid grid-cols-2 gap-1.5 p-1.5 bg-slate-100/90 rounded-2xl w-full sm:w-fit border border-slate-200 text-xs">
         <button
-          onClick={() => setActiveSubTab('PACIENTES')}
-          className={`px-4 py-2 rounded-xl text-xs font-black transition-all flex items-center gap-2 ${
+          onClick={() => {
+            triggerHaptic('light');
+            setActiveSubTab('PACIENTES');
+          }}
+          className={`px-3 py-2 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-1.5 text-center truncate ${
             activeSubTab === 'PACIENTES'
               ? 'bg-white text-teal-800 shadow-sm border border-slate-200'
               : 'text-slate-600 hover:text-slate-900'
           }`}
         >
-          <PawPrint className="w-4 h-4 text-teal-600" />
-          <span>Directorio de Pacientes ({patients.length})</span>
+          <PawPrint className="w-4 h-4 text-teal-600 flex-shrink-0" />
+          <span className="truncate">Pacientes ({patients.length})</span>
         </button>
         <button
-          onClick={() => setActiveSubTab('TUTORES')}
-          className={`px-4 py-2 rounded-xl text-xs font-black transition-all flex items-center gap-2 ${
+          onClick={() => {
+            triggerHaptic('light');
+            setActiveSubTab('TUTORES');
+          }}
+          className={`px-3 py-2 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-1.5 text-center truncate ${
             activeSubTab === 'TUTORES'
               ? 'bg-white text-teal-800 shadow-sm border border-slate-200'
               : 'text-slate-600 hover:text-slate-900'
           }`}
         >
-          <Users className="w-4 h-4 text-teal-600" />
-          <span>Directorio de Tutores & Cuentas Corrientes ({owners.length})</span>
+          <Users className="w-4 h-4 text-teal-600 flex-shrink-0" />
+          <span className="truncate">Tutores ({owners.length})</span>
         </button>
       </div>
 
@@ -373,7 +379,7 @@ export const PatientsListView: React.FC = () => {
       </div>
 
       {/* Quick Filter Tabs by Status (Swipeable on mobile) */}
-      <div className="flex items-center gap-2 text-xs overflow-x-auto pb-1.5 no-scrollbar sm:flex-wrap snap-x touch-pan-x -mx-3 px-3 sm:mx-0 sm:px-0">
+      <div className="w-full max-w-full flex items-center gap-2 text-xs overflow-x-auto pb-1.5 no-scrollbar sm:flex-wrap snap-x touch-pan-x min-w-0">
         <button
           onClick={() => { setStatusFilter('TODOS'); setSpeciesFilter('TODOS'); }}
           className={`flex-shrink-0 snap-start px-3.5 py-1.5 rounded-xl font-bold transition-all active:scale-95 ${
