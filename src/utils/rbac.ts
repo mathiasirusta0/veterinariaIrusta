@@ -16,7 +16,6 @@ export type SystemView =
   | 'IMAGENES'
   | 'VACUNAS'
   | 'INVENTARIO'
-  | 'RESIDUOS_PATOLOGICOS'
   | 'CAJA_FACTURACION'
   | 'DOCUMENTOS'
   | 'ASISTENTE_IA'
@@ -41,7 +40,6 @@ export const ROLE_PERMISSIONS: Record<UserRole, SystemView[]> = {
     'IMAGENES',
     'VACUNAS',
     'INVENTARIO',
-    'RESIDUOS_PATOLOGICOS',
     'CAJA_FACTURACION',
     'DOCUMENTOS',
     'ASISTENTE_IA',
@@ -64,7 +62,6 @@ export const ROLE_PERMISSIONS: Record<UserRole, SystemView[]> = {
     'IMAGENES',
     'VACUNAS',
     'INVENTARIO',
-    'RESIDUOS_PATOLOGICOS',
     'CAJA_FACTURACION',
     'DOCUMENTOS',
     'ASISTENTE_IA',
@@ -87,7 +84,6 @@ export const ROLE_PERMISSIONS: Record<UserRole, SystemView[]> = {
     'IMAGENES',
     'VACUNAS',
     'INVENTARIO',
-    'RESIDUOS_PATOLOGICOS',
     'CAJA_FACTURACION',
     'DOCUMENTOS',
     'ASISTENTE_IA',
@@ -110,7 +106,6 @@ export const ROLE_PERMISSIONS: Record<UserRole, SystemView[]> = {
     'IMAGENES',
     'VACUNAS',
     'INVENTARIO',
-    'RESIDUOS_PATOLOGICOS',
     'DOCUMENTOS',
     'ASISTENTE_IA',
     'CUMPLIMIENTO_NORMATIVO',
@@ -137,7 +132,6 @@ export const ROLE_PERMISSIONS: Record<UserRole, SystemView[]> = {
     'PROPIETARIOS',
     'CONSULTAS',
     'RECETAS_OFICIALES',
-    'RESIDUOS_PATOLOGICOS',
     'CAJA_FACTURACION',
     'DOCUMENTOS',
     'CUMPLIMIENTO_NORMATIVO',
@@ -154,7 +148,6 @@ export const ROLE_PERMISSIONS: Record<UserRole, SystemView[]> = {
     'CIRUGIAS',
     'VACUNAS',
     'INVENTARIO',
-    'RESIDUOS_PATOLOGICOS',
   ],
   ASISTENTE: [
     'DASHBOARD',
