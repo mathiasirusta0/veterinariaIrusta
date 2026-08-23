@@ -230,53 +230,55 @@ export const CashAndBillingView: React.FC = () => {
             </div>
           </div>
 
-          <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
-            <table className="w-full text-left border-collapse text-xs">
-              <thead>
-                <tr className="bg-slate-50 text-slate-700 border-b border-slate-200 font-semibold">
-                  <th className="p-3.5">Comprobante</th>
-                  <th className="p-3.5">Fecha & Hora</th>
-                  <th className="p-3.5">Tutor / Cliente</th>
-                  <th className="p-3.5">Detalle</th>
-                  <th className="p-3.5">Pago</th>
-                  <th className="p-3.5 text-right">Total</th>
-                  <th className="p-3.5 text-center">Acciones</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 font-medium text-slate-700">
-                {invoices.map((inv) => (
-                  <tr key={inv.id} className="hover:bg-slate-50/80 transition-colors">
-                    <td className="p-3.5 font-bold font-mono text-slate-900">
-                      {formatInvoiceNumber(inv.type || (inv as any).invoiceType, inv.pointOfSale, inv.invoiceNumber)}
-                    </td>
-                    <td className="p-3.5 text-slate-500 font-mono">
-                      {formatDate(inv.date || (inv as any).issuedAt)}
-                    </td>
-                    <td className="p-3.5 font-bold text-slate-900">{inv.customerName || (inv as any).clientName || 'Consumidor Final'}</td>
-                    <td className="p-3.5 text-slate-600">
-                      {(inv.items || []).map((i) => `${i.quantity}x ${i.description}`).join(', ')}
-                    </td>
-                    <td className="p-3.5">
-                      <span className="px-2 py-0.5 rounded bg-slate-100 text-slate-700 font-mono text-[10px] font-bold">
-                        {inv.paymentMethod || 'EFECTIVO'}
-                      </span>
-                    </td>
-                    <td className="p-3.5 text-right font-mono font-bold text-slate-900 text-sm">
-                      ${(inv.totalAmount ?? (inv as any).total ?? 0).toLocaleString('es-AR')}
-                    </td>
-                    <td className="p-3.5 text-center">
-                      <button
-                        onClick={() => openPrintModal({ type: 'FACTURA', invoiceId: inv.id })}
-                        className="p-1.5 rounded-lg text-slate-400 hover:text-teal-600 hover:bg-slate-100 transition-colors"
-                        title="Imprimir Comprobante Fiscal con QR AFIP"
-                      >
-                        <Printer className="w-4 h-4" />
-                      </button>
-                    </td>
+          <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm w-full">
+            <div className="overflow-x-auto w-full">
+              <table className="w-full text-left border-collapse text-xs min-w-[650px]">
+                <thead>
+                  <tr className="bg-slate-50 text-slate-700 border-b border-slate-200 font-semibold">
+                    <th className="p-3.5">Comprobante</th>
+                    <th className="p-3.5">Fecha & Hora</th>
+                    <th className="p-3.5">Tutor / Cliente</th>
+                    <th className="p-3.5">Detalle</th>
+                    <th className="p-3.5">Pago</th>
+                    <th className="p-3.5 text-right">Total</th>
+                    <th className="p-3.5 text-center">Acciones</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="divide-y divide-slate-100 font-medium text-slate-700">
+                  {invoices.map((inv) => (
+                    <tr key={inv.id} className="hover:bg-slate-50/80 transition-colors">
+                      <td className="p-3.5 font-bold font-mono text-slate-900">
+                        {formatInvoiceNumber(inv.type || (inv as any).invoiceType, inv.pointOfSale, inv.invoiceNumber)}
+                      </td>
+                      <td className="p-3.5 text-slate-500 font-mono">
+                        {formatDate(inv.date || (inv as any).issuedAt)}
+                      </td>
+                      <td className="p-3.5 font-bold text-slate-900">{inv.customerName || (inv as any).clientName || 'Consumidor Final'}</td>
+                      <td className="p-3.5 text-slate-600">
+                        {(inv.items || []).map((i) => `${i.quantity}x ${i.description}`).join(', ')}
+                      </td>
+                      <td className="p-3.5">
+                        <span className="px-2 py-0.5 rounded bg-slate-100 text-slate-700 font-mono text-[10px] font-bold">
+                          {inv.paymentMethod || 'EFECTIVO'}
+                        </span>
+                      </td>
+                      <td className="p-3.5 text-right font-mono font-bold text-slate-900 text-sm">
+                        ${(inv.totalAmount ?? (inv as any).total ?? 0).toLocaleString('es-AR')}
+                      </td>
+                      <td className="p-3.5 text-center">
+                        <button
+                          onClick={() => openPrintModal({ type: 'FACTURA', invoiceId: inv.id })}
+                          className="p-1.5 rounded-lg text-slate-400 hover:text-teal-600 hover:bg-slate-100 transition-colors"
+                          title="Imprimir Comprobante Fiscal con QR AFIP"
+                        >
+                          <Printer className="w-4 h-4" />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       )}
@@ -429,37 +431,39 @@ export const CashAndBillingView: React.FC = () => {
           </form>
 
           {/* Expenses Table */}
-          <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
-            <table className="w-full text-left border-collapse text-xs">
-              <thead>
-                <tr className="bg-slate-50 text-slate-700 border-b border-slate-200 font-semibold">
-                  <th className="p-3.5">Fecha & Hora</th>
-                  <th className="p-3.5">Categoría</th>
-                  <th className="p-3.5">Concepto</th>
-                  <th className="p-3.5">Comprobante</th>
-                  <th className="p-3.5">Medio</th>
-                  <th className="p-3.5 text-right">Monto</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 font-medium text-slate-700">
-                {expenses.map((exp) => (
-                  <tr key={exp.id} className="hover:bg-slate-50/80">
-                    <td className="p-3.5 font-mono text-slate-500">{exp.timestamp}</td>
-                    <td className="p-3.5">
-                      <span className="px-2 py-0.5 rounded bg-rose-50 text-rose-800 font-bold text-[10px] border border-rose-200">
-                        {exp.category ? exp.category.replace('_', ' ') : 'General'}
-                      </span>
-                    </td>
-                    <td className="p-3.5 font-bold text-slate-900">{exp.description}</td>
-                    <td className="p-3.5 font-mono text-slate-500">{exp.receiptNumber || '-'}</td>
-                    <td className="p-3.5 font-mono">{exp.paymentMethod}</td>
-                    <td className="p-3.5 text-right font-mono font-black text-rose-700 text-sm">
-                      -${exp.amount.toLocaleString('es-AR')}
-                    </td>
+          <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm w-full">
+            <div className="overflow-x-auto w-full">
+              <table className="w-full text-left border-collapse text-xs min-w-[650px]">
+                <thead>
+                  <tr className="bg-slate-50 text-slate-700 border-b border-slate-200 font-semibold">
+                    <th className="p-3.5">Fecha & Hora</th>
+                    <th className="p-3.5">Categoría</th>
+                    <th className="p-3.5">Concepto</th>
+                    <th className="p-3.5">Comprobante</th>
+                    <th className="p-3.5">Medio</th>
+                    <th className="p-3.5 text-right">Monto</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="divide-y divide-slate-100 font-medium text-slate-700">
+                  {expenses.map((exp) => (
+                    <tr key={exp.id} className="hover:bg-slate-50/80">
+                      <td className="p-3.5 font-mono text-slate-500">{exp.timestamp}</td>
+                      <td className="p-3.5">
+                        <span className="px-2 py-0.5 rounded bg-rose-50 text-rose-800 font-bold text-[10px] border border-rose-200">
+                          {exp.category ? exp.category.replace('_', ' ') : 'General'}
+                        </span>
+                      </td>
+                      <td className="p-3.5 font-bold text-slate-900">{exp.description}</td>
+                      <td className="p-3.5 font-mono text-slate-500">{exp.receiptNumber || '-'}</td>
+                      <td className="p-3.5 font-mono">{exp.paymentMethod}</td>
+                      <td className="p-3.5 text-right font-mono font-black text-rose-700 text-sm">
+                        -${exp.amount.toLocaleString('es-AR')}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       )}

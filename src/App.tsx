@@ -15,6 +15,7 @@ import { ImagingAnnotatorModal } from './components/ImagingAnnotatorModal';
 import { ToastNotification } from './components/ToastNotification';
 import { AccessDeniedView } from './components/AccessDeniedView';
 import { ModuleErrorBoundary } from './components/ModuleErrorBoundary';
+import { MobileBottomNav } from './components/MobileBottomNav';
 import { hasViewPermission, SystemView } from './utils/rbac';
 import { triggerHaptic } from './utils/haptics';
 
@@ -277,83 +278,14 @@ const MainLayout: React.FC = () => {
           onCloseMobile={() => setIsMobileMenuOpen(false)}
         />
 
-        {/* Dynamic Main Content Workspace */}
-        <main className="flex-1 overflow-y-auto p-3 sm:p-6 lg:p-8 custom-scrollbar bg-[#F1F5F9] pb-24 md:pb-8">
-          <div className="max-w-7xl mx-auto">{renderActiveView()}</div>
+        {/* Dynamic Main Content Workspace with safe bottom padding for fixed mobile nav */}
+        <main className="flex-1 overflow-y-auto overflow-x-hidden p-3 sm:p-5 md:p-6 lg:p-8 custom-scrollbar bg-[#F1F5F9] pb-[calc(88px+env(safe-area-inset-bottom,0px))] md:pb-8">
+          <div className="max-w-7xl mx-auto w-full">{renderActiveView()}</div>
         </main>
       </div>
 
-      {/* Native Physical Mobile Bottom Navigation Bar (Visible only on < md screens) */}
-      <nav className="md:hidden fixed bottom-0 inset-x-0 bg-white/95 backdrop-blur-md border-t border-slate-200/90 z-30 px-3 py-1.5 flex items-center justify-around shadow-[0_-4px_16px_rgba(0,0,0,0.08)] safe-bottom">
-        <button
-          onClick={() => {
-            triggerHaptic('light');
-            setSelectedPatientId(null);
-            setActiveView('PACIENTES');
-          }}
-          className={`flex flex-col items-center justify-center gap-0.5 min-h-[50px] min-w-[50px] px-2 py-1 rounded-xl transition-all active:scale-90 active:translate-y-0.5 ${
-            activeView === 'PACIENTES'
-              ? 'text-teal-700 font-black bg-teal-50/80 shadow-sm border border-teal-200/60'
-              : 'text-slate-500 hover:text-slate-800'
-          }`}
-        >
-          <PawPrint className="w-5 h-5 stroke-[2.2]" />
-          <span className="text-[10px] font-bold tracking-tight">Pacientes</span>
-        </button>
-
-        <button
-          onClick={() => {
-            triggerHaptic('light');
-            setActiveView('CAJA_FACTURACION');
-          }}
-          className={`flex flex-col items-center justify-center gap-0.5 min-h-[50px] min-w-[50px] px-2 py-1 rounded-xl transition-all active:scale-90 active:translate-y-0.5 ${
-            activeView === 'CAJA_FACTURACION' || activeView === 'CAJA_FACTURAS'
-              ? 'text-teal-700 font-black bg-teal-50/80 shadow-sm border border-teal-200/60'
-              : 'text-slate-500 hover:text-slate-800'
-          }`}
-        >
-          <Receipt className="w-5 h-5 stroke-[2.2]" />
-          <span className="text-[10px] font-bold tracking-tight">Caja & ARCA</span>
-        </button>
-
-        {/* Center Quick Action Physical Floating Button */}
-        <button
-          onClick={() => {
-            triggerHaptic('medium');
-            setQuickModal('QUICK_ACTIONS');
-          }}
-          className="btn-physical btn-physical-teal w-13 h-13 -mt-6 rounded-full border-4 border-white text-white shadow-lg active:scale-90 flex items-center justify-center"
-          title="Acción Rápida de Urgencia"
-        >
-          <Plus className="w-7 h-7 stroke-[3]" />
-        </button>
-
-        <button
-          onClick={() => {
-            triggerHaptic('light');
-            setActiveView('INVENTARIO');
-          }}
-          className={`flex flex-col items-center justify-center gap-0.5 min-h-[50px] min-w-[50px] px-2 py-1 rounded-xl transition-all active:scale-90 active:translate-y-0.5 ${
-            activeView === 'INVENTARIO' || activeView === 'FARMACIA'
-              ? 'text-teal-700 font-black bg-teal-50/80 shadow-sm border border-teal-200/60'
-              : 'text-slate-500 hover:text-slate-800'
-          }`}
-        >
-          <Boxes className="w-5 h-5 stroke-[2.2]" />
-          <span className="text-[10px] font-bold tracking-tight">Farmacia</span>
-        </button>
-
-        <button
-          onClick={() => {
-            triggerHaptic('light');
-            setIsMobileMenuOpen(true);
-          }}
-          className="flex flex-col items-center justify-center gap-0.5 min-h-[50px] min-w-[50px] px-2 py-1 rounded-xl text-slate-500 hover:text-slate-900 active:scale-90 active:translate-y-0.5 transition-all"
-        >
-          <Menu className="w-5 h-5 stroke-[2.2]" />
-          <span className="text-[10px] font-bold tracking-tight">Menú</span>
-        </button>
-      </nav>
+      {/* Universal Fixed Mobile Bottom Navigation Bar (< md screens) */}
+      <MobileBottomNav onOpenMobileMenu={() => setIsMobileMenuOpen(true)} />
 
       {/* Overlays & Specialized Clinical Modals */}
       <GlobalSearchModal />

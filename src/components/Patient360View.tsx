@@ -589,7 +589,7 @@ export const Patient360View: React.FC = () => {
 
           {/* Owner Details Card & Immediate Actions */}
           {owner ? (
-            <div className="bg-gradient-to-br from-slate-50 to-teal-50/40 border border-teal-200/80 p-4 rounded-3xl min-w-[290px] text-xs space-y-2 shadow-xs">
+            <div className="bg-gradient-to-br from-slate-50 to-teal-50/40 border border-teal-200/80 p-4 rounded-3xl w-full md:w-auto md:min-w-[280px] max-w-full text-xs space-y-2 shadow-xs">
               {(() => {
                 const ownerBalance = formatOwnerBalance(owner.balance);
                 return (
@@ -1918,7 +1918,7 @@ export const Patient360View: React.FC = () => {
       )}
 
       {/* Native Physical Mobile Action Dock (Visible on smartphones < md, fixed above bottom navigation bar) */}
-      <aside aria-label="Acciones rápidas móviles" className="md:hidden fixed bottom-[58px] inset-x-0 z-20 px-3 py-2 bg-white/95 backdrop-blur-md border-t border-slate-200/90 shadow-[0_-6px_20px_rgba(0,0,0,0.08)] flex items-center gap-2">
+      <aside aria-label="Acciones rápidas móviles" className="md:hidden fixed bottom-[calc(64px+env(safe-area-inset-bottom,0px))] sm:bottom-[calc(70px+env(safe-area-inset-bottom,0px))] inset-x-0 z-30 px-3 py-2 bg-white/95 backdrop-blur-md border-t border-slate-200/90 shadow-[0_-6px_20px_rgba(0,0,0,0.08)] flex items-center gap-2">
         {activePatientTab === 'SIGNOS' && (
           <button
             type="button"

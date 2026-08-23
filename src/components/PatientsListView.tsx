@@ -446,7 +446,7 @@ export const PatientsListView: React.FC = () => {
       </div>
 
       {/* Search & Layout Toggle Bar */}
-      <div className="bg-white border border-slate-200 p-3.5 rounded-2xl shadow-sm flex flex-col md:flex-row items-center justify-between gap-3 text-xs">
+      <div className="bg-white border border-slate-200 p-3 sm:p-4 rounded-2xl shadow-sm flex flex-col md:flex-row items-center justify-between gap-3 text-xs w-full max-w-full">
         <div className="flex-1 w-full relative">
           <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
           <input
@@ -458,7 +458,7 @@ export const PatientsListView: React.FC = () => {
           />
         </div>
 
-        <div className="flex items-center gap-2 self-end md:self-auto flex-shrink-0">
+        <div className="flex items-center justify-between md:justify-end w-full md:w-auto gap-2 flex-shrink-0">
           <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 px-2.5 py-1.5 rounded-xl">
             <span className="text-[10px] uppercase font-bold text-slate-400">Ordenar:</span>
             <select
@@ -476,7 +476,10 @@ export const PatientsListView: React.FC = () => {
 
           <div className="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200">
             <button
-              onClick={() => setViewMode('GRID')}
+              onClick={() => {
+                triggerHaptic('light');
+                setViewMode('GRID');
+              }}
               className={`p-1.5 rounded-lg transition-all ${
                 viewMode === 'GRID' ? 'bg-white text-teal-700 shadow-2xs font-bold' : 'text-slate-500 hover:text-slate-800'
               }`}
@@ -485,7 +488,10 @@ export const PatientsListView: React.FC = () => {
               <LayoutGrid className="w-4 h-4" />
             </button>
             <button
-              onClick={() => setViewMode('TABLE')}
+              onClick={() => {
+                triggerHaptic('light');
+                setViewMode('TABLE');
+              }}
               className={`p-1.5 rounded-lg transition-all ${
                 viewMode === 'TABLE' ? 'bg-white text-teal-700 shadow-2xs font-bold' : 'text-slate-500 hover:text-slate-800'
               }`}
@@ -690,144 +696,315 @@ export const PatientsListView: React.FC = () => {
           })}
         </div>
       ) : (
-        /* TABLE MODE */
-        <div className="bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-sm">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse text-xs">
-              <thead className="bg-slate-50 border-b border-slate-200 text-[10px] uppercase text-slate-500 font-bold tracking-wider">
-                <tr>
-                  <th className="p-3.5">Paciente & HC</th>
-                  <th className="p-3.5">Especie / Raza</th>
-                  <th className="p-3.5">Sexo & Edad</th>
-                  <th className="p-3.5 text-center">Peso (kg)</th>
-                  <th className="p-3.5">Microchip ISO</th>
-                  <th className="p-3.5">Estado</th>
-                  <th className="p-3.5">Tutor Responsable</th>
-                  <th className="p-3.5">Alertas</th>
-                  <th className="p-3.5 text-right">Acciones</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 font-medium text-slate-700">
-                {filteredPatients.map((patient) => {
-                  const owner = owners.find((o) => o.id === patient.ownerId);
-                  const isInterned = patient.status === 'INTERNADO' || hospitalizations.some((h) => h.patientId === patient.id && h.status === 'ACTIVA');
-                  const hasCriticalAlerts = patient.alerts && patient.alerts.length > 0;
+        /* TABLE MODE (SMART RESPONSIVE: CARDS ON MOBILE < sm, CONDENSED/FULL TABLE ON >= sm) */
+        <div className="space-y-3 w-full max-w-full">
+          {/* 1. Mobile Patient Cards View (< sm / < 640px) */}
+          <div className="block sm:hidden space-y-3 w-full">
+            {filteredPatients.map((patient) => {
+              const owner = owners.find((o) => o.id === patient.ownerId);
+              const isInterned = patient.status === 'INTERNADO' || hospitalizations.some((h) => h.patientId === patient.id && h.status === 'ACTIVA');
+              const hasCriticalAlerts = patient.alerts && patient.alerts.length > 0;
 
-                  return (
-                    <tr
-                      key={patient.id}
-                      onClick={() => handleOpenPatient(patient.id)}
-                      className="hover:bg-slate-50/80 transition-colors cursor-pointer"
+              return (
+                <div
+                  key={patient.id}
+                  onClick={() => handleOpenPatient(patient.id)}
+                  className="bg-white border border-slate-200 hover:border-teal-500/60 rounded-2xl p-4 shadow-xs space-y-3 cursor-pointer active:scale-[0.99] transition-all w-full"
+                >
+                  {/* Top: Avatar, Name, Species & Status */}
+                  <div className="flex items-start justify-between gap-2.5">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="relative flex-shrink-0">
+                        <img
+                          src={patient.photoUrl || 'https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=100'}
+                          alt={patient.name}
+                          className="w-12 h-12 rounded-xl object-cover border border-slate-200 shadow-xs"
+                          referrerPolicy="no-referrer"
+                        />
+                        <span className="absolute -bottom-1 -right-1 text-xs">
+                          {patient.species === 'Canino' ? '🐕' : patient.species === 'Felino' ? '🐈' : '🦜'}
+                        </span>
+                      </div>
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <h3 className="text-sm font-bold text-slate-900 truncate">
+                            {patient.name || 'Paciente'}
+                          </h3>
+                          <span className="text-[10px] font-mono bg-slate-100 px-1.5 py-0.5 rounded text-slate-600 border border-slate-200">
+                            {patient.clinicalRecordNumber || 'HC-0000'}
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-slate-500 font-medium truncate">
+                          {[patient.species, patient.breed].filter(Boolean).join(' • ')}
+                        </p>
+                      </div>
+                    </div>
+
+                    <span
+                      className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase flex-shrink-0 ${
+                        isInterned
+                          ? 'bg-red-50 text-red-600 border border-red-200 font-black animate-pulse'
+                          : 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                      }`}
                     >
-                      {/* Patient & Avatar */}
-                      <td className="p-3.5">
-                        <div className="flex items-center gap-2.5">
-                          <img
-                            src={patient.photoUrl || 'https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=100'}
-                            alt={patient.name}
-                            className="w-9 h-9 rounded-xl object-cover border border-slate-200"
-                            referrerPolicy="no-referrer"
-                          />
-                          <div>
-                            <span className="font-bold text-slate-900 block">{patient.name}</span>
-                            <span className="text-[10px] font-mono text-teal-700">{patient.clinicalRecordNumber}</span>
-                          </div>
-                        </div>
-                      </td>
+                      {isInterned ? 'INTERNADO' : patient.status}
+                    </span>
+                  </div>
 
-                      {/* Species & Breed */}
-                      <td className="p-3.5">
-                        <span className="font-bold text-slate-900 block">{patient.species}</span>
-                        <span className="text-[11px] text-slate-500">{patient.breed}</span>
-                      </td>
+                  {/* Badges: Sex, Age, Weight, Chip */}
+                  <div className="flex items-center gap-2 flex-wrap text-xs">
+                    <span className="bg-slate-50 border border-slate-200 px-2 py-0.5 rounded-lg text-slate-700 font-semibold text-[11px]">
+                      {patient.sex} • {patient.calculatedAge || 'Edad N/D'}
+                    </span>
+                    <span className="bg-teal-50 border border-teal-200 px-2 py-0.5 rounded-lg text-teal-800 font-mono font-black text-[11px]">
+                      ⚖️ {formatWeight(patient.weight)}
+                    </span>
+                    {patient.microchip && (
+                      <span className="bg-slate-100 border border-slate-200 px-2 py-0.5 rounded-lg text-slate-600 font-mono text-[10px]">
+                        CHIP: {patient.microchip}
+                      </span>
+                    )}
+                  </div>
 
-                      {/* Sex & Age */}
-                      <td className="p-3.5">
-                        <span className="text-slate-800 block">{patient.sex}</span>
-                        <span className="text-[11px] text-slate-400">{patient.calculatedAge}</span>
-                      </td>
-
-                      {/* Weight */}
-                      <td className="p-3.5 text-center font-mono font-bold text-slate-900">
-                        {patient.weight} kg
-                      </td>
-
-                      {/* Microchip */}
-                      <td className="p-3.5 font-mono text-[11px] text-slate-600">
-                        {patient.microchip ? (
-                          <span className="bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
-                            {patient.microchip}
-                          </span>
-                        ) : (
-                          <span className="text-slate-400 text-[10px]">Sin Chip</span>
-                        )}
-                      </td>
-
-                      {/* Status */}
-                      <td className="p-3.5">
+                  {/* Critical Alerts Pill */}
+                  {hasCriticalAlerts && (
+                    <div className="flex flex-wrap gap-1">
+                      {patient.alerts.map((al, idx) => (
                         <span
-                          className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase ${
-                            isInterned
-                              ? 'bg-red-50 text-red-600 border border-red-200 font-black animate-pulse'
-                              : 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                          }`}
+                          key={idx}
+                          className="text-[10px] font-bold px-2 py-0.5 rounded bg-red-50 text-red-600 border border-red-200 truncate max-w-full"
                         >
-                          {isInterned ? 'INTERNADO' : patient.status}
+                          ⚠️ {al.type}: {al.description}
                         </span>
-                      </td>
+                      ))}
+                    </div>
+                  )}
 
-                      {/* Owner */}
-                      <td className="p-3.5">
-                        <span className="font-bold text-slate-900 block">
-                          {owner ? `${owner.firstName} ${owner.lastName}` : 'N/A'}
+                  {/* Owner Bar with 1-tap WhatsApp */}
+                  {owner && (
+                    <div className="flex items-center justify-between bg-slate-50 px-3 py-2 rounded-xl border border-slate-100 text-xs">
+                      <div className="truncate mr-2">
+                        <span className="text-[10px] text-slate-400 font-bold block uppercase">Tutor:</span>
+                        <span className="font-semibold text-slate-800 text-[11px] truncate block">
+                          {owner.firstName} {owner.lastName}
                         </span>
-                        <span className="text-[11px] font-mono text-slate-500">{owner?.phone}</span>
-                      </td>
+                      </div>
+                      <div className="flex items-center gap-1.5 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            triggerHaptic('light');
+                            openWhatsAppHub({
+                              patientName: patient.name,
+                              species: patient.species,
+                              ownerName: `${owner.firstName} ${owner.lastName}`,
+                              ownerPhone: owner.phone,
+                              diagnosis: 'Control general en clínica veterinaria',
+                            });
+                          }}
+                          className="p-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 text-xs font-bold flex items-center gap-1"
+                          title="WhatsApp"
+                        >
+                          <span>💬</span>
+                        </button>
+                        <a
+                          href={`tel:${(owner.phone || '').replace(/[^0-9]/g, '')}`}
+                          className="p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 text-xs font-bold"
+                          title="Llamar"
+                        >
+                          <span>📞</span>
+                        </a>
+                      </div>
+                    </div>
+                  )}
 
-                      {/* Alerts */}
-                      <td className="p-3.5">
-                        {hasCriticalAlerts ? (
-                          <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-red-50 text-red-700 border border-red-200 block truncate max-w-[150px]">
-                            ⚠️ {patient.alerts[0].type}
-                          </span>
-                        ) : (
-                          <span className="text-[10px] font-bold text-emerald-600">Sin Alergias</span>
-                        )}
-                      </td>
+                  {/* Card Fast Actions */}
+                  <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-xs gap-2">
+                    <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          triggerHaptic('medium');
+                          setSelectedPatientId(patient.id);
+                          setQuickModal('NUEVA_CONSULTA');
+                        }}
+                        className="px-2.5 py-1 rounded-lg bg-teal-50 hover:bg-teal-100 text-teal-700 font-bold text-[10px] border border-teal-200"
+                      >
+                        + SOAP
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          triggerHaptic('light');
+                          openDentalChart(patient.id);
+                        }}
+                        className="p-1 rounded-lg bg-slate-50 hover:bg-slate-100 text-slate-600 border border-slate-200 text-[10px]"
+                        title="Odontograma"
+                      >
+                        🦷
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          triggerHaptic('light');
+                          openBodyMap(patient.id);
+                        }}
+                        className="p-1 rounded-lg bg-slate-50 hover:bg-slate-100 text-slate-600 border border-slate-200 text-[10px]"
+                        title="Mapa Corporal"
+                      >
+                        🐾
+                      </button>
+                    </div>
 
-                      {/* Actions */}
-                      <td className="p-3.5 text-right">
-                        <div className="flex items-center justify-end gap-2" onClick={(e) => e.stopPropagation()}>
-                          {owner && (
-                            <button
-                              onClick={() =>
-                                openWhatsAppHub({
-                                  patientName: patient.name,
-                                  species: patient.species,
-                                  ownerName: `${owner.firstName} ${owner.lastName}`,
-                                  ownerPhone: owner.phone,
-                                  diagnosis: 'Control general en clínica veterinaria',
-                                })
-                              }
-                              className="p-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 transition-colors"
-                              title="Enviar WhatsApp al tutor"
-                            >
-                              <MessageSquare className="w-3.5 h-3.5" />
-                            </button>
+                    <span className="font-bold text-teal-600 text-xs flex items-center gap-1">
+                      <span>Ficha 360°</span>
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* 2. Desktop & Tablet Table (>= sm / >= 640px) */}
+          <div className="hidden sm:block bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-sm w-full">
+            <div className="overflow-x-auto w-full">
+              <table className="w-full text-left border-collapse text-xs">
+                <thead className="bg-slate-50 border-b border-slate-200 text-[10px] uppercase text-slate-500 font-bold tracking-wider">
+                  <tr>
+                    <th className="p-3.5">Paciente & HC</th>
+                    <th className="p-3.5">Especie / Raza</th>
+                    <th className="p-3.5">Sexo & Edad</th>
+                    <th className="p-3.5 text-center">Peso (kg)</th>
+                    <th className="p-3.5">Microchip ISO</th>
+                    <th className="p-3.5">Estado</th>
+                    <th className="p-3.5">Tutor Responsable</th>
+                    <th className="p-3.5">Alertas</th>
+                    <th className="p-3.5 text-right">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 font-medium text-slate-700">
+                  {filteredPatients.map((patient) => {
+                    const owner = owners.find((o) => o.id === patient.ownerId);
+                    const isInterned = patient.status === 'INTERNADO' || hospitalizations.some((h) => h.patientId === patient.id && h.status === 'ACTIVA');
+                    const hasCriticalAlerts = patient.alerts && patient.alerts.length > 0;
+
+                    return (
+                      <tr
+                        key={patient.id}
+                        onClick={() => handleOpenPatient(patient.id)}
+                        className="hover:bg-slate-50/80 transition-colors cursor-pointer"
+                      >
+                        {/* Patient & Avatar */}
+                        <td className="p-3.5">
+                          <div className="flex items-center gap-2.5">
+                            <img
+                              src={patient.photoUrl || 'https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=100'}
+                              alt={patient.name}
+                              className="w-9 h-9 rounded-xl object-cover border border-slate-200"
+                              referrerPolicy="no-referrer"
+                            />
+                            <div>
+                              <span className="font-bold text-slate-900 block">{patient.name}</span>
+                              <span className="text-[10px] font-mono text-teal-700">{patient.clinicalRecordNumber}</span>
+                            </div>
+                          </div>
+                        </td>
+
+                        {/* Species & Breed */}
+                        <td className="p-3.5">
+                          <span className="font-bold text-slate-900 block">{patient.species}</span>
+                          <span className="text-[11px] text-slate-500">{patient.breed}</span>
+                        </td>
+
+                        {/* Sex & Age */}
+                        <td className="p-3.5">
+                          <span className="text-slate-800 block">{patient.sex}</span>
+                          <span className="text-[11px] text-slate-400">{patient.calculatedAge}</span>
+                        </td>
+
+                        {/* Weight */}
+                        <td className="p-3.5 text-center font-mono font-bold text-slate-900">
+                          {patient.weight} kg
+                        </td>
+
+                        {/* Microchip */}
+                        <td className="p-3.5 font-mono text-[11px] text-slate-600">
+                          {patient.microchip ? (
+                            <span className="bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
+                              {patient.microchip}
+                            </span>
+                          ) : (
+                            <span className="text-slate-400 text-[10px]">Sin Chip</span>
                           )}
-                          <button
-                            onClick={() => handleOpenPatient(patient.id)}
-                            className="px-3 py-1.5 bg-slate-100 hover:bg-teal-600 hover:text-white text-slate-700 font-bold rounded-lg text-xs transition-colors"
+                        </td>
+
+                        {/* Status */}
+                        <td className="p-3.5">
+                          <span
+                            className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase ${
+                              isInterned
+                                ? 'bg-red-50 text-red-600 border border-red-200 font-black animate-pulse'
+                                : 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                            }`}
                           >
-                            Ver Ficha →
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+                            {isInterned ? 'INTERNADO' : patient.status}
+                          </span>
+                        </td>
+
+                        {/* Owner */}
+                        <td className="p-3.5">
+                          <span className="font-bold text-slate-900 block">
+                            {owner ? `${owner.firstName} ${owner.lastName}` : 'N/A'}
+                          </span>
+                          <span className="text-[11px] font-mono text-slate-500">{owner?.phone}</span>
+                        </td>
+
+                        {/* Alerts */}
+                        <td className="p-3.5">
+                          {hasCriticalAlerts ? (
+                            <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-red-50 text-red-700 border border-red-200 block truncate max-w-[150px]">
+                              ⚠️ {patient.alerts[0].type}
+                            </span>
+                          ) : (
+                            <span className="text-[10px] font-bold text-emerald-600">Sin Alergias</span>
+                          )}
+                        </td>
+
+                        {/* Actions */}
+                        <td className="p-3.5 text-right">
+                          <div className="flex items-center justify-end gap-2" onClick={(e) => e.stopPropagation()}>
+                            {owner && (
+                              <button
+                                onClick={() =>
+                                  openWhatsAppHub({
+                                    patientName: patient.name,
+                                    species: patient.species,
+                                    ownerName: `${owner.firstName} ${owner.lastName}`,
+                                    ownerPhone: owner.phone,
+                                    diagnosis: 'Control general en clínica veterinaria',
+                                  })
+                                }
+                                className="p-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 transition-colors"
+                                title="Enviar WhatsApp al tutor"
+                              >
+                                <MessageSquare className="w-3.5 h-3.5" />
+                              </button>
+                            )}
+                            <button
+                              onClick={() => handleOpenPatient(patient.id)}
+                              className="px-3 py-1.5 bg-slate-100 hover:bg-teal-600 hover:text-white text-slate-700 font-bold rounded-lg text-xs transition-colors"
+                            >
+                              Ver Ficha →
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       )}

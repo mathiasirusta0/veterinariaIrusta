@@ -169,9 +169,9 @@ export const InventoryView: React.FC = () => {
       </div>
 
       {/* Table of Products */}
-      <div className="bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-sm">
-        <div className="overflow-x-auto">
-          <table className="w-full text-xs text-left text-slate-700">
+      <div className="bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-sm w-full">
+        <div className="overflow-x-auto w-full">
+          <table className="w-full text-xs text-left text-slate-700 min-w-[650px]">
             <thead className="bg-slate-50 text-slate-500 uppercase text-[10px] font-bold border-b border-slate-200">
               <tr>
                 <th className="p-3.5">Código</th>

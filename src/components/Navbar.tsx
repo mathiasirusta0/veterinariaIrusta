@@ -13,6 +13,7 @@ import {
   ChevronDown,
 } from 'lucide-react';
 import { useVet } from '../context/VetContext';
+import { triggerHaptic } from '../utils/haptics';
 
 interface NavbarProps {
   onToggleMobileMenu?: () => void;
@@ -144,11 +145,15 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleMobileMenu }) => {
 
         {/* Primary Action Button: + Nueva Acción */}
         <button
-          onClick={() => setQuickModal('NUEVA_CONSULTA')}
-          className="flex items-center gap-1.5 px-4 py-2 bg-teal-600 hover:bg-teal-500 text-white rounded-xl text-xs font-black shadow-sm shadow-teal-600/25 active:scale-95 transition-all"
+          onClick={() => {
+            triggerHaptic('medium');
+            setQuickModal('NUEVA_CONSULTA');
+          }}
+          className="btn-physical btn-physical-teal flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-4 py-2 text-white rounded-xl text-xs font-black shadow-sm flex-shrink-0"
         >
           <Plus className="w-4 h-4 stroke-[3]" />
-          <span className="tracking-wide">+ NUEVA ACCIÓN</span>
+          <span className="hidden sm:inline tracking-wide">+ NUEVA ACCIÓN</span>
+          <span className="sm:hidden text-[11px] font-bold">NUEVA</span>
         </button>
       </div>
     </header>

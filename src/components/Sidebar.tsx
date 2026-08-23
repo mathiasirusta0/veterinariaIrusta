@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { useVet } from '../context/VetContext';
 import { hasViewPermission, SystemView } from '../utils/rbac';
+import { triggerHaptic } from '../utils/haptics';
 
 interface SidebarProps {
   isOpenMobile?: boolean;
@@ -60,6 +61,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpenMobile, onCloseMobile })
     .filter((grp) => grp.items.length > 0);
 
   const handleSelect = (id: string) => {
+    triggerHaptic('light');
     if (id === 'PACIENTES') {
       setSelectedPatientId(null);
     }
