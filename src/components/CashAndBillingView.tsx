@@ -123,15 +123,15 @@ export const CashAndBillingView: React.FC = () => {
         <div>
           <div className="flex items-center gap-2 mb-1">
             <span className="text-xs font-bold px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200">
-              AFIP / ARCA Facturación Electrónica Homologada
+              ARCA (AFIP) Facturación Electrónica Homologada & Ticket Común
             </span>
           </div>
           <h2 className="text-xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
             <Receipt className="w-5 h-5 text-teal-600" />
-            <span>Caja, Facturación Electrónica & Egresos</span>
+            <span>Caja, Facturación ARCA & Ticket de Gastos</span>
           </h2>
           <p className="text-xs text-slate-500 font-medium">
-            Emisión de Facturas A/B/C con CAE y código QR fiscal, egresos operativos, presupuestos y balance de caja
+            Emisión de Facturas Oficiales A/B/C con CAE o Tickets Comunes (Recibo X) sin ARCA para liberar gastos del tutor
           </p>
         </div>
 
@@ -152,10 +152,10 @@ export const CashAndBillingView: React.FC = () => {
           </button>
           <button
             onClick={() => setQuickModal('NUEVA_FACTURA')}
-            className="flex items-center gap-1.5 px-3.5 py-2 bg-teal-600 hover:bg-teal-500 text-white text-xs font-bold rounded-lg shadow-md shadow-teal-600/20 active:scale-95 transition-all"
+            className="flex items-center gap-1.5 px-4 py-2 bg-teal-600 hover:bg-teal-500 text-white text-xs font-black rounded-lg shadow-md shadow-teal-600/20 active:scale-95 transition-all"
           >
             <Plus className="w-3.5 h-3.5" />
-            <span>Emitir Factura AFIP</span>
+            <span>+ Facturar (ARCA o Ticket Común)</span>
           </button>
         </div>
       </div>

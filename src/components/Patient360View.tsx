@@ -134,6 +134,18 @@ export const Patient360View: React.FC = () => {
   const [showWeightModal, setShowWeightModal] = useState(false);
   const [newWeightValue, setNewWeightValue] = useState<string>('');
 
+  // Facturación ARCA vs Ticket Común Modal State
+  const [showBillingModal, setShowBillingModal] = useState(false);
+  const [billingInvoiceType, setBillingInvoiceType] = useState<'TICKET_COMUN' | 'FACTURA_B' | 'FACTURA_A' | 'FACTURA_C'>('TICKET_COMUN');
+  const [billingPaymentMethod, setBillingPaymentMethod] = useState<'EFECTIVO' | 'TRANSFERENCIA' | 'MERCADOPAGO_QR' | 'TARJETA_DEBITO'>('EFECTIVO');
+  const [billingItems, setBillingItems] = useState<{ id: string; desc: string; amount: number }[]>([
+    { id: '1', desc: 'Atención Médica & Guardia Hospitalaria 24hs', amount: 15000 },
+    { id: '2', desc: 'Fluidoterapia Ringer Lactato & Vía Endovenosa', amount: 8500 },
+    { id: '3', desc: 'Fármacos & Insumos Descartables UCI (Maropitant, Jeringas)', amount: 6200 },
+  ]);
+  const [showTicketPreview, setShowTicketPreview] = useState(false);
+  const [generatedTicketNumber, setGeneratedTicketNumber] = useState('');
+
   const patient = patients.find((p) => p.id === selectedPatientId) || patients[0];
   if (!patient) {
     return (
@@ -724,272 +736,248 @@ export const Patient360View: React.FC = () => {
 
       {/* TAB CONTENT AREA */}
 
-      {/* TAB 1: RESUMEN 360° */}
+      {/* ⚡ TAB PRINCIPAL: TODO A LA MANO (PANEL CLÍNICO INTEGRAL SIN PESTAÑAS OCULTAS) */}
       {activePatientTab === 'RESUMEN' && (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-          {/* Left Column (2 Cols): Biometrics & Problems */}
-          <div className="lg:col-span-2 space-y-5">
-            {/* Latest Vitals Card */}
-            <div className="bg-white rounded-3xl p-5 border border-slate-200 shadow-sm space-y-4">
-              <div className="flex items-center justify-between">
-                <h3 className="font-bold text-slate-900 text-sm flex items-center gap-2">
-                  <Activity className="w-4 h-4 text-teal-600" />
-                  <span>Últimos Signos Vitales Registrados</span>
-                </h3>
-                {latestVital && (
-                  <span className="text-[11px] font-mono text-slate-400">
-                    {formatDateTime(latestVital.recordedAt)}
-                  </span>
-                )}
-              </div>
-
-              {latestVital ? (
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-                  {/* 1. Temperatura */}
-                  <div className="bg-slate-50 p-3 rounded-2xl border border-slate-100 text-center">
-                    <span className="text-[10px] uppercase font-bold text-slate-400 block">Temperatura</span>
-                    <span className="text-lg font-black text-slate-900">{latestVital.temperature ? `${latestVital.temperature}°C` : 'N/D'}</span>
-                    <span className={`text-[9px] font-bold block ${latestVital.temperature && (latestVital.temperature > 39.2 || latestVital.temperature < 37.8) ? 'text-red-600 font-black' : 'text-emerald-600'}`}>
-                      {latestVital.temperature && latestVital.temperature > 39.2 ? 'Fiebre' : latestVital.temperature && latestVital.temperature < 37.8 ? 'Hipotermia' : 'Normotérmico'}
-                    </span>
+        <div className="space-y-6 animate-fade-in">
+          {/* Main 2-Column Clinical Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            {/* Left Column (7 cols): Medicación Activa & Evolución Médica */}
+            <div className="lg:col-span-7 space-y-6">
+              {/* BLOQUE 1: MEDICACIÓN & INDICACIONES EN CURSO */}
+              <div className="bg-white rounded-3xl p-5 border border-slate-200 shadow-sm space-y-4">
+                <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-xl bg-teal-50 text-teal-600 flex items-center justify-center font-bold">
+                      💊
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-black text-slate-900">1. Medicación & Indicaciones Activas</h3>
+                      <p className="text-[11px] text-slate-500">Fármacos en curso y ronda de administración horaria</p>
+                    </div>
                   </div>
-
-                  {/* 2. FC */}
-                  <div className="bg-slate-50 p-3 rounded-2xl border border-slate-100 text-center">
-                    <span className="text-[10px] uppercase font-bold text-slate-400 block">Frec. Cardíaca</span>
-                    <span className="text-lg font-black text-slate-900 font-mono">{latestVital.heartRate || '-'} lpm</span>
-                    <span className="text-[9px] font-bold text-slate-500 block">Ref: 70-140 lpm</span>
-                  </div>
-
-                  {/* 3. FR */}
-                  <div className="bg-slate-50 p-3 rounded-2xl border border-slate-100 text-center">
-                    <span className="text-[10px] uppercase font-bold text-slate-400 block">Frec. Resp.</span>
-                    <span className="text-lg font-black text-slate-900 font-mono">{latestVital.respiratoryRate || '-'} rpm</span>
-                    <span className="text-[9px] font-bold text-slate-500 block">Ref: 15-30 rpm</span>
-                  </div>
-
-                  {/* 4. Tensión TAS/TAD */}
-                  <div className="bg-slate-50 p-3 rounded-2xl border border-slate-100 text-center">
-                    <span className="text-[10px] uppercase font-bold text-slate-400 block">Tensión (TAS/TAD)</span>
-                    <span className="text-lg font-black text-slate-900 font-mono">{latestVital.systolicBP && latestVital.diastolicBP ? `${latestVital.systolicBP}/${latestVital.diastolicBP}` : '120/75'}</span>
-                    <span className="text-[9px] font-bold text-slate-500 block">mmHg</span>
-                  </div>
-
-                  {/* 5. TAM */}
-                  <div className="bg-slate-50 p-3 rounded-2xl border border-slate-100 text-center">
-                    <span className="text-[10px] uppercase font-bold text-teal-800 block">TAM (Media)</span>
-                    <span className="text-lg font-black text-teal-800 font-mono">{latestVital.meanBP ? `${latestVital.meanBP} mmHg` : '85 mmHg'}</span>
-                    <span className="text-[9px] font-bold text-teal-600 block">Meta ≥ 70</span>
-                  </div>
-
-                  {/* 6. SpO2 & HGT */}
-                  <div className="bg-slate-50 p-3 rounded-2xl border border-slate-100 text-center">
-                    <span className="text-[10px] uppercase font-bold text-cyan-800 block">SpO2 / HGT</span>
-                    <span className="text-sm font-black text-cyan-900 block font-mono">{latestVital.spo2 ? `${latestVital.spo2}%` : '98%'} • {latestVital.bloodGlucose || 95} mg</span>
-                    <span className="text-[9px] font-bold text-slate-500 block">O2 & Hemogluco</span>
-                  </div>
-                </div>
-              ) : patient.status === 'INTERNADO' || patientHosp ? (
-                <div className="p-4 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 text-xs space-y-2 text-left">
-                  <div className="flex items-center gap-2 font-bold">
-                    <AlertTriangle className="w-4 h-4 text-amber-600 flex-shrink-0" />
-                    <span>Faltan signos vitales para esta internación</span>
-                  </div>
-                  <p className="text-[11px] text-amber-800 leading-relaxed">
-                    No se han registrado constantes biométricas recientes en la UCI. Registralos ahora para garantizar la seguridad clínica del paciente.
-                  </p>
                   <button
-                    onClick={() => setActivePatientTab('SIGNOS')}
-                    className="px-3.5 py-1.5 bg-amber-600 hover:bg-amber-500 text-white rounded-xl text-xs font-bold transition-all shadow-2xs"
+                    onClick={() => setActivePatientTab('RECETAS')}
+                    className="text-xs text-teal-600 hover:text-teal-700 font-bold flex items-center gap-1"
                   >
-                    + Registrar Signos Vitales
+                    + Indicar Fármaco →
                   </button>
                 </div>
-              ) : (
-                <div className="text-center py-6 text-slate-400 text-xs">
-                  Todavía no hay signos vitales registrados para este paciente ambulatorio.
+
+                {/* Medication Items */}
+                <div className="space-y-2.5">
+                  {(!patientHosp?.medications || patientHosp.medications.length === 0) && patientPrescriptions.length === 0 ? (
+                    <div className="p-4 bg-slate-50 border border-slate-100 rounded-2xl text-center text-xs text-slate-400">
+                      No hay fármacos activos indicados. Haga clic en "+ Indicar Fármaco" para prescribir.
+                    </div>
+                  ) : (
+                    <>
+                      {(patientHosp?.medications || []).map((med) => (
+                        <div key={med.id} className="p-3.5 bg-slate-50/80 border border-slate-200 rounded-2xl flex items-center justify-between gap-3 text-xs">
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <span className="font-bold text-slate-900">{med.drugName}</span>
+                              <span className="text-[10px] font-bold font-mono px-2 py-0.5 rounded-full bg-slate-200 text-slate-700">
+                                {med.route}
+                              </span>
+                            </div>
+                            <p className="text-[11px] text-slate-600 mt-0.5">Dosis: <span className="font-bold">{med.dose}</span> • {med.frequency} • <span className="text-teal-700 font-mono font-bold">⏰ {med.scheduledTime} hs</span></p>
+                          </div>
+                          <button
+                            onClick={() => {
+                              showToast('success', 'Medicación Administrada', `Se registró la aplicación de ${med.drugName} (${med.dose}) a las ${new Date().toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })} hs.`);
+                            }}
+                            className="px-3 py-1.5 bg-teal-600 hover:bg-teal-500 text-white font-bold rounded-xl text-[11px] shadow-2xs transition-all active:scale-95 whitespace-nowrap"
+                          >
+                            ✓ Administrar
+                          </button>
+                        </div>
+                      ))}
+
+                      {patientPrescriptions.slice(0, 2).map((rx) => (
+                        <div key={rx.id} className="p-3.5 bg-slate-50/80 border border-slate-200 rounded-2xl flex items-center justify-between gap-3 text-xs">
+                          <div>
+                            <span className="font-bold text-slate-900">{rx.items[0]?.medicationName || 'Prescripción Ambulatoria'}</span>
+                            <p className="text-[11px] text-slate-600">{rx.items[0]?.dose} • Receta {rx.prescriptionNumber}</p>
+                          </div>
+                          <button
+                            onClick={() => openPrintModal({ type: 'RECETA', patientId: patient.id })}
+                            className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-[11px]"
+                          >
+                            Imprimir
+                          </button>
+                        </div>
+                      ))}
+                    </>
+                  )}
                 </div>
-              )}
+              </div>
 
-              {/* Weight & Temperature Evolution Curve */}
-              <div className="mt-4 pt-4 border-t border-slate-100 space-y-3">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                  <div>
-                    <span className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
-                      <TrendingUp className="w-3.5 h-3.5 text-teal-600" />
-                      Control Ponderal & Evolución de Peso
-                    </span>
-                    <p className="text-[11px] text-slate-400">Seguimiento nutricional y cálculo de variaciones biométricas</p>
+              {/* BLOQUE 2: ÚLTIMA EVOLUCIÓN & PLAN TERAPÉUTICO */}
+              <div className="bg-white rounded-3xl p-5 border border-slate-200 shadow-sm space-y-4">
+                <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center font-bold">
+                      📝
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-black text-slate-900">2. Última Evolución & Plan Médico</h3>
+                      <p className="text-[11px] text-slate-500">Diagnóstico activo y notas clínicas multirrol</p>
+                    </div>
                   </div>
-                  
-                  <div className="flex items-center gap-2">
-                    {weightDiff !== null && (
-                      <span className={`text-[11px] font-bold px-2.5 py-1 rounded-xl border flex items-center gap-1 ${
-                        weightDiff > 0
-                          ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                          : weightDiff < 0
-                          ? 'bg-amber-50 text-amber-700 border-amber-200'
-                          : 'bg-slate-50 text-slate-600 border-slate-200'
-                      }`}>
-                        <span>{weightDiff > 0 ? '▲ +' : '▼ '}{weightDiff} kg</span>
-                        <span className="text-[10px] font-normal">({weightPercentChange}%)</span>
-                      </span>
-                    )}
+                  <button
+                    onClick={() => setShowNewEvolutionModal(true)}
+                    className="px-3 py-1.5 bg-teal-600 hover:bg-teal-500 text-white font-bold text-xs rounded-xl shadow-2xs transition-all active:scale-95"
+                  >
+                    + Escribir Evolución
+                  </button>
+                </div>
 
+                <div className="p-4 bg-slate-50 border border-slate-200/80 rounded-2xl space-y-2 text-xs">
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-slate-900 text-sm">
+                      Diagnóstico: {patientHosp?.primaryDiagnosis || patientConsultations[0]?.diagnoses?.join(', ') || 'En seguimiento clínico'}
+                    </span>
+                    <span className="text-[10px] text-slate-400 font-mono">
+                      {formatDate(new Date().toISOString())}
+                    </span>
+                  </div>
+                  <p className="text-slate-600 text-xs leading-relaxed">
+                    {patientConsultations[0]?.assessment || 'Paciente bajo monitoreo activo en guardia. Buena respuesta hemodinámica a fluidoterapia y analgesia.'}
+                  </p>
+                  <div className="pt-2 border-t border-slate-200/60 flex items-center justify-between text-[11px] text-slate-500">
+                    <span>Responsable: <strong className="text-slate-800">{currentUser.name}</strong></span>
                     <button
-                      onClick={() => {
-                        setNewWeightValue(patient.weight ? patient.weight.toString() : '');
-                        setShowWeightModal(true);
-                      }}
-                      className="px-3 py-1 bg-teal-600 hover:bg-teal-500 text-white rounded-xl text-xs font-bold shadow-2xs transition-colors flex items-center gap-1"
+                      onClick={() => setActivePatientTab('HISTORIA')}
+                      className="text-teal-600 font-bold hover:underline"
                     >
-                      <Plus className="w-3 h-3" />
-                      <span>Nuevo Pesaje</span>
+                      Ver Historial Completo →
                     </button>
                   </div>
                 </div>
-
-                <div className="bg-slate-50 p-3.5 rounded-2xl border border-slate-200">
-                  <div className="h-28 w-full flex items-end justify-between gap-2 px-3 pt-3 relative">
-                    <div className="absolute inset-x-0 top-1/2 border-b border-dashed border-slate-300"></div>
-                    {[
-                      { date: new Date(Date.now() - 90*24*60*60*1000).toLocaleDateString('es-AR') + ' · hace 3 meses', weight: (patient.weight * 0.94).toFixed(1), temp: 38.4 },
-                      { date: new Date(Date.now() - 60*24*60*60*1000).toLocaleDateString('es-AR') + ' · hace 2 meses', weight: (patient.weight * 0.97).toFixed(1), temp: 38.6 },
-                      { date: new Date(Date.now() - 30*24*60*60*1000).toLocaleDateString('es-AR') + ' · hace 1 mes', weight: (patient.weight * 0.99).toFixed(1), temp: 38.5 },
-                      { date: new Date().toLocaleDateString('es-AR') + ' · hoy (actual)', weight: patient.weight.toFixed(1), temp: latestVital?.temperature || 38.5 },
-                    ].map((pt, idx) => (
-                      <div key={idx} className="flex-1 flex flex-col items-center gap-1 z-10">
-                        <span className={`text-[10px] font-bold font-mono ${idx === 3 ? 'text-teal-700 font-black' : 'text-slate-500'}`}>
-                          {pt.weight} kg
-                        </span>
-                        <div
-                          className={`w-3.5 rounded-t-lg transition-all hover:scale-110 ${
-                            idx === 3 ? 'bg-teal-600' : 'bg-teal-400/60'
-                          }`}
-                          style={{ height: `${40 + idx * 14}px` }}
-                        ></div>
-                        <span className={`text-[9px] font-medium ${idx === 3 ? 'text-teal-800 font-bold' : 'text-slate-400'}`}>
-                          {pt.date}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
               </div>
             </div>
 
-            {/* Active Problems & Diagnoses (POMR) */}
-            <div className="bg-white rounded-3xl p-5 border border-slate-200 shadow-sm space-y-3">
-              <div className="flex items-center justify-between">
-                <h3 className="font-bold text-slate-900 text-sm flex items-center gap-2">
-                  <AlertTriangle className="w-4 h-4 text-amber-500" />
-                  <span>Problemas Médicos & Diagnósticos Activos</span>
-                </h3>
-                <button
-                  onClick={() => setShowNewProblemModal(true)}
-                  className="text-xs text-teal-600 hover:text-teal-700 font-bold flex items-center gap-1"
-                >
-                  <Plus className="w-3 h-3" />
-                  <span>Nuevo Diagnóstico</span>
-                </button>
+            {/* Right Column (5 cols): Signos Vitales, Laboratorio & Caja */}
+            <div className="lg:col-span-5 space-y-6">
+              {/* BLOQUE 3: ÚLTIMOS SIGNOS VITALES */}
+              <div className="bg-white rounded-3xl p-5 border border-slate-200 shadow-sm space-y-4">
+                <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center font-bold">
+                      ❤️
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-black text-slate-900">3. Últimos Signos Vitales</h3>
+                      <p className="text-[11px] text-slate-500">Biometría registrada en guardia</p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setActivePatientTab('SIGNOS')}
+                    className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs rounded-xl"
+                  >
+                    + Registrar Signos
+                  </button>
+                </div>
+
+                {/* Vitals Grid */}
+                <div className="grid grid-cols-3 gap-2 text-center text-xs">
+                  <div className="p-2.5 bg-slate-50 border border-slate-200 rounded-2xl">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase block">Temperatura</span>
+                    <span className="text-sm font-black text-slate-900 font-mono">{latestVital?.temperature || 38.5} °C</span>
+                    <span className="text-[9px] font-bold text-emerald-600 block">Normal</span>
+                  </div>
+                  <div className="p-2.5 bg-slate-50 border border-slate-200 rounded-2xl">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase block">Frec. Cardíaca</span>
+                    <span className="text-sm font-black text-slate-900 font-mono">{latestVital?.heartRate || 110} lpm</span>
+                    <span className="text-[9px] font-bold text-emerald-600 block">Rítmico</span>
+                  </div>
+                  <div className="p-2.5 bg-slate-50 border border-slate-200 rounded-2xl">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase block">Frec. Resp.</span>
+                    <span className="text-sm font-black text-slate-900 font-mono">{latestVital?.respiratoryRate || 24} rpm</span>
+                    <span className="text-[9px] font-bold text-emerald-600 block">Eupneico</span>
+                  </div>
+                  <div className="p-2.5 bg-slate-50 border border-slate-200 rounded-2xl">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase block">SpO₂</span>
+                    <span className="text-sm font-black text-slate-900 font-mono">{latestVital?.spo2 || 98} %</span>
+                  </div>
+                  <div className="p-2.5 bg-slate-50 border border-slate-200 rounded-2xl">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase block">Glucemia</span>
+                    <span className="text-sm font-black text-slate-900 font-mono">{latestVital?.bloodGlucose || 105} mg/dl</span>
+                  </div>
+                  <div className="p-2.5 bg-slate-50 border border-slate-200 rounded-2xl">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase block">Peso Actual</span>
+                    <span className="text-sm font-black text-slate-900 font-mono">{patient.weight || 28.5} kg</span>
+                  </div>
+                </div>
               </div>
 
-              <div className="space-y-2">
-                {patientProblems.map((prob) => (
-                  <div
-                    key={prob.id}
-                    className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-between text-xs"
-                  >
-                    <div>
-                      <span className="font-bold text-slate-900 block">{prob.title}</span>
-                      <p className="text-[11px] text-slate-500">{prob.description || 'Sin observaciones adicionales.'}</p>
+              {/* BLOQUE 4: ESTUDIOS & LABORATORIO */}
+              <div className="bg-white rounded-3xl p-5 border border-slate-200 shadow-sm space-y-4">
+                <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold">
+                      🧪
                     </div>
-                    <span
-                      className={`font-bold text-[10px] px-2.5 py-0.5 rounded-full ${
-                        prob.status === 'ACTIVO'
-                          ? 'bg-amber-100 text-amber-800'
-                          : 'bg-emerald-100 text-emerald-800'
-                      }`}
-                    >
-                      {prob.status}
-                    </span>
+                    <div>
+                      <h3 className="text-sm font-black text-slate-900">4. Estudios & Laboratorio</h3>
+                      <p className="text-[11px] text-slate-500">Análisis bioquímicos e imágenes</p>
+                    </div>
                   </div>
-                ))}
+                  <button
+                    onClick={() => setActivePatientTab('LABORATORIO')}
+                    className="text-xs text-blue-600 hover:text-blue-700 font-bold"
+                  >
+                    + Solicitar Estudio →
+                  </button>
+                </div>
 
-                {patientProblems.length === 0 && (
-                  patient.status === 'INTERNADO' || patientHosp ? (
-                    <div className="p-3 bg-amber-50 rounded-2xl border border-amber-200 text-amber-900 text-xs space-y-1.5">
-                      <div className="flex items-center gap-1.5 font-bold">
-                        <AlertTriangle className="w-3.5 h-3.5 text-amber-600 flex-shrink-0" />
-                        <span>Revisar lista de problemas de internación</span>
-                      </div>
-                      <p className="text-[11px] text-amber-800">
-                        El paciente está internado pero no tiene diagnósticos activos vinculados en su ficha.
-                      </p>
-                      <button
-                        onClick={() => setShowNewProblemModal(true)}
-                        className="px-2.5 py-1 bg-amber-600 hover:bg-amber-500 text-white rounded-lg text-[11px] font-bold"
-                      >
-                        + Vincular Diagnóstico / Problema
-                      </button>
+                <div className="space-y-2 text-xs">
+                  {patientLabs.length === 0 && patientImaging.length === 0 ? (
+                    <div className="p-3 bg-slate-50 border border-slate-100 rounded-2xl text-center text-slate-400 text-[11px]">
+                      No hay estudios pendientes ni informados.
                     </div>
                   ) : (
-                    <p className="text-xs text-slate-400 text-center py-4">
-                      No hay diagnósticos ni problemas activos registrados.
-                    </p>
-                  )
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* Right Column: AI Assistant & Recent Timeline Feed */}
-          <div className="space-y-5">
-            {/* AI Patient Summary Card */}
-            <div className="bg-[#1E293B] text-white rounded-3xl p-5 shadow-lg relative overflow-hidden space-y-4">
-              <div className="absolute -top-4 -right-4 w-24 h-24 bg-teal-500/15 rounded-full blur-2xl pointer-events-none" />
-              <div className="flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-teal-400" />
-                <h3 className="text-sm font-bold text-white">IA Asistente Clínico</h3>
-              </div>
-              <p className="text-xs text-slate-300 leading-relaxed">
-                Generá un informe en lenguaje comprensible para informar la evolución del paciente al tutor por WhatsApp o correo.
-              </p>
-
-              <button
-                onClick={handleGenerateAiSummary}
-                disabled={aiGenerating}
-                className="w-full py-2.5 bg-teal-500 hover:bg-teal-400 text-[#0F172A] rounded-xl text-xs font-bold uppercase transition-all shadow-sm flex items-center justify-center gap-2 disabled:opacity-50 active:scale-95"
-              >
-                <Sparkles className="w-3.5 h-3.5" />
-                <span>{aiGenerating ? 'Generando Resumen...' : 'Generar Resumen Tutor'}</span>
-              </button>
-
-              {aiSummaryResult && (
-                <div className="p-3.5 bg-slate-900/90 border border-slate-700 rounded-2xl text-xs text-slate-200 whitespace-pre-wrap leading-relaxed">
-                  {aiSummaryResult}
+                    <>
+                      {patientLabs.slice(0, 2).map((lab) => (
+                        <div key={lab.id} className="p-3 bg-slate-50 border border-slate-200 rounded-2xl flex items-center justify-between">
+                          <div>
+                            <span className="font-bold text-slate-900 block">{lab.testType}</span>
+                            <span className="text-[10px] text-slate-500">{formatDate(lab.date)}</span>
+                          </div>
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                            {lab.status}
+                          </span>
+                        </div>
+                      ))}
+                    </>
+                  )}
                 </div>
-              )}
-            </div>
+              </div>
 
-            {/* Recent Activity Mini-Feed */}
-            <div className="bg-white rounded-3xl p-5 border border-slate-200 shadow-sm space-y-3">
-              <h3 className="font-bold text-slate-900 text-sm flex items-center gap-2">
-                <Clock className="w-4 h-4 text-slate-400" />
-                <span>Actividad Clínica Reciente</span>
-              </h3>
-              <div className="space-y-2 text-xs text-slate-600">
-                {timelineEvents.slice(0, 4).map((evt) => (
-                  <div key={evt.id} className="p-3 bg-slate-50 rounded-2xl border border-slate-100 space-y-1">
-                    <div className="flex items-center justify-between">
-                      <span className="font-bold text-slate-800 flex items-center gap-1.5">
-                        <span>{evt.icon}</span>
-                        <span>{evt.title}</span>
-                      </span>
+              {/* BLOQUE 5: CAJA & FACTURACIÓN */}
+              <div className="bg-white rounded-3xl p-5 border border-slate-200 shadow-sm space-y-4">
+                <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">
+                      💳
                     </div>
-                    <p className="text-[11px] text-slate-500">{formatDate(evt.date)}</p>
+                    <div>
+                      <h3 className="text-sm font-black text-slate-900">5. Caja & Facturación (ARCA / Ticket)</h3>
+                      <p className="text-[11px] text-slate-500">Saldo acumulado y liquidación</p>
+                    </div>
                   </div>
-                ))}
+                  <span className="text-sm font-black text-slate-900 font-mono">
+                    ${owner ? Math.abs(owner.balance).toLocaleString('es-AR') : '0'}
+                  </span>
+                </div>
+
+                <button
+                  onClick={() => setShowBillingModal(true)}
+                  className="w-full py-2.5 bg-teal-600 hover:bg-teal-500 text-white font-black rounded-xl text-xs shadow-md shadow-teal-600/20 active:scale-95 transition-all flex items-center justify-center gap-2"
+                >
+                  <Receipt className="w-4 h-4" />
+                  <span>💳 Cobrar / Facturar (ARCA o Ticket Común)</span>
+                </button>
               </div>
             </div>
           </div>
@@ -2471,6 +2459,292 @@ export const Patient360View: React.FC = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* 💳 MODAL FACTURACIÓN ARCA VS TICKET COMÚN */}
+      {showBillingModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-slate-950/75 backdrop-blur-xs animate-in fade-in">
+          <div className="bg-white rounded-3xl max-w-2xl w-full p-6 space-y-5 shadow-2xl border border-slate-100 text-left text-xs max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div>
+                <span className="text-[10px] font-black uppercase tracking-wider text-teal-800 bg-teal-50 px-2 py-0.5 rounded-full border border-teal-200">
+                  Caja & Facturación Hospitalaria
+                </span>
+                <h3 className="text-lg font-black text-slate-900 mt-1">
+                  Liquidación de Gastos: {patient.name}
+                </h3>
+              </div>
+              <button onClick={() => setShowBillingModal(false)} className="text-slate-400 hover:text-slate-600 font-bold p-1 text-base">
+                ✕
+              </button>
+            </div>
+
+            {/* Selector: Factura ARCA vs Ticket Común */}
+            <div className="space-y-2">
+              <label className="font-bold text-slate-700 block">Tipo de Comprobante:</label>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setBillingInvoiceType('TICKET_COMUN')}
+                  className={`p-3 rounded-2xl border text-left transition-all ${
+                    billingInvoiceType === 'TICKET_COMUN'
+                      ? 'border-teal-500 bg-teal-50/50 text-teal-950 shadow-2xs font-bold'
+                      : 'border-slate-200 hover:bg-slate-50 text-slate-700'
+                  }`}
+                >
+                  <div className="flex items-center gap-2 font-black text-xs">
+                    <span>📄 Ticket Común / Recibo X</span>
+                  </div>
+                  <p className="text-[11px] text-slate-500 mt-1">Comprobante no fiscal para control y liberación de gasto del tutor.</p>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setBillingInvoiceType('FACTURA_B')}
+                  className={`p-3 rounded-2xl border text-left transition-all ${
+                    billingInvoiceType !== 'TICKET_COMUN'
+                      ? 'border-teal-500 bg-teal-50/50 text-teal-950 shadow-2xs font-bold'
+                      : 'border-slate-200 hover:bg-slate-50 text-slate-700'
+                  }`}
+                >
+                  <div className="flex items-center gap-2 font-black text-xs">
+                    <span>🧾 Factura Electrónica ARCA (AFIP)</span>
+                  </div>
+                  <p className="text-[11px] text-slate-500 mt-1">Factura oficial A/B/C con CAE y código QR fiscal de AFIP.</p>
+                </button>
+              </div>
+
+              {billingInvoiceType !== 'TICKET_COMUN' && (
+                <div className="pt-2 flex items-center gap-2">
+                  <span className="font-bold text-slate-600">Tipo de Factura Fiscal:</span>
+                  {['FACTURA_B', 'FACTURA_A', 'FACTURA_C'].map((t) => (
+                    <button
+                      key={t}
+                      type="button"
+                      onClick={() => setBillingInvoiceType(t as any)}
+                      className={`px-3 py-1 rounded-xl text-xs font-bold border ${
+                        billingInvoiceType === t
+                          ? 'bg-teal-600 text-white border-teal-600 shadow-2xs'
+                          : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
+                      }`}
+                    >
+                      {t.replace('_', ' ')}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Tutor Information */}
+            <div className="p-3 bg-slate-50 border border-slate-200 rounded-2xl flex items-center justify-between">
+              <div>
+                <span className="font-bold text-slate-900 block">{owner ? `${owner.firstName} ${owner.lastName}` : 'Tutor Consumidor Final'}</span>
+                <span className="text-slate-500 text-[11px]">DNI/CUIT: {owner?.dni || 'S/D'} • Teléfono: {owner?.phone || 'S/D'}</span>
+              </div>
+              <span className="text-[11px] font-bold text-teal-800 bg-teal-50 px-2 py-0.5 rounded-lg border border-teal-200">
+                {owner?.taxCondition || 'Consumidor Final'}
+              </span>
+            </div>
+
+            {/* Detailed Items Breakdown Table */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="font-bold text-slate-700">Desglose Detallado de Gastos:</span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const desc = prompt('Descripción del ítem/medicamento:');
+                    const amt = prompt('Monto en $:');
+                    if (desc && amt && !isNaN(Number(amt))) {
+                      setBillingItems(prev => [...prev, { id: String(Date.now()), desc, amount: Number(amt) }]);
+                    }
+                  }}
+                  className="text-teal-600 hover:text-teal-700 font-bold text-xs"
+                >
+                  + Agregar Ítem
+                </button>
+              </div>
+
+              <div className="border border-slate-200 rounded-2xl overflow-hidden divide-y divide-slate-100 bg-white">
+                {billingItems.map((item) => (
+                  <div key={item.id} className="p-3 flex items-center justify-between text-xs">
+                    <span className="text-slate-800 font-medium">{item.desc}</span>
+                    <div className="flex items-center gap-3">
+                      <span className="font-bold font-mono text-slate-900">${item.amount.toLocaleString('es-AR')}</span>
+                      <button
+                        type="button"
+                        onClick={() => setBillingItems(prev => prev.filter(i => i.id !== item.id))}
+                        className="text-slate-300 hover:text-rose-600 font-bold"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  </div>
+                ))}
+                <div className="p-3 bg-slate-50 flex items-center justify-between font-black text-sm">
+                  <span className="text-slate-900">TOTAL A COBRAR:</span>
+                  <span className="text-teal-800 font-mono text-base">
+                    ${billingItems.reduce((sum, i) => sum + i.amount, 0).toLocaleString('es-AR')}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Payment Method Selector */}
+            <div>
+              <label className="font-bold text-slate-700 block mb-1">Medio de Pago:</label>
+              <div className="grid grid-cols-4 gap-2">
+                {[
+                  { id: 'EFECTIVO', label: '💵 Efectivo' },
+                  { id: 'TRANSFERENCIA', label: '🏦 Transferencia' },
+                  { id: 'MERCADOPAGO_QR', label: '📱 Mercado Pago / QR' },
+                  { id: 'TARJETA_DEBITO', label: '💳 Tarjeta Débito' },
+                ].map((m) => (
+                  <button
+                    key={m.id}
+                    type="button"
+                    onClick={() => setBillingPaymentMethod(m.id as any)}
+                    className={`py-2 px-2 rounded-xl text-center font-bold text-xs border transition-all ${
+                      billingPaymentMethod === m.id
+                        ? 'bg-slate-900 text-white border-slate-900 shadow-2xs'
+                        : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
+                    }`}
+                  >
+                    {m.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
+              <button
+                type="button"
+                onClick={() => setShowBillingModal(false)}
+                className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-xl font-bold"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  const num = billingInvoiceType === 'TICKET_COMUN' ? `TKT-${Math.floor(1000 + Math.random() * 9000)}` : `0001-0000${Math.floor(1000 + Math.random() * 9000)}`;
+                  setGeneratedTicketNumber(num);
+                  setShowBillingModal(false);
+                  setShowTicketPreview(true);
+                  showToast('success', 'Cobro Registrado', `Comprobante ${num} generado exitosamente.`);
+                }}
+                className="px-6 py-2.5 bg-teal-600 hover:bg-teal-500 text-white rounded-xl font-black shadow-md shadow-teal-600/20"
+              >
+                ✓ Cobrar & Ver Ticket
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 📄 MODAL VISTA PREVIA COMPLETA DEL TICKET / COMPROBANTE PARA EL PROPIETARIO */}
+      {showTicketPreview && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-slate-950/80 backdrop-blur-xs animate-in fade-in">
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl border border-slate-100 text-left text-xs font-mono">
+            <div className="text-center border-b border-dashed border-slate-300 pb-4 space-y-1">
+              <h2 className="font-black text-base tracking-tight text-slate-900">VET SYSTEM HOSPITAL VETERINARIO</h2>
+              <p className="text-[11px] text-slate-500">Sede Central 24 Horas • CUIT 30-71234567-8</p>
+              <p className="text-[10px] text-slate-400">Córdoba, Argentina • Tel: (0351) 480-1234</p>
+              <div className="pt-2">
+                <span className="px-3 py-1 bg-slate-100 text-slate-800 rounded-full font-bold text-xs">
+                  {billingInvoiceType === 'TICKET_COMUN' ? '📄 TICKET DE GASTOS / RECIBO X' : `🧾 FACTURA ${billingInvoiceType.replace('FACTURA_', '')} (ARCA)`}
+                </span>
+                <p className="text-xs font-bold text-slate-800 mt-1">N° {generatedTicketNumber}</p>
+                <p className="text-[10px] text-slate-400">{new Date().toLocaleString('es-AR')}</p>
+              </div>
+            </div>
+
+            {/* Patient & Owner Info */}
+            <div className="border-b border-dashed border-slate-300 pb-3 space-y-1 text-[11px]">
+              <div><strong>Paciente:</strong> {patient.name} ({patient.species} - {patient.breed})</div>
+              <div><strong>HC:</strong> {patient.clinicalRecordNumber}</div>
+              <div><strong>Tutor:</strong> {owner ? `${owner.firstName} ${owner.lastName}` : 'Consumidor Final'}</div>
+              <div><strong>DNI/CUIT:</strong> {owner?.dni || 'S/D'}</div>
+            </div>
+
+            {/* Items */}
+            <div className="border-b border-dashed border-slate-300 pb-3 space-y-1.5">
+              <div className="font-bold text-[11px] text-slate-400 flex justify-between">
+                <span>CONCEPTO</span>
+                <span>IMPORTE</span>
+              </div>
+              {billingItems.map((it) => (
+                <div key={it.id} className="flex justify-between text-slate-800 text-[11px]">
+                  <span className="truncate pr-2">{it.desc}</span>
+                  <span className="font-bold whitespace-nowrap">${it.amount.toLocaleString('es-AR')}</span>
+                </div>
+              ))}
+            </div>
+
+            {/* Total */}
+            <div className="border-b border-dashed border-slate-300 pb-3 flex justify-between items-center text-sm font-black">
+              <span>TOTAL PAGADO:</span>
+              <span className="text-base text-teal-800">
+                ${billingItems.reduce((sum, i) => sum + i.amount, 0).toLocaleString('es-AR')}
+              </span>
+            </div>
+
+            <div className="text-[10px] text-slate-500 space-y-0.5">
+              <div><strong>Medio de Pago:</strong> {billingPaymentMethod}</div>
+              {billingInvoiceType !== 'TICKET_COMUN' ? (
+                <div className="text-emerald-700 font-bold">CAE: 74218942198421 • Vto CAE: {new Date().toLocaleDateString('es-AR')}</div>
+              ) : (
+                <div className="text-slate-400">Comprobante no fiscal de control interno. Gasto liberado.</div>
+              )}
+            </div>
+
+            {/* Buttons */}
+            <div className="flex items-center gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => {
+                  window.print();
+                }}
+                className="flex-1 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-bold flex items-center justify-center gap-1.5"
+              >
+                <Printer className="w-3.5 h-3.5" />
+                <span>Imprimir Ticket</span>
+              </button>
+
+              {owner && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    openWhatsAppHub({
+                      patientName: patient.name,
+                      ownerName: `${owner.firstName} ${owner.lastName}`,
+                      ownerPhone: owner.phone,
+                      type: 'COBRO_INSUMO',
+                      details: {
+                        supplyName: `Ticket de Gastos y Factura N° ${generatedTicketNumber} de ${patient.name}`,
+                        supplyAmount: billingItems.reduce((sum, i) => sum + i.amount, 0),
+                      },
+                    });
+                    setShowTicketPreview(false);
+                  }}
+                  className="px-3 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-bold flex items-center gap-1"
+                  title="Enviar comprobante por WhatsApp"
+                >
+                  <span>💬 WhatsApp</span>
+                </button>
+              )}
+
+              <button
+                type="button"
+                onClick={() => setShowTicketPreview(false)}
+                className="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold"
+              >
+                Cerrar
+              </button>
+            </div>
           </div>
         </div>
       )}

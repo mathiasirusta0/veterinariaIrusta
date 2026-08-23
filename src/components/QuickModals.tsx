@@ -156,7 +156,7 @@ export const QuickModals: React.FC = () => {
   // Invoice AFIP State
   const [invCustName, setInvCustName] = useState('');
   const [invCustDni, setInvCustDni] = useState('');
-  const [invType, setInvType] = useState<'FACTURA_B' | 'FACTURA_A' | 'FACTURA_C'>('FACTURA_B');
+  const [invType, setInvType] = useState<'FACTURA_B' | 'FACTURA_A' | 'FACTURA_C' | 'RECIBO_X'>('FACTURA_B');
   const [invItemDesc, setInvItemDesc] = useState('Consulta clínica veterinaria diurna');
   const [invItemAmount, setInvItemAmount] = useState<number>(15000);
   const [invPayMethod, setInvPayMethod] = useState<any>('TARJETA_DEBITO');
@@ -1741,20 +1741,21 @@ export const QuickModals: React.FC = () => {
           </form>
         )}
 
-        {/* 12. NUEVA FACTURA AFIP */}
+        {/* 12. NUEVA FACTURA ARCA / TICKET COMÚN */}
         {quickModal === 'NUEVA_FACTURA' && (
-          <form onSubmit={handleCreateInvoice} className="space-y-3 text-xs">
+          <form onSubmit={handleCreateInvoice} className="space-y-4 text-xs">
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="text-slate-700 block font-bold mb-1">Tipo de Factura:</label>
+                <label className="text-slate-700 block font-bold mb-1">Tipo de Comprobante:</label>
                 <select
                   value={invType}
                   onChange={(e) => setInvType(e.target.value as any)}
                   className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-slate-900 font-bold"
                 >
-                  <option value="FACTURA_B">Factura B (Consumidor Final)</option>
-                  <option value="FACTURA_A">Factura A (Responsable Inscripto)</option>
-                  <option value="FACTURA_C">Factura C (Monotributo / Exento)</option>
+                  <option value="FACTURA_B">🧾 Factura B (ARCA - Consumidor Final)</option>
+                  <option value="FACTURA_A">🧾 Factura A (ARCA - Resp. Inscripto)</option>
+                  <option value="FACTURA_C">🧾 Factura C (ARCA - Monotributo)</option>
+                  <option value="RECIBO_X">📄 Ticket Común / Recibo X (Sin ARCA)</option>
                 </select>
               </div>
 
@@ -1765,17 +1766,17 @@ export const QuickModals: React.FC = () => {
                   onChange={(e) => setInvPayMethod(e.target.value as any)}
                   className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-slate-900 font-semibold"
                 >
-                  <option value="TARJETA_DEBITO">Tarjeta de Débito</option>
-                  <option value="TARJETA_CREDITO">Tarjeta de Crédito</option>
-                  <option value="TRANSFERENCIA_QR">Transferencia / QR</option>
-                  <option value="EFECTIVO">Efectivo</option>
+                  <option value="TARJETA_DEBITO">💳 Tarjeta de Débito</option>
+                  <option value="TARJETA_CREDITO">💳 Tarjeta de Crédito</option>
+                  <option value="TRANSFERENCIA_QR">📱 Transferencia / QR</option>
+                  <option value="EFECTIVO">💵 Efectivo</option>
                 </select>
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="text-slate-700 block font-bold mb-1">Nombre / Razón Social:</label>
+                <label className="text-slate-700 block font-bold mb-1">Nombre / Razón Social del Tutor:</label>
                 <input
                   type="text"
                   value={invCustName}
@@ -1801,26 +1802,39 @@ export const QuickModals: React.FC = () => {
 
             <div className="grid grid-cols-3 gap-3">
               <div className="col-span-2">
-                <label className="text-slate-700 block font-bold mb-1">Concepto / Detalle:</label>
+                <label className="text-slate-700 block font-bold mb-1">Concepto / Detalle del Gasto:</label>
                 <input
                   type="text"
                   value={invItemDesc}
                   onChange={(e) => setInvItemDesc(e.target.value)}
                   required
+                  placeholder="ej: Consulta diurna, Medicamentos y suero..."
                   className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-slate-900"
                 />
               </div>
 
               <div>
-                <label className="text-slate-700 block font-bold mb-1">Total ($):</label>
+                <label className="text-slate-700 block font-bold mb-1">Total ($ ARS):</label>
                 <input
                   type="number"
                   value={invItemAmount}
                   onChange={(e) => setInvItemAmount(Number(e.target.value))}
                   required
-                  className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-slate-900 font-mono font-bold"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-slate-900 font-mono font-bold text-sm"
                 />
               </div>
+            </div>
+
+            <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-[11px] text-slate-600">
+              {invType === 'RECIBO_X' ? (
+                <span className="text-slate-700 font-medium">
+                  ℹ️ Se emitirá un <strong>Ticket / Recibo interno no fiscal</strong> para control y liberación de gasto del propietario sin conexión a ARCA.
+                </span>
+              ) : (
+                <span className="text-emerald-800 font-medium">
+                  🔒 Se emitirá un <strong>comprobante fiscal oficial homologado por ARCA (AFIP)</strong> con generación automática de CAE y código QR fiscal.
+                </span>
+              )}
             </div>
 
             <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
@@ -1833,9 +1847,9 @@ export const QuickModals: React.FC = () => {
               </button>
               <button
                 type="submit"
-                className="px-4 py-2 rounded-lg bg-teal-600 hover:bg-teal-500 text-white font-bold shadow-sm"
+                className="px-5 py-2 rounded-xl bg-teal-600 hover:bg-teal-500 text-white font-black shadow-md shadow-teal-600/20 active:scale-95 transition-all"
               >
-                Emitir con CAE AFIP
+                {invType === 'RECIBO_X' ? '✓ Emitir Ticket Común' : '✓ Emitir Factura ARCA (CAE)'}
               </button>
             </div>
           </form>
