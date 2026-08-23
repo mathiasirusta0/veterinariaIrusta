@@ -45,7 +45,7 @@ export const PatientsListView: React.FC = () => {
   const [search, setSearch] = useState('');
   const [speciesFilter, setSpeciesFilter] = useState('TODOS');
   const [statusFilter, setStatusFilter] = useState('TODOS');
-  const [viewMode, setViewMode] = useState<'GRID' | 'TABLE'>('GRID');
+  const [viewMode, setViewMode] = useState<'GRID' | 'TABLE'>('TABLE');
   const [sortBy, setSortBy] = useState<'NAME_ASC' | 'RECENT' | 'WEIGHT_DESC' | 'WEIGHT_ASC' | 'AGE_DESC'>('NAME_ASC');
   const [activeSubTab, setActiveSubTab] = useState<'PACIENTES' | 'TUTORES'>('PACIENTES');
 
