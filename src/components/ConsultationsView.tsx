@@ -261,6 +261,27 @@ export const ConsultationsView: React.FC = () => {
                     ))}
                   </div>
                 )}
+
+                {/* Audited Amendments Block */}
+                {cons.amendments && cons.amendments.length > 0 && (
+                  <div className="bg-amber-50/70 border border-amber-200/80 rounded-2xl p-3.5 space-y-2 text-xs">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-amber-900 flex items-center gap-1.5">
+                      <AlertCircle className="w-3.5 h-3.5 text-amber-600" />
+                      Enmiendas Clínicas Auditadas (Inalterabilidad Deontológica CMVC)
+                    </span>
+                    {cons.amendments.map((amd) => (
+                      <div key={amd.id} className="bg-white p-2.5 rounded-xl border border-amber-200/60 text-slate-700 space-y-1">
+                        <div className="flex items-center justify-between text-[10px] text-slate-400 font-medium">
+                          <span>{amd.amendedBy} ({amd.vetLicense})</span>
+                          <span>{formatDateTime(amd.amendedAt)}</span>
+                        </div>
+                        <p className="font-bold text-slate-900">Campo: {amd.fieldAmended}</p>
+                        <p className="text-[11px] text-slate-600"><strong className="text-slate-700">Corrección:</strong> {amd.newValue}</p>
+                        <p className="text-[10px] italic text-amber-800"><strong className="not-italic font-bold">Justificación:</strong> {amd.justificationReason}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             );
           })

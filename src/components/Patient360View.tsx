@@ -57,6 +57,7 @@ export const Patient360View: React.FC = () => {
     surgeries,
     invoices,
     documents,
+    prescriptions,
     activePatientTab,
     setActivePatientTab,
     setActiveView,
@@ -125,6 +126,7 @@ export const Patient360View: React.FC = () => {
   const patientSurgeries = surgeries.filter((s) => s.patientId === patient.id);
   const patientInvoices = invoices.filter((inv) => inv.patientId === patient.id);
   const patientDocs = documents.filter((d) => d.patientId === patient.id);
+  const patientPrescriptions = prescriptions.filter((rx) => rx.patientId === patient.id);
 
   // Chronological Unified Timeline Items
   const timelineEvents = [
@@ -204,6 +206,7 @@ export const Patient360View: React.FC = () => {
     { id: 'PROBLEMAS', label: 'Problemas & Diagnósticos', icon: AlertTriangle, count: patientProblems.length },
     { id: 'INTERNACION', label: 'Internación', icon: BedDouble, count: allPatientHosps.length },
     { id: 'CIRUGIAS', label: 'Cirugías', icon: Scissors, count: patientSurgeries.length },
+    { id: 'RECETAS', label: 'Recetas Oficiales', icon: FileText, count: patientPrescriptions.length },
     { id: 'LABORATORIO', label: 'Laboratorio', icon: FlaskConical, count: patientLabs.length },
     { id: 'IMAGENES', label: 'Imágenes', icon: Scan, count: patientImaging.length },
     { id: 'VACUNAS', label: 'Vacunación', icon: Syringe, count: patientVaccines.length },
@@ -1202,6 +1205,71 @@ export const Patient360View: React.FC = () => {
         </div>
       )}
 
+      {/* TAB: RECETAS OFICIALES SENASA */}
+      {activePatientTab === 'RECETAS' && (
+        <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-4">
+          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+            <div>
+              <h3 className="text-lg font-bold text-slate-900">Recetario Veterinario Oficial & SENASA</h3>
+              <p className="text-xs text-slate-500">Prescripciones oficiales, archivo digital y validación con firma electrónica</p>
+            </div>
+            <button
+              onClick={() => setActiveView('RECETAS_OFICIALES')}
+              className="bg-teal-600 hover:bg-teal-500 text-white text-xs font-bold px-4 py-2 rounded-xl transition-all shadow-2xs"
+            >
+              + Emitir Nueva Receta
+            </button>
+          </div>
+
+          {patientPrescriptions.length === 0 ? (
+            <div className="p-8 text-center bg-slate-50 rounded-2xl border border-slate-100 text-slate-400 text-xs">
+              No hay recetas oficiales registradas para este paciente.
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {patientPrescriptions.map((rx) => (
+                <div key={rx.id} className="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-3 text-xs">
+                  <div className="flex items-center justify-between border-b border-slate-200/70 pb-2">
+                    <div>
+                      <span className="font-mono font-bold text-slate-900 text-xs block">{rx.prescriptionNumber}</span>
+                      <span className="text-[10px] text-slate-400 font-medium">{formatDate(rx.date)}</span>
+                    </div>
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-teal-50 text-teal-800 border border-teal-200 uppercase">
+                      {rx.prescriptionType.replace(/_/g, ' ')}
+                    </span>
+                  </div>
+
+                  <div>
+                    <span className="text-[10px] uppercase font-bold text-slate-400 block">Diagnóstico Clínico</span>
+                    <p className="text-slate-900 font-bold">{rx.diagnosis}</p>
+                  </div>
+
+                  <div className="space-y-1">
+                    <span className="text-[10px] uppercase font-bold text-slate-400 block">Prescripción</span>
+                    {rx.items.map((it, idx) => (
+                      <div key={idx} className="bg-white p-2 rounded-xl border border-slate-200">
+                        <span className="font-bold text-slate-900 block">{it.medicationName}</span>
+                        <span className="text-slate-600 text-[11px] block">{it.dose} — {it.duration}</span>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="flex items-center justify-between pt-2 border-t border-slate-200/70 text-[11px]">
+                    <span className="text-slate-600 font-medium">{rx.vetName} ({rx.vetLicense})</span>
+                    <button
+                      onClick={() => openPrintModal({ type: 'RECETA', patientId: patient.id })}
+                      className="text-teal-600 font-bold hover:underline"
+                    >
+                      Imprimir Receta
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
       {/* TAB 11: DOCUMENTOS & CONSENTIMIENTOS */}
       {activePatientTab === 'DOCUMENTOS' && (
         <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-4">
@@ -1225,8 +1293,12 @@ export const Patient360View: React.FC = () => {
                   <span className="font-bold text-slate-900 text-sm block">{doc.title}</span>
                   <span className="text-slate-500 text-[11px]">{doc.type} • {formatDate(doc.createdAt)}</span>
                 </div>
-                <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-3 py-1 rounded-xl border border-emerald-200">
-                  {doc.status}
+                <span className={`text-xs font-bold px-3 py-1 rounded-xl border ${
+                  doc.isSigned
+                    ? 'text-emerald-700 bg-emerald-50 border-emerald-200'
+                    : 'text-amber-700 bg-amber-50 border-amber-200'
+                }`}>
+                  {doc.isSigned ? 'Firmado Digitalmente' : 'Pendiente de Firma'}
                 </span>
               </div>
             ))}
