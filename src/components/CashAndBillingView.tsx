@@ -34,6 +34,7 @@ import { useVet } from '../context/VetContext';
 import { Invoice, Estimate } from '../types';
 import { formatDate, formatDateTime, formatCurrency, formatInvoiceNumber } from '../utils/formatters';
 import { triggerHaptic } from '../utils/haptics';
+import { InvoiceMobileCard } from './InvoiceMobileCard';
 
 export interface CashExpense {
   id: string;
@@ -426,8 +427,8 @@ export const CashAndBillingView: React.FC = () => {
       {/* 1. FACTURAS & COMPROBANTES EMITIDOS */}
       {activeTab === 'FACTURAS' && (
         <div className="space-y-5 animate-in fade-in duration-150">
-          {/* Summary KPIs */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 text-xs">
+          {/* Summary KPIs (Fluid Responsive Grid) */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4 text-xs w-full max-w-full">
             <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs space-y-1">
               <span className="text-slate-500 font-bold uppercase text-[10px]">Total Facturado Global:</span>
               <div className="text-xl font-black text-slate-900 font-mono">
@@ -461,26 +462,26 @@ export const CashAndBillingView: React.FC = () => {
             </div>
           </div>
 
-          {/* Search and Filters */}
-          <div className="bg-white border border-slate-200 p-3 sm:p-4 rounded-2xl shadow-sm flex flex-col sm:flex-row items-center justify-between gap-3 text-xs w-full max-w-full">
-            <div className="flex-1 w-full relative">
+          {/* Search and Filters (Fluid Stacked / Grid for Mobile) */}
+          <div className="bg-white border border-slate-200 p-3 sm:p-4 rounded-2xl shadow-sm space-y-2.5 w-full max-w-full">
+            <div className="relative w-full">
               <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Buscar por cliente, Nº factura, CUIT/DNI o concepto..."
+                placeholder="Buscar por cliente, Nº factura, CUIT/DNI..."
                 className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-4 py-2.5 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500 font-medium"
               />
             </div>
 
-            <div className="flex items-center gap-2 w-full sm:w-auto">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 w-full">
               <select
                 value={filterType}
                 onChange={(e) => setFilterType(e.target.value)}
-                className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-teal-500 min-h-[40px]"
               >
-                <option value="TODOS">Todos los Tipos</option>
+                <option value="TODOS">Todos los Tipos de Comprobante</option>
                 <option value="FACTURA_B">Factura B (Consumidor Final)</option>
                 <option value="FACTURA_A">Factura A (Resp. Inscripto)</option>
                 <option value="FACTURA_C">Factura C (Monotributo)</option>
@@ -490,9 +491,9 @@ export const CashAndBillingView: React.FC = () => {
               <select
                 value={filterMethod}
                 onChange={(e) => setFilterMethod(e.target.value)}
-                className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-teal-500 min-h-[40px]"
               >
-                <option value="TODOS">Todos los Medios</option>
+                <option value="TODOS">Todos los Medios de Cobro</option>
                 <option value="EFECTIVO">💵 Efectivo</option>
                 <option value="TARJETA_DEBITO">💳 Débito</option>
                 <option value="TARJETA_CREDITO">💳 Crédito</option>
@@ -502,8 +503,31 @@ export const CashAndBillingView: React.FC = () => {
             </div>
           </div>
 
-          {/* Invoices List / Table */}
-          <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+          {/* THREE-TIER INVOICES PRESENTATION */}
+
+          {/* 1. MÓVIL (< md / < 768px): Cards Nativas de Facturación */}
+          <div className="block md:hidden space-y-3 w-full max-w-full">
+            {filteredInvoices.length === 0 ? (
+              <div className="bg-white border border-slate-200 rounded-2xl p-8 text-center text-slate-500 text-xs">
+                No se encontraron comprobantes con los filtros seleccionados.
+              </div>
+            ) : (
+              filteredInvoices.map((inv) => (
+                <InvoiceMobileCard
+                  key={inv.id}
+                  invoice={inv}
+                  onPrint={handlePrintInvoice}
+                  onWhatsApp={(i) => {
+                    triggerHaptic('light');
+                    showToast('info', 'Enviado por WhatsApp', `Comprobante ${i.invoiceNumber} enviado al tutor.`);
+                  }}
+                />
+              ))
+            )}
+          </div>
+
+          {/* 2. TABLET & DESKTOP (>= md / >= 768px): Tabla Completa */}
+          <div className="hidden md:block bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden w-full">
             <div className="overflow-x-auto w-full">
               <table className="w-full text-xs text-left min-w-[700px]">
                 <thead className="bg-slate-50 text-slate-600 font-bold border-b border-slate-200">

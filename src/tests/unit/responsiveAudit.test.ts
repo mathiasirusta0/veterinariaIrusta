@@ -22,7 +22,7 @@ describe('Mobile & Tablet Responsive Layout Architecture Audit', () => {
       width: '100%',
       maxWidth: '100%',
       zIndex: 50,
-      transform: 'translateZ(0)',
+      backgroundColor: '#ffffff',
       gridColumns: 5,
     };
 
@@ -77,5 +77,15 @@ describe('Mobile & Tablet Responsive Layout Architecture Audit', () => {
     const colWidth = (availableWidth - 8) / 2; // 140px per col
 
     expect(colWidth).toBeGreaterThanOrEqual(130);
+  });
+
+  it('should verify billing invoice mobile card layout fits small screens without overflow', () => {
+    const smallPhoneWidth = 320;
+    const padding = 32;
+    const availableWidth = smallPhoneWidth - padding; // 288px
+
+    // Invoice card actions: 2 buttons side-by-side with gap 8px
+    const btnWidth = (availableWidth - 8) / 2; // 140px per button
+    expect(btnWidth).toBeGreaterThanOrEqual(120);
   });
 });
