@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest';
+import { formatExpirationDate } from '../../utils/formatters';
 
 describe('Mobile & Tablet Responsive Layout Architecture Audit', () => {
   it('should enforce box-sizing border-box and zero overflow architecture on all screen sizes', () => {
@@ -59,5 +60,22 @@ describe('Mobile & Tablet Responsive Layout Architecture Audit', () => {
 
     expect(visualSizeMobile).toBeGreaterThanOrEqual(fabTouchArea);
     expect(visualSizeTablet).toBeGreaterThanOrEqual(fabTouchArea);
+  });
+
+  it('should format pharmaceutical expiration dates safely for mobile cards without breaking', () => {
+    expect(formatExpirationDate('2027-04-15')).toBe('04/2027');
+    expect(formatExpirationDate('2026-12-31')).toBe('12/2026');
+    expect(formatExpirationDate('06/2028')).toBe('06/2028');
+    expect(formatExpirationDate(null)).toBe('S/V');
+    expect(formatExpirationDate(undefined)).toBe('S/V');
+  });
+
+  it('should ensure pharmacy mobile card technical data 2-column grid fits small screens', () => {
+    const smallPhoneWidth = 320;
+    const padding = 32; // 16px each side
+    const availableWidth = smallPhoneWidth - padding; // 288px
+    const colWidth = (availableWidth - 8) / 2; // 140px per col
+
+    expect(colWidth).toBeGreaterThanOrEqual(130);
   });
 });

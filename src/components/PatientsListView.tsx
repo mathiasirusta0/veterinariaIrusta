@@ -143,7 +143,7 @@ export const PatientsListView: React.FC = () => {
   const allergicCount = patients.filter((p) => p.alerts && p.alerts.length > 0).length;
 
   return (
-    <div className="space-y-6 pb-12">
+    <div className="space-y-5 pb-2 w-full max-w-full">
       {/* Top Module Subtabs: Pacientes vs Tutores */}
       <div className="grid grid-cols-2 gap-1.5 p-1.5 bg-slate-100/90 rounded-2xl w-full sm:w-fit border border-slate-200 text-xs">
         <button

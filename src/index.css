@@ -43,13 +43,17 @@
   }
 }
 
+:root {
+  --bottom-nav-height: 66px;
+}
+
 /* Safe Area Insets Utilities */
 .safe-bottom {
-  padding-bottom: max(0.5rem, env(safe-area-inset-bottom, 0px));
+  padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 
 .safe-top {
-  padding-top: max(0.5rem, env(safe-area-inset-top, 0px));
+  padding-top: env(safe-area-inset-top, 0px);
 }
 
 /* Real Viewport Fixed Bottom Navigation - Anchored to device viewport */

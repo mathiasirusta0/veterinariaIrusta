@@ -213,3 +213,20 @@ export function formatOwnerBalance(balance: unknown): FormattedBalance {
   };
 }
 
+/**
+ * Formatea una fecha de vencimiento farmacológico (ej: "2027-04-15" -> "04/2027").
+ */
+export function formatExpirationDate(val: unknown, fallback = 'S/V'): string {
+  if (!val) return fallback;
+  if (typeof val === 'string' && /^\d{2}\/\d{4}$/.test(val)) return val;
+  try {
+    const d = new Date(val as string | number | Date);
+    if (isNaN(d.getTime())) return String(val);
+    const month = (d.getMonth() + 1).toString().padStart(2, '0');
+    const year = d.getFullYear();
+    return `${month}/${year}`;
+  } catch {
+    return String(val) || fallback;
+  }
+}
+
