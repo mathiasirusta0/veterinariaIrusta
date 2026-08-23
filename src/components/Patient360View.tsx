@@ -133,6 +133,7 @@ export const Patient360View: React.FC = () => {
 
   // Edit Patient Modal State
   const [showEditPatientModal, setShowEditPatientModal] = useState(false);
+  const [isSavingPatientEdit, setIsSavingPatientEdit] = useState(false);
   const [editFormData, setEditFormData] = useState<Partial<Patient>>({});
 
   // Manage Alerts Modal State
@@ -387,7 +388,12 @@ export const Patient360View: React.FC = () => {
     showToast('info', 'Microchip Copiado', `Código ISO ${chip} copiado al portapapeles.`);
   };
 
-  const handleOpenEditModal = () => {
+  const handleOpenEditModal = (e?: React.MouseEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    triggerHaptic('light');
     setEditFormData({
       name: patient.name,
       species: patient.species,
@@ -397,19 +403,33 @@ export const Patient360View: React.FC = () => {
       birthDate: patient.birthDate,
       calculatedAge: patient.calculatedAge,
       weight: patient.weight,
+      bodyConditionScore: patient.bodyConditionScore || '5/9',
       color: patient.color,
+      particularMarks: patient.particularMarks || '',
       microchip: patient.microchip || '',
       photoUrl: patient.photoUrl || '',
       status: patient.status,
+      ownerId: patient.ownerId,
     });
     setShowEditPatientModal(true);
   };
 
-  const handleSavePatientEdit = (e: React.FormEvent) => {
+  const handleSavePatientEdit = async (e: React.FormEvent) => {
     e.preventDefault();
-    updatePatient(patient.id, editFormData);
-    setShowEditPatientModal(false);
-    showToast('success', 'Ficha Actualizada', `Datos clínicos de ${editFormData.name || patient.name} guardados.`);
+    if (!editFormData.name?.trim()) {
+      showToast('error', 'Error de Validación', 'El nombre del paciente es obligatorio.');
+      return;
+    }
+    setIsSavingPatientEdit(true);
+    try {
+      updatePatient(patient.id, editFormData);
+      setShowEditPatientModal(false);
+      showToast('success', 'Ficha Actualizada', `Ficha médica de ${editFormData.name || patient.name} actualizada correctamente.`);
+    } catch (err) {
+      showToast('error', 'Error al Guardar', 'No se pudieron guardar los cambios en la ficha.');
+    } finally {
+      setIsSavingPatientEdit(false);
+    }
   };
 
   const handleAddAlert = (e: React.FormEvent) => {
@@ -485,8 +505,9 @@ export const Patient360View: React.FC = () => {
           )}
 
           <button
+            type="button"
             onClick={handleOpenEditModal}
-            className="flex items-center gap-1.5 px-3 py-2 bg-teal-50 hover:bg-teal-100 text-teal-800 border border-teal-200 text-xs font-bold rounded-xl transition-colors"
+            className="flex items-center gap-1.5 px-3.5 py-2 bg-teal-50 hover:bg-teal-100 text-teal-800 border border-teal-200 text-xs font-bold rounded-xl transition-all active:scale-95 cursor-pointer touch-manipulation shadow-2xs"
             title="Editar datos clínicos del paciente"
           >
             <Edit3 className="w-3.5 h-3.5 text-teal-700" />
@@ -1916,6 +1937,453 @@ export const Patient360View: React.FC = () => {
                 Cerrar
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* ✏️ MODAL EDICIÓN INTEGRAL DE FICHA MÉDICA */}
+      {showEditPatientModal && (
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-slate-950/75 backdrop-blur-xs animate-in fade-in">
+          <div className="bg-white rounded-t-3xl sm:rounded-3xl max-w-2xl w-full p-5 sm:p-6 space-y-5 shadow-2xl border border-slate-100 text-left text-xs max-h-[92dvh] sm:max-h-[90vh] overflow-y-auto safe-bottom">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3 sticky top-0 bg-white z-10">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-teal-50 flex items-center justify-center text-teal-700 font-bold border border-teal-200">
+                  <Edit3 className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+                    <span>Editar Ficha Médica — {patient.name}</span>
+                  </h3>
+                  <p className="text-[11px] text-slate-500 font-mono">
+                    Historia Clínica N° {patient.clinicalRecordNumber || 'HC-0000'}
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowEditPatientModal(false)}
+                className="text-slate-400 hover:text-slate-600 font-bold p-2 rounded-xl hover:bg-slate-100 transition-colors text-base"
+                title="Cerrar modal"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Modal Form */}
+            <form onSubmit={handleSavePatientEdit} className="space-y-4">
+              {/* Sección 1: Datos Principales */}
+              <div className="space-y-3">
+                <span className="text-[10px] font-black uppercase tracking-wider text-teal-800 bg-teal-50 px-2 py-0.5 rounded-md border border-teal-200 block w-fit">
+                  1. Datos Principales del Paciente
+                </span>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="font-bold text-slate-700 block mb-1">Nombre del Paciente *</label>
+                    <input
+                      type="text"
+                      required
+                      value={editFormData.name ?? ''}
+                      onChange={(e) => setEditFormData({ ...editFormData, name: e.target.value })}
+                      placeholder="Ej: Mía, Thor, Luna..."
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-teal-500 font-medium"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="font-bold text-slate-700 block mb-1">Especie *</label>
+                    <select
+                      value={editFormData.species ?? 'CANINO'}
+                      onChange={(e) => setEditFormData({ ...editFormData, species: e.target.value as Species })}
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-teal-500 font-medium"
+                    >
+                      <option value="CANINO">🐕 Canino</option>
+                      <option value="FELINO">🐈 Felino</option>
+                      <option value="EQUINO">🐎 Equino</option>
+                      <option value="BOVINO">🐄 Bovino</option>
+                      <option value="OVINO">🐑 Ovino</option>
+                      <option value="CAPRINO">🐐 Caprino</option>
+                      <option value="PORCINO">🐖 Porcino</option>
+                      <option value="AVE">🦜 Ave</option>
+                      <option value="EXOTICO">🦎 Exótico / No Convencional</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="font-bold text-slate-700 block mb-1">Raza</label>
+                    <input
+                      type="text"
+                      value={editFormData.breed ?? ''}
+                      onChange={(e) => setEditFormData({ ...editFormData, breed: e.target.value })}
+                      placeholder="Ej: Mestizo, Caniche, Golden..."
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-teal-500 font-medium"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="font-bold text-slate-700 block mb-1">Sexo & Reproductivo</label>
+                    <div className="grid grid-cols-2 gap-2">
+                      <select
+                        value={editFormData.sex ?? 'MACHO'}
+                        onChange={(e) => setEditFormData({ ...editFormData, sex: e.target.value as Sex })}
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-2 py-2 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-teal-500 font-medium"
+                      >
+                        <option value="MACHO">Macho</option>
+                        <option value="HEMBRA">Hembra</option>
+                      </select>
+                      <select
+                        value={editFormData.reproductiveStatus ?? 'ENTERO'}
+                        onChange={(e) => setEditFormData({ ...editFormData, reproductiveStatus: e.target.value as ReproductiveStatus })}
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-2 py-2 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-teal-500 font-medium"
+                      >
+                        <option value="ENTERO">Entero</option>
+                        <option value="CASTRADO">Castrado</option>
+                        <option value="GESTANTE">Gestante</option>
+                        <option value="LACTANTE">Lactante</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Sección 2: Biometría & Estado Físico */}
+              <div className="space-y-3 pt-2 border-t border-slate-100">
+                <span className="text-[10px] font-black uppercase tracking-wider text-teal-800 bg-teal-50 px-2 py-0.5 rounded-md border border-teal-200 block w-fit">
+                  2. Biometría & Características Físicas
+                </span>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div>
+                    <label className="font-bold text-slate-700 block mb-1">Peso Actual (kg)</label>
+                    <input
+                      type="number"
+                      step="0.05"
+                      min="0.1"
+                      value={editFormData.weight ?? ''}
+                      onChange={(e) => setEditFormData({ ...editFormData, weight: parseFloat(e.target.value) || 0 })}
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-teal-500 font-mono font-bold"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="font-bold text-slate-700 block mb-1">Condición Corporal</label>
+                    <select
+                      value={editFormData.bodyConditionScore ?? '5/9'}
+                      onChange={(e) => setEditFormData({ ...editFormData, bodyConditionScore: e.target.value })}
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-2 py-2 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-teal-500 font-medium"
+                    >
+                      <option value="1/9">1/9 - Caquéctico</option>
+                      <option value="2/9">2/9 - Muy Delgado</option>
+                      <option value="3/9">3/9 - Delgado</option>
+                      <option value="4/9">4/9 - Bajo peso leve</option>
+                      <option value="5/9">5/9 - Ideal / Óptimo</option>
+                      <option value="6/9">6/9 - Sobrepeso leve</option>
+                      <option value="7/9">7/9 - Sobrepeso</option>
+                      <option value="8/9">8/9 - Obeso</option>
+                      <option value="9/9">9/9 - Obesidad mórbida</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="font-bold text-slate-700 block mb-1">Color / Manto</label>
+                    <input
+                      type="text"
+                      value={editFormData.color ?? ''}
+                      onChange={(e) => setEditFormData({ ...editFormData, color: e.target.value })}
+                      placeholder="Ej: Negro con manchas blancas..."
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-teal-500 font-medium"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="font-bold text-slate-700 block mb-1">Fecha Nacimiento</label>
+                    <input
+                      type="date"
+                      value={editFormData.birthDate ? editFormData.birthDate.split('T')[0] : ''}
+                      onChange={(e) => setEditFormData({ ...editFormData, birthDate: e.target.value })}
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-teal-500 font-medium"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="font-bold text-slate-700 block mb-1">Edad Estimada / Calculada</label>
+                    <input
+                      type="text"
+                      value={editFormData.calculatedAge ?? ''}
+                      onChange={(e) => setEditFormData({ ...editFormData, calculatedAge: e.target.value })}
+                      placeholder="Ej: 3 años y 2 meses"
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-teal-500 font-medium"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="font-bold text-slate-700 block mb-1">Señas Particulares</label>
+                    <input
+                      type="text"
+                      value={editFormData.particularMarks ?? ''}
+                      onChange={(e) => setEditFormData({ ...editFormData, particularMarks: e.target.value })}
+                      placeholder="Ej: Cicatriz en oreja izquierda..."
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-teal-500 font-medium"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Sección 3: Identificación & Tutor */}
+              <div className="space-y-3 pt-2 border-t border-slate-100">
+                <span className="text-[10px] font-black uppercase tracking-wider text-teal-800 bg-teal-50 px-2 py-0.5 rounded-md border border-teal-200 block w-fit">
+                  3. Identificación Oficial, Tutor & Estado
+                </span>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="font-bold text-slate-700 block mb-1">Microchip ISO (15 Dígitos)</label>
+                    <input
+                      type="text"
+                      maxLength={15}
+                      value={editFormData.microchip ?? ''}
+                      onChange={(e) => setEditFormData({ ...editFormData, microchip: e.target.value })}
+                      placeholder="Ej: 981098109123456"
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-teal-500 font-mono"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="font-bold text-slate-700 block mb-1">Tutor / Responsable Legal</label>
+                    <select
+                      value={editFormData.ownerId ?? patient.ownerId}
+                      onChange={(e) => setEditFormData({ ...editFormData, ownerId: e.target.value })}
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-teal-500 font-medium"
+                    >
+                      {owners.map((o) => (
+                        <option key={o.id} value={o.id}>
+                          {o.firstName} {o.lastName} (DNI: {o.dni || 'S/D'})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="font-bold text-slate-700 block mb-1">Estado Clínico del Paciente</label>
+                    <select
+                      value={editFormData.status ?? 'ACTIVO'}
+                      onChange={(e) => setEditFormData({ ...editFormData, status: e.target.value as PatientStatus })}
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-teal-500 font-medium"
+                    >
+                      <option value="ACTIVO">🟢 ACTIVO (Ambulatorio)</option>
+                      <option value="INTERNADO">🔴 INTERNADO (Hospital / UCI)</option>
+                      <option value="EN_CONSULTA">🟡 EN CONSULTA</option>
+                      <option value="EN_CIRUGIA">🟣 EN QUIRÓFANO</option>
+                      <option value="DERIVADO">⚪ DERIVADO A ESPECIALISTA</option>
+                      <option value="FALLECIDO">⚫ FALLECIDO</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="font-bold text-slate-700 block mb-1">URL Foto del Paciente</label>
+                    <input
+                      type="text"
+                      value={editFormData.photoUrl ?? ''}
+                      onChange={(e) => setEditFormData({ ...editFormData, photoUrl: e.target.value })}
+                      placeholder="https://images.unsplash.com/..."
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-teal-500 font-mono text-[11px]"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Botones de Acción */}
+              <div className="flex items-center justify-end gap-2 pt-4 border-t border-slate-100 sticky bottom-0 bg-white">
+                <button
+                  type="button"
+                  onClick={() => setShowEditPatientModal(false)}
+                  disabled={isSavingPatientEdit}
+                  className="px-4 py-2.5 text-slate-600 hover:bg-slate-100 rounded-xl font-bold transition-colors"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSavingPatientEdit}
+                  className="px-6 py-2.5 bg-teal-600 hover:bg-teal-500 disabled:opacity-50 text-white rounded-xl font-black shadow-md shadow-teal-600/20 active:scale-95 transition-all flex items-center gap-2"
+                >
+                  {isSavingPatientEdit ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      <span>Guardando...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Check className="w-4 h-4" />
+                      <span>Guardar Cambios</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* 🚨 MODAL GESTIÓN DE ALERTAS MÉDICAS CRÍTICAS */}
+      {showAlertsModal && (
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-slate-950/75 backdrop-blur-xs animate-in fade-in">
+          <div className="bg-white rounded-t-3xl sm:rounded-3xl max-w-lg w-full p-5 sm:p-6 space-y-4 shadow-2xl border border-slate-100 text-left text-xs max-h-[92dvh] sm:max-h-[85vh] overflow-y-auto safe-bottom">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3 sticky top-0 bg-white z-10">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-2xl bg-red-50 flex items-center justify-center text-red-600 border border-red-200">
+                  <AlertTriangle className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-slate-900">Alertas Médicas & Alergias</h3>
+                  <p className="text-[11px] text-slate-500 font-medium">Paciente: {patient.name}</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowAlertsModal(false)}
+                className="text-slate-400 hover:text-slate-600 font-bold p-2 rounded-xl hover:bg-slate-100 text-base"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Existing Alerts */}
+            <div className="space-y-2">
+              <span className="text-[10px] font-black uppercase text-slate-400 block">Condiciones Registradas ({patient.alerts?.length || 0}):</span>
+              {(!patient.alerts || patient.alerts.length === 0) ? (
+                <div className="p-4 bg-slate-50 rounded-2xl text-center text-slate-400 border border-slate-200">
+                  No hay alertas registradas para este paciente.
+                </div>
+              ) : (
+                <div className="space-y-1.5">
+                  {patient.alerts.map((al, idx) => (
+                    <div key={idx} className="flex items-center justify-between p-3 bg-red-50/70 border border-red-200 rounded-2xl text-xs">
+                      <div>
+                        <span className="font-black text-red-800 block text-[11px]">⚠️ {al.type}</span>
+                        <p className="text-red-700 font-medium text-[11px] mt-0.5">{al.description}</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveAlert(idx)}
+                        className="px-2.5 py-1 bg-white hover:bg-red-100 text-red-700 border border-red-300 rounded-xl font-bold text-[10px] transition-colors"
+                      >
+                        Eliminar
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Add New Alert */}
+            <form onSubmit={handleAddAlert} className="pt-3 border-t border-slate-100 space-y-3">
+              <span className="text-[10px] font-black uppercase text-teal-800 bg-teal-50 px-2 py-0.5 rounded border border-teal-200 block w-fit">
+                + Añadir Nueva Alerta Médica
+              </span>
+              <div className="grid grid-cols-1 gap-2.5">
+                <div>
+                  <label className="font-bold text-slate-700 block mb-1">Tipo de Alerta</label>
+                  <select
+                    value={newAlertType}
+                    onChange={(e) => setNewAlertType(e.target.value as PatientAlert)}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 font-medium focus:ring-2 focus:ring-teal-500"
+                  >
+                    <option value="ALERGIA">🔴 ALERGIA A FÁRMACO</option>
+                    <option value="CARDIOPATIA">🫀 CARDIOPATÍA</option>
+                    <option value="RENAL">💧 ENFERMEDAD RENAL</option>
+                    <option value="DIABETICO">🩸 DIABÉTICO</option>
+                    <option value="EPILEPTICO">⚡ EPILÉPTICO / CONVULSIONES</option>
+                    <option value="MEDICACION_CRONICA">💊 MEDICACIÓN CRÓNICA</option>
+                    <option value="AISLAMIENTO">☣️ AISLAMIENTO INFECCIOSO</option>
+                    <option value="AGRESIVO">⚠️ MANEJO AGRESIVO / CUIDADO</option>
+                    <option value="RIESGO_ANESTESICO">⚠️ RIESGO ANESTÉSICO ELEVADO</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="font-bold text-slate-700 block mb-1">Descripción / Detalle Clínico</label>
+                  <input
+                    type="text"
+                    required
+                    value={newAlertDesc}
+                    onChange={(e) => setNewAlertDesc(e.target.value)}
+                    placeholder="Ej: Shock anafiláctico con Penicilina / No usar AINES"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 font-medium focus:ring-2 focus:ring-teal-500"
+                  />
+                </div>
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowAlertsModal(false)}
+                  className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-xl font-bold"
+                >
+                  Cerrar
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-red-600 hover:bg-red-500 text-white rounded-xl font-bold shadow-xs active:scale-95"
+                >
+                  + Agregar Alerta
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ⚖️ MODAL REGISTRO RÁPIDO DE PESO */}
+      {showWeightModal && (
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-slate-950/75 backdrop-blur-xs animate-in fade-in">
+          <div className="bg-white rounded-t-3xl sm:rounded-3xl max-w-sm w-full p-5 sm:p-6 space-y-4 shadow-2xl border border-slate-100 text-left text-xs">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+              <div className="flex items-center gap-2">
+                <span className="text-base">⚖️</span>
+                <h3 className="text-base font-bold text-slate-900">Actualizar Peso</h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowWeightModal(false)}
+                className="text-slate-400 hover:text-slate-600 font-bold p-1 text-base"
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveWeight} className="space-y-3">
+              <p className="text-xs text-slate-500">
+                Peso actual de {patient.name}: <strong className="text-slate-800">{patient.weight} kg</strong>
+              </p>
+              <div>
+                <label className="font-bold text-slate-700 block mb-1">Nuevo Peso (kg)</label>
+                <input
+                  type="number"
+                  step="0.05"
+                  min="0.1"
+                  required
+                  autoFocus
+                  value={newWeightValue}
+                  onChange={(e) => setNewWeightValue(e.target.value)}
+                  placeholder="Ej: 10.5"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-900 font-mono font-bold focus:ring-2 focus:ring-teal-500"
+                />
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setShowWeightModal(false)}
+                  className="px-3 py-2 text-slate-600 hover:bg-slate-100 rounded-xl font-bold"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-teal-600 hover:bg-teal-500 text-white rounded-xl font-bold shadow-xs active:scale-95"
+                >
+                  Guardar Peso
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
