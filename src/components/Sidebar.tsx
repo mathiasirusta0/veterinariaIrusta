@@ -249,19 +249,6 @@ interface SidebarNavGroup {
                 <span>Odontograma Triadan</span>
               </div>
             </button>
-
-            <button
-              onClick={() => {
-                openBodyMap();
-                if (onCloseMobile) onCloseMobile();
-              }}
-              className="w-full flex items-center justify-between px-3 py-2 text-xs font-medium text-slate-400 hover:text-white hover:bg-slate-800/80 rounded-xl transition-all group"
-            >
-              <div className="flex items-center gap-2.5">
-                <span>🐾</span>
-                <span>Mapa de Lesiones</span>
-              </div>
-            </button>
           </div>
         </nav>
 

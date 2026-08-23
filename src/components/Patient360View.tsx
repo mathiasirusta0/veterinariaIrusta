@@ -375,15 +375,6 @@ export const Patient360View: React.FC = () => {
           </button>
 
           <button
-            onClick={() => openBodyMap(patient.id)}
-            className="flex items-center gap-1 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold px-3 py-2 rounded-xl transition-colors border border-slate-200 shadow-2xs"
-            title="Mapa Anatómico de Lesiones"
-          >
-            <span>🐾</span>
-            <span>Mapa de Lesiones</span>
-          </button>
-
-          <button
             onClick={() => openMonitor(patient.id)}
             className="flex items-center gap-1.5 bg-slate-900 hover:bg-slate-800 text-emerald-400 text-xs font-bold px-3 py-2 rounded-xl transition-colors border border-slate-800 shadow-xs"
             title="Telemetría en Vivo UCI"
