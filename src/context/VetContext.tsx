@@ -190,6 +190,7 @@ interface VetContextType {
   updateLabResults: (orderId: string, results: LaboratoryOrder['results'], conclusions: string) => void;
   updateLabOrderStatus: (orderId: string, status: LaboratoryOrder['status']) => void;
   addImagingStudy: (study: Omit<ImagingStudy, 'id' | 'studyNumber' | 'date' | 'status'>) => void;
+  updateImagingStudy: (studyId: string, updates: Partial<ImagingStudy>) => void;
   addVaccination: (vac: Omit<VaccinationRecord, 'id' | 'administeredDate' | 'administeredBy' | 'vetLicense'>) => void;
 
   // Inventory & Pharmacy
@@ -1452,6 +1453,21 @@ export const VetProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     logAudit('ESTUDIO_IMAGEN', 'ImagingStudy', newStudy.id, `Estudio de ${newStudy.modality} (${newStudy.region}) registrado`);
   };
 
+  const updateImagingStudy = (studyId: string, updates: Partial<ImagingStudy>) => {
+    setImagingStudies((prev) =>
+      prev.map((is) => {
+        if (is.id === studyId) {
+          const updated = { ...is, ...updates };
+          syncImagingToSupabase(updated);
+          logAudit('ACTUALIZAR_IMAGEN', 'ImagingStudy', studyId, `Estudio de ${is.modality} actualizado`);
+          return updated;
+        }
+        return is;
+      })
+    );
+    showToast('info', 'Estudio Actualizado', 'Informe de imagenología actualizado correctamente.');
+  };
+
   const addVaccination = (data: Omit<VaccinationRecord, 'id' | 'administeredDate' | 'administeredBy' | 'vetLicense'>) => {
     const newVac: VaccinationRecord = {
       ...data,
@@ -1913,6 +1929,7 @@ Hoy hemos evaluado a ${petName} en nuestro centro hospitalario. Queremos transmi
         updateLabResults,
         updateLabOrderStatus,
         addImagingStudy,
+        updateImagingStudy,
         addVaccination,
 
         addProduct,
