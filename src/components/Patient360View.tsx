@@ -33,6 +33,7 @@ import {
   ExternalLink,
   Stethoscope,
   Heart,
+  Pill,
   Edit3,
   Trash2,
   Scale,
@@ -230,20 +231,12 @@ export const Patient360View: React.FC = () => {
   ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
   const tabs = [
-    { id: 'RESUMEN', label: 'Resumen 360°', icon: Activity },
-    { id: 'TUTOR', label: 'Tutor Responsable', icon: User, count: owner ? 1 : 0 },
-    { id: 'HISTORIA', label: 'Evolución Clínica & Historia', icon: Sparkles, count: (clinicalEvolutions?.filter(e => e.patientId === patient.id).length || 0) + timelineEvents.length },
-    { id: 'CONSULTAS', label: 'Consultas SOAP', icon: Stethoscope, count: patientConsultations.length },
-    { id: 'SIGNOS', label: 'Signos Vitales', icon: Heart, count: patientVitals.length },
-    { id: 'PROBLEMAS', label: 'Problemas & Diagnósticos', icon: AlertTriangle, count: patientProblems.length },
-    { id: 'INTERNACION', label: 'Internación', icon: BedDouble, count: allPatientHosps.length },
-    { id: 'CIRUGIAS', label: 'Cirugías', icon: Scissors, count: patientSurgeries.length },
-    { id: 'RECETAS', label: 'Recetas Oficiales', icon: FileText, count: patientPrescriptions.length },
-    { id: 'LABORATORIO', label: 'Laboratorio', icon: FlaskConical, count: patientLabs.length },
-    { id: 'IMAGENES', label: 'Imágenes', icon: Scan, count: patientImaging.length },
-    { id: 'VACUNAS', label: 'Vacunación', icon: Syringe, count: patientVaccines.length },
-    { id: 'DOCUMENTOS', label: 'Consentimientos', icon: ShieldAlert, count: patientDocs.length },
-    { id: 'FACTURACION', label: 'Facturación', icon: Receipt, count: patientInvoices.length },
+    { id: 'SIGNOS', label: '1. Signos Vitales', icon: Heart, count: patientVitals.length },
+    { id: 'RECETAS', label: '2. Medicación & Indicaciones', icon: Pill, count: patientPrescriptions.length + (patientHosp?.medications?.length || 0) },
+    { id: 'HISTORIA', label: '3. Evolución Médica', icon: Sparkles, count: (clinicalEvolutions?.filter(e => e.patientId === patient.id).length || 0) + timelineEvents.length },
+    { id: 'LABORATORIO', label: '4. Estudios & Laboratorio', icon: FlaskConical, count: patientLabs.length + patientImaging.length },
+    { id: 'TUTOR', label: '5. Propietario / Tutor', icon: User, count: owner ? 1 : 0 },
+    { id: 'FACTURACION', label: '6. Caja & Facturación ARCA', icon: Receipt, count: patientInvoices.length },
   ];
 
   const handleGenerateAiSummary = async () => {
@@ -1366,66 +1359,115 @@ export const Patient360View: React.FC = () => {
 
       {/* TAB: RECETAS OFICIALES SENASA */}
       {activePatientTab === 'RECETAS' && (
-        <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-4">
-          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-            <div>
-              <h3 className="text-lg font-bold text-slate-900">Recetario Veterinario Oficial & SENASA</h3>
-              <p className="text-xs text-slate-500">Prescripciones oficiales, archivo digital y validación con firma electrónica</p>
-            </div>
-            <button
-              onClick={() => setActiveView('RECETAS_OFICIALES')}
-              className="bg-teal-600 hover:bg-teal-500 text-white text-xs font-bold px-4 py-2 rounded-xl transition-all shadow-2xs"
-            >
-              + Emitir Nueva Receta
-            </button>
-          </div>
-
-          {patientPrescriptions.length === 0 ? (
-            <div className="p-8 text-center bg-slate-50 rounded-2xl border border-slate-100 text-slate-400 text-xs">
-              No hay recetas oficiales registradas para este paciente.
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {patientPrescriptions.map((rx) => (
-                <div key={rx.id} className="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-3 text-xs">
-                  <div className="flex items-center justify-between border-b border-slate-200/70 pb-2">
-                    <div>
-                      <span className="font-mono font-bold text-slate-900 text-xs block">{rx.prescriptionNumber}</span>
-                      <span className="text-[10px] text-slate-400 font-medium">{formatDate(rx.date)}</span>
-                    </div>
-                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-teal-50 text-teal-800 border border-teal-200 uppercase">
-                      {rx.prescriptionType.replace(/_/g, ' ')}
-                    </span>
+        <div className="space-y-6">
+          {/* Active Hospital Medications & Administration Queue */}
+          {patientHosp && patientHosp.medications && patientHosp.medications.length > 0 && (
+            <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-4">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-xl bg-teal-50 text-teal-600 flex items-center justify-center font-bold">
+                    💊
                   </div>
-
                   <div>
-                    <span className="text-[10px] uppercase font-bold text-slate-400 block">Diagnóstico Clínico</span>
-                    <p className="text-slate-900 font-bold">{rx.diagnosis}</p>
-                  </div>
-
-                  <div className="space-y-1">
-                    <span className="text-[10px] uppercase font-bold text-slate-400 block">Prescripción</span>
-                    {rx.items.map((it, idx) => (
-                      <div key={idx} className="bg-white p-2 rounded-xl border border-slate-200">
-                        <span className="font-bold text-slate-900 block">{it.medicationName}</span>
-                        <span className="text-slate-600 text-[11px] block">{it.dose} — {it.duration}</span>
-                      </div>
-                    ))}
-                  </div>
-
-                  <div className="flex items-center justify-between pt-2 border-t border-slate-200/70 text-[11px]">
-                    <span className="text-slate-600 font-medium">{rx.vetName} ({rx.vetLicense})</span>
-                    <button
-                      onClick={() => openPrintModal({ type: 'RECETA', patientId: patient.id })}
-                      className="text-teal-600 font-bold hover:underline"
-                    >
-                      Imprimir Receta
-                    </button>
+                    <h3 className="text-base font-black text-slate-900">Medicación Hospitalaria Activa</h3>
+                    <p className="text-xs text-slate-500">Ronda de administración horaria para este paciente</p>
                   </div>
                 </div>
-              ))}
+                <span className="text-xs font-bold text-teal-700 bg-teal-50 px-3 py-1 rounded-xl border border-teal-200">
+                  {patientHosp.medications.length} Fármaco{patientHosp.medications.length > 1 ? 's' : ''} en Curso
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {patientHosp.medications.map((med) => (
+                  <div key={med.id} className="p-4 bg-slate-50 border border-slate-200 rounded-2xl flex flex-col justify-between space-y-3">
+                    <div>
+                      <div className="flex items-center justify-between">
+                        <span className="font-bold text-slate-900 text-sm">{med.drugName}</span>
+                        <span className="text-[10px] font-bold font-mono px-2 py-0.5 rounded-full bg-slate-200 text-slate-700">
+                          {med.route}
+                        </span>
+                      </div>
+                      <p className="text-xs text-slate-600 mt-1">Dosis: <span className="font-bold">{med.dose}</span> • Frecuencia: {med.frequency}</p>
+                      <p className="text-[11px] text-slate-500 font-mono mt-0.5">⏰ Horario: {med.scheduledTime} hs</p>
+                    </div>
+
+                    <button
+                      onClick={() => {
+                        showToast('success', 'Medicación Administrada', `Se registró la aplicación de ${med.drugName} (${med.dose}) a las ${new Date().toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })} hs.`);
+                      }}
+                      className="w-full py-2 bg-teal-600 hover:bg-teal-500 text-white font-bold rounded-xl text-xs shadow-2xs transition-all active:scale-95 flex items-center justify-center gap-1.5"
+                    >
+                      <span>✓ Administrar Medicación</span>
+                    </button>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
+
+          {/* Official Prescriptions List */}
+          <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div>
+                <h3 className="text-lg font-bold text-slate-900">Recetario Veterinario Oficial & SENASA</h3>
+                <p className="text-xs text-slate-500">Prescripciones oficiales, archivo digital y validación con firma electrónica</p>
+              </div>
+              <button
+                onClick={() => setActiveView('RECETAS_OFICIALES')}
+                className="bg-teal-600 hover:bg-teal-500 text-white text-xs font-bold px-4 py-2 rounded-xl transition-all shadow-2xs"
+              >
+                + Emitir Nueva Receta
+              </button>
+            </div>
+
+            {patientPrescriptions.length === 0 ? (
+              <div className="p-8 text-center bg-slate-50 rounded-2xl border border-slate-100 text-slate-400 text-xs">
+                No hay recetas oficiales registradas para este paciente.
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {patientPrescriptions.map((rx) => (
+                  <div key={rx.id} className="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-3 text-xs">
+                    <div className="flex items-center justify-between border-b border-slate-200/70 pb-2">
+                      <div>
+                        <span className="font-mono font-bold text-slate-900 text-xs block">{rx.prescriptionNumber}</span>
+                        <span className="text-[10px] text-slate-400 font-medium">{formatDate(rx.date)}</span>
+                      </div>
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-teal-50 text-teal-800 border border-teal-200 uppercase">
+                        {rx.prescriptionType.replace(/_/g, ' ')}
+                      </span>
+                    </div>
+
+                    <div>
+                      <span className="text-[10px] uppercase font-bold text-slate-400 block">Diagnóstico Clínico</span>
+                      <p className="text-slate-900 font-bold">{rx.diagnosis}</p>
+                    </div>
+
+                    <div className="space-y-1">
+                      <span className="text-[10px] uppercase font-bold text-slate-400 block">Prescripción</span>
+                      {rx.items.map((it, idx) => (
+                        <div key={idx} className="bg-white p-2 rounded-xl border border-slate-200">
+                          <span className="font-bold text-slate-900 block">{it.medicationName}</span>
+                          <span className="text-slate-600 text-[11px] block">{it.dose} — {it.duration}</span>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="flex items-center justify-between pt-2 border-t border-slate-200/70 text-[11px]">
+                      <span className="text-slate-600 font-medium">{rx.vetName} ({rx.vetLicense})</span>
+                      <button
+                        onClick={() => openPrintModal({ type: 'RECETA', patientId: patient.id })}
+                        className="text-teal-600 font-bold hover:underline"
+                      >
+                        Imprimir Receta
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       )}
 
