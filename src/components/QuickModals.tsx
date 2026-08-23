@@ -493,7 +493,7 @@ export const QuickModals: React.FC = () => {
 
   return (
     <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4">
-      <div className="bg-white border border-slate-200 rounded-t-3xl sm:rounded-3xl w-full max-w-2xl p-5 sm:p-6 space-y-4 max-h-[92vh] sm:max-h-[85vh] overflow-y-auto custom-scrollbar shadow-2xl animate-in slide-in-from-bottom-5 sm:zoom-in-95 duration-150">
+      <div className="bg-white border border-slate-200 rounded-t-3xl sm:rounded-3xl w-full max-w-2xl p-5 sm:p-6 space-y-4 max-h-[92dvh] sm:max-h-[85vh] overflow-y-auto custom-scrollbar shadow-2xl animate-in slide-in-from-bottom-5 sm:zoom-in-95 duration-150 safe-bottom">
         <div className="flex items-center justify-between border-b border-slate-100 pb-3 sticky top-0 bg-white z-10">
           <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
             {quickModal === 'QUICK_ACTIONS' && '⚡ Acciones Rápidas del Hospital'}

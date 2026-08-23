@@ -24,8 +24,7 @@ import {
   Filter,
 } from 'lucide-react';
 import { useVet } from '../context/VetContext';
-import { Patient } from '../types';
-import { formatWeight } from '../utils/formatters';
+import { formatWeight, formatOwnerBalance } from '../utils/formatters';
 
 export const PatientsListView: React.FC = () => {
   const {
@@ -238,15 +237,14 @@ export const PatientsListView: React.FC = () => {
                           </h3>
                           <p className="text-xs text-slate-500 font-mono">DNI: {owner.dni || 'S/D'}</p>
                         </div>
-                        <span
-                          className={`text-xs font-bold px-2.5 py-1 rounded-full ${
-                            owner.balance < 0
-                              ? 'bg-red-50 text-red-600 border border-red-200'
-                              : 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                          }`}
-                        >
-                          Saldo: ${owner.balance.toLocaleString('es-AR')}
-                        </span>
+                        {(() => {
+                          const ob = formatOwnerBalance(owner.balance);
+                          return (
+                            <span className={`text-xs font-bold px-2.5 py-1 rounded-full border ${ob.badgeClass}`}>
+                              {ob.label}
+                            </span>
+                          );
+                        })()}
                       </div>
 
                       <div className="space-y-1.5 text-xs text-slate-600 pt-3 border-t border-slate-100">
@@ -372,11 +370,11 @@ export const PatientsListView: React.FC = () => {
         </div>
       </div>
 
-      {/* Quick Filter Tabs by Status */}
-      <div className="flex flex-wrap items-center gap-2 text-xs">
+      {/* Quick Filter Tabs by Status (Swipeable on mobile) */}
+      <div className="flex items-center gap-2 text-xs overflow-x-auto pb-1.5 no-scrollbar sm:flex-wrap snap-x touch-pan-x -mx-3 px-3 sm:mx-0 sm:px-0">
         <button
           onClick={() => { setStatusFilter('TODOS'); setSpeciesFilter('TODOS'); }}
-          className={`px-3.5 py-1.5 rounded-xl font-bold transition-all ${
+          className={`flex-shrink-0 snap-start px-3.5 py-1.5 rounded-xl font-bold transition-all active:scale-95 ${
             statusFilter === 'TODOS' && speciesFilter === 'TODOS'
               ? 'bg-slate-900 text-white shadow-xs'
               : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
@@ -387,7 +385,7 @@ export const PatientsListView: React.FC = () => {
 
         <button
           onClick={() => { setSpeciesFilter('Canino'); setStatusFilter('TODOS'); }}
-          className={`px-3.5 py-1.5 rounded-xl font-bold transition-all ${
+          className={`flex-shrink-0 snap-start px-3.5 py-1.5 rounded-xl font-bold transition-all active:scale-95 ${
             speciesFilter === 'Canino'
               ? 'bg-teal-600 text-white shadow-xs'
               : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
@@ -398,7 +396,7 @@ export const PatientsListView: React.FC = () => {
 
         <button
           onClick={() => { setSpeciesFilter('Felino'); setStatusFilter('TODOS'); }}
-          className={`px-3.5 py-1.5 rounded-xl font-bold transition-all ${
+          className={`flex-shrink-0 snap-start px-3.5 py-1.5 rounded-xl font-bold transition-all active:scale-95 ${
             speciesFilter === 'Felino'
               ? 'bg-teal-600 text-white shadow-xs'
               : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
@@ -410,7 +408,7 @@ export const PatientsListView: React.FC = () => {
         {exoticCount > 0 && (
           <button
             onClick={() => { setSpeciesFilter('Exótico'); setStatusFilter('TODOS'); }}
-            className={`px-3.5 py-1.5 rounded-xl font-bold transition-all ${
+            className={`flex-shrink-0 snap-start px-3.5 py-1.5 rounded-xl font-bold transition-all active:scale-95 ${
               speciesFilter === 'Exótico'
                 ? 'bg-teal-600 text-white shadow-xs'
                 : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
@@ -422,7 +420,7 @@ export const PatientsListView: React.FC = () => {
 
         <button
           onClick={() => { setStatusFilter('INTERNADO'); setSpeciesFilter('TODOS'); }}
-          className={`px-3.5 py-1.5 rounded-xl font-bold transition-all flex items-center gap-1.5 ${
+          className={`flex-shrink-0 snap-start px-3.5 py-1.5 rounded-xl font-bold transition-all flex items-center gap-1.5 active:scale-95 ${
             statusFilter === 'INTERNADO'
               ? 'bg-red-600 text-white shadow-xs'
               : 'bg-white text-red-600 border border-red-200 hover:bg-red-50'
@@ -434,7 +432,7 @@ export const PatientsListView: React.FC = () => {
 
         <button
           onClick={() => { setStatusFilter('ALERGIAS'); setSpeciesFilter('TODOS'); }}
-          className={`px-3.5 py-1.5 rounded-xl font-bold transition-all flex items-center gap-1.5 ${
+          className={`flex-shrink-0 snap-start px-3.5 py-1.5 rounded-xl font-bold transition-all flex items-center gap-1.5 active:scale-95 ${
             statusFilter === 'ALERGIAS'
               ? 'bg-amber-600 text-white shadow-xs'
               : 'bg-white text-amber-700 border border-amber-200 hover:bg-amber-50'

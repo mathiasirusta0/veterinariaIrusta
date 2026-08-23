@@ -1625,7 +1625,7 @@ export const Patient360View: React.FC = () => {
       {/* 💳 MODAL FACTURACIÓN ARCA VS TICKET COMÚN */}
       {showBillingModal && (
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-6 bg-slate-950/75 backdrop-blur-xs animate-in fade-in">
-          <div className="bg-white rounded-t-3xl sm:rounded-3xl max-w-2xl w-full p-5 sm:p-6 space-y-5 shadow-2xl border border-slate-100 text-left text-xs max-h-[92vh] sm:max-h-[85vh] overflow-y-auto">
+          <div className="bg-white rounded-t-3xl sm:rounded-3xl max-w-2xl w-full p-5 sm:p-6 space-y-5 shadow-2xl border border-slate-100 text-left text-xs max-h-[92dvh] sm:max-h-[85vh] overflow-y-auto safe-bottom">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3 sticky top-0 bg-white z-10">
               <div>
                 <span className="text-[10px] font-black uppercase tracking-wider text-teal-800 bg-teal-50 px-2 py-0.5 rounded-full border border-teal-200">

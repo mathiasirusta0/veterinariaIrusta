@@ -283,55 +283,55 @@ const MainLayout: React.FC = () => {
       </div>
 
       {/* Modern Mobile Bottom Navigation Bar (Visible only on < md screens) */}
-      <nav className="md:hidden fixed bottom-0 inset-x-0 bg-white/95 backdrop-blur-md border-t border-slate-200 z-30 px-2 py-1.5 flex items-center justify-around shadow-2xl safe-bottom">
+      <nav className="md:hidden fixed bottom-0 inset-x-0 bg-white/95 backdrop-blur-md border-t border-slate-200/90 z-30 px-3 py-1 flex items-center justify-around shadow-2xl safe-bottom">
         <button
           onClick={() => {
             setSelectedPatientId(null);
             setActiveView('PACIENTES');
           }}
-          className={`flex flex-col items-center gap-0.5 p-1.5 rounded-xl transition-all ${
-            activeView === 'PACIENTES' ? 'text-teal-600 font-black scale-105' : 'text-slate-500'
+          className={`flex flex-col items-center justify-center gap-0.5 min-h-[48px] min-w-[48px] px-2 py-1 rounded-xl transition-all active:scale-90 ${
+            activeView === 'PACIENTES' ? 'text-teal-600 font-black' : 'text-slate-500 hover:text-slate-800'
           }`}
         >
           <PawPrint className="w-5 h-5" />
-          <span className="text-[10px] font-bold">Pacientes</span>
+          <span className="text-[10px] font-bold tracking-tight">Pacientes</span>
         </button>
 
         <button
           onClick={() => setActiveView('CAJA_FACTURACION')}
-          className={`flex flex-col items-center gap-0.5 p-1.5 rounded-xl transition-all ${
-            activeView === 'CAJA_FACTURACION' || activeView === 'CAJA_FACTURAS' ? 'text-teal-600 font-black scale-105' : 'text-slate-500'
+          className={`flex flex-col items-center justify-center gap-0.5 min-h-[48px] min-w-[48px] px-2 py-1 rounded-xl transition-all active:scale-90 ${
+            activeView === 'CAJA_FACTURACION' || activeView === 'CAJA_FACTURAS' ? 'text-teal-600 font-black' : 'text-slate-500 hover:text-slate-800'
           }`}
         >
           <Receipt className="w-5 h-5" />
-          <span className="text-[10px] font-bold">Caja & ARCA</span>
+          <span className="text-[10px] font-bold tracking-tight">Caja & ARCA</span>
         </button>
 
         {/* Center Quick Action Floating Trigger */}
         <button
           onClick={() => setQuickModal('QUICK_ACTIONS')}
-          className="flex flex-col items-center -mt-6 bg-teal-600 text-white p-3.5 rounded-full shadow-lg shadow-teal-600/40 active:scale-90 transition-transform border-4 border-white"
+          className="flex items-center justify-center -mt-6 bg-teal-600 text-white w-12 h-12 rounded-full shadow-lg shadow-teal-600/35 active:scale-90 transition-transform border-4 border-white"
           title="Acción Rápida"
         >
-          <Plus className="w-6 h-6 font-black" />
+          <Plus className="w-6 h-6 stroke-[2.5]" />
         </button>
 
         <button
           onClick={() => setActiveView('INVENTARIO')}
-          className={`flex flex-col items-center gap-0.5 p-1.5 rounded-xl transition-all ${
-            activeView === 'INVENTARIO' || activeView === 'FARMACIA' ? 'text-teal-600 font-black scale-105' : 'text-slate-500'
+          className={`flex flex-col items-center justify-center gap-0.5 min-h-[48px] min-w-[48px] px-2 py-1 rounded-xl transition-all active:scale-90 ${
+            activeView === 'INVENTARIO' || activeView === 'FARMACIA' ? 'text-teal-600 font-black' : 'text-slate-500 hover:text-slate-800'
           }`}
         >
           <Boxes className="w-5 h-5" />
-          <span className="text-[10px] font-bold">Farmacia</span>
+          <span className="text-[10px] font-bold tracking-tight">Farmacia</span>
         </button>
 
         <button
           onClick={() => setIsMobileMenuOpen(true)}
-          className="flex flex-col items-center gap-0.5 p-1.5 rounded-xl text-slate-500 hover:text-slate-900 active:scale-95"
+          className="flex flex-col items-center justify-center gap-0.5 min-h-[48px] min-w-[48px] px-2 py-1 rounded-xl text-slate-500 hover:text-slate-900 active:scale-90 transition-all"
         >
           <Menu className="w-5 h-5" />
-          <span className="text-[10px] font-bold">Menú</span>
+          <span className="text-[10px] font-bold tracking-tight">Menú</span>
         </button>
       </nav>
 
