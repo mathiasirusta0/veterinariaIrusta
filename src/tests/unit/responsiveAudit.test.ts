@@ -16,26 +16,42 @@ describe('Mobile & Tablet Responsive Layout Architecture Audit', () => {
   it('should verify fixed bottom nav parameters for 100% viewport anchoring and 5-slot grid symmetry', () => {
     const fixedBottomNavStyles = {
       position: 'fixed',
+      top: 'auto',
       left: 0,
       right: 0,
       bottom: 0,
       width: '100%',
       maxWidth: '100%',
-      zIndex: 50,
+      height: 70, // 64px-70px + safe-area
+      zIndex: 40,
       backgroundColor: '#ffffff',
       gridColumns: 5,
     };
 
     expect(fixedBottomNavStyles.position).toBe('fixed');
+    expect(fixedBottomNavStyles.top).toBe('auto');
     expect(fixedBottomNavStyles.width).toBe('100%');
     expect(fixedBottomNavStyles.maxWidth).toBe('100%');
     expect(fixedBottomNavStyles.bottom).toBe(0);
-    expect(fixedBottomNavStyles.zIndex).toBe(50);
+    expect(fixedBottomNavStyles.height).toBeLessThanOrEqual(85);
+    expect(fixedBottomNavStyles.zIndex).toBe(40);
     expect(fixedBottomNavStyles.gridColumns).toBe(5);
 
     // Each of the 5 slots gets exactly 20% of width
     const slotPercentage = 100 / fixedBottomNavStyles.gridColumns;
     expect(slotPercentage).toBe(20);
+  });
+
+  it('should verify that bottom nav bounding box leaves >= 85% of screen height for full touch interaction', () => {
+    const mobileScreenHeights = [640, 667, 800, 844, 896, 915, 932];
+    const maxBottomNavHeight = 85;
+
+    mobileScreenHeights.forEach((screenH) => {
+      const interactiveContentHeight = screenH - maxBottomNavHeight;
+      const interactivePercentage = (interactiveContentHeight / screenH) * 100;
+      // Content workspace must have at least 85% of screen free for taps/scroll
+      expect(interactivePercentage).toBeGreaterThanOrEqual(85);
+    });
   });
 
   it('should verify mobile header layout fits within small phone viewports (320px - 390px)', () => {

@@ -28,9 +28,9 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({ onOpenMobileMe
   return (
     <nav
       aria-label="Navegación principal móvil y tablet"
-      className="md:hidden fixed-viewport-bottom bg-white border-t border-slate-200/90 shadow-[0_-4px_25px_rgba(0,0,0,0.08)] select-none safe-bottom"
+      className="md:hidden fixed-viewport-bottom bg-white border-t border-slate-200/90 shadow-[0_-4px_25px_rgba(0,0,0,0.08)] select-none safe-bottom h-[64px] sm:h-[70px] max-h-[85px]"
     >
-      <div className="w-full max-w-screen-xl mx-auto grid grid-cols-5 h-[64px] sm:h-[70px] items-center px-1">
+      <div className="w-full max-w-screen-xl mx-auto grid grid-cols-5 h-full items-center px-1">
         {/* Slot 1: Pacientes */}
         <button
           type="button"
