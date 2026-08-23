@@ -271,78 +271,102 @@ export const VitalSignsView: React.FC = () => {
         </div>
       </div>
 
-      {/* 5 Primary Vital Signs Physiological Cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3.5 text-xs">
-        {/* 1. Tensión Arterial TAS / TAD */}
-        <div className="bg-white border border-slate-200 p-4 rounded-2xl shadow-2xs space-y-1.5 hover:border-teal-500/50 transition-all">
-          <div className="flex items-center justify-between">
-            <span className="font-bold text-slate-500 uppercase tracking-wider text-[10px] flex items-center gap-1.5">
-              <Activity className="w-4 h-4 text-indigo-600" />
-              Tensión Arterial (TAS/TAD)
-            </span>
-          </div>
-          <div className="text-lg font-black text-slate-900 font-mono">120/75 <span className="text-[11px] font-normal text-slate-400">mmHg</span></div>
-          <span className="text-[10px] font-bold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded block truncate">
-            Sistólica / Diastólica
-          </span>
-        </div>
+      {/* 5 Primary Vital Signs Physiological Cards (Dynamic with Reference Fallback) */}
+      {(() => {
+        const latestVital = filteredVitals[0] || vitals[0];
+        const activeSpec = selectedSpecies !== 'TODAS' ? selectedSpecies : 'Canino';
+        const specRanges = SPECIES_RANGES[activeSpec as keyof typeof SPECIES_RANGES] || SPECIES_RANGES.Canino;
 
-        {/* 2. TAM (Tensión Arterial Media) */}
-        <div className="bg-white border border-slate-200 p-4 rounded-2xl shadow-2xs space-y-1.5 hover:border-teal-500/50 transition-all">
-          <div className="flex items-center justify-between">
-            <span className="font-bold text-slate-500 uppercase tracking-wider text-[10px] flex items-center gap-1.5">
-              <Heart className="w-4 h-4 text-rose-600" />
-              TAM (Media)
-            </span>
-          </div>
-          <div className="text-lg font-black text-rose-700 font-mono">85 <span className="text-[11px] font-normal text-slate-400">mmHg</span></div>
-          <span className="text-[10px] font-bold text-rose-700 bg-rose-50 px-2 py-0.5 rounded block truncate">
-            Meta: 70 - 100 mmHg
-          </span>
-        </div>
+        return (
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3.5 text-xs">
+            {/* 1. Tensión Arterial TAS / TAD */}
+            <div className="bg-white border border-slate-200 p-4 rounded-2xl shadow-2xs space-y-1.5 hover:border-teal-500/50 transition-all">
+              <div className="flex items-center justify-between">
+                <span className="font-bold text-slate-500 uppercase tracking-wider text-[10px] flex items-center gap-1.5">
+                  <Activity className="w-4 h-4 text-indigo-600" />
+                  Presión Arterial
+                </span>
+              </div>
+              <div className="text-lg font-black text-slate-900 font-mono">
+                {latestVital?.systolicBP
+                  ? `${latestVital.systolicBP}/${latestVital.diastolicBP || 80}`
+                  : `${specRanges.systolicBP.min}-${specRanges.systolicBP.max}`}{' '}
+                <span className="text-[11px] font-normal text-slate-400">mmHg</span>
+              </div>
+              <span className="text-[10px] font-bold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded block truncate">
+                {latestVital?.systolicBP ? 'Última Lectura TAS/TAD' : `Rango Ref. (${activeSpec})`}
+              </span>
+            </div>
 
-        {/* 3. Saturación de Oxígeno SpO2 */}
-        <div className="bg-white border border-slate-200 p-4 rounded-2xl shadow-2xs space-y-1.5 hover:border-teal-500/50 transition-all">
-          <div className="flex items-center justify-between">
-            <span className="font-bold text-slate-500 uppercase tracking-wider text-[10px] flex items-center gap-1.5">
-              <Wind className="w-4 h-4 text-cyan-600" />
-              Saturación O2 (SpO2)
-            </span>
-          </div>
-          <div className="text-lg font-black text-cyan-700 font-mono">98% <span className="text-[11px] font-normal text-slate-400">Oximetría</span></div>
-          <span className="text-[10px] font-bold text-cyan-700 bg-cyan-50 px-2 py-0.5 rounded block truncate">
-            Normoxia (≥ 95%)
-          </span>
-        </div>
+            {/* 2. TAM (Tensión Arterial Media) */}
+            <div className="bg-white border border-slate-200 p-4 rounded-2xl shadow-2xs space-y-1.5 hover:border-teal-500/50 transition-all">
+              <div className="flex items-center justify-between">
+                <span className="font-bold text-slate-500 uppercase tracking-wider text-[10px] flex items-center gap-1.5">
+                  <Heart className="w-4 h-4 text-rose-600" />
+                  TAM (Media)
+                </span>
+              </div>
+              <div className="text-lg font-black text-rose-700 font-mono">
+                {latestVital?.meanBP || specRanges.meanBP.min}{' '}
+                <span className="text-[11px] font-normal text-slate-400">mmHg</span>
+              </div>
+              <span className="text-[10px] font-bold text-rose-700 bg-rose-50 px-2 py-0.5 rounded block truncate">
+                {latestVital?.meanBP ? 'Medición Real' : `Meta: ${specRanges.meanBP.min} - ${specRanges.meanBP.max} mmHg`}
+              </span>
+            </div>
 
-        {/* 4. Temperatura */}
-        <div className="bg-white border border-slate-200 p-4 rounded-2xl shadow-2xs space-y-1.5 hover:border-teal-500/50 transition-all">
-          <div className="flex items-center justify-between">
-            <span className="font-bold text-slate-500 uppercase tracking-wider text-[10px] flex items-center gap-1.5">
-              <Thermometer className="w-4 h-4 text-teal-600" />
-              Temperatura
-            </span>
-          </div>
-          <div className="text-lg font-black text-teal-800 font-mono">38.5 °C</div>
-          <span className="text-[10px] font-bold text-teal-700 bg-teal-50 px-2 py-0.5 rounded block truncate">
-            Ref: 37.8 - 39.2 °C
-          </span>
-        </div>
+            {/* 3. Saturación de Oxígeno SpO2 */}
+            <div className="bg-white border border-slate-200 p-4 rounded-2xl shadow-2xs space-y-1.5 hover:border-teal-500/50 transition-all">
+              <div className="flex items-center justify-between">
+                <span className="font-bold text-slate-500 uppercase tracking-wider text-[10px] flex items-center gap-1.5">
+                  <Wind className="w-4 h-4 text-cyan-600" />
+                  Saturación O2
+                </span>
+              </div>
+              <div className="text-lg font-black text-cyan-700 font-mono">
+                {latestVital?.spo2 ? `${latestVital.spo2}%` : '≥ 95%'}{' '}
+                <span className="text-[11px] font-normal text-slate-400">SpO2</span>
+              </div>
+              <span className="text-[10px] font-bold text-cyan-700 bg-cyan-50 px-2 py-0.5 rounded block truncate">
+                {latestVital?.spo2 ? (latestVital.spo2 >= 95 ? 'Normoxia' : 'Alerta O2') : 'Rango Fisiológico'}
+              </span>
+            </div>
 
-        {/* 5. HGT (Hemoglucotest) */}
-        <div className="bg-white border border-slate-200 p-4 rounded-2xl shadow-2xs space-y-1.5 hover:border-teal-500/50 transition-all">
-          <div className="flex items-center justify-between">
-            <span className="font-bold text-slate-500 uppercase tracking-wider text-[10px] flex items-center gap-1.5">
-              <Droplet className="w-4 h-4 text-amber-600" />
-              HGT (Glucemia)
-            </span>
+            {/* 4. Temperatura */}
+            <div className="bg-white border border-slate-200 p-4 rounded-2xl shadow-2xs space-y-1.5 hover:border-teal-500/50 transition-all">
+              <div className="flex items-center justify-between">
+                <span className="font-bold text-slate-500 uppercase tracking-wider text-[10px] flex items-center gap-1.5">
+                  <Thermometer className="w-4 h-4 text-teal-600" />
+                  Temperatura
+                </span>
+              </div>
+              <div className="text-lg font-black text-teal-800 font-mono">
+                {latestVital?.temperature ? `${latestVital.temperature} °C` : `${specRanges.temperature.min} - ${specRanges.temperature.max} °C`}
+              </div>
+              <span className="text-[10px] font-bold text-teal-700 bg-teal-50 px-2 py-0.5 rounded block truncate">
+                {latestVital?.temperature ? 'Último Registro' : `Ref. (${activeSpec})`}
+              </span>
+            </div>
+
+            {/* 5. HGT (Hemoglucotest) */}
+            <div className="bg-white border border-slate-200 p-4 rounded-2xl shadow-2xs space-y-1.5 hover:border-teal-500/50 transition-all">
+              <div className="flex items-center justify-between">
+                <span className="font-bold text-slate-500 uppercase tracking-wider text-[10px] flex items-center gap-1.5">
+                  <Droplet className="w-4 h-4 text-amber-600" />
+                  HGT (Glucemia)
+                </span>
+              </div>
+              <div className="text-lg font-black text-amber-800 font-mono">
+                {latestVital?.bloodGlucose ? latestVital.bloodGlucose : specRanges.bloodGlucose.min}{' '}
+                <span className="text-[11px] font-normal text-slate-400">mg/dL</span>
+              </div>
+              <span className="text-[10px] font-bold text-amber-800 bg-amber-50 px-2 py-0.5 rounded block truncate">
+                {latestVital?.bloodGlucose ? 'Medición Actual' : `Ref: ${specRanges.bloodGlucose.min} - ${specRanges.bloodGlucose.max} mg/dL`}
+              </span>
+            </div>
           </div>
-          <div className="text-lg font-black text-amber-800 font-mono">95 <span className="text-[11px] font-normal text-slate-400">mg/dL</span></div>
-          <span className="text-[10px] font-bold text-amber-800 bg-amber-50 px-2 py-0.5 rounded block truncate">
-            Ref: 70 - 140 mg/dL
-          </span>
-        </div>
-      </div>
+        );
+      })()}
 
       {/* Filter & Search Bar */}
       <div className="bg-white border border-slate-200 p-4 rounded-xl shadow-sm flex flex-wrap items-center justify-between gap-3 text-xs">
