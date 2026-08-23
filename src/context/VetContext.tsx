@@ -185,6 +185,7 @@ interface VetContextType {
 
   // Lab & Imaging & Vaccines
   addSurgery: (surgery: Omit<SurgeryRecord, 'id'>) => SurgeryRecord;
+  updateSurgeryStatus: (id: string, status: SurgeryRecord['status']) => void;
   addLabOrder: (order: Omit<LaboratoryOrder, 'id' | 'orderNumber' | 'requestedAt' | 'status'>) => void;
   updateLabResults: (orderId: string, results: LaboratoryOrder['results'], conclusions: string) => void;
   addImagingStudy: (study: Omit<ImagingStudy, 'id' | 'studyNumber' | 'date' | 'status'>) => void;
@@ -1370,6 +1371,21 @@ export const VetProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return newSurgery;
   };
 
+  const updateSurgeryStatus = (id: string, status: SurgeryRecord['status']) => {
+    setSurgeries((prev) =>
+      prev.map((s) => {
+        if (s.id === id) {
+          const updated = { ...s, status };
+          syncSurgeryToSupabase(updated);
+          return updated;
+        }
+        return s;
+      })
+    );
+    showToast('info', 'Estado Quirúrgico Actualizado', `Cirugía actualizada a: ${status}`);
+    logAudit('ACTUALIZAR_CIRUGIA', 'SurgeryRecord', id, `Estado quirúrgico modificado a ${status}`);
+  };
+
   const addLabOrder = (data: Omit<LaboratoryOrder, 'id' | 'orderNumber' | 'requestedAt' | 'status'>) => {
     const newOrder: LaboratoryOrder = {
       ...data,
@@ -1874,6 +1890,7 @@ Hoy hemos evaluado a ${petName} en nuestro centro hospitalario. Queremos transmi
         dischargeHospitalPatient,
 
         addSurgery,
+        updateSurgeryStatus,
         addLabOrder,
         updateLabResults,
         addImagingStudy,
