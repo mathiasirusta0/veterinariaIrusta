@@ -42,7 +42,7 @@ import {
 } from 'lucide-react';
 import { useVet } from '../context/VetContext';
 import { ProblemStatus, PatientProblem, Species, Sex, ReproductiveStatus, PatientStatus, PatientAlert, Patient } from '../types';
-import { formatDate, formatDateTime, formatTime, formatWeight } from '../utils/formatters';
+import { formatDate, formatDateTime, formatTime, formatWeight, formatOwnerBalance } from '../utils/formatters';
 
 export const Patient360View: React.FC = () => {
   const {
@@ -158,6 +158,7 @@ export const Patient360View: React.FC = () => {
   // Direct Tutor Edit state
   const [tutorFirstName, setTutorFirstName] = useState(owner?.firstName || '');
   const [tutorLastName, setTutorLastName] = useState(owner?.lastName || '');
+  const [tutorDocType, setTutorDocType] = useState<'DNI' | 'CUIT' | 'PASAPORTE'>((owner?.dni && owner.dni.length === 11) ? 'CUIT' : 'DNI');
   const [tutorDni, setTutorDni] = useState(owner?.dni || '');
   const [tutorPhone, setTutorPhone] = useState(owner?.phone || '');
   const [tutorEmail, setTutorEmail] = useState(owner?.email || '');
@@ -278,10 +279,9 @@ export const Patient360View: React.FC = () => {
   const tabs = [
     { id: 'SIGNOS', label: '1. Signos Vitales', icon: Heart, count: patientVitals.length },
     { id: 'RECETAS', label: '2. Medicación & Indicaciones', icon: Pill, count: (patientHosp?.medications?.length || 0) + patientPrescriptions.length },
-    { id: 'HISTORIA', label: '3. Evolución Médica', icon: Sparkles, count: (clinicalEvolutions?.filter(e => e.patientId === patient.id).length || 0) + timelineEvents.length },
+    { id: 'HISTORIA', label: '3. Evolución Médica', icon: Sparkles, count: (clinicalEvolutions?.filter(e => e.patientId === patient.id).length || 0) },
     { id: 'LABORATORIO', label: '4. Estudios & Laboratorio', icon: FlaskConical, count: patientLabs.length + patientImaging.length },
     { id: 'TUTOR', label: '5. Propietario / Tutor', icon: User, count: owner ? 1 : 0 },
-    { id: 'FACTURACION', label: '6. Caja & Facturación ARCA', icon: Receipt, count: patientInvoices.length },
   ];
 
   const handleGenerateAiSummary = async () => {
@@ -438,16 +438,16 @@ export const Patient360View: React.FC = () => {
 
   return (
     <div className="space-y-5 pb-12">
-      {/* Top Bar: Selector & Actions */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white border border-slate-200 p-4 rounded-2xl shadow-2xs">
+      {/* Top Bar: Clean Navigation & Contextual Actions */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white border border-slate-200 p-3.5 sm:p-4 rounded-2xl shadow-2xs">
         <div className="flex flex-wrap items-center gap-2">
           <button
             onClick={() => setSelectedPatientId(null)}
-            className="flex items-center gap-1.5 px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition-colors"
+            className="flex items-center gap-1.5 px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition-colors active:scale-95"
             title="Volver a la lista de pacientes"
           >
             <span>←</span>
-            <span>Volver al Directorio</span>
+            <span>Volver a Pacientes</span>
           </button>
 
           <label className="text-xs text-slate-500 font-bold uppercase tracking-wider hidden sm:inline-block">
@@ -456,7 +456,7 @@ export const Patient360View: React.FC = () => {
           <select
             value={patient.id}
             onChange={(e) => setSelectedPatientId(e.target.value)}
-            className="bg-slate-50 border border-slate-200 text-slate-900 text-xs font-bold rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500"
+            className="bg-slate-50 border border-slate-200 text-slate-900 text-xs font-bold rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500 cursor-pointer"
           >
             {patients.map((p) => (
               <option key={p.id} value={p.id}>
@@ -466,73 +466,35 @@ export const Patient360View: React.FC = () => {
           </select>
         </div>
 
-        {/* Global Action Toolbar */}
-        <div className="flex flex-wrap items-center gap-2">
-          <button
-            onClick={() => openCalculators()}
-            className="flex items-center gap-1.5 bg-slate-50 hover:bg-slate-100 text-slate-800 text-xs font-bold px-3 py-2 rounded-xl transition-colors border border-slate-200"
-            title="Calculadora de dosis y fluidos"
-          >
-            <Calculator className="w-3.5 h-3.5 text-teal-600" />
-            <span>Calculadora Dosis</span>
-          </button>
-
-          {owner && (
+        {/* Clean Contextual Actions */}
+        <div className="flex items-center gap-2">
+          {patientHosp && (
             <button
-              onClick={() =>
-                openWhatsAppHub({
-                  patientName: patient.name,
-                  species: patient.species,
-                  ownerName: `${owner.firstName} ${owner.lastName}`,
-                  ownerPhone: owner.phone,
-                  diagnosis: patientHosp?.primaryDiagnosis || patientConsultations[0]?.diagnoses?.join(', ') || 'Control general',
-                })
-              }
-              className="flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold px-3.5 py-2 rounded-xl shadow-xs transition-colors"
+              onClick={() => openMonitor(patient.id)}
+              className="flex items-center gap-1.5 bg-slate-900 hover:bg-slate-800 text-emerald-400 text-xs font-bold px-3 py-2 rounded-xl transition-colors border border-slate-800 shadow-xs"
+              title="Telemetría en Vivo UCI"
             >
-              <span>💬</span>
-              <span>WhatsApp Tutor</span>
+              <Radio className="w-3.5 h-3.5 text-emerald-400 animate-pulse" />
+              <span>Monitor UCI Activo</span>
             </button>
           )}
 
           <button
-            onClick={() => openDentalChart(patient.id)}
-            className="flex items-center gap-1 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold px-3 py-2 rounded-xl transition-colors border border-slate-200 shadow-2xs"
-            title="Odontograma Triadan"
+            onClick={handleOpenEditModal}
+            className="flex items-center gap-1.5 px-3 py-2 bg-teal-50 hover:bg-teal-100 text-teal-800 border border-teal-200 text-xs font-bold rounded-xl transition-colors"
+            title="Editar datos clínicos del paciente"
           >
-            <span>🦷</span>
-            <span>Odontograma</span>
+            <Edit3 className="w-3.5 h-3.5 text-teal-700" />
+            <span>Editar Ficha</span>
           </button>
 
           <button
-            onClick={() => openMonitor(patient.id)}
-            className="flex items-center gap-1.5 bg-slate-900 hover:bg-slate-800 text-emerald-400 text-xs font-bold px-3 py-2 rounded-xl transition-colors border border-slate-800 shadow-xs"
-            title="Telemetría en Vivo UCI"
+            onClick={() => setShowAlertsModal(true)}
+            className="flex items-center gap-1.5 px-3 py-2 bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 text-xs font-bold rounded-xl transition-colors"
+            title="Gestionar condiciones médicas críticas y alergias"
           >
-            <Radio className="w-3.5 h-3.5 text-emerald-400 animate-pulse" />
-            <span>Monitor UCI</span>
-          </button>
-
-          <button
-            onClick={() =>
-              openPrintModal({
-                type: 'RECETA',
-                patientId: patient.id,
-                consultationId: patientConsultations[0]?.id,
-              })
-            }
-            className="flex items-center gap-1.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-bold px-3 py-2 rounded-xl shadow-2xs transition-colors"
-          >
-            <Printer className="w-3.5 h-3.5 text-slate-500" />
-            <span>Imprimir Receta</span>
-          </button>
-
-          <button
-            onClick={() => setQuickModal('NUEVA_CONSULTA')}
-            className="flex items-center gap-1.5 bg-teal-600 hover:bg-teal-500 text-white text-xs font-bold px-3.5 py-2 rounded-xl shadow-md shadow-teal-600/20 active:scale-95 transition-all"
-          >
-            <Plus className="w-3.5 h-3.5" />
-            <span>Nueva Consulta SOAP</span>
+            <AlertTriangle className="w-3.5 h-3.5 text-red-600" />
+            <span>Alertas ({patient.alerts?.length || 0})</span>
           </button>
         </div>
       </div>
@@ -596,14 +558,14 @@ export const Patient360View: React.FC = () => {
                   patient.sex,
                   patient.reproductiveStatus ? `(${patient.reproductiveStatus})` : null,
                   patient.calculatedAge,
-                  patient.weight ? `Peso: ${formatWeight(patient.weight)}` : null,
+                  patient.weight ? `Peso: ${formatWeight(patient.weight)}${latestVital?.recordedAt ? ` · ${formatDate(latestVital.recordedAt)}` : ''}` : null,
                   patient.color ? `Color: ${patient.color}` : null,
                 ]
                   .filter(Boolean)
                   .join(' • ')}
               </p>
 
-              {/* Quick Patient Identity Badges & Actions */}
+              {/* Quick Patient Identity Badges */}
               <div className="flex flex-wrap items-center gap-2 mt-2">
                 {patient.microchip ? (
                   <div className="flex items-center gap-1 bg-slate-100 px-2.5 py-1 rounded-lg border border-slate-200 text-[11px] font-mono text-slate-700">
@@ -619,36 +581,6 @@ export const Patient360View: React.FC = () => {
                 ) : (
                   <span className="text-[11px] text-slate-400 font-medium">Sin Microchip ISO</span>
                 )}
-
-                <button
-                  onClick={handleOpenEditModal}
-                  className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-teal-50 hover:bg-teal-100 text-teal-700 border border-teal-200 text-[11px] font-bold transition-colors"
-                  title="Editar datos del paciente"
-                >
-                  <Edit3 className="w-3 h-3" />
-                  <span>Editar Ficha</span>
-                </button>
-
-                <button
-                  onClick={() => setShowAlertsModal(true)}
-                  className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 text-[11px] font-bold transition-colors"
-                  title="Gestionar condiciones médicas críticas y alergias"
-                >
-                  <AlertTriangle className="w-3 h-3" />
-                  <span>Alertas ({patient.alerts?.length || 0})</span>
-                </button>
-
-                <button
-                  onClick={() => {
-                    setNewWeightValue(patient.weight ? patient.weight.toString() : '');
-                    setShowWeightModal(true);
-                  }}
-                  className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200 text-[11px] font-bold transition-colors"
-                  title="Registrar nuevo pesaje del paciente"
-                >
-                  <Scale className="w-3 h-3 text-teal-600" />
-                  <span>Registrar Peso</span>
-                </button>
               </div>
             </div>
           </div>
@@ -656,69 +588,62 @@ export const Patient360View: React.FC = () => {
           {/* Owner Details Card & Immediate Actions */}
           {owner ? (
             <div className="bg-gradient-to-br from-slate-50 to-teal-50/40 border border-teal-200/80 p-4 rounded-3xl min-w-[290px] text-xs space-y-2 shadow-xs">
-              <div className="flex items-center justify-between">
-                <span className="font-extrabold uppercase text-[10px] text-teal-800 tracking-wider flex items-center gap-1">
-                  <User className="w-3.5 h-3.5 text-teal-600" />
-                  <span>Tutor a Cargo</span>
-                </span>
-                <span
-                  className={`text-[10px] font-black px-2 py-0.5 rounded-full border ${
-                    owner.balance < 0
-                      ? 'bg-red-50 text-red-700 border-red-200 animate-pulse'
-                      : 'bg-emerald-50 text-emerald-800 border-emerald-200'
-                  }`}
-                >
-                  Saldo: ${owner.balance.toLocaleString('es-AR')}
-                </span>
-              </div>
+              {(() => {
+                const ownerBalance = formatOwnerBalance(owner.balance);
+                return (
+                  <>
+                    <div className="flex items-center justify-between">
+                      <span className="font-extrabold uppercase text-[10px] text-teal-800 tracking-wider flex items-center gap-1">
+                        <User className="w-3.5 h-3.5 text-teal-600" />
+                        <span>Tutor a Cargo</span>
+                      </span>
+                      <span className={`text-[10px] font-black px-2.5 py-0.5 rounded-full border ${ownerBalance.badgeClass}`}>
+                        {ownerBalance.label}
+                      </span>
+                    </div>
 
-              <div>
-                <p className="font-black text-slate-900 text-sm">
-                  {[owner.firstName, owner.lastName].filter(Boolean).join(' ') || 'Tutor Registrado'}
-                </p>
-                <p className="text-slate-500 font-mono text-[11px]">
-                  DNI: {owner.dni || 'S/D'} • Tel: {owner.phone || 'S/D'}
-                </p>
-              </div>
+                    <div>
+                      <p className="font-black text-slate-900 text-sm">
+                        {[owner.firstName, owner.lastName].filter(Boolean).join(' ') || 'Tutor Registrado'}
+                      </p>
+                      <p className="text-slate-500 font-mono text-[11px]">
+                        {owner.dni?.length === 11 ? 'CUIT' : 'DNI'}: {owner.dni || 'S/D'} • Tel: {owner.phone || 'S/D'}
+                      </p>
+                    </div>
 
-              <div className="flex items-center gap-1.5 pt-2 border-t border-teal-100">
-                <button
-                  onClick={() =>
-                    openWhatsAppHub({
-                      patientName: patient.name,
-                      ownerName: `${owner.firstName} ${owner.lastName}`,
-                      ownerPhone: owner.phone || owner.whatsapp || '',
-                      type: 'COBRO_INSUMO',
-                      details: {
-                        supplyName: 'Insumos médicos, medicación y atención hospitalaria de ' + patient.name,
-                        supplyAmount: owner.balance < 0 ? Math.abs(owner.balance) : 15000,
-                      },
-                    })
-                  }
-                  className="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-1.5 px-2 rounded-xl text-[10px] transition-colors flex items-center justify-center gap-1 shadow-2xs"
-                  title="Enviar aviso o cobro de insumos por WhatsApp"
-                >
-                  <span>💬</span>
-                  <span>WhatsApp al Tutor</span>
-                </button>
+                    <div className="flex items-center gap-1.5 pt-2 border-t border-teal-100">
+                      <button
+                        onClick={() =>
+                          openWhatsAppHub({
+                            patientName: patient.name,
+                            ownerName: `${owner.firstName} ${owner.lastName}`,
+                            ownerPhone: owner.phone || owner.whatsapp || '',
+                            type: 'CONTROL_GENERAL',
+                            details: {
+                              supplyName: 'Atención clínica y seguimiento de ' + patient.name,
+                              supplyAmount: owner.balance < 0 ? Math.abs(owner.balance) : 0,
+                            },
+                          })
+                        }
+                        className="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-1.5 px-3 rounded-xl text-[11px] transition-colors flex items-center justify-center gap-1.5 shadow-2xs active:scale-95"
+                        title="Enviar mensaje de seguimiento por WhatsApp"
+                      >
+                        <span>💬</span>
+                        <span>WhatsApp Tutor</span>
+                      </button>
 
-                <a
-                  href={`tel:${(owner.phone || '').replace(/[^0-9]/g, '')}`}
-                  className="bg-white hover:bg-slate-100 text-slate-700 font-bold py-1.5 px-2.5 rounded-xl border border-slate-200 text-[10px] transition-colors flex items-center gap-1"
-                  title="Llamar directamente al tutor"
-                >
-                  <Phone className="w-3 h-3 text-teal-600" />
-                  <span>Llamar</span>
-                </a>
-
-                <button
-                  onClick={() => setActivePatientTab('TUTOR')}
-                  className="bg-white hover:bg-teal-50 text-teal-700 font-bold py-1.5 px-2.5 rounded-xl border border-teal-200 text-[10px] transition-colors"
-                  title="Ver ficha completa del tutor y cuenta corriente"
-                >
-                  Ver Ficha →
-                </button>
-              </div>
+                      <a
+                        href={`tel:${(owner.phone || '').replace(/[^0-9]/g, '')}`}
+                        className="bg-white hover:bg-slate-100 text-slate-700 font-bold py-1.5 px-3 rounded-xl border border-slate-200 text-[11px] transition-colors flex items-center gap-1.5 active:scale-95"
+                        title="Llamar directamente al tutor"
+                      >
+                        <Phone className="w-3.5 h-3.5 text-teal-600" />
+                        <span>Llamar</span>
+                      </a>
+                    </div>
+                  </>
+                );
+              })()}
             </div>
           ) : (
             <div className="bg-amber-50 border border-amber-200 p-4 rounded-3xl text-xs space-y-1.5 min-w-[240px]">
@@ -970,19 +895,42 @@ export const Patient360View: React.FC = () => {
         <div className="space-y-6 animate-fade-in">
           {/* Form to Emit New Medical Indication */}
           <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
               <div className="flex items-center gap-2.5">
                 <div className="w-8 h-8 rounded-xl bg-teal-50 text-teal-600 flex items-center justify-center font-bold">
                   💊
                 </div>
                 <div>
                   <h3 className="text-base font-black text-slate-900">Indicar Nueva Medicación / Fármaco</h3>
-                  <p className="text-xs text-slate-500">Plan terapéutico con frecuencia horaria para enfermería</p>
+                  <p className="text-xs text-slate-500">Plan terapéutico con frecuencia horaria para enfermería y guardia</p>
                 </div>
               </div>
-              <span className="text-[10px] font-bold text-teal-800 bg-teal-50 px-2.5 py-1 rounded-full border border-teal-200">
-                Guardia / Internación
-              </span>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => openCalculators()}
+                  className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs rounded-xl flex items-center gap-1.5 transition-colors active:scale-95"
+                  title="Calculadora de dosis farmacológicas y fluidoterapia"
+                >
+                  <Calculator className="w-3.5 h-3.5 text-teal-600" />
+                  <span>Calculadora Dosis</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() =>
+                    openPrintModal({
+                      type: 'RECETA',
+                      patientId: patient.id,
+                      consultationId: patientConsultations[0]?.id,
+                    })
+                  }
+                  className="px-3 py-1.5 bg-teal-50 hover:bg-teal-100 text-teal-800 font-bold text-xs rounded-xl flex items-center gap-1.5 border border-teal-200 transition-colors active:scale-95"
+                  title="Imprimir receta oficial membretada para el tutor"
+                >
+                  <Printer className="w-3.5 h-3.5 text-teal-700" />
+                  <span>Imprimir Receta</span>
+                </button>
+              </div>
             </div>
 
             <form
@@ -1342,19 +1290,36 @@ export const Patient360View: React.FC = () => {
         <div className="space-y-6 animate-fade-in">
           {/* Direct Lab Order Form Card */}
           <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
               <div className="flex items-center gap-2.5">
                 <div className="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold">
                   🧪
                 </div>
                 <div>
                   <h3 className="text-base font-black text-slate-900">Solicitar / Cargar Estudio de Laboratorio</h3>
-                  <p className="text-xs text-slate-500">Análisis bioquímicos, urianálisis y diagnóstico por imágenes</p>
+                  <p className="text-xs text-slate-500">Análisis bioquímicos, imágenes, odontograma y mapa de lesiones</p>
                 </div>
               </div>
-              <span className="text-[10px] font-bold text-blue-800 bg-blue-50 px-2.5 py-1 rounded-full border border-blue-200">
-                Bioquímica & Diagnóstico
-              </span>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => openDentalChart(patient.id)}
+                  className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs rounded-xl flex items-center gap-1.5 transition-colors active:scale-95"
+                  title="Odontograma Triadan interactivo"
+                >
+                  <span>🦷</span>
+                  <span>Odontograma</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => openImagingAnnotator(patient.id)}
+                  className="px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-800 font-bold text-xs rounded-xl flex items-center gap-1.5 border border-blue-200 transition-colors active:scale-95"
+                  title="Anotador de imágenes diagnósticas y mapa corporal"
+                >
+                  <Scan className="w-3.5 h-3.5 text-blue-700" />
+                  <span>Mapa de Lesiones</span>
+                </button>
+              </div>
             </div>
 
             <form
@@ -1453,18 +1418,18 @@ export const Patient360View: React.FC = () => {
         </div>
       )}
 
-      {/* 5. 👤 TAB: PROPIETARIO / TUTOR (EDICIÓN DIRECTA) */}
+      {/* 5. 👤 TAB: PROPIETARIO / TUTOR (EDICIÓN DIRECTA & CUENTA) */}
       {activePatientTab === 'TUTOR' && (
         <div className="space-y-6 animate-fade-in">
           <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-5">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
               <div className="flex items-center gap-2.5">
                 <div className="w-8 h-8 rounded-xl bg-teal-50 text-teal-600 flex items-center justify-center font-bold">
                   👤
                 </div>
                 <div>
-                  <h3 className="text-base font-black text-slate-900">Datos y Edición del Tutor / Propietario</h3>
-                  <p className="text-xs text-slate-500">Modifique los datos de contacto y facturación del responsable</p>
+                  <h3 className="text-base font-black text-slate-900">Datos y Edición del Tutor Responsable</h3>
+                  <p className="text-xs text-slate-500">Información de contacto, DNI/CUIT fiscal y estado de cuenta</p>
                 </div>
               </div>
               {owner && (
@@ -1479,13 +1444,13 @@ export const Patient360View: React.FC = () => {
                         type: 'CONTROL_GENERAL',
                       })
                     }
-                    className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl shadow-2xs flex items-center gap-1.5"
+                    className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl shadow-2xs flex items-center gap-1.5 active:scale-95 transition-all"
                   >
                     <span>💬 WhatsApp</span>
                   </button>
                   <a
                     href={`tel:${(owner.phone || '').replace(/[^0-9]/g, '')}`}
-                    className="px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs rounded-xl flex items-center gap-1.5"
+                    className="px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs rounded-xl flex items-center gap-1.5 active:scale-95 transition-all"
                   >
                     <span>📞 Llamar</span>
                   </a>
@@ -1518,7 +1483,7 @@ export const Patient360View: React.FC = () => {
                       required
                       value={tutorFirstName}
                       onChange={(e) => setTutorFirstName(e.target.value)}
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 font-bold text-slate-900"
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 font-bold text-slate-900 focus:ring-2 focus:ring-teal-500"
                     />
                   </div>
                   <div>
@@ -1528,19 +1493,35 @@ export const Patient360View: React.FC = () => {
                       required
                       value={tutorLastName}
                       onChange={(e) => setTutorLastName(e.target.value)}
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 font-bold text-slate-900"
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 font-bold text-slate-900 focus:ring-2 focus:ring-teal-500"
                     />
                   </div>
                   <div>
-                    <label className="font-bold text-slate-700 block mb-1">DNI / CUIT:</label>
+                    <label className="font-bold text-slate-700 block mb-1">Tipo de Documento:</label>
+                    <select
+                      value={tutorDocType}
+                      onChange={(e) => setTutorDocType(e.target.value as any)}
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 font-bold text-slate-900"
+                    >
+                      <option value="DNI">DNI (Documento Nacional)</option>
+                      <option value="CUIT">CUIT / CUIL (Tributario)</option>
+                      <option value="PASAPORTE">Pasaporte / Extranjero</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="font-bold text-slate-700 block mb-1">Número ({tutorDocType}):</label>
                     <input
                       type="text"
                       required
                       value={tutorDni}
                       onChange={(e) => setTutorDni(e.target.value)}
+                      placeholder={tutorDocType === 'CUIT' ? '20-12345678-9' : '12.345.678'}
                       className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 font-mono font-bold text-slate-900"
                     />
                   </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <div>
                     <label className="font-bold text-slate-700 block mb-1">Teléfono / WhatsApp:</label>
                     <input
@@ -1551,24 +1532,12 @@ export const Patient360View: React.FC = () => {
                       className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 font-mono font-bold text-slate-900"
                     />
                   </div>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <div>
                     <label className="font-bold text-slate-700 block mb-1">Correo Electrónico:</label>
                     <input
                       type="email"
                       value={tutorEmail}
                       onChange={(e) => setTutorEmail(e.target.value)}
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-slate-900"
-                    />
-                  </div>
-                  <div>
-                    <label className="font-bold text-slate-700 block mb-1">Dirección / Domicilio:</label>
-                    <input
-                      type="text"
-                      value={tutorAddress}
-                      onChange={(e) => setTutorAddress(e.target.value)}
                       className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-slate-900"
                     />
                   </div>
@@ -1585,6 +1554,16 @@ export const Patient360View: React.FC = () => {
                       <option value="Exento">Exento</option>
                     </select>
                   </div>
+                </div>
+
+                <div>
+                  <label className="font-bold text-slate-700 block mb-1">Dirección / Domicilio:</label>
+                  <input
+                    type="text"
+                    value={tutorAddress}
+                    onChange={(e) => setTutorAddress(e.target.value)}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-slate-900"
+                  />
                 </div>
 
                 <div className="flex items-center justify-end pt-3 border-t border-slate-100">
@@ -1607,64 +1586,37 @@ export const Patient360View: React.FC = () => {
                 </button>
               </div>
             )}
-          </div>
-        </div>
-      )}
 
-      {/* 6. 💳 TAB: CAJA & FACTURACIÓN ARCA */}
-      {activePatientTab === 'FACTURACION' && (
-        <div className="space-y-6 animate-fade-in">
-          <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-5">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
-              <div>
-                <span className="text-[10px] font-black px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 uppercase tracking-wider">
-                  Facturación & Cobro Directo
-                </span>
-                <h3 className="text-xl font-black text-slate-900 tracking-tight mt-1">
-                  Caja del Paciente: {patient.name}
-                </h3>
-                <p className="text-xs text-slate-500">
-                  Tutor a Facturar: <span className="font-bold text-slate-700">{owner ? `${owner.firstName} ${owner.lastName}` : 'Consumidor Final'}</span> • DNI/CUIT: {owner?.dni || 'S/D'}
-                </p>
-              </div>
-
-              <div className="flex items-center gap-3">
-                <div className="bg-slate-50 border border-slate-200 rounded-2xl p-3 text-right">
-                  <span className="text-[10px] font-bold text-slate-400 uppercase block">Saldo Pendiente</span>
-                  <span className="text-xl font-black font-mono text-slate-900">
-                    $${owner ? Math.abs(owner.balance).toLocaleString('es-AR') : '0'}
-                  </span>
+            {/* Estado de Cuenta Corriente y Liquidación */}
+            {owner && (
+              <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 mt-4">
+                <div>
+                  <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Balance de Cuenta Corriente</span>
+                  {(() => {
+                    const ob = formatOwnerBalance(owner.balance);
+                    return (
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className={`text-sm font-black px-3 py-1 rounded-xl border ${ob.badgeClass}`}>
+                          {ob.label}
+                        </span>
+                        <span className="text-xs text-slate-500 font-mono">
+                          {ob.isDebt ? 'Deuda acumulada por servicios e insumos' : ob.isCredit ? 'Saldo a favor para futuras atenciones' : 'Cuenta totalmente regularizada'}
+                        </span>
+                      </div>
+                    );
+                  })()}
                 </div>
+
                 <button
+                  type="button"
                   onClick={() => setShowBillingModal(true)}
-                  className="px-5 py-3 bg-teal-600 hover:bg-teal-500 text-white font-black text-xs rounded-2xl shadow-md shadow-teal-600/25 active:scale-95 transition-all flex items-center gap-2"
+                  className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-xl shadow-xs flex items-center gap-2 active:scale-95 transition-all"
                 >
-                  <Receipt className="w-4 h-4" />
-                  <span>💳 Facturar (ARCA o Ticket Común)</span>
+                  <Receipt className="w-3.5 h-3.5 text-teal-400" />
+                  <span>Liquidación / Emitir Comprobante</span>
                 </button>
               </div>
-            </div>
-
-            <div className="space-y-3">
-              <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Comprobantes Emitidos</h4>
-              {patientInvoices.length === 0 ? (
-                <div className="p-6 bg-slate-50 border border-slate-100 rounded-2xl text-center text-xs text-slate-400">
-                  No hay comprobantes facturados previos para este paciente.
-                </div>
-              ) : (
-                patientInvoices.map((inv) => (
-                  <div key={inv.id} className="p-4 bg-slate-50/80 border border-slate-200 rounded-2xl flex items-center justify-between text-xs">
-                    <div>
-                      <span className="font-bold text-slate-900 font-mono text-sm block">{inv.invoiceNumber}</span>
-                      <span className="text-slate-500 text-[11px]">Total: $${inv.totalAmount?.toLocaleString('es-AR')} • Condición: {inv.paymentMethod}</span>
-                    </div>
-                    <span className="text-xs font-bold text-emerald-800 bg-emerald-50 px-3 py-1 rounded-xl border border-emerald-200">
-                      ✓ PAGADO
-                    </span>
-                  </div>
-                ))
-              )}
-            </div>
+            )}
           </div>
         </div>
       )}

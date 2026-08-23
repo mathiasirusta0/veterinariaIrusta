@@ -154,3 +154,62 @@ export function formatPhoneNumberE164(phone: unknown, fallback = '5491167891234'
   return digits;
 }
 
+export interface FormattedBalance {
+  label: string;
+  amountFormatted: string;
+  isDebt: boolean;
+  isCredit: boolean;
+  isSettled: boolean;
+  badgeClass: string;
+}
+
+/**
+ * Formatea el saldo de cuenta corriente del tutor con semántica clara.
+ * Evita números negativos ambiguos (ej: '$-15.000' -> 'Debe $15.000').
+ */
+export function formatOwnerBalance(balance: unknown): FormattedBalance {
+  if (balance === null || balance === undefined) {
+    return {
+      label: 'Al día',
+      amountFormatted: '$0',
+      isDebt: false,
+      isCredit: false,
+      isSettled: true,
+      badgeClass: 'bg-emerald-50 text-emerald-800 border-emerald-200',
+    };
+  }
+
+  const num = typeof balance === 'number' ? balance : Number(balance);
+  if (isNaN(num) || num === 0) {
+    return {
+      label: 'Al día',
+      amountFormatted: '$0',
+      isDebt: false,
+      isCredit: false,
+      isSettled: true,
+      badgeClass: 'bg-emerald-50 text-emerald-800 border-emerald-200',
+    };
+  }
+
+  if (num < 0) {
+    const debt = Math.abs(num);
+    return {
+      label: `Debe $${debt.toLocaleString('es-AR')}`,
+      amountFormatted: `$${debt.toLocaleString('es-AR')}`,
+      isDebt: true,
+      isCredit: false,
+      isSettled: false,
+      badgeClass: 'bg-rose-50 text-rose-700 border-rose-200 font-bold',
+    };
+  }
+
+  return {
+    label: `Saldo a favor $${num.toLocaleString('es-AR')}`,
+    amountFormatted: `$${num.toLocaleString('es-AR')}`,
+    isDebt: false,
+    isCredit: true,
+    isSettled: false,
+    badgeClass: 'bg-teal-50 text-teal-800 border-teal-200 font-bold',
+  };
+}
+

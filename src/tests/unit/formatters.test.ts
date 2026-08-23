@@ -10,6 +10,7 @@ import {
   formatInvoiceNumber,
   formatDurationMinutes,
   formatPhoneNumberE164,
+  formatOwnerBalance,
 } from '../../utils/formatters';
 
 describe('Safe Formatters Unit Tests', () => {
@@ -78,5 +79,29 @@ describe('Safe Formatters Unit Tests', () => {
     expect(formatPhoneNumberE164('1167891234')).toBe('5491167891234');
     expect(formatPhoneNumberE164('01167891234')).toBe('5491167891234');
     expect(formatPhoneNumberE164(null)).toBe('5491167891234');
+  });
+
+  it('formatOwnerBalance should format debt, credit and settled balances with unambiguous labels', () => {
+    // Debt case (negative balance)
+    const debtRes = formatOwnerBalance(-15000);
+    expect(debtRes.label).toBe('Debe $15.000');
+    expect(debtRes.isDebt).toBe(true);
+    expect(debtRes.isCredit).toBe(false);
+    expect(debtRes.isSettled).toBe(false);
+
+    // Credit / advance case (positive balance)
+    const creditRes = formatOwnerBalance(5000);
+    expect(creditRes.label).toBe('Saldo a favor $5.000');
+    expect(creditRes.isDebt).toBe(false);
+    expect(creditRes.isCredit).toBe(true);
+
+    // Settled case (0 or null)
+    const zeroRes = formatOwnerBalance(0);
+    expect(zeroRes.label).toBe('Al día');
+    expect(zeroRes.isSettled).toBe(true);
+
+    const nullRes = formatOwnerBalance(null);
+    expect(nullRes.label).toBe('Al día');
+    expect(nullRes.isSettled).toBe(true);
   });
 });
