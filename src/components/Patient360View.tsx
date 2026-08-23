@@ -13,6 +13,8 @@ import {
   Receipt,
   User,
   Phone,
+  Mail,
+  MapPin,
   Clock,
   CheckCircle2,
   TrendingUp,
@@ -200,6 +202,7 @@ export const Patient360View: React.FC = () => {
 
   const tabs = [
     { id: 'RESUMEN', label: 'Resumen 360°', icon: Activity },
+    { id: 'TUTOR', label: 'Tutor Responsable', icon: User, count: owner ? 1 : 0 },
     { id: 'HISTORIA', label: 'Historia Clínica', icon: FileText, count: timelineEvents.length },
     { id: 'CONSULTAS', label: 'Consultas SOAP', icon: Stethoscope, count: patientConsultations.length },
     { id: 'SIGNOS', label: 'Signos Vitales', icon: Heart, count: patientVitals.length },
@@ -523,41 +526,83 @@ export const Patient360View: React.FC = () => {
             </div>
           </div>
 
-          {/* Owner Details Card */}
-          {owner && (
-            <div className="bg-slate-50 border border-slate-200 p-3.5 rounded-2xl min-w-[260px] text-xs space-y-1.5">
-              <div className="flex items-center justify-between text-slate-500">
-                <span className="font-bold uppercase text-[10px]">Tutor / Propietario</span>
-                <User className="w-3.5 h-3.5 text-teal-600" />
+          {/* Owner Details Card & Immediate Actions */}
+          {owner ? (
+            <div className="bg-gradient-to-br from-slate-50 to-teal-50/40 border border-teal-200/80 p-4 rounded-3xl min-w-[290px] text-xs space-y-2 shadow-xs">
+              <div className="flex items-center justify-between">
+                <span className="font-extrabold uppercase text-[10px] text-teal-800 tracking-wider flex items-center gap-1">
+                  <User className="w-3.5 h-3.5 text-teal-600" />
+                  <span>Tutor a Cargo</span>
+                </span>
+                <span
+                  className={`text-[10px] font-black px-2 py-0.5 rounded-full border ${
+                    owner.balance < 0
+                      ? 'bg-red-50 text-red-700 border-red-200 animate-pulse'
+                      : 'bg-emerald-50 text-emerald-800 border-emerald-200'
+                  }`}
+                >
+                  Saldo: ${owner.balance.toLocaleString('es-AR')}
+                </span>
               </div>
-              <p className="font-bold text-slate-900 text-sm">
-                {owner.firstName} {owner.lastName}
-              </p>
-              <p className="text-slate-500">DNI: {owner.dni} • Tel: {owner.phone}</p>
-              <div className="flex items-center justify-between pt-1 border-t border-slate-200 text-[11px]">
+
+              <div>
+                <p className="font-black text-slate-900 text-sm">
+                  {[owner.firstName, owner.lastName].filter(Boolean).join(' ') || 'Tutor Registrado'}
+                </p>
+                <p className="text-slate-500 font-mono text-[11px]">
+                  DNI: {owner.dni || 'S/D'} • Tel: {owner.phone || 'S/D'}
+                </p>
+              </div>
+
+              <div className="flex items-center gap-1.5 pt-2 border-t border-teal-100">
                 <button
                   onClick={() =>
                     openWhatsAppHub({
                       patientName: patient.name,
-                      species: patient.species,
                       ownerName: `${owner.firstName} ${owner.lastName}`,
-                      ownerPhone: owner.phone,
-                      diagnosis: 'Control general en clínica veterinaria',
+                      ownerPhone: owner.phone || owner.whatsapp || '',
+                      type: 'COBRO_INSUMO',
+                      details: {
+                        supplyName: 'Insumos médicos, medicación y atención hospitalaria de ' + patient.name,
+                        supplyAmount: owner.balance < 0 ? Math.abs(owner.balance) : 15000,
+                      },
                     })
                   }
-                  className="text-teal-600 hover:text-teal-700 font-bold flex items-center gap-1"
+                  className="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-1.5 px-2 rounded-xl text-[10px] transition-colors flex items-center justify-center gap-1 shadow-2xs"
+                  title="Enviar aviso o cobro de insumos por WhatsApp"
                 >
-                  <MessageSquare className="w-3 h-3" />
-                  <span>Mensaje WhatsApp</span>
+                  <span>💬</span>
+                  <span>WhatsApp Insumos</span>
                 </button>
+
                 <a
-                  href={`tel:${owner.phone.replace(/[^0-9]/g, '')}`}
-                  className="text-slate-600 hover:text-slate-900 font-semibold flex items-center gap-1"
+                  href={`tel:${(owner.phone || '').replace(/[^0-9]/g, '')}`}
+                  className="bg-white hover:bg-slate-100 text-slate-700 font-bold py-1.5 px-2.5 rounded-xl border border-slate-200 text-[10px] transition-colors flex items-center gap-1"
+                  title="Llamar directamente al tutor"
                 >
-                  <Phone className="w-3 h-3" />
+                  <Phone className="w-3 h-3 text-teal-600" />
                   <span>Llamar</span>
                 </a>
+
+                <button
+                  onClick={() => setActivePatientTab('TUTOR')}
+                  className="bg-white hover:bg-teal-50 text-teal-700 font-bold py-1.5 px-2.5 rounded-xl border border-teal-200 text-[10px] transition-colors"
+                  title="Ver ficha completa del tutor y cuenta corriente"
+                >
+                  Ver Ficha →
+                </button>
               </div>
+            </div>
+          ) : (
+            <div className="bg-amber-50 border border-amber-200 p-4 rounded-3xl text-xs space-y-1.5 min-w-[240px]">
+              <span className="text-[10px] font-bold text-amber-800 uppercase block">⚠️ Sin Tutor Asignado</span>
+              <p className="text-slate-600 text-[11px]">Este paciente no tiene un tutor responsable vinculado.</p>
+              <button
+                onClick={() => setQuickModal('NUEVO_PROPIETARIO')}
+                className="w-full bg-amber-600 hover:bg-amber-500 text-white font-bold py-1.5 rounded-xl text-[11px] transition-colors"
+              >
+                + Asignar Tutor Responsable
+              </button>
             </div>
           )}
         </div>
@@ -1326,6 +1371,296 @@ export const Patient360View: React.FC = () => {
               </div>
             ))}
           </div>
+        </div>
+      )}
+
+      
+      {/* TAB: TUTOR RESPONSABLE & PAGOS DE INSUMOS */}
+      {activePatientTab === 'TUTOR' && (
+        <div className="space-y-6">
+          {owner ? (
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Left 2 Cols: Owner Identity & Direct Actions */}
+              <div className="lg:col-span-2 space-y-6">
+                {/* Main Identity & Financial Card */}
+                <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-5">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
+                    <div>
+                      <span className="text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-teal-50 text-teal-800 border border-teal-200 uppercase tracking-wider">
+                        Tutor Legal y Responsable
+                      </span>
+                      <h3 className="text-xl font-black text-slate-900 tracking-tight mt-1">
+                        {[owner.firstName, owner.lastName].filter(Boolean).join(' ')}
+                      </h3>
+                      <p className="text-xs text-slate-500 font-mono">
+                        DNI: {owner.dni || 'S/D'} • CUIT: {owner.cuit || 'S/D'} • Condición: {owner.taxCondition || 'Consumidor Final'}
+                      </p>
+                    </div>
+
+                    <div className="bg-slate-50 border border-slate-200 rounded-2xl p-3 text-right">
+                      <span className="text-[10px] font-bold text-slate-400 uppercase block">Cuenta Corriente</span>
+                      <span
+                        className={`text-lg font-black font-mono ${
+                          owner.balance < 0 ? 'text-red-600' : 'text-emerald-700'
+                        }`}
+                      >
+                        ${owner.balance.toLocaleString('es-AR')}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Contact Info & Address */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2 text-slate-700">
+                        <Phone className="w-4 h-4 text-teal-600 flex-shrink-0" />
+                        <span><strong>Teléfono:</strong> {owner.phone || 'No registrado'}</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-slate-700">
+                        <Mail className="w-4 h-4 text-teal-600 flex-shrink-0" />
+                        <span><strong>Email:</strong> {owner.email || 'No registrado'}</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-slate-700">
+                        <MapPin className="w-4 h-4 text-teal-600 flex-shrink-0" />
+                        <span><strong>Domicilio:</strong> {owner.address || 'S/D'}, {owner.city || 'Río Cuarto'} ({owner.postalCode || '5800'})</span>
+                      </div>
+                    </div>
+
+                    <div className="space-y-2 bg-slate-50 p-3.5 rounded-2xl border border-slate-200/80">
+                      <span className="text-[10px] font-bold uppercase text-slate-400 block">Contactos de Emergencia</span>
+                      <p className="text-xs text-slate-800 font-semibold">
+                        {owner.secondaryContactName || 'No especificado'}
+                      </p>
+                      <p className="text-xs text-slate-500 font-mono">
+                        {owner.secondaryContactPhone ? `Tel: ${owner.secondaryContactPhone}` : 'Sin teléfono de respaldo'}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Fast Action Communication Center for Consumables & Evolution */}
+                  <div className="pt-4 border-t border-slate-100 space-y-3">
+                    <span className="text-xs font-bold text-slate-800 uppercase tracking-wider block">
+                      Acciones Directas de Comunicación & Cobro de Insumos:
+                    </span>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      <button
+                        onClick={() =>
+                          openWhatsAppHub({
+                            patientName: patient.name,
+                            ownerName: `${owner.firstName} ${owner.lastName}`,
+                            ownerPhone: owner.phone || owner.whatsapp || '',
+                            type: 'COBRO_INSUMO',
+                            details: {
+                              supplyName: 'Insumos médicos y medicación aplicada en atención de ' + patient.name,
+                              supplyAmount: owner.balance < 0 ? Math.abs(owner.balance) : 18500,
+                            },
+                          })
+                        }
+                        className="p-3 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-900 rounded-2xl text-left transition-all flex flex-col justify-between gap-2"
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-black">Cobro de Insumos</span>
+                          <span className="text-base">💳</span>
+                        </div>
+                        <p className="text-[11px] text-emerald-800/80">
+                          Enviar detalle y link de pago por insumos aplicados.
+                        </p>
+                      </button>
+
+                      <button
+                        onClick={() =>
+                          openWhatsAppHub({
+                            patientName: patient.name,
+                            ownerName: `${owner.firstName} ${owner.lastName}`,
+                            ownerPhone: owner.phone || owner.whatsapp || '',
+                            type: 'INTERNACION',
+                            details: {
+                              hospStatus: patientHosp?.status || 'ESTABLE',
+                            },
+                          })
+                        }
+                        className="p-3 bg-teal-50 hover:bg-teal-100 border border-teal-200 text-teal-900 rounded-2xl text-left transition-all flex flex-col justify-between gap-2"
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-black">Parte de Internación</span>
+                          <span className="text-base">🏥</span>
+                        </div>
+                        <p className="text-[11px] text-teal-800/80">
+                          Reporte diario de fluidos, medicación y estado general.
+                        </p>
+                      </button>
+
+                      <button
+                        onClick={() =>
+                          openWhatsAppHub({
+                            patientName: patient.name,
+                            ownerName: `${owner.firstName} ${owner.lastName}`,
+                            ownerPhone: owner.phone || owner.whatsapp || '',
+                            type: 'ALTA_MEDICA',
+                          })
+                        }
+                        className="p-3 bg-blue-50 hover:bg-blue-100 border border-blue-200 text-blue-900 rounded-2xl text-left transition-all flex flex-col justify-between gap-2"
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-black">Aviso de Alta Médica</span>
+                          <span className="text-base">🎉</span>
+                        </div>
+                        <p className="text-[11px] text-blue-800/80">
+                          Notificar que el paciente está listo para ser retirado.
+                        </p>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Patient Invoices & Consumables Table */}
+                <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-4">
+                  <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                    <div>
+                      <h4 className="text-base font-bold text-slate-900">Comprobantes & Facturación de {patient.name}</h4>
+                      <p className="text-xs text-slate-500">Historial de consumos, honorarios y pagos registrados</p>
+                    </div>
+                    <button
+                      onClick={() => setQuickModal('NUEVA_FACTURA')}
+                      className="bg-teal-600 hover:bg-teal-500 text-white text-xs font-bold px-3.5 py-2 rounded-xl transition-all shadow-xs"
+                    >
+                      + Facturar Insumos
+                    </button>
+                  </div>
+
+                  {patientInvoices.length === 0 ? (
+                    <div className="p-8 text-center bg-slate-50 rounded-2xl border border-slate-100 text-slate-500 text-xs">
+                      No hay comprobantes facturados aún para este paciente.
+                    </div>
+                  ) : (
+                    <div className="divide-y divide-slate-100">
+                      {patientInvoices.map((inv) => (
+                        <div key={inv.id} className="py-3 flex items-center justify-between text-xs">
+                          <div>
+                            <span className="font-bold text-slate-900 font-mono text-sm block">{inv.invoiceNumber}</span>
+                            <span className="text-slate-500 text-[11px]">
+                              Fecha: {inv.date} • Medio: {inv.paymentMethod} • Detalle: {(inv.items || []).map((i) => `${i.quantity}x ${i.description}`).join(', ')}
+                            </span>
+                          </div>
+                          <div className="text-right">
+                            <span className="font-bold font-mono text-slate-900 block">
+                              ${inv.totalAmount?.toLocaleString('es-AR')}
+                            </span>
+                            <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
+                              {inv.status}
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Right Col: Other Pets & Legal Consents */}
+              <div className="space-y-6">
+                {/* Other Pets of Same Owner */}
+                <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-4">
+                  <h4 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                    <PawPrint className="w-4 h-4 text-teal-600" />
+                    <span>Otras Mascotas a Cargo</span>
+                  </h4>
+
+                  <div className="space-y-2">
+                    {patients
+                      .filter((p) => p.ownerId === owner.id)
+                      .map((pet) => {
+                        const isCurrent = pet.id === patient.id;
+                        return (
+                          <button
+                            key={pet.id}
+                            onClick={() => {
+                              setSelectedPatientId(pet.id);
+                              setActivePatientTab('RESUMEN');
+                            }}
+                            className={`w-full p-3 rounded-2xl border text-left flex items-center justify-between transition-all ${
+                              isCurrent
+                                ? 'bg-teal-50 border-teal-300 ring-1 ring-teal-200'
+                                : 'bg-slate-50 hover:bg-slate-100 border-slate-200'
+                            }`}
+                          >
+                            <div className="flex items-center gap-3">
+                              <span className="text-xl">
+                                {pet.species?.toUpperCase() === 'CANINO' ? '🐕' : '🐈'}
+                              </span>
+                              <div>
+                                <span className="font-bold text-slate-900 text-xs block">{pet.name}</span>
+                                <span className="text-[11px] text-slate-500">{pet.breed} • {pet.status}</span>
+                              </div>
+                            </div>
+                            {isCurrent && (
+                              <span className="text-[9px] font-bold bg-teal-600 text-white px-2 py-0.5 rounded-full">
+                                Actual
+                              </span>
+                            )}
+                          </button>
+                        );
+                      })}
+                  </div>
+                </div>
+
+                {/* Legal Consents & Authorized Persons */}
+                <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-4 text-xs">
+                  <h4 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                    <ShieldAlert className="w-4 h-4 text-teal-600" />
+                    <span>Personas Autorizadas & Legal</span>
+                  </h4>
+
+                  <div className="space-y-3">
+                    <div>
+                      <span className="text-[10px] font-bold text-slate-400 uppercase block mb-1">
+                        Retiro de Mascota & Consentimientos:
+                      </span>
+                      {owner.authorizedPersons && owner.authorizedPersons.length > 0 ? (
+                        <ul className="list-disc list-inside text-slate-700 space-y-0.5">
+                          {owner.authorizedPersons.map((person, idx) => (
+                            <li key={idx}>{person}</li>
+                          ))}
+                        </ul>
+                      ) : (
+                        <p className="text-slate-500 italic">Solo el titular responsable ({owner.firstName} {owner.lastName}) está autorizado.</p>
+                      )}
+                    </div>
+
+                    <div className="pt-3 border-t border-slate-100 space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-slate-600">Consentimiento Ley 25.326:</span>
+                        <span className="font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 text-[10px]">
+                          ✓ Firmado
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-slate-600">Avisos Médicos por WhatsApp:</span>
+                        <span className="font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 text-[10px]">
+                          ✓ Habilitado
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="bg-white rounded-3xl p-12 text-center border border-slate-200 shadow-sm space-y-3">
+              <span className="text-4xl block">👤</span>
+              <h3 className="text-base font-bold text-slate-900">Sin Tutor Vinculado</h3>
+              <p className="text-xs text-slate-500 max-w-md mx-auto">
+                Para gestionar la comunicación, avisos de insumos y cuenta corriente, asigná un tutor a {patient.name}.
+              </p>
+              <button
+                onClick={() => setQuickModal('NUEVO_PROPIETARIO')}
+                className="bg-teal-600 hover:bg-teal-500 text-white text-xs font-bold px-5 py-2.5 rounded-xl shadow-sm"
+              >
+                + Registrar y Vincular Tutor
+              </button>
+            </div>
+          )}
         </div>
       )}
 

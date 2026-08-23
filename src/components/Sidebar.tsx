@@ -77,8 +77,8 @@ interface SidebarNavGroup {
       group: 'CLÍNICA Y ATENCIÓN',
       items: [
         { id: 'DASHBOARD', label: 'Inicio', icon: LayoutDashboard },
-        { id: 'PACIENTES', label: 'Pacientes', icon: PawPrint },
-        { id: 'PROPIETARIOS', label: 'Propietarios', icon: Users },
+        { id: 'PACIENTES', label: 'Pacientes & Tutores', icon: PawPrint },
+        { id: 'PROPIETARIOS', label: 'Directorio Tutores', icon: Users },
         { id: 'AGENDA', label: 'Agenda', icon: CalendarDays, badge: todayAppointments },
         { id: 'SALA_ESPERA', label: 'Sala de Espera', icon: Clock, badge: waitingTriageCount, badgeColor: 'bg-amber-500' },
         { id: 'CONSULTAS', label: 'Consultas & SOAP', icon: Stethoscope },
