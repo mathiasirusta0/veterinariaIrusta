@@ -329,9 +329,9 @@ export const DashboardView: React.FC = () => {
         </button>
       </div>
 
-      {/* Main Section: 8-col Whiteboard Table + 4-col Schedule & AI widgets */}
+      {/* Main Section: 8-col Hospitalization Table + 4-col Schedule & AI widgets */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* Left Column (8 cols): Whiteboard Hospitalization Table */}
+        {/* Left Column (8 cols): Hospitalization Table */}
         <div className="lg:col-span-8 bg-white rounded-2xl shadow-sm border border-slate-200 flex flex-col overflow-hidden">
           {/* Card Header */}
           <div className="p-5 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
@@ -340,7 +340,7 @@ export const DashboardView: React.FC = () => {
                 <BedDouble className="w-4 h-4" />
               </div>
               <h2 className="font-bold text-slate-900 text-sm">
-                Whiteboard de Internación (UCI / Hospital)
+                Internación & Monitoreo Intensivo
               </h2>
             </div>
             <div className="flex items-center gap-2">
@@ -351,7 +351,7 @@ export const DashboardView: React.FC = () => {
                 onClick={() => setActiveView('INTERNACION')}
                 className="text-xs text-teal-600 hover:text-teal-700 font-bold flex items-center gap-1 ml-2"
               >
-                <span>Ver Pizarra</span>
+                <span>Ver Internación</span>
                 <ArrowRight className="w-3.5 h-3.5" />
               </button>
             </div>

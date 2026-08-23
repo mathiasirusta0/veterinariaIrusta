@@ -151,7 +151,7 @@ const MainLayout: React.FC = () => {
         );
       case 'INTERNACION':
         return (
-          <ModuleErrorBoundary moduleName="Pizarra de Internación UCI">
+          <ModuleErrorBoundary moduleName="Internación & Monitoreo Intensivo">
             <HospitalizationWhiteboardView />
           </ModuleErrorBoundary>
         );

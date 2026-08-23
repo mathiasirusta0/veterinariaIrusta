@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   BedDouble,
   AlertTriangle,
@@ -17,8 +17,6 @@ import {
   Printer,
   Radio,
   Calculator,
-  Tv,
-  X,
   Activity,
   Layers,
   Calendar,
@@ -26,7 +24,8 @@ import {
 import { useVet } from '../context/VetContext';
 import { Hospitalization, HospitalPriority } from '../types';
 import { formatDate, formatDateTime, formatTime, formatWeight } from '../utils/formatters';
-import { PageHeader, StatusBadge, EmptyState } from './ui';
+import { triggerHaptic } from '../utils/haptics';
+import { EmptyState } from './ui';
 
 export const HospitalizationWhiteboardView: React.FC = () => {
   const {
@@ -61,17 +60,6 @@ export const HospitalizationWhiteboardView: React.FC = () => {
 
   const [priorityFilter, setPriorityFilter] = useState('TODOS');
   const [administerMsg, setAdministerMsg] = useState<{ id: string; text: string; success: boolean } | null>(null);
-
-  // TV Fullscreen Hospital Board Mode
-  const [isTvMode, setIsTvMode] = useState(false);
-  const [currentTime, setCurrentTime] = useState(new Date().toLocaleTimeString('es-AR'));
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentTime(new Date().toLocaleTimeString('es-AR'));
-    }, 1000);
-    return () => clearInterval(timer);
-  }, []);
 
   // AI Handover State
   const [showHandoverModal, setShowHandoverModal] = useState(false);
@@ -154,185 +142,79 @@ export const HospitalizationWhiteboardView: React.FC = () => {
     patientWeight > 0 && fluidHours > 0 ? (urineMl / (patientWeight * fluidHours)).toFixed(2) : '0';
 
   return (
-    <div className="space-y-6 pb-12">
-      {/* 🖥️ TV FULLSCREEN HOSPITAL BOARD MODE OVERLAY */}
-      {isTvMode && (
-        <div className="fixed inset-0 z-50 bg-slate-950 text-white p-6 overflow-y-auto flex flex-col justify-between">
-          {/* TV Header */}
-          <div className="flex items-center justify-between border-b border-slate-800 pb-4">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-2xl bg-teal-500 flex items-center justify-center font-black text-2xl text-slate-950 shadow-lg shadow-teal-500/30">
-                V
-              </div>
-              <div>
-                <h1 className="text-2xl font-black tracking-tight text-white flex items-center gap-3">
-                  <span>HOSPITAL BOARD — SALA DE INTERNACIÓN & UCI</span>
-                  <span className="w-3 h-3 rounded-full bg-red-500 animate-pulse"></span>
-                </h1>
-                <p className="text-xs text-teal-400 font-mono">
-                  Monitoreo Operativo en Tiempo Real 24hs • {activeHospital.length} Pacientes Internados
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-5">
-              <div className="text-right">
-                <div className="text-3xl font-black font-mono text-emerald-400">{currentTime}</div>
-                <div className="text-xs text-slate-400">Guardia Hospitalaria Activa</div>
-              </div>
-              <button
-                onClick={() => setIsTvMode(false)}
-                className="bg-slate-800 hover:bg-slate-700 text-slate-200 px-4 py-2 rounded-xl text-xs font-bold transition-all border border-slate-700 flex items-center gap-2"
-              >
-                <X className="w-4 h-4" />
-                <span>Salir de Modo TV</span>
-              </button>
-            </div>
+    <div className="space-y-4 pb-12 w-full max-w-full">
+      {/* 🏥 Encabezado Principal Compacto & Profesional */}
+      <div className="bg-white border border-slate-200/90 rounded-2xl p-4 sm:p-5 shadow-xs flex flex-col lg:flex-row lg:items-center justify-between gap-4 w-full max-w-full transition-all">
+        <div className="min-w-0 flex-1 space-y-1">
+          <div className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            <span className="text-[10px] sm:text-xs font-bold text-teal-800 uppercase tracking-wider">
+              {activeHospital.length} {activeHospital.length === 1 ? 'Paciente en Sala' : 'Pacientes en Sala'}
+            </span>
           </div>
-
-          {/* TV Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 my-6 flex-1">
-            {activeHospital.map((hosp) => {
-              const patient = patients.find((p) => p.id === hosp.patientId);
-              if (!patient) return null;
-
-              const isCritical = hosp.priority === 'CRITICO';
-              const nextPendingMed = (hosp.medications || []).find((m) => m.status !== 'REALIZADA');
-
-              return (
-                <div
-                  key={hosp.id}
-                  className={`bg-slate-900 border-2 rounded-3xl p-6 shadow-2xl flex flex-col justify-between ${
-                    isCritical
-                      ? 'border-red-500 shadow-red-500/10'
-                      : hosp.priority === 'PRIORITARIO'
-                      ? 'border-orange-500 shadow-orange-500/10'
-                      : 'border-teal-500/60 shadow-teal-500/10'
-                  }`}
-                >
-                  <div>
-                    {/* Top Row: Kennel & Priority */}
-                    <div className="flex items-center justify-between mb-3">
-                      <span className="text-xl font-black font-mono bg-teal-500/20 text-teal-300 px-3.5 py-1 rounded-xl border border-teal-500/30">
-                        {hosp.kennelNumber} ({hosp.sector})
-                      </span>
-                      <span
-                        className={`text-xs font-black px-3 py-1 rounded-full uppercase tracking-wider ${
-                          isCritical
-                            ? 'bg-red-500 text-white animate-pulse'
-                            : hosp.priority === 'PRIORITARIO'
-                            ? 'bg-orange-500 text-white'
-                            : 'bg-teal-600 text-white'
-                        }`}
-                      >
-                        {hosp.priority}
-                      </span>
-                    </div>
-
-                    {/* Patient Name & Bio */}
-                    <h2 className="text-2xl font-black text-white">{patient.name}</h2>
-                    <p className="text-sm text-slate-400 font-medium">
-                      {patient.species} • {patient.breed} • <span className="text-teal-300 font-bold">{patient.weight} kg</span>
-                    </p>
-
-                    {/* Diagnosis */}
-                    <div className="my-4 bg-slate-950 p-3.5 rounded-2xl border border-slate-800">
-                      <span className="text-[10px] uppercase font-bold text-slate-500 block mb-1">
-                        Diagnóstico:
-                      </span>
-                      <p className="text-sm font-bold text-slate-200">{hosp.primaryDiagnosis}</p>
-                    </div>
-
-                    {/* Fluid Therapy in TV */}
-                    <div className="grid grid-cols-2 gap-3 text-xs font-mono mb-4">
-                      <div className="bg-slate-950 p-3 rounded-2xl border border-slate-800">
-                        <span className="text-slate-400 text-[10px] block">Fluidoterapia:</span>
-                        {hosp.fluidTherapy?.isActive ? (
-                          <span className="text-emerald-400 font-bold text-base block">
-                            {hosp.fluidTherapy.rateMlPerHour} ml/h
-                          </span>
-                        ) : (
-                          <span className="text-slate-500">Detenida</span>
-                        )}
-                      </div>
-                      <div className="bg-slate-950 p-3 rounded-2xl border border-slate-800">
-                        <span className="text-slate-400 text-[10px] block">Ronda Signos:</span>
-                        <span className="text-amber-400 font-bold text-base block">
-                          {hosp.nextVitalsTime || '14:00'} hs
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Next Medication */}
-                  <div className="p-3.5 rounded-2xl bg-slate-800/80 border border-slate-700 flex items-center justify-between text-xs">
-                    <div>
-                      <span className="text-slate-400 text-[10px] block">Próximo Fármaco:</span>
-                      <span className="font-bold text-white">
-                        {nextPendingMed ? `${nextPendingMed.drugName} (${nextPendingMed.dose})` : 'Sin pendientes'}
-                      </span>
-                    </div>
-                    {nextPendingMed && (
-                      <span className="font-mono font-black text-amber-400 text-sm bg-slate-900 px-2 py-1 rounded-lg">
-                        {nextPendingMed.scheduledTime} hs
-                      </span>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-
-          {/* TV Footer */}
-          <div className="text-center text-xs text-slate-500 border-t border-slate-900 pt-3">
-            VET SYSTEM 3.5 • Presione el botón superior o ESC para volver a la interfaz clínica completa.
-          </div>
+          <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight break-words whitespace-normal leading-tight">
+            Internación & Monitoreo Intensivo
+          </h1>
+          <p className="text-xs text-slate-500 font-medium leading-relaxed max-w-2xl">
+            Control de fluidoterapia, balance hídrico, ronda horaria de fármacos, catéteres y pase de guardia
+          </p>
         </div>
-      )}
 
-      {/* Standard Header Section */}
-      <PageHeader
-        category={`Pizarra Whiteboard Hospitalaria (${activeHospital.length} Pacientes)`}
-        title="Internación & Monitoreo Intensivo (UCI)"
-        description="Control de fluidoterapia, balance hídrico, ronda horaria de fármacos, catéteres y pase de guardia"
-        icon={BedDouble}
-        actions={[
-          {
-            label: 'MODO TV',
-            icon: Tv,
-            onClick: () => setIsTvMode(true),
-            variant: 'secondary',
-            title: 'Abrir vista de pantalla completa para monitor de internación',
-          },
-          {
-            label: 'Telemetría',
-            icon: Radio,
-            onClick: () => openMonitor(),
-            variant: 'secondary',
-            title: 'Abrir telemetría multiparamétrica de UCI',
-          },
-          {
-            label: 'Dosis / Fluidos',
-            icon: Calculator,
-            onClick: () => openCalculators(),
-            variant: 'secondary',
-            title: 'Calculadora de infusión y fluidoterapia',
-          },
-          {
-            label: 'Pase Guardia (IA)',
-            icon: Sparkles,
-            onClick: handleGenerateHandover,
-            variant: 'secondary',
-            title: 'Generar pase de guardia estructurado con IA',
-          },
-          {
-            label: 'Ingresar Paciente',
-            icon: Plus,
-            onClick: () => setQuickModal('NUEVO_INGRESO_HOSPITAL'),
-            variant: 'primary',
-          },
-        ]}
-      />
+        {/* Acciones Clínicas: 2 columnas en mobile/tablet, flex en desktop */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:flex lg:flex-wrap items-center gap-2 sm:gap-2.5 flex-shrink-0 w-full lg:w-auto">
+          <button
+            type="button"
+            onClick={() => {
+              triggerHaptic('light');
+              openMonitor();
+            }}
+            className="min-h-[44px] px-3.5 py-2 rounded-xl text-xs font-bold bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 shadow-2xs transition-all active:scale-95 flex items-center justify-center gap-1.5 touch-manipulation"
+            title="Abrir telemetría multiparamétrica de UCI"
+          >
+            <Radio className="w-4 h-4 text-emerald-600 animate-pulse flex-shrink-0" />
+            <span>Telemetría</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              triggerHaptic('light');
+              openCalculators();
+            }}
+            className="min-h-[44px] px-3.5 py-2 rounded-xl text-xs font-bold bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 shadow-2xs transition-all active:scale-95 flex items-center justify-center gap-1.5 touch-manipulation"
+            title="Calculadora de infusión y fluidoterapia"
+          >
+            <Calculator className="w-4 h-4 text-teal-600 flex-shrink-0" />
+            <span>Dosis / Fluidos</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              triggerHaptic('light');
+              handleGenerateHandover();
+            }}
+            className="min-h-[44px] px-3.5 py-2 rounded-xl text-xs font-bold bg-teal-50/80 hover:bg-teal-100 text-teal-800 border border-teal-200 shadow-2xs transition-all active:scale-95 flex items-center justify-center gap-1.5 touch-manipulation"
+            title="Generar pase de guardia estructurado con IA"
+          >
+            <Sparkles className="w-4 h-4 text-teal-600 flex-shrink-0" />
+            <span>Pase Guardia (IA)</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              triggerHaptic('medium');
+              setQuickModal('NUEVO_INGRESO_HOSPITAL');
+            }}
+            className="min-h-[44px] px-4 py-2.5 rounded-xl text-xs font-black bg-teal-600 hover:bg-teal-700 text-white shadow-md shadow-teal-600/20 transition-all active:scale-95 flex items-center justify-center gap-2 touch-manipulation sm:col-span-2 lg:col-span-1"
+            title="Registrar nuevo ingreso a internación"
+          >
+            <Plus className="w-4 h-4 stroke-[3] flex-shrink-0" />
+            <span>+ Ingresar Paciente</span>
+          </button>
+        </div>
+      </div>
 
       {/* Clean Assistance Sector & Species Filter Bar */}
       <div className="bg-white border border-slate-200 p-4 rounded-2xl shadow-xs space-y-3 text-xs">
