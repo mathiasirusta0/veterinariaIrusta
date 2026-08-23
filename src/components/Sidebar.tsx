@@ -239,20 +239,6 @@ interface SidebarNavGroup {
 
             <button
               onClick={() => {
-                openMonitor();
-                if (onCloseMobile) onCloseMobile();
-              }}
-              className="w-full flex items-center justify-between px-3 py-2 text-xs font-medium text-slate-400 hover:text-white hover:bg-slate-800/80 rounded-xl transition-all group"
-            >
-              <div className="flex items-center gap-2.5">
-                <Radio className="w-4 h-4 text-emerald-400 group-hover:text-white" />
-                <span>Monitor UCI en Vivo</span>
-              </div>
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-            </button>
-
-            <button
-              onClick={() => {
                 openDentalChart();
                 if (onCloseMobile) onCloseMobile();
               }}
