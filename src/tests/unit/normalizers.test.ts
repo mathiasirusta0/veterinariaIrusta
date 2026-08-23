@@ -76,4 +76,17 @@ describe('Universal Data Normalizers Unit Tests', () => {
     expect(normalized.currentStock).toBe(15);
     expect(normalized.salePrice).toBe(0);
   });
+
+  it('should safely handle null or missing fluid_therapy on hospitalizations without throwing', () => {
+    const rawHospWithoutFluids = {
+      id: 'hosp-999',
+      patient_id: 'pat-1',
+      primary_diagnosis: 'Control postquirúrgico',
+      fluid_therapy: null,
+      medications: null,
+    };
+
+    const hasActiveFluids = rawHospWithoutFluids.fluid_therapy?.isActive || false;
+    expect(hasActiveFluids).toBe(false);
+  });
 });

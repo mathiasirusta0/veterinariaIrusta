@@ -1,4 +1,4 @@
-import { supabase } from './supabase';
+import { supabase, checkSupabaseConnection } from './supabase';
 import {
   Owner,
   Patient,
@@ -17,14 +17,191 @@ import {
   ImagingStudy,
   VaccinationRecord,
   Estimate,
-  RegulatoryRule,
-  ControlledDrugMovement,
-  PathologicalWasteRecord,
-  Prescription,
+  FluidTherapy,
 } from '../types';
 
+export { checkSupabaseConnection };
+
+// Normalizer helpers to map snake_case to camelCase safely
+function normalizeOwner(raw: any): Owner {
+  return {
+    id: raw.id,
+    firstName: raw.first_name || raw.firstName || '',
+    lastName: raw.last_name || raw.lastName || '',
+    dni: raw.dni || '',
+    cuit: raw.cuit,
+    phone: raw.phone || '',
+    whatsapp: raw.whatsapp || raw.phone || '',
+    email: raw.email || '',
+    address: raw.address || '',
+    city: raw.city || 'Río Cuarto',
+    province: raw.province || 'Córdoba',
+    postalCode: raw.postal_code || raw.postalCode || '5800',
+    notes: raw.notes || '',
+    createdAt: raw.created_at || raw.createdAt || new Date().toISOString(),
+    balance: typeof raw.balance === 'number' ? raw.balance : 0,
+  };
+}
+
+function normalizePatient(raw: any): Patient {
+  return {
+    id: raw.id,
+    ownerId: raw.owner_id || raw.ownerId || '',
+    name: raw.name || '',
+    species: raw.species || 'CANINO',
+    breed: raw.breed || '',
+    sex: raw.sex || 'MACHO',
+    reproductiveStatus: raw.reproductive_status || raw.reproductiveStatus || 'ENTERO',
+    birthDate: raw.birth_date || raw.birthDate || '',
+    calculatedAge: raw.calculated_age || raw.calculatedAge || '',
+    weight: typeof raw.weight === 'number' ? raw.weight : 0,
+    color: raw.color || '',
+    microchip: raw.microchip || '',
+    photoUrl: raw.photo_url || raw.photoUrl || '',
+    clinicalRecordNumber: raw.clinical_record_number || raw.clinicalRecordNumber || '',
+    status: raw.status || 'ACTIVO',
+    alerts: Array.isArray(raw.alerts) ? raw.alerts : [],
+    branchId: raw.branch_id || raw.branchId || 'branch-1',
+    createdAt: raw.created_at || raw.createdAt || new Date().toISOString(),
+  };
+}
+
+function normalizeFluidTherapy(ft: any): FluidTherapy {
+  if (!ft) {
+    return {
+      isActive: false,
+      solutionType: 'Ringer Lactato',
+      volumeTotalMl: 500,
+      rateMlPerHour: 0,
+      infusionRoute: 'IV',
+      startedAt: new Date().toISOString(),
+      prescribedBy: 'Dr. Veterinario',
+    };
+  }
+  return {
+    isActive: typeof ft.isActive === 'boolean' ? ft.isActive : !!ft.is_active,
+    solutionType: ft.solutionType || ft.solution_type || ft.solution || 'Ringer Lactato',
+    volumeTotalMl: typeof ft.volumeTotalMl === 'number' ? ft.volumeTotalMl : (typeof ft.volume_total_ml === 'number' ? ft.volume_total_ml : 500),
+    rateMlPerHour: typeof ft.rateMlPerHour === 'number' ? ft.rateMlPerHour : (typeof ft.rate_ml_per_hour === 'number' ? ft.rate_ml_per_hour : 0),
+    dropsPerMinute: ft.dropsPerMinute || ft.drops_per_minute,
+    infusionRoute: ft.infusionRoute || ft.infusion_route || 'IV',
+    startedAt: ft.startedAt || ft.started_at || new Date().toISOString(),
+    pumpNumber: ft.pumpNumber || ft.pump_number || 'Bomba 01',
+    additives: ft.additives,
+    prescribedBy: ft.prescribedBy || ft.prescribed_by || 'Dr. Veterinario',
+  };
+}
+
+function normalizeHospitalization(raw: any): Hospitalization {
+  return {
+    id: raw.id,
+    patientId: raw.patient_id || raw.patientId || '',
+    vetInChargeId: raw.vet_in_charge_id || raw.vetInChargeId || '',
+    vetInChargeName: raw.vet_in_charge_name || raw.vetInChargeName || 'Dr. Veterinario',
+    sector: raw.sector || 'UCI',
+    kennelNumber: raw.kennel_number || raw.kennelNumber || '01',
+    admittedAt: raw.admitted_at || raw.admittedAt || new Date().toISOString(),
+    dischargedAt: raw.discharged_at || raw.dischargedAt,
+    primaryDiagnosis: raw.primary_diagnosis || raw.primaryDiagnosis || 'Evaluación clínica',
+    priority: raw.priority || 'NORMAL',
+    fluidTherapy: normalizeFluidTherapy(raw.fluid_therapy || raw.fluidTherapy),
+    feeding: raw.feeding || { dietType: 'NPO_AYUNO', foodBrand: 'N/A', amountGramsOrMl: 0, frequency: 'N/A', tolerance: 'EXCELENTE' },
+    eliminations: Array.isArray(raw.eliminations) ? raw.eliminations : [],
+    medications: Array.isArray(raw.medications) ? raw.medications : [],
+    tasks: Array.isArray(raw.tasks) ? raw.tasks : [],
+    hourlySheet: Array.isArray(raw.hourly_sheet || raw.hourlySheet) ? (raw.hourly_sheet || raw.hourlySheet) : [],
+    intervalHours: raw.interval_hours || raw.intervalHours || 2,
+    nextVitalsTime: raw.next_vitals_time || raw.nextVitalsTime || '14:00',
+    status: raw.status || 'ACTIVA',
+    dischargeSummary: raw.discharge_summary || raw.dischargeSummary,
+    branchId: raw.branch_id || raw.branchId || 'branch-1',
+  };
+}
+
+function normalizeConsultation(raw: any): Consultation {
+  return {
+    id: raw.id,
+    patientId: raw.patient_id || raw.patientId || '',
+    vetId: raw.vet_id || raw.vetId || '',
+    vetName: raw.vet_name || raw.vetName || 'Dr. Veterinario',
+    vetLicense: raw.vet_license || raw.vetLicense,
+    branchId: raw.branch_id || raw.branchId || 'branch-1',
+    dateTime: raw.date_time || raw.dateTime || new Date().toISOString(),
+    reason: raw.reason || '',
+    anamnesis: raw.anamnesis || '',
+    vitalSigns: raw.vital_signs || raw.vitalSigns || {},
+    physicalExam: raw.physical_exam || raw.physicalExam || {},
+    soap: raw.soap || { subjective: '', objective: '', assessment: '', plan: '' },
+    diagnoses: Array.isArray(raw.diagnoses) ? raw.diagnoses : [],
+    differentialDiagnoses: Array.isArray(raw.differential_diagnoses || raw.differentialDiagnoses) ? (raw.differential_diagnoses || raw.differentialDiagnoses) : [],
+    treatmentPlan: raw.treatment_plan || raw.treatmentPlan || '',
+    prescriptions: Array.isArray(raw.prescriptions) ? raw.prescriptions : [],
+    orderedStudies: Array.isArray(raw.ordered_studies || raw.orderedStudies) ? (raw.ordered_studies || raw.orderedStudies) : [],
+    requiresHospitalization: !!raw.requires_hospitalization || !!raw.requiresHospitalization,
+    status: raw.status || 'FINALIZADA',
+    amendments: Array.isArray(raw.amendments) ? raw.amendments : [],
+  };
+}
+
+function normalizeSurgery(raw: any): SurgeryRecord {
+  return {
+    id: raw.id,
+    patientId: raw.patient_id || raw.patientId || '',
+    procedureName: raw.procedure_name || raw.procedureName || '',
+    surgeonName: raw.surgeon_name || raw.surgeonName || 'Dr. Veterinario',
+    assistantName: raw.assistant_name || raw.assistantName,
+    anesthetistName: raw.anesthetist_name || raw.anesthetistName || 'Dr. Anestesista',
+    branchId: raw.branch_id || raw.branchId || 'branch-1',
+    date: raw.date || new Date().toISOString().split('T')[0],
+    startTime: raw.start_time || raw.startTime || '09:00',
+    endTime: raw.end_time || raw.endTime,
+    preOpAssessment: raw.pre_op_assessment || raw.preOpAssessment || {
+      asaGrade: raw.asa_grade || 'II',
+      fastingHours: 8,
+      labReviewed: true,
+      risksAlerts: '',
+    },
+    anesthesiaProtocol: raw.anesthesia_protocol || raw.anesthesiaProtocol || {
+      premedication: '',
+      induction: '',
+      maintenance: '',
+      analgesia: '',
+      monitoringPoints: [],
+      milestones: { inductionTime: '', intubationTime: '', incisionTime: '', sutureTime: '', extubationTime: '', recoveryTime: '' },
+    },
+    surgicalTechnique: raw.surgical_technique || raw.surgicalTechnique || '',
+    findings: raw.findings || '',
+    complications: raw.complications,
+    materialsUsed: Array.isArray(raw.materials_used || raw.materialsUsed) ? (raw.materials_used || raw.materialsUsed) : [],
+    postOpOrders: raw.post_op_orders || raw.postOpOrders || { analgesia: '', antibiotics: '', monitoringInstructions: '', fluidTherapy: '' },
+    status: raw.status || 'PROGRAMADA',
+  };
+}
+
+function normalizeInvoice(raw: any): Invoice {
+  return {
+    id: raw.id,
+    invoiceNumber: raw.invoice_number || raw.invoiceNumber || '0001-00000001',
+    type: raw.type || 'FACTURA_B',
+    pointOfSale: raw.point_of_sale || raw.pointOfSale || 1,
+    date: raw.date || raw.date_time || raw.dateTime || new Date().toISOString().split('T')[0],
+    ownerId: raw.owner_id || raw.ownerId || '',
+    patientId: raw.patient_id || raw.patientId,
+    customerName: raw.customer_name || raw.customerName || 'Consumidor Final',
+    customerDniCuit: raw.customer_dni_cuit || raw.customerDniCuit || '0',
+    customerTaxCondition: raw.customer_tax_condition || raw.customerTaxCondition || 'Consumidor Final',
+    items: Array.isArray(raw.items) ? raw.items : [],
+    totalAmount: typeof raw.total_amount === 'number' ? raw.total_amount : (typeof raw.totalAmount === 'number' ? raw.totalAmount : 0),
+    paymentMethod: raw.payment_method || raw.paymentMethod || 'TRANSFERENCIA',
+    caeNumber: raw.cae_number || raw.caeNumber || '74129841928412',
+    caeExpirationDate: raw.cae_expiration_date || raw.cae_expiration || raw.caeExpirationDate || raw.caeExpiration || new Date().toISOString().split('T')[0],
+    qrFiscalData: raw.qr_fiscal_data || raw.qr_code_data || raw.qrFiscalData,
+    branchId: raw.branch_id || raw.branchId || 'branch-1',
+  };
+}
+
 /**
- * Fetch all remote data from Supabase Cloud
+ * Fetch full initial hospital dataset from Supabase Cloud with comprehensive normalization
  */
 export async function fetchInitialDataFromSupabase() {
   try {
@@ -67,15 +244,15 @@ export async function fetchInitialDataFromSupabase() {
     ]);
 
     return {
-      owners: (ownersRes.data as Owner[]) || null,
-      patients: (patientsRes.data as Patient[]) || null,
+      owners: Array.isArray(ownersRes.data) ? ownersRes.data.map(normalizeOwner) : null,
+      patients: Array.isArray(patientsRes.data) ? patientsRes.data.map(normalizePatient) : null,
       vitals: (vitalsRes.data as VitalSigns[]) || null,
       problems: (problemsRes.data as PatientProblem[]) || null,
-      consultations: (consultationsRes.data as Consultation[]) || null,
-      hospitalizations: (hospitalizationsRes.data as Hospitalization[]) || null,
-      surgeries: (surgeriesRes.data as SurgeryRecord[]) || null,
+      consultations: Array.isArray(consultationsRes.data) ? consultationsRes.data.map(normalizeConsultation) : null,
+      hospitalizations: Array.isArray(hospitalizationsRes.data) ? hospitalizationsRes.data.map(normalizeHospitalization) : null,
+      surgeries: Array.isArray(surgeriesRes.data) ? surgeriesRes.data.map(normalizeSurgery) : null,
       products: (productsRes.data as Product[]) || null,
-      invoices: (invoicesRes.data as Invoice[]) || null,
+      invoices: Array.isArray(invoicesRes.data) ? invoicesRes.data.map(normalizeInvoice) : null,
       documents: (documentsRes.data as ClinicalDocument[]) || null,
       auditLogs: (auditLogsRes.data as AuditLog[]) || null,
       appointments: (appointmentsRes.data as Appointment[]) || null,
@@ -213,13 +390,12 @@ export async function syncInvoiceToSupabase(inv: Invoice) {
   try {
     const { error } = await supabase.from('invoices').upsert({
       id: inv.id,
-      branch_id: inv.branchId,
+      patient_id: inv.patientId,
+      owner_id: inv.ownerId,
       invoice_number: inv.invoiceNumber,
       type: inv.type,
       point_of_sale: inv.pointOfSale,
       date: inv.date,
-      owner_id: inv.ownerId,
-      patient_id: inv.patientId,
       customer_name: inv.customerName,
       customer_dni_cuit: inv.customerDniCuit,
       customer_tax_condition: inv.customerTaxCondition,
@@ -228,6 +404,8 @@ export async function syncInvoiceToSupabase(inv: Invoice) {
       payment_method: inv.paymentMethod,
       cae_number: inv.caeNumber,
       cae_expiration_date: inv.caeExpirationDate,
+      qr_fiscal_data: inv.qrFiscalData,
+      branch_id: inv.branchId,
     });
     if (error) console.error('Error syncing invoice to Supabase:', error);
   } catch (err) {
@@ -240,7 +418,7 @@ export async function syncInvoiceToSupabase(inv: Invoice) {
  */
 export async function syncAuditLogToSupabase(log: AuditLog) {
   try {
-    const { error } = await supabase.from('audit_logs').insert({
+    const { error } = await supabase.from('audit_logs').upsert({
       id: log.id,
       timestamp: log.timestamp,
       user_name: log.userName,

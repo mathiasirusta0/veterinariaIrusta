@@ -108,8 +108,8 @@ export const HospitalizationWhiteboardView: React.FC = () => {
           especie: p?.species,
           prioridad: h.priority,
           diagnostico: h.primaryDiagnosis,
-          fluidos: h.fluidTherapy.isActive ? `${h.fluidTherapy.rateMlPerHour} ml/h` : 'Detenida',
-          medicacionPendiente: h.medications
+          fluidos: h.fluidTherapy?.isActive ? `${h.fluidTherapy.rateMlPerHour} ml/h` : 'Detenida',
+          medicacionPendiente: (h.medications || [])
             .filter((m) => m.status !== 'REALIZADA')
             .map((m) => `${m.drugName} a las ${m.scheduledTime}`)
             .join(', '),

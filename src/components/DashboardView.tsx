@@ -430,7 +430,7 @@ export const DashboardView: React.FC = () => {
                                   ALERGIA
                                 </span>
                               )}
-                              {hosp.fluidTherapy.isActive && (
+                              {hosp.fluidTherapy?.isActive && (
                                 <span className="bg-teal-50 text-teal-700 border border-teal-200 text-[9px] font-bold px-1 rounded">
                                   FLUIDO {hosp.fluidTherapy.rateMlPerHour} ml/h
                                 </span>
