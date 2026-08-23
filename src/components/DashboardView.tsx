@@ -20,9 +20,6 @@ import {
   DollarSign,
   PieChart,
   Percent,
-  Scale,
-  Lock,
-  Trash2,
   FileText,
 } from 'lucide-react';
 import { useVet } from '../context/VetContext';
@@ -275,44 +272,6 @@ export const DashboardView: React.FC = () => {
         </button>
       </div>
 
-      {/* Enterprise Regulatory, Controlled Drugs & QA Fast Strip */}
-      <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 rounded-2xl p-4 text-white shadow-sm flex flex-col md:flex-row items-center justify-between gap-3">
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-teal-500/20 text-teal-400 flex items-center justify-center border border-teal-500/30">
-            <Scale className="w-5 h-5" />
-          </div>
-          <div>
-            <h4 className="text-xs font-black tracking-tight text-white flex items-center gap-2">
-              <span>Marco Legal Córdoba & Trazabilidad SENASA</span>
-              <span className="text-[9px] font-extrabold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-                100% Auditado
-              </span>
-            </h4>
-            <p className="text-[11px] text-slate-400 font-medium">
-              Leyes 11.076 / 5.142 (CMVC), Psicotrópicos Leyes 17.818/19.303, Residuos Ley 24.051 y QA en vivo.
-            </p>
-          </div>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
-          <button
-            onClick={() => setActiveView('RECETAS_OFICIALES')}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-200 border border-slate-700 transition-colors"
-          >
-            <FileText className="w-3.5 h-3.5 text-teal-400" />
-            <span>Recetas SENASA</span>
-          </button>
-
-          <button
-            onClick={() => setActiveView('CENTRO_QA')}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-teal-600 hover:bg-teal-500 text-white text-xs font-bold shadow-sm transition-colors"
-          >
-            <FlaskConical className="w-3.5 h-3.5" />
-            <span>QA en Vivo</span>
-          </button>
-        </div>
-      </div>
-
       {/* Main Section: 8-col Whiteboard Table + 4-col Schedule & AI widgets */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Left Column (8 cols): Whiteboard Hospitalization Table */}
@@ -547,8 +506,8 @@ export const DashboardView: React.FC = () => {
                 <Sparkles className="w-4 h-4 text-teal-400" />
                 <h3 className="text-white text-sm font-bold">Asistente Clínico IA (Gemini 3.7)</h3>
               </div>
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-teal-500/20 text-teal-300 border border-teal-500/30 font-mono">
-                91% Relevancia
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-teal-500/20 text-teal-300 border border-teal-500/30">
+                Borrador Clínico
               </span>
             </div>
 
