@@ -35,6 +35,24 @@
   padding-top: max(0.5rem, env(safe-area-inset-top, 0px));
 }
 
+/* Real Viewport Fixed Bottom Navigation - Anchored to device viewport */
+.fixed-viewport-bottom {
+  position: fixed !important;
+  bottom: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  width: 100% !important;
+  width: 100vw !important;
+  max-width: 100vw !important;
+  z-index: 50 !important;
+  transform: translateZ(0) !important;
+  -webkit-transform: translateZ(0) !important;
+  backface-visibility: hidden !important;
+  -webkit-backface-visibility: hidden !important;
+  box-sizing: border-box !important;
+  pointer-events: auto !important;
+}
+
 /* Custom scrollbars */
 .custom-scrollbar::-webkit-scrollbar {
   width: 6px;
