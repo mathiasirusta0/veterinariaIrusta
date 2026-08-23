@@ -2,6 +2,7 @@
 import { UserRole } from '../types';
 
 export type SystemView =
+  | 'OPERACION'
   | 'DASHBOARD'
   | 'ATENCION'
   | 'HOSPITAL'
@@ -28,6 +29,7 @@ export type SystemView =
 // Matriz de permisos por Rol
 export const ROLE_PERMISSIONS: Record<UserRole, SystemView[]> = {
   SUPERADMIN: [
+    'OPERACION',
     'DASHBOARD',
     'ATENCION',
     'HOSPITAL',
@@ -52,6 +54,7 @@ export const ROLE_PERMISSIONS: Record<UserRole, SystemView[]> = {
     'CONFIGURACION',
   ],
   ADMINISTRADOR: [
+    'OPERACION',
     'DASHBOARD',
     'ATENCION',
     'HOSPITAL',
@@ -76,6 +79,7 @@ export const ROLE_PERMISSIONS: Record<UserRole, SystemView[]> = {
     'CONFIGURACION',
   ],
   DIRECTOR_MEDICO: [
+    'OPERACION',
     'DASHBOARD',
     'ATENCION',
     'HOSPITAL',
@@ -100,6 +104,7 @@ export const ROLE_PERMISSIONS: Record<UserRole, SystemView[]> = {
     'CONFIGURACION',
   ],
   VETERINARIO: [
+    'OPERACION',
     'DASHBOARD',
     'ATENCION',
     'HOSPITAL',

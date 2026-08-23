@@ -96,7 +96,8 @@ const MainLayout: React.FC = () => {
 
   const renderActiveView = () => {
     // Normalizar ID de vista
-    let viewKey: SystemView = 'DASHBOARD';
+    let viewKey: SystemView = 'OPERACION';
+    if (activeView === 'OPERACION' || activeView === 'DASHBOARD' || activeView === 'INICIO') viewKey = 'OPERACION';
     if (activeView === 'PACIENTES') viewKey = 'PACIENTES';
     else if (activeView === 'PROPIETARIOS') viewKey = 'PROPIETARIOS';
     else if (activeView === 'INTERNACION') viewKey = 'INTERNACION';
@@ -120,11 +121,18 @@ const MainLayout: React.FC = () => {
     }
 
     switch (activeView) {
+      case 'OPERACION':
       case 'DASHBOARD':
       case 'INICIO':
         return (
-          <ModuleErrorBoundary moduleName="Dashboard Principal">
+          <ModuleErrorBoundary moduleName="Operación Hospitalaria">
             <DashboardView />
+          </ModuleErrorBoundary>
+        );
+      case 'GESTION':
+        return (
+          <ModuleErrorBoundary moduleName="Gestión & Farmacia">
+            <InventoryView />
           </ModuleErrorBoundary>
         );
       case 'PACIENTES':

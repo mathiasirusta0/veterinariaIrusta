@@ -25,6 +25,11 @@ import { useVet } from '../context/VetContext';
 
 export const DashboardView: React.FC = () => {
   const [dashboardMode, setDashboardMode] = React.useState<"MI_TRABAJO" | "SERVICIO" | "ANALITICA">("MI_TRABAJO");
+  const [careEpisodePatientId, setCareEpisodePatientId] = React.useState<string | null>(null);
+  const [careEpisodeTab, setCareEpisodeTab] = React.useState<'RESUMEN' | 'EVOLUCION' | 'PLAN' | 'RESULTADOS'>('RESUMEN');
+  const [showQuickIndicate, setShowQuickIndicate] = React.useState(false);
+  const [quickDrug, setQuickDrug] = React.useState('');
+  const [quickDose, setQuickDose] = React.useState('');
   const {
     currentUser,
     patients,
@@ -488,10 +493,10 @@ export const DashboardView: React.FC = () => {
                       {/* Action Button With Explicit Clinical Verb */}
                       <td className="px-4 py-3.5 text-right">
                         <button
-                          onClick={() => openPatientDetail(patient.id, isCritical ? 'SIGNOS' : 'HISTORIA')}
+                          onClick={() => setCareEpisodePatientId(patient.id)}
                           className="bg-teal-600 hover:bg-teal-500 text-white font-bold px-3 py-1.5 rounded-xl text-xs shadow-2xs transition-all active:scale-95"
                         >
-                          {nextMed ? 'Administrar' : isCritical ? 'Registrar Signos' : 'Evolucionar'}
+                          Abrir Atención
                         </button>
                       </td>
                     </tr>
@@ -580,7 +585,7 @@ export const DashboardView: React.FC = () => {
                 {waitingTriage.length} Paciente{waitingTriage.length > 1 ? 's' : ''} esperando atención médica en Triage
               </h4>
               <p className="text-[11px] text-amber-800">
-                Próximo: <span className="font-bold">{waitingTriage[0]?.patientName}</span> ({waitingTriage[0]?.species} / {waitingTriage[0]?.reason}) • Prioridad: {waitingTriage[0]?.level}
+                Próximo: <span className="font-bold">{patients.find(p => p.id === waitingTriage[0]?.patientId)?.name || 'Paciente en Triage'}</span> ({patients.find(p => p.id === waitingTriage[0]?.patientId)?.species || 'Canino'} / {waitingTriage[0]?.chiefComplaint || 'Urgencia'}) • Prioridad: <span className="font-bold text-amber-900">{waitingTriage[0]?.priority}</span>
               </p>
             </div>
           </div>
@@ -592,6 +597,188 @@ export const DashboardView: React.FC = () => {
           </button>
         </div>
       )}
+
+
+      {/* 🩺 ESPACIO DE ATENCIÓN UNIFICADO DEL EPISODIO */}
+      {careEpisodePatientId && (() => {
+        const patient = patients.find((p) => p.id === careEpisodePatientId) || patients[0];
+        const hosp = hospitalizations.find((h) => h.patientId === patient.id && h.status === 'ACTIVA');
+        const triage = triageList.find((t) => t.patientId === patient.id && t.status === 'EN_ESPERA');
+        const isCritical = hosp?.priority === 'CRITICO' || triage?.priority === 'CRITICO';
+
+        return (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-slate-950/70 backdrop-blur-xs animate-in fade-in">
+            <div className="bg-white rounded-3xl max-w-4xl w-full h-[90vh] flex flex-col shadow-2xl border border-slate-100 overflow-hidden text-left">
+              {/* Context Header */}
+              <div className="p-5 bg-slate-900 text-white flex flex-wrap items-center justify-between gap-4 flex-shrink-0">
+                <div className="flex items-center gap-3.5">
+                  <div className="w-12 h-12 rounded-2xl bg-teal-500 text-slate-950 font-black text-xl flex items-center justify-center shadow-md">
+                    {patient.species === 'CANINO' ? '🐶' : patient.species === 'FELINO' ? '🐱' : '🐾'}
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h2 className="text-lg font-black text-white">{patient.name}</h2>
+                      <span className="text-xs text-teal-300 font-medium font-mono">HC: {patient.clinicalRecordNumber}</span>
+                      <span
+                        className={`text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase ${
+                          isCritical ? 'bg-rose-600 text-white' : 'bg-teal-600 text-white'
+                        }`}
+                      >
+                        {isCritical ? '🚨 CRÍTICO' : hosp?.priority || triage?.priority || 'ESTABLE'}
+                      </span>
+                    </div>
+                    <p className="text-xs text-slate-300">
+                      {patient.species} • {patient.breed} • {patient.weight} kg • <span className="text-teal-400 font-bold">{hosp ? `Canil ${hosp.kennelNumber} (${hosp.sector})` : 'Sala de Espera / Triage'}</span>
+                    </p>
+                  </div>
+                </div>
+
+                {/* 3 Main Action Buttons */}
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => openPatientDetail(patient.id, 'HISTORIA')}
+                    className="px-3.5 py-2 bg-teal-500 hover:bg-teal-400 text-slate-950 font-black text-xs rounded-xl transition-all shadow-sm flex items-center gap-1.5"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>Evolucionar</span>
+                  </button>
+                  <button
+                    onClick={() => openPatientDetail(patient.id, 'SIGNOS')}
+                    className="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-teal-300 font-bold text-xs rounded-xl transition-all border border-slate-700 flex items-center gap-1.5"
+                  >
+                    <Activity className="w-3.5 h-3.5" />
+                    <span>Registrar Signos</span>
+                  </button>
+                  <button
+                    onClick={() => setShowQuickIndicate(true)}
+                    className="px-3.5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs rounded-xl transition-all shadow-sm flex items-center gap-1.5"
+                  >
+                    <Droplet className="w-3.5 h-3.5" />
+                    <span>+ Indicar</span>
+                  </button>
+                  <button
+                    onClick={() => setCareEpisodePatientId(null)}
+                    className="text-slate-400 hover:text-white p-2 text-lg font-bold ml-2"
+                  >
+                    ✕
+                  </button>
+                </div>
+              </div>
+
+              {/* Workspace Navigation Tabs */}
+              <div className="px-6 py-2.5 bg-slate-100/90 border-b border-slate-200 flex items-center gap-2 flex-shrink-0">
+                {[
+                  { id: 'RESUMEN', label: '1. Resumen del Episodio' },
+                  { id: 'PLAN', label: '2. Plan Terapéutico & Fármacos' },
+                  { id: 'EVOLUCION', label: '3. Evolución Multirrol' },
+                  { id: 'RESULTADOS', label: '4. Resultados & Lab' },
+                ].map((tab) => (
+                  <button
+                    key={tab.id}
+                    onClick={() => setCareEpisodeTab(tab.id as any)}
+                    className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+                      careEpisodeTab === tab.id
+                        ? 'bg-white text-teal-900 shadow-2xs font-black'
+                        : 'text-slate-600 hover:bg-white/60'
+                    }`}
+                  >
+                    {tab.label}
+                  </button>
+                ))}
+              </div>
+
+              {/* Workspace Body */}
+              <div className="p-6 flex-1 overflow-y-auto space-y-6">
+                {careEpisodeTab === 'RESUMEN' && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5 text-xs">
+                    <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-3">
+                      <span className="font-bold text-teal-900 text-xs uppercase tracking-wider block">
+                        Estado Actual & Diagnóstico
+                      </span>
+                      <p className="text-sm font-bold text-slate-800">{hosp?.primaryDiagnosis || triage?.chiefComplaint || 'En evaluación médica'}</p>
+                      {hosp?.fluidTherapy?.isActive && (
+                        <div className="p-3 bg-teal-100/60 rounded-xl text-xs text-teal-950 font-medium space-y-1">
+                          <div className="font-bold">💧 Fluidoterapia: {hosp.fluidTherapy.solutionType}</div>
+                          <div>Tasa: <span className="font-black font-mono">{hosp.fluidTherapy.rateMlPerHour} ml/h</span></div>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-3">
+                      <span className="font-bold text-indigo-900 text-xs uppercase tracking-wider block">
+                        Próxima Acción & Ronda
+                      </span>
+                      <p className="text-slate-700 font-bold">
+                        {isCritical ? '🩺 Monitoreo Biométrico & Signos (23:00 hs • Enfermería UCI)' : '🐾 Control de Guardia Hospitalaria (00:00 hs)'}
+                      </p>
+                      <button
+                        onClick={() => openPatientDetail(patient.id, 'HISTORIA')}
+                        className="w-full py-2 bg-teal-600 hover:bg-teal-500 text-white rounded-xl font-bold shadow-2xs"
+                      >
+                        Abrir Historial Completo →
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {careEpisodeTab === 'PLAN' && (
+                  <div className="space-y-4 text-xs">
+                    <div className="flex items-center justify-between">
+                      <h4 className="text-sm font-bold text-slate-900">Plan Farmacológico y Terapéutico</h4>
+                      <button
+                        onClick={() => setShowQuickIndicate(true)}
+                        className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold text-xs"
+                      >
+                        + Nueva Indicación
+                      </button>
+                    </div>
+                    <div className="divide-y divide-slate-100 border border-slate-200 rounded-2xl overflow-hidden bg-white">
+                      {(hosp?.medications || []).map((med) => (
+                        <div key={med.id} className="p-4 flex items-center justify-between hover:bg-slate-50">
+                          <div>
+                            <div className="font-bold text-slate-900 text-sm">💊 {med.drugName}</div>
+                            <div className="text-slate-500 text-xs mt-0.5">Dosis: {med.dose} • Vía: {med.route} • Frecuencia: {med.frequency}</div>
+                          </div>
+                          <button
+                            onClick={() => openPatientDetail(patient.id, 'HISTORIA')}
+                            className="px-3.5 py-1.5 bg-teal-600 hover:bg-teal-500 text-white rounded-xl font-bold"
+                          >
+                            ✓ Registrar Aplicación
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {careEpisodeTab === 'EVOLUCION' && (
+                  <div className="text-center py-8 text-slate-500 text-xs space-y-3">
+                    <p>Las notas médicas, de enfermería y addenda están sincronizadas en la ficha del episodio.</p>
+                    <button
+                      onClick={() => openPatientDetail(patient.id, 'HISTORIA')}
+                      className="px-4 py-2 bg-teal-600 hover:bg-teal-500 text-white rounded-xl font-bold text-xs"
+                    >
+                      Abrir Ficha de Evolución →
+                    </button>
+                  </div>
+                )}
+
+                {careEpisodeTab === 'RESULTADOS' && (
+                  <div className="text-center py-8 text-slate-500 text-xs space-y-3">
+                    <p>Resultados de hematología, bioquímica y radiología vinculados.</p>
+                    <button
+                      onClick={() => openPatientDetail(patient.id, 'LABORATORIO')}
+                      className="px-4 py-2 bg-teal-600 hover:bg-teal-500 text-white rounded-xl font-bold text-xs"
+                    >
+                      Ver Resultados de Laboratorio →
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Advanced Hospital Analytics & Clinical Activity Grid (Secondary View) */}
       {(dashboardMode === 'ANALITICA' || dashboardMode === 'SERVICIO') && (

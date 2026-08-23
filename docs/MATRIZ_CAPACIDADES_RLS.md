@@ -2,10 +2,12 @@
 
 ---
 
-| Capacidad | Superadmin | Veterinario | Enfermería | Recepción |
+| Capacidad | Veterinario | Director Médico | Enfermería | Recepción |
 | :--- | :---: | :---: | :---: | :---: |
-| `task.execute` | ✓ | ✓ | ✓ | ✓ |
-| `consultation.start` | ✓ | ✓ | ✗ | ✗ |
-| `treatment.administer` | ✓ | ✓ | ✓ | ✗ |
-| `triage.checkin` | ✓ | ✓ | ✓ | ✓ |
-| `analytics.view` | ✓ | ✗ | ✗ | ✗ |
+| `episode.create` | ✓ | ✓ | ✓ | ✓ |
+| `episode.triage` | ✓ | ✓ | ✓ | ✗ |
+| `episode.intervene` | ✓ | ✓ | ✓ | ✗ |
+| `order.prescribe` | ✓ | ✓ | ✗ | ✗ |
+| `task.administer` | ✓ | ✓ | ✓ | ✗ |
+| `vitals.capture` | ✓ | ✓ | ✓ | ✓ |
+| `discharge.authorize` | ✓ | ✓ | ✗ | ✗ |
