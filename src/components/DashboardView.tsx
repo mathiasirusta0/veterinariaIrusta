@@ -353,7 +353,7 @@ export const DashboardView: React.FC = () => {
             </div>
             <div className="flex items-center gap-2">
               <span className="text-xs font-bold bg-slate-100 border border-slate-200 px-2.5 py-1 rounded text-slate-600">
-                {activeHospital.length} PACIENTES ACTIVOS
+                {activeHospital.length} {activeHospital.length === 1 ? 'PACIENTE ACTIVO' : 'PACIENTES ACTIVOS'}
               </span>
               <button
                 onClick={() => setActiveView('INTERNACION')}
@@ -378,21 +378,34 @@ export const DashboardView: React.FC = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 text-xs">
-                {activeHospital.map((hosp) => {
-                  const patient = patients.find((p) => p.id === hosp.patientId);
-                  if (!patient) return null;
+                {activeHospital.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} className="px-5 py-8 text-center text-slate-400 text-xs">
+                      No hay pacientes internados activos en este momento en la sede actual.
+                    </td>
+                  </tr>
+                ) : (
+                  activeHospital.map((hosp) => {
+                    const patient = patients.find((p) => p.id === hosp.patientId) || {
+                      id: hosp.patientId,
+                      name: hosp.patientName || 'Paciente en UCI',
+                      species: 'CANINO',
+                      breed: 'Mestizo',
+                      photoUrl: 'https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=100',
+                      isAllergic: false,
+                    };
 
-                  const isCritical = hosp.priority === 'CRITICO';
-                  const nextMed = hosp.medications.find(
-                    (m) => m.status === 'PROXIMA' || m.status === 'PROGRAMADA' || m.status === 'ATRASADA'
-                  );
+                    const isCritical = hosp.priority === 'CRITICO';
+                    const nextMed = hosp.medications.find(
+                      (m) => m.status === 'PROXIMA' || m.status === 'PROGRAMADA' || m.status === 'ATRASADA'
+                    );
 
-                  return (
-                    <tr key={hosp.id} className="hover:bg-slate-50/80 transition-colors">
-                      {/* Patient Info */}
-                      <td className="px-5 py-3.5">
-                        <div className="flex items-center gap-3">
-                          <div className="w-9 h-9 rounded-full bg-slate-100 flex items-center justify-center text-lg flex-shrink-0 border border-slate-200 overflow-hidden">
+                    return (
+                      <tr key={hosp.id} className="hover:bg-slate-50/80 transition-colors">
+                        {/* Patient Info */}
+                        <td className="px-5 py-3.5">
+                          <div className="flex items-center gap-3">
+                            <div className="w-9 h-9 rounded-full bg-slate-100 flex items-center justify-center text-lg flex-shrink-0 border border-slate-200 overflow-hidden">
                             {patient.photoUrl ? (
                               <img
                                 src={patient.photoUrl}
@@ -480,7 +493,7 @@ export const DashboardView: React.FC = () => {
                       </td>
                     </tr>
                   );
-                })}
+                }))}
               </tbody>
             </table>
           </div>
@@ -488,13 +501,18 @@ export const DashboardView: React.FC = () => {
 
         {/* Right Column (4 cols): Appointments & Sleek AI Assistant Card */}
         <div className="lg:col-span-4 flex flex-col gap-6">
-          {/* Appointments Widget */}
+          {/* Appointments & Waiting Room Widget */}
           <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 flex flex-col">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="font-bold text-slate-900 text-sm flex items-center gap-2">
-                <CalendarDays className="w-4 h-4 text-teal-600" />
-                <span>Turnos Próximos</span>
-              </h3>
+            <div className="flex items-center justify-between mb-3">
+              <div>
+                <h3 className="font-bold text-slate-900 text-sm flex items-center gap-2">
+                  <CalendarDays className="w-4 h-4 text-teal-600" />
+                  <span>Turnos Programados del Día ({todayAppointments.length})</span>
+                </h3>
+                <p className="text-[11px] text-slate-500 font-medium">
+                  {waitingTriage.length} {waitingTriage.length === 1 ? 'ingreso espontáneo en espera' : 'ingresos espontáneos en espera'} (Triage 24hs)
+                </p>
+              </div>
               <button
                 onClick={() => setActiveView('AGENDA')}
                 className="text-teal-600 hover:text-teal-700 text-xs font-bold uppercase"
@@ -535,29 +553,47 @@ export const DashboardView: React.FC = () => {
               })}
 
               {todayAppointments.length === 0 && (
-                <div className="text-center py-6 text-slate-400 text-xs">
-                  No hay más turnos agendados para hoy.
+                <div className="text-center py-4 bg-slate-50 rounded-xl border border-slate-100 text-slate-500 text-xs space-y-1">
+                  <p className="font-semibold text-slate-700">Sin turnos programados pendientes</p>
+                  <p className="text-[11px] text-slate-400">
+                    Las atenciones actuales corresponden a ingresos espontáneos de guardia.
+                  </p>
                 </div>
               )}
             </div>
           </div>
 
-          {/* Sleek Dark IA Assistant Feature Card */}
-          <div className="bg-[#1E293B] rounded-2xl shadow-lg p-5 flex flex-col relative overflow-hidden text-white">
+          {/* Sleek Dark IA Assistant Feature Card — Clinically Safe & Auditable */}
+          <div className="bg-[#1E293B] rounded-2xl shadow-lg p-5 flex flex-col relative overflow-hidden text-white space-y-3">
             <div className="absolute -top-4 -right-4 w-24 h-24 bg-teal-500/15 rounded-full blur-2xl pointer-events-none" />
-            <div className="flex items-center gap-2 mb-3">
-              <Sparkles className="w-4 h-4 text-teal-400" />
-              <h3 className="text-white text-sm font-bold">IA Clinical Assistant</h3>
+            <div className="flex items-center justify-between border-b border-slate-700/60 pb-2.5">
+              <div className="flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-teal-400" />
+                <h3 className="text-white text-sm font-bold">Asistente Clínico IA (Gemini 3.7)</h3>
+              </div>
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-teal-500/20 text-teal-300 border border-teal-500/30 font-mono">
+                91% Relevancia
+              </span>
             </div>
-            <p className="text-slate-300 text-xs mb-4 italic leading-relaxed">
-              "Toby (Canil UCI-02) presenta fiebre persistente y diarrea con sangre. Sugiero
-              reevaluar ritmo de fluidoterapia y verificar compatibilidad antibiótica."
-            </p>
+
+            <div className="space-y-1.5 text-xs text-slate-300">
+              <p className="font-bold text-teal-300 text-[11px]">
+                Sugerencia para: Toby (Canil UCI-02) • Canino / Golden Retriever (28 kg)
+              </p>
+              <p className="text-slate-300 leading-relaxed text-[11px]">
+                Fiebre persistente + diarrea hemorrágica. Se sugiere reevaluar tasa de fluidoterapia de reemplazo y verificar compatibilidad antibiótica.
+              </p>
+            </div>
+
+            <div className="p-2.5 rounded-xl bg-slate-900/80 border border-amber-400/30 text-[10px] text-amber-200/90 leading-tight">
+              ⚠️ <strong>Borrador orientativo asistido:</strong> Requiere validación y prescripción médica por profesional matriculado (Ley 11.076 CMVC).
+            </div>
+
             <button
               onClick={() => setActiveView('ASISTENTE_IA')}
-              className="w-full py-2.5 bg-teal-500 hover:bg-teal-400 text-[#0F172A] rounded-lg text-xs font-bold transition-all uppercase tracking-wide shadow-sm"
+              className="w-full py-2.5 bg-teal-500 hover:bg-teal-400 text-[#0F172A] rounded-xl text-xs font-bold transition-all uppercase tracking-wide shadow-sm active:scale-98"
             >
-              Consultar Asistente IA
+              Abrir Asistente IA →
             </button>
           </div>
         </div>

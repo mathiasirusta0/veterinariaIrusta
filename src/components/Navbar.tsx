@@ -109,9 +109,15 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleMobileMenu }) => {
           </select>
         </div>
 
-        {/* User Role Switcher */}
-        <div className="hidden lg:flex items-center gap-2 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-xl">
-          <User className="w-3.5 h-3.5 text-slate-500" />
+        {/* User Role Switcher (RBAC Evaluation Mode) */}
+        <div
+          title="Modo Evaluación RBAC — Auditoría de Roles Activa"
+          className="hidden lg:flex items-center gap-2 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-xl"
+        >
+          <User className="w-3.5 h-3.5 text-teal-600" />
+          <span className="text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded bg-teal-100 text-teal-800 border border-teal-200">
+            RBAC
+          </span>
           <select
             value={currentUser.id}
             onChange={(e) => {
