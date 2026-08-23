@@ -68,6 +68,7 @@ import { MedicalPrintData } from '../components/MedicalPrintModal';
 import { checkSupabaseConnection } from '../lib/supabase';
 import {
   fetchInitialDataFromSupabase,
+  seedInitialDataToSupabase,
   syncPatientToSupabase,
   syncOwnerToSupabase,
   syncVitalSignsToSupabase,
@@ -732,6 +733,39 @@ export const VetProvider: React.FC<{ children: React.ReactNode }> = ({ children 
                   const localOnly = prev.filter((d) => !cloudIds.has(d.id));
                   return [...cloudData.documents!, ...localOnly];
                 });
+
+                // Extract clinical evolution notes from cloud documents
+                const cloudEvolutions: ClinicalEvolutionEntry[] = [];
+                for (const doc of cloudData.documents) {
+                  if (doc.type === ('EVOLUCION_CLINICA' as any)) {
+                    try {
+                      const parsed = JSON.parse(doc.content);
+                      if (parsed && parsed.id && parsed.patientId) {
+                        cloudEvolutions.push(parsed);
+                      }
+                    } catch {
+                      cloudEvolutions.push({
+                        id: doc.id,
+                        patientId: doc.patientId,
+                        authorName: doc.vetName || 'Dr. Veterinario',
+                        authorRole: 'VETERINARIO',
+                        dateTime: doc.createdAt,
+                        createdAt: doc.createdAt,
+                        type: 'MEDICA',
+                        objectiveSummary: doc.title,
+                        plan: doc.content,
+                        status: 'FIRMADO',
+                      });
+                    }
+                  }
+                }
+                if (cloudEvolutions.length > 0) {
+                  setClinicalEvolutions((prev) => {
+                    const cloudIds = new Set(cloudEvolutions.map((e) => e.id));
+                    const localOnly = prev.filter((e) => !cloudIds.has(e.id));
+                    return [...cloudEvolutions, ...localOnly];
+                  });
+                }
               }
               if (cloudData.estimates && cloudData.estimates.length > 0) {
                 setEstimates((prev) => {
@@ -745,6 +779,18 @@ export const VetProvider: React.FC<{ children: React.ReactNode }> = ({ children 
                   const cloudIds = new Set(cloudData.auditLogs!.map((a) => a.id));
                   const localOnly = prev.filter((a) => !cloudIds.has(a.id));
                   return [...cloudData.auditLogs!, ...localOnly];
+                });
+              }
+
+              // Auto-seed if remote tables are newly initialized
+              if (!cloudData.patients || cloudData.patients.length === 0) {
+                seedInitialDataToSupabase({
+                  owners,
+                  patients,
+                  vitals,
+                  problems,
+                  hospitalizations,
+                  products,
                 });
               }
             }

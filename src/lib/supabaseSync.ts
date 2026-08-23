@@ -200,6 +200,159 @@ function normalizeInvoice(raw: any): Invoice {
   };
 }
 
+function normalizeVitalSigns(raw: any): VitalSigns {
+  return {
+    id: raw.id,
+    patientId: raw.patient_id || raw.patientId || '',
+    recordedAt: raw.recorded_at || raw.recordedAt || new Date().toISOString(),
+    recordedBy: raw.recorded_by || raw.recordedBy || 'Dr. Veterinario',
+    temperature: typeof raw.temperature === 'number' ? raw.temperature : (raw.temperature ? parseFloat(raw.temperature) : undefined),
+    heartRate: typeof raw.heart_rate === 'number' ? raw.heart_rate : (typeof raw.heartRate === 'number' ? raw.heartRate : undefined),
+    respiratoryRate: typeof raw.respiratory_rate === 'number' ? raw.respiratory_rate : (typeof raw.respiratoryRate === 'number' ? raw.respiratoryRate : undefined),
+    systolicBP: typeof raw.systolic_bp === 'number' ? raw.systolic_bp : (typeof raw.systolicBP === 'number' ? raw.systolicBP : undefined),
+    diastolicBP: typeof raw.diastolic_bp === 'number' ? raw.diastolic_bp : (typeof raw.diastolicBP === 'number' ? raw.diastolicBP : undefined),
+    meanBP: typeof raw.mean_bp === 'number' ? raw.mean_bp : (typeof raw.meanBP === 'number' ? raw.meanBP : undefined),
+    capillaryRefillTime: typeof raw.capillary_refill_time_seconds === 'number' ? raw.capillary_refill_time_seconds : (typeof raw.capillaryRefillTime === 'number' ? raw.capillaryRefillTime : undefined),
+    mucousMembranes: raw.mucous_membranes || raw.mucousMembranes,
+    weight: typeof raw.weight === 'number' ? raw.weight : (raw.weight ? parseFloat(raw.weight) : undefined),
+    bloodGlucose: typeof raw.glycemia === 'number' ? raw.glycemia : (typeof raw.blood_glucose === 'number' ? raw.blood_glucose : (typeof raw.bloodGlucose === 'number' ? raw.bloodGlucose : undefined)),
+    spo2: typeof raw.oxygen_saturation === 'number' ? raw.oxygen_saturation : (typeof raw.spo2 === 'number' ? raw.spo2 : undefined),
+    painScale: typeof raw.pain_score_glasgow === 'number' ? raw.pain_score_glasgow : (typeof raw.painScale === 'number' ? raw.painScale : undefined),
+    notes: raw.notes || '',
+  };
+}
+
+function normalizeProblem(raw: any): PatientProblem {
+  return {
+    id: raw.id,
+    patientId: raw.patient_id || raw.patientId || '',
+    title: raw.title || '',
+    description: raw.description || '',
+    status: raw.status || 'ACTIVO',
+    onsetDate: raw.onset_date || raw.onsetDate || new Date().toISOString().split('T')[0],
+    resolvedDate: raw.resolved_date || raw.resolvedDate,
+    vetName: raw.vet_name || raw.vetName || 'Dr. Veterinario',
+  };
+}
+
+function normalizeLabOrder(raw: any): LaboratoryOrder {
+  return {
+    id: raw.id,
+    patientId: raw.patient_id || raw.patientId || '',
+    orderNumber: raw.order_number || raw.orderNumber || 'LAB-001',
+    testType: raw.test_type || raw.testType || 'HEMOGRAMA_COMPLETO',
+    requestedBy: raw.requested_by || raw.requestedBy || 'Dr. Veterinario',
+    requestedAt: raw.requested_at || raw.requestedAt || new Date().toISOString(),
+    resultsReadyAt: raw.results_ready_at || raw.resultsReadyAt,
+    status: raw.status || 'SOLICITADO',
+    results: Array.isArray(raw.results) ? raw.results : [],
+    diagnosticReport: raw.conclusions || raw.diagnosticReport || raw.diagnostic_report || '',
+    conclusions: raw.conclusions || '',
+  };
+}
+
+function normalizeImaging(raw: any): ImagingStudy {
+  return {
+    id: raw.id,
+    patientId: raw.patient_id || raw.patientId || '',
+    studyNumber: raw.study_number || raw.studyNumber || 'IMG-001',
+    modality: raw.modality || 'RADIOGRAFIA',
+    region: raw.region || '',
+    requestedBy: raw.requested_by || raw.requestedBy || 'Dr. Veterinario',
+    performedBy: raw.reported_by || raw.performedBy || 'Dr. Especialista',
+    date: raw.date || new Date().toISOString(),
+    report: raw.findings || raw.report || '',
+    conclusion: raw.diagnosis || raw.conclusion || '',
+    images: Array.isArray(raw.image_urls) ? raw.image_urls.map((url: string, i: number) => ({ id: `img-${i}`, url, caption: `Captura ${i + 1}` })) : (Array.isArray(raw.images) ? raw.images : []),
+    status: raw.status || 'INFORMADO',
+  };
+}
+
+function normalizeVaccination(raw: any): VaccinationRecord {
+  return {
+    id: raw.id,
+    patientId: raw.patient_id || raw.patientId || '',
+    vaccineName: raw.vaccine_name || raw.vaccineName || 'Vacuna',
+    manufacturer: raw.manufacturer || 'Laboratorio',
+    batchNumber: raw.batch_number || raw.batchNumber || 'LOTE-001',
+    expirationDate: raw.expiration_date || raw.expirationDate || new Date().toISOString().split('T')[0],
+    administeredDate: raw.administered_date || raw.administeredDate || new Date().toISOString().split('T')[0],
+    nextDueDate: raw.next_due_date || raw.nextDueDate || new Date().toISOString().split('T')[0],
+    administeredBy: raw.administered_by || raw.administeredBy || 'Dr. Veterinario',
+    vetLicense: raw.vet_license || raw.vetLicense || 'MP-VET',
+    certificateGenerated: !!raw.certificate_generated || !!raw.certificateGenerated,
+  };
+}
+
+function normalizeProduct(raw: any): Product {
+  return {
+    id: raw.id,
+    code: raw.code || 'PRD-001',
+    commercialName: raw.commercial_name || raw.commercialName || 'Producto',
+    activeIngredient: raw.generic_name || raw.activeIngredient || '',
+    category: raw.category || 'MEDICAMENTO',
+    presentation: raw.presentation || '',
+    concentration: raw.concentration || '',
+    laboratory: raw.laboratory || 'Laboratorio',
+    currentStock: typeof raw.current_stock === 'number' ? raw.current_stock : (typeof raw.currentStock === 'number' ? raw.currentStock : 0),
+    minStock: typeof raw.min_stock === 'number' ? raw.min_stock : (typeof raw.minStock === 'number' ? raw.minStock : 5),
+    costPrice: typeof raw.cost_price === 'number' ? raw.cost_price : (typeof raw.costPrice === 'number' ? raw.costPrice : 0),
+    salePrice: typeof raw.sale_price === 'number' ? raw.sale_price : (typeof raw.salePrice === 'number' ? raw.salePrice : 0),
+    currentBatch: raw.current_batch || raw.currentBatch || 'LOTE-1',
+    expirationDate: raw.expiration_date || raw.expirationDate || new Date().toISOString().split('T')[0],
+    supplier: raw.supplier || 'Droguería',
+    requiresPrescription: !!raw.requires_prescription || !!raw.requiresPrescription,
+    branchId: raw.branch_id || raw.branchId || 'branch-1',
+  };
+}
+
+function normalizeAppointment(raw: any): Appointment {
+  return {
+    id: raw.id,
+    patientId: raw.patient_id || raw.patientId || '',
+    ownerId: raw.owner_id || raw.ownerId || '',
+    vetId: raw.vet_id || raw.vetId || '',
+    branchId: raw.branch_id || raw.branchId || 'branch-1',
+    date: raw.date || new Date().toISOString().split('T')[0],
+    time: raw.time || '10:00',
+    durationMinutes: raw.duration_minutes || raw.durationMinutes || 30,
+    type: raw.type || 'CONSULTA_GENERAL',
+    reason: raw.reason || '',
+    status: raw.status || 'CONFIRMADO',
+    notes: raw.notes || '',
+  };
+}
+
+function normalizeTriage(raw: any): TriageEntry {
+  return {
+    id: raw.id,
+    patientId: raw.patient_id || raw.patientId || '',
+    ownerId: raw.owner_id || raw.ownerId || '',
+    arrivedAt: raw.arrived_at || raw.arrivedAt || new Date().toISOString(),
+    waitTimeMinutes: raw.wait_time_minutes || raw.waitTimeMinutes || 0,
+    priority: raw.priority || 'NORMAL',
+    chiefComplaint: raw.chief_complaint || raw.chiefComplaint || '',
+    assignedVetId: raw.assigned_vet_id || raw.assignedVetId,
+    assignedRoom: raw.assigned_consulting_room || raw.assignedRoom,
+    status: raw.status || 'EN_ESPERA',
+  };
+}
+
+function normalizeDocument(raw: any): ClinicalDocument {
+  return {
+    id: raw.id,
+    patientId: raw.patient_id || raw.patientId || '',
+    ownerId: raw.owner_id || raw.ownerId || '',
+    type: raw.type || 'CONSENTIMIENTO_INTERNACION',
+    title: raw.title || 'Documento Clínico',
+    content: raw.content || '',
+    vetName: raw.vet_name || raw.vetName || 'Dr. Veterinario',
+    createdAt: raw.created_at || raw.createdAt || new Date().toISOString(),
+    signedByOwnerName: raw.signed_by || raw.signedByOwnerName,
+    isSigned: raw.status === 'FIRMADO' || !!raw.isSigned,
+  };
+}
+
 /**
  * Fetch full initial hospital dataset from Supabase Cloud with comprehensive normalization
  */
@@ -244,27 +397,62 @@ export async function fetchInitialDataFromSupabase() {
     ]);
 
     return {
-      owners: Array.isArray(ownersRes.data) ? ownersRes.data.map(normalizeOwner) : null,
-      patients: Array.isArray(patientsRes.data) ? patientsRes.data.map(normalizePatient) : null,
-      vitals: (vitalsRes.data as VitalSigns[]) || null,
-      problems: (problemsRes.data as PatientProblem[]) || null,
-      consultations: Array.isArray(consultationsRes.data) ? consultationsRes.data.map(normalizeConsultation) : null,
-      hospitalizations: Array.isArray(hospitalizationsRes.data) ? hospitalizationsRes.data.map(normalizeHospitalization) : null,
-      surgeries: Array.isArray(surgeriesRes.data) ? surgeriesRes.data.map(normalizeSurgery) : null,
-      products: (productsRes.data as Product[]) || null,
-      invoices: Array.isArray(invoicesRes.data) ? invoicesRes.data.map(normalizeInvoice) : null,
-      documents: (documentsRes.data as ClinicalDocument[]) || null,
+      owners: Array.isArray(ownersRes.data) && ownersRes.data.length > 0 ? ownersRes.data.map(normalizeOwner) : null,
+      patients: Array.isArray(patientsRes.data) && patientsRes.data.length > 0 ? patientsRes.data.map(normalizePatient) : null,
+      vitals: Array.isArray(vitalsRes.data) && vitalsRes.data.length > 0 ? vitalsRes.data.map(normalizeVitalSigns) : null,
+      problems: Array.isArray(problemsRes.data) && problemsRes.data.length > 0 ? problemsRes.data.map(normalizeProblem) : null,
+      consultations: Array.isArray(consultationsRes.data) && consultationsRes.data.length > 0 ? consultationsRes.data.map(normalizeConsultation) : null,
+      hospitalizations: Array.isArray(hospitalizationsRes.data) && hospitalizationsRes.data.length > 0 ? hospitalizationsRes.data.map(normalizeHospitalization) : null,
+      surgeries: Array.isArray(surgeriesRes.data) && surgeriesRes.data.length > 0 ? surgeriesRes.data.map(normalizeSurgery) : null,
+      products: Array.isArray(productsRes.data) && productsRes.data.length > 0 ? productsRes.data.map(normalizeProduct) : null,
+      invoices: Array.isArray(invoicesRes.data) && invoicesRes.data.length > 0 ? invoicesRes.data.map(normalizeInvoice) : null,
+      documents: Array.isArray(documentsRes.data) && documentsRes.data.length > 0 ? documentsRes.data.map(normalizeDocument) : null,
       auditLogs: (auditLogsRes.data as AuditLog[]) || null,
-      appointments: (appointmentsRes.data as Appointment[]) || null,
-      triageList: (triageRes.data as TriageEntry[]) || null,
-      labOrders: (labsRes.data as LaboratoryOrder[]) || null,
-      imagingStudies: (imagingRes.data as ImagingStudy[]) || null,
-      vaccinations: (vaccinationsRes.data as VaccinationRecord[]) || null,
+      appointments: Array.isArray(appointmentsRes.data) && appointmentsRes.data.length > 0 ? appointmentsRes.data.map(normalizeAppointment) : null,
+      triageList: Array.isArray(triageRes.data) && triageRes.data.length > 0 ? triageRes.data.map(normalizeTriage) : null,
+      labOrders: Array.isArray(labsRes.data) && labsRes.data.length > 0 ? labsRes.data.map(normalizeLabOrder) : null,
+      imagingStudies: Array.isArray(imagingRes.data) && imagingRes.data.length > 0 ? imagingRes.data.map(normalizeImaging) : null,
+      vaccinations: Array.isArray(vaccinationsRes.data) && vaccinationsRes.data.length > 0 ? vaccinationsRes.data.map(normalizeVaccination) : null,
       estimates: (estimatesRes.data as Estimate[]) || null,
     };
   } catch (error) {
     console.warn('Supabase fetch failed, continuing with local storage cache:', error);
     return null;
+  }
+}
+
+/**
+ * Seed initial mock/local state to Supabase if tables are newly initialized
+ */
+export async function seedInitialDataToSupabase(data: {
+  owners?: Owner[];
+  patients?: Patient[];
+  vitals?: VitalSigns[];
+  problems?: PatientProblem[];
+  hospitalizations?: Hospitalization[];
+  products?: Product[];
+}) {
+  try {
+    if (data.owners && data.owners.length > 0) {
+      for (const o of data.owners) await syncOwnerToSupabase(o);
+    }
+    if (data.patients && data.patients.length > 0) {
+      for (const p of data.patients) await syncPatientToSupabase(p);
+    }
+    if (data.vitals && data.vitals.length > 0) {
+      for (const v of data.vitals) await syncVitalSignsToSupabase(v);
+    }
+    if (data.problems && data.problems.length > 0) {
+      for (const pr of data.problems) await syncProblemToSupabase(pr);
+    }
+    if (data.hospitalizations && data.hospitalizations.length > 0) {
+      for (const h of data.hospitalizations) await syncHospitalizationToSupabase(h);
+    }
+    if (data.products && data.products.length > 0) {
+      for (const prod of data.products) await syncProductToSupabase(prod);
+    }
+  } catch (err) {
+    console.warn('Silent fallback: Supabase seed completed or partially applied.');
   }
 }
 

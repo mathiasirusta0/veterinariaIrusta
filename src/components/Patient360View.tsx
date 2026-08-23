@@ -195,7 +195,7 @@ export const Patient360View: React.FC = () => {
   const patientVitals = vitals.filter((v) => v.patientId === patient.id);
   const latestVital = patientVitals[0];
   const patientConsultations = consultations.filter((c) => c.patientId === patient.id);
-  const patientHosp = hospitalizations.find((h) => h.patientId === patient.id && h.status === 'ACTIVA');
+  const patientHosp = hospitalizations.find((h) => h.patientId === patient.id && h.status === 'ACTIVA') || hospitalizations.find((h) => h.patientId === patient.id);
   const allPatientHosps = hospitalizations.filter((h) => h.patientId === patient.id);
   const patientProblems = problems.filter((pr) => pr.patientId === patient.id);
   const patientLabs = labOrders.filter((l) => l.patientId === patient.id);
@@ -726,10 +726,9 @@ export const Patient360View: React.FC = () => {
                   spo2: Number(quickSpO2),
                   bloodGlucose: Number(quickGlucose),
                   weight: Number(quickWeightVal),
-                  crtSeconds: 1.5,
+                  capillaryRefillTime: 1.5,
                   mucousMembranes: 'ROSADAS',
-                  painScore: 0,
-                  recordedBy: currentUser.name,
+                  painScale: 0,
                 });
                 recordPatientWeight(patient.id, Number(quickWeightVal));
                 showToast('success', 'Signos Guardados', `Se registraron los signos vitales de ${patient.name} correctamente.`);
