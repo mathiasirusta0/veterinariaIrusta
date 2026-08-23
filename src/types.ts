@@ -327,6 +327,7 @@ export interface EliminationRecord {
 export type MedicationAdminStatus =
   | 'PROGRAMADA'
   | 'PROXIMA'
+  | 'PENDIENTE'
   | 'REALIZADA'
   | 'ATRASADA'
   | 'OMITIDA'
@@ -340,7 +341,8 @@ export interface MedicationSchedule {
   drugName: string;
   dose: string;
   route: string;
-  frequencyHours: number; // ej: 8, 12, 24
+  frequency?: string; // ej: "Cada 8 hs"
+  frequencyHours?: number; // ej: 8, 12, 24
   scheduledTime: string; // ej: "14:00" o ISO
   status: MedicationAdminStatus;
   administeredAt?: string;

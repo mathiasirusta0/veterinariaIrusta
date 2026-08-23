@@ -85,6 +85,7 @@ export const Patient360View: React.FC = () => {
     clinicalEvolutions,
     addClinicalEvolution,
     addEvolutionAddendum,
+    addHospitalMedication,
     administerMedication,
     updateOwner,
     addVitalSigns,
@@ -992,18 +993,14 @@ export const Patient360View: React.FC = () => {
                   return;
                 }
 
-                if (patientHosp) {
-                  const newMedItem = {
-                    id: `med-${Date.now()}`,
-                    drugName: newDrugName,
-                    dose: newDrugDose,
-                    route: newDrugRoute,
-                    frequency: newDrugFreq,
-                    scheduledTime: newDrugSchedule,
-                    status: 'PENDIENTE' as const,
-                  };
-                  patientHosp.medications = [...(patientHosp.medications || []), newMedItem];
-                }
+                addHospitalMedication(patient.id, {
+                  drugName: newDrugName,
+                  dose: newDrugDose,
+                  route: newDrugRoute,
+                  frequency: newDrugFreq,
+                  scheduledTime: newDrugSchedule,
+                  status: 'PENDIENTE',
+                });
 
                 showToast('success', 'Indicación Guardada', `${newDrugName} (${newDrugDose}) indicado c/${newDrugFreq}.`);
                 setNewDrugName('');

@@ -32,6 +32,7 @@ import {
   AntimicrobialRecord,
   ClinicalAmendment,
   ClinicalEvolutionEntry,
+  MedicationSchedule,
 } from '../types';
 import {
   INITIAL_BRANCHES,
@@ -164,6 +165,7 @@ interface VetContextType {
   }) => Hospitalization;
   updateHospitalPriority: (hospitalizationId: string, priority: HospitalPriority) => void;
   updateFluidTherapy: (hospitalizationId: string, fluid: Hospitalization['fluidTherapy']) => void;
+  addHospitalMedication: (patientId: string, med: Partial<MedicationSchedule>) => void;
   administerMedication: (hospitalizationId: string, medicationScheduleId: string, notes?: string) => { success: boolean; message: string };
   addHourlySheetEntry: (hospitalizationId: string, entry: Omit<Hospitalization['hourlySheet'][0], 'id' | 'timestamp' | 'staffName'>) => void;
   dischargeHospitalPatient: (hospitalizationId: string, summary: string) => void;
@@ -997,6 +999,76 @@ export const VetProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     );
   };
 
+  const addHospitalMedication = (patientId: string, med: Partial<MedicationSchedule>) => {
+    const newMed: MedicationSchedule = {
+      id: `med-${Date.now()}`,
+      patientId,
+      hospitalizationId: '',
+      drugName: med.drugName || 'Fármaco',
+      dose: med.dose || '1 ml',
+      route: med.route || 'IV',
+      frequency: med.frequency || 'Cada 8 hs',
+      scheduledTime: med.scheduledTime || '08:00',
+      status: 'PENDIENTE',
+      notes: med.notes || '',
+      productId: med.productId,
+      ...med,
+    };
+
+    setHospitalizations((prev) => {
+      const exists = prev.some((h) => h.patientId === patientId && h.status === 'ACTIVA');
+      if (exists) {
+        return prev.map((h) => {
+          if (h.patientId === patientId && h.status === 'ACTIVA') {
+            return {
+              ...h,
+              medications: [...(h.medications || []), newMed],
+            };
+          }
+          return h;
+        });
+      } else {
+        const newHosp: Hospitalization = {
+          id: `hosp-${Date.now()}`,
+          patientId,
+          vetInChargeId: currentUser.id,
+          vetInChargeName: currentUser.name,
+          sector: 'UCI',
+          kennelNumber: '01',
+          admittedAt: new Date().toISOString(),
+          primaryDiagnosis: 'Seguimiento Terapéutico',
+          priority: 'ESTABLE',
+          fluidTherapy: {
+            isActive: false,
+            solutionType: 'RINGER_LACTATO',
+            volumeTotalMl: 500,
+            rateMlPerHour: 0,
+            infusionRoute: 'IV',
+            startedAt: new Date().toISOString(),
+            prescribedBy: currentUser.name,
+          },
+          feeding: {
+            dietType: 'ORAL',
+            foodBrand: 'Dieta estándar',
+            amountGramsOrMl: 100,
+            frequency: 'Cada 12 horas',
+            tolerance: 'EXCELENTE',
+          },
+          eliminations: [],
+          medications: [newMed],
+          tasks: [],
+          hourlySheet: [],
+          intervalHours: 2,
+          status: 'ACTIVA',
+          branchId: activeBranch.id,
+        };
+        return [newHosp, ...prev];
+      }
+    });
+
+    logAudit('INDICACION_MEDICACION', 'Hospitalization', patientId, `Indicación de ${newMed.drugName} (${newMed.dose}) por ${currentUser.name}`);
+  };
+
   const administerMedication = (hospitalizationId: string, medicationScheduleId: string, notes?: string) => {
     let result = { success: false, message: '' };
 
@@ -1571,6 +1643,7 @@ Hoy hemos evaluado a ${petName} en nuestro centro hospitalario. Queremos transmi
         admitPatientToHospital,
         updateHospitalPriority,
         updateFluidTherapy,
+        addHospitalMedication,
         administerMedication,
         addHourlySheetEntry,
         dischargeHospitalPatient,
