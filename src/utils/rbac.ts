@@ -122,6 +122,7 @@ export const ROLE_PERMISSIONS: Record<UserRole, SystemView[]> = {
     'IMAGENES',
     'VACUNAS',
     'INVENTARIO',
+    'CAJA_FACTURACION',
     'DOCUMENTOS',
     'ASISTENTE_IA',
   ],
@@ -138,6 +139,7 @@ export const ROLE_PERMISSIONS: Record<UserRole, SystemView[]> = {
     'CIRUGIAS',
     'LABORATORIO',
     'IMAGENES',
+    'CAJA_FACTURACION',
     'DOCUMENTOS',
     'ASISTENTE_IA',
   ],
@@ -165,6 +167,7 @@ export const ROLE_PERMISSIONS: Record<UserRole, SystemView[]> = {
     'CIRUGIAS',
     'VACUNAS',
     'INVENTARIO',
+    'CAJA_FACTURACION',
   ],
   ASISTENTE: [
     'DASHBOARD',
@@ -177,6 +180,7 @@ export const ROLE_PERMISSIONS: Record<UserRole, SystemView[]> = {
     'SIGNOS_VITALES',
     'INTERNACION',
     'VACUNAS',
+    'CAJA_FACTURACION',
   ],
   RECEPCION: [
     'DASHBOARD',
@@ -186,6 +190,7 @@ export const ROLE_PERMISSIONS: Record<UserRole, SystemView[]> = {
     'PROPIETARIOS',
     'AGENDA',
     'SALA_ESPERA',
+    'CAJA_FACTURACION',
     'DOCUMENTOS',
   ],
   CAJA: [
@@ -207,6 +212,7 @@ export const ROLE_PERMISSIONS: Record<UserRole, SystemView[]> = {
     'LABORATORIO',
     'PACIENTES',
     'IMAGENES',
+    'CAJA_FACTURACION',
   ],
 };
 
