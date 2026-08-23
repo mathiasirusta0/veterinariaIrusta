@@ -12,6 +12,7 @@ import {
   MessageCircle,
 } from 'lucide-react';
 import { useVet } from '../context/VetContext';
+import { PageHeader, EmptyState } from './ui';
 
 export const OwnersView: React.FC = () => {
   const {
@@ -40,25 +41,20 @@ export const OwnersView: React.FC = () => {
   return (
     <div className="space-y-6 pb-12">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white border border-slate-200 p-5 rounded-2xl shadow-sm">
-        <div>
-          <h2 className="text-xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
-            <Users className="w-5 h-5 text-teal-600" />
-            <span>Directorio de Propietarios / Tutores</span>
-          </h2>
-          <p className="text-xs text-slate-500 font-medium">
-            Gestión de clientes, cuentas corrientes y mascotas asociadas
-          </p>
-        </div>
-
-        <button
-          onClick={() => setQuickModal('NUEVO_PROPIETARIO')}
-          className="flex items-center gap-1.5 px-4 py-2.5 bg-teal-600 hover:bg-teal-500 text-white text-xs font-bold rounded-lg shadow-md shadow-teal-600/20 active:scale-95 transition-all"
-        >
-          <Plus className="w-4 h-4" />
-          <span>Nuevo Propietario</span>
-        </button>
-      </div>
+      <PageHeader
+        category="Responsables Legales & Cuentas Corrientes"
+        title="Directorio de Propietarios / Tutores"
+        description="Gestión de clientes, cuentas corrientes, vías de WhatsApp y mascotas asociadas"
+        icon={Users}
+        actions={[
+          {
+            label: 'Nuevo Propietario',
+            icon: Plus,
+            onClick: () => setQuickModal('NUEVO_PROPIETARIO'),
+            variant: 'primary',
+          },
+        ]}
+      />
 
       {/* Search Bar */}
       <div className="bg-white border border-slate-200 p-4 rounded-xl shadow-sm">
@@ -75,7 +71,20 @@ export const OwnersView: React.FC = () => {
       </div>
 
       {/* Owners Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+      {filteredOwners.length === 0 ? (
+        <EmptyState
+          icon={Users}
+          title="No se encontraron propietarios"
+          description={
+            search
+              ? 'No hay tutores o propietarios que coincidan con la búsqueda ingresada.'
+              : 'Aún no hay tutores registrados en el sistema.'
+          }
+          actionLabel="Registrar Nuevo Tutor"
+          onAction={() => setQuickModal('NUEVO_PROPIETARIO')}
+        />
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
         {filteredOwners.map((owner) => {
           const linkedPets = patients.filter((p) => p.ownerId === owner.id);
 
@@ -171,6 +180,7 @@ export const OwnersView: React.FC = () => {
           );
         })}
       </div>
+      )}
     </div>
   );
 };

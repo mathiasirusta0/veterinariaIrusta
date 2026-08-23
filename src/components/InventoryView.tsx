@@ -18,6 +18,7 @@ import { Product, InventoryMovement } from '../types';
 import { formatExpirationDate } from '../utils/formatters';
 import { triggerHaptic } from '../utils/haptics';
 import { PharmacyMobileCard } from './PharmacyMobileCard';
+import { PageHeader, StatCard, EmptyState, StatusBadge } from './ui';
 
 export const InventoryView: React.FC = () => {
   const { products, updateProductStock, setQuickModal, activeBranch, showToast } = useVet();
@@ -72,77 +73,51 @@ export const InventoryView: React.FC = () => {
   return (
     <div className="space-y-5 pb-2 w-full max-w-full">
       {/* 1. Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white border border-slate-200 p-4 sm:p-5 rounded-3xl shadow-sm">
-        <div>
-          <div className="flex items-center gap-2 mb-1">
-            <span className="text-xs font-bold text-teal-700 uppercase tracking-wider">
-              Farmacia Hospitalaria & Logística
-            </span>
-            {lowStockCount > 0 && (
-              <span className="text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full bg-red-50 text-red-600 border border-red-200 animate-pulse">
-                ⚠️ {lowStockCount} Stock Crítico
-              </span>
-            )}
-          </div>
-          <h2 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
-            <Boxes className="w-6 h-6 text-teal-600 flex-shrink-0" />
-            <span>Farmacia, Medicamentos & Stock</span>
-          </h2>
-          <p className="text-xs text-slate-500 font-medium">
-            Control de insumos, lotes, vencimientos, trazabilidad y consumo automático en internación
-          </p>
-        </div>
-
-        <button
-          type="button"
-          onClick={() => {
-            triggerHaptic('medium');
-            setQuickModal('NUEVO_PRODUCTO');
-          }}
-          className="btn-physical btn-physical-teal flex items-center justify-center gap-2 px-4 py-2.5 text-white text-xs font-black rounded-2xl shadow-md shadow-teal-600/20 active:scale-95 transition-all w-full sm:w-auto"
-        >
-          <Plus className="w-4 h-4 stroke-[3]" />
-          <span>+ Nuevo Producto / Fármaco</span>
-        </button>
-      </div>
+      <PageHeader
+        category="Farmacia Hospitalaria & Logística"
+        title="Farmacia, Medicamentos & Stock"
+        description="Control de insumos, lotes, vencimientos, trazabilidad y consumo automático en internación"
+        icon={Boxes}
+        badge={
+          lowStockCount > 0 ? (
+            <StatusBadge label={`⚠️ ${lowStockCount} Stock Crítico`} variant="danger" pulse />
+          ) : undefined
+        }
+        actions={[
+          {
+            label: '+ Nuevo Producto / Fármaco',
+            icon: Plus,
+            onClick: () => setQuickModal('NUEVO_PRODUCTO'),
+            variant: 'primary',
+          },
+        ]}
+      />
 
       {/* 2. Metrics Bar (Fluid Responsive Grid) */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 text-xs">
-        <div className="bg-white border border-slate-200 p-4 rounded-2xl shadow-2xs flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-teal-50 flex items-center justify-center text-teal-700 font-bold flex-shrink-0">
-            <Package className="w-5 h-5" />
-          </div>
-          <div className="min-w-0">
-            <span className="text-[10px] text-slate-400 font-bold uppercase block truncate">Total en Catálogo</span>
-            <span className="text-lg sm:text-xl font-black text-slate-900 font-mono block">
-              {products.length} ({totalStockUnits} uds)
-            </span>
-          </div>
-        </div>
+        <StatCard
+          title="Total en Catálogo"
+          value={`${products.length}`}
+          subtitle={`${totalStockUnits} unidades físicas`}
+          icon={Package}
+          variant="teal"
+        />
 
-        <div className="bg-white border border-slate-200 p-4 rounded-2xl shadow-2xs flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-700 font-bold flex-shrink-0">
-            <DollarSign className="w-5 h-5" />
-          </div>
-          <div className="min-w-0">
-            <span className="text-[10px] text-slate-400 font-bold uppercase block truncate">Valoración Stock</span>
-            <span className="text-lg sm:text-xl font-black text-emerald-700 font-mono block">
-              ${totalStockValuation.toLocaleString('es-AR')}
-            </span>
-          </div>
-        </div>
+        <StatCard
+          title="Valoración Stock"
+          value={`$${totalStockValuation.toLocaleString('es-AR')}`}
+          subtitle="Costo valorizado actual"
+          icon={DollarSign}
+          variant="emerald"
+        />
 
-        <div className="bg-white border border-slate-200 p-4 rounded-2xl shadow-2xs flex items-center gap-3">
-          <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold flex-shrink-0 ${lowStockCount > 0 ? 'bg-red-50 text-red-600' : 'bg-slate-100 text-slate-500'}`}>
-            <AlertTriangle className="w-5 h-5" />
-          </div>
-          <div className="min-w-0">
-            <span className="text-[10px] text-slate-400 font-bold uppercase block truncate">Alertas de Reposición</span>
-            <span className={`text-lg sm:text-xl font-black font-mono block ${lowStockCount > 0 ? 'text-red-600' : 'text-slate-900'}`}>
-              {lowStockCount} críticos
-            </span>
-          </div>
-        </div>
+        <StatCard
+          title="Alertas de Reposición"
+          value={`${lowStockCount} críticos`}
+          subtitle={lowStockCount > 0 ? 'Requieren compra urgente' : 'Nivel de stock óptimo'}
+          icon={AlertTriangle}
+          variant={lowStockCount > 0 ? 'rose' : 'slate'}
+        />
       </div>
 
       {/* 3. Search & Filter Bar */}
@@ -206,9 +181,17 @@ export const InventoryView: React.FC = () => {
       {/* TIER 1: MÓVIL (< md / < 768px) — Cards Responsivas */}
       <div className="block md:hidden space-y-3 w-full max-w-full">
         {filtered.length === 0 ? (
-          <div className="bg-white border border-slate-200 rounded-2xl p-8 text-center text-slate-500 text-xs">
-            No se encontraron medicamentos o insumos que coincidan con la búsqueda.
-          </div>
+          <EmptyState
+            icon={Boxes}
+            title="No se encontraron productos"
+            description={
+              search || categoryFilter !== 'TODOS' || filterCriticalOnly
+                ? 'No hay medicamentos ni insumos que coincidan con la búsqueda o filtros aplicados.'
+                : 'Aún no hay productos registrados en el inventario de farmacia.'
+            }
+            actionLabel="Registrar Nuevo Fármaco"
+            onAction={() => setQuickModal('NUEVO_PRODUCTO')}
+          />
         ) : (
           filtered.map((prod) => (
             <PharmacyMobileCard

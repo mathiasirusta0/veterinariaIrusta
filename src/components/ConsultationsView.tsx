@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { useVet } from '../context/VetContext';
 import { formatDateTime } from '../utils/formatters';
+import { PageHeader, StatusBadge, EmptyState } from './ui';
 
 export const ConsultationsView: React.FC = () => {
   const {
@@ -58,30 +59,20 @@ export const ConsultationsView: React.FC = () => {
   return (
     <div className="space-y-6 pb-12">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white border border-slate-200 p-5 rounded-3xl shadow-sm">
-        <div>
-          <div className="flex items-center gap-2 mb-1">
-            <span className="text-xs font-bold text-teal-700 uppercase tracking-wider">
-              Atención Clínica Ambulatoria & Urgencias
-            </span>
-          </div>
-          <h2 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
-            <Stethoscope className="w-6 h-6 text-teal-600" />
-            <span>Consultas Médicas & Evaluaciones SOAP</span>
-          </h2>
-          <p className="text-xs text-slate-500 font-medium">
-            Registro estructurado SOAP, examen físico por 12 sistemas, recetas digitales y envío a tutores
-          </p>
-        </div>
-
-        <button
-          onClick={() => setQuickModal('NUEVA_CONSULTA')}
-          className="flex items-center gap-2 px-4 py-2.5 bg-teal-600 hover:bg-teal-500 text-white text-xs font-bold rounded-2xl shadow-md shadow-teal-600/20 active:scale-95 transition-all"
-        >
-          <Plus className="w-4 h-4" />
-          <span>Iniciar Consulta SOAP</span>
-        </button>
-      </div>
+      <PageHeader
+        category="Atención Clínica Ambulatoria & Urgencias"
+        title="Consultas Médicas & Evaluaciones SOAP"
+        description="Registro estructurado SOAP, examen físico por 12 sistemas, recetas digitales y envío a tutores"
+        icon={Stethoscope}
+        actions={[
+          {
+            label: 'Iniciar Consulta SOAP',
+            icon: Plus,
+            onClick: () => setQuickModal('NUEVA_CONSULTA'),
+            variant: 'primary',
+          },
+        ]}
+      />
 
       {/* Search & Status Filters */}
       <div className="bg-white border border-slate-200 p-4 rounded-2xl shadow-sm flex flex-col md:flex-row items-center justify-between gap-3 text-xs">
@@ -117,11 +108,17 @@ export const ConsultationsView: React.FC = () => {
       {/* Consultations List */}
       <div className="space-y-4">
         {filteredConsultations.length === 0 ? (
-          <div className="p-12 text-center bg-white rounded-3xl border border-slate-200 text-slate-500 shadow-sm">
-            <Stethoscope className="w-12 h-12 mx-auto mb-2 text-slate-400 opacity-60" />
-            <h3 className="font-bold text-sm text-slate-800">No se encontraron consultas</h3>
-            <p className="text-xs text-slate-400 mt-1">Intentá con otros términos de búsqueda o iniciá una nueva consulta.</p>
-          </div>
+          <EmptyState
+            icon={Stethoscope}
+            title="No se encontraron consultas"
+            description={
+              search || filterStatus !== 'TODOS'
+                ? 'No hay consultas clínicas que coincidan con los términos de búsqueda o filtros seleccionados.'
+                : 'Aún no hay consultas clínicas registradas en el sistema hospitalario.'
+            }
+            actionLabel="Iniciar Consulta SOAP"
+            onAction={() => setQuickModal('NUEVA_CONSULTA')}
+          />
         ) : (
           filteredConsultations.map((cons) => {
             const patient = patients.find((p) => p.id === cons.patientId);

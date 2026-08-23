@@ -27,6 +27,7 @@ import { useVet } from '../context/VetContext';
 import { formatWeight, formatOwnerBalance } from '../utils/formatters';
 import { triggerHaptic } from '../utils/haptics';
 import { PatientMobileCard } from './PatientMobileCard';
+import { PageHeader, StatusBadge, EmptyState } from './ui';
 
 export const PatientsListView: React.FC = () => {
   const {
@@ -179,30 +180,20 @@ export const PatientsListView: React.FC = () => {
       {activeSubTab === 'TUTORES' && (
         <div className="space-y-6 animate-in fade-in duration-150">
           {/* Header Tutores */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white border border-slate-200 p-5 rounded-2xl shadow-sm">
-            <div>
-              <div className="flex items-center gap-2 mb-1">
-                <span className="text-xs font-bold text-teal-700 uppercase tracking-wider">
-                  Responsables Legales & Cuentas Corrientes
-                </span>
-              </div>
-              <h2 className="text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
-                <Users className="w-6 h-6 text-teal-600" />
-                <span>Directorio de Tutores & Propietarios</span>
-              </h2>
-              <p className="text-xs text-slate-500 font-medium">
-                Control de responsables, vías de comunicación WhatsApp, pagos de insumos y saldos
-              </p>
-            </div>
-
-            <button
-              onClick={() => setQuickModal('NUEVO_PROPIETARIO')}
-              className="flex items-center gap-2 bg-teal-600 hover:bg-teal-500 text-white px-4 py-2.5 rounded-xl text-xs font-bold shadow-md shadow-teal-600/20 transition-all active:scale-95"
-            >
-              <Plus className="w-4 h-4" />
-              <span>Nuevo Propietario</span>
-            </button>
-          </div>
+          <PageHeader
+            category="Responsables Legales & Cuentas Corrientes"
+            title="Directorio de Tutores & Propietarios"
+            description="Control de responsables, vías de comunicación WhatsApp, pagos de insumos y saldos"
+            icon={Users}
+            actions={[
+              {
+                label: 'Nuevo Propietario',
+                icon: Plus,
+                onClick: () => setQuickModal('NUEVO_PROPIETARIO'),
+                variant: 'primary',
+              },
+            ]}
+          />
 
           {/* Search Tutores */}
           <div className="bg-white border border-slate-200 p-4 rounded-xl shadow-sm">
@@ -343,41 +334,27 @@ export const PatientsListView: React.FC = () => {
       {activeSubTab === 'PACIENTES' && (
         <div className="space-y-6">
       {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white border border-slate-200 p-5 rounded-2xl shadow-sm">
-        <div>
-          <div className="flex items-center gap-2 mb-1">
-            <span className="text-xs font-bold text-teal-700 uppercase tracking-wider">
-              Gestión Clínica & Registro Hospitalario
-            </span>
-          </div>
-          <h2 className="text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
-            <PawPrint className="w-6 h-6 text-teal-600" />
-            <span>Directorio de Pacientes</span>
-          </h2>
-          <p className="text-xs text-slate-500 font-medium">
-            Fichas clínicas completas, microchips ISO, trazabilidad de tutores y alertas médicas en tiempo real
-          </p>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-2.5">
-          <button
-            onClick={handleExportCSV}
-            className="flex items-center gap-1.5 px-3.5 py-2.5 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 text-xs font-bold rounded-xl shadow-2xs transition-all"
-            title="Exportar censo de pacientes a archivo Excel / CSV"
-          >
-            <Download className="w-3.5 h-3.5 text-slate-500" />
-            <span>Exportar Censo</span>
-          </button>
-
-          <button
-            onClick={() => setQuickModal('NUEVO_PACIENTE')}
-            className="flex items-center gap-2 bg-teal-600 hover:bg-teal-500 text-white px-4 py-2.5 rounded-xl text-xs font-bold shadow-md shadow-teal-600/20 transition-all active:scale-95"
-          >
-            <Plus className="w-4 h-4" />
-            <span>Nuevo Paciente</span>
-          </button>
-        </div>
-      </div>
+      <PageHeader
+        category="Gestión Clínica & Registro Hospitalario"
+        title="Directorio de Pacientes"
+        description="Fichas clínicas completas, microchips ISO, trazabilidad de tutores y alertas médicas en tiempo real"
+        icon={PawPrint}
+        actions={[
+          {
+            label: 'Exportar Censo',
+            icon: Download,
+            onClick: handleExportCSV,
+            variant: 'secondary',
+            title: 'Exportar censo de pacientes a archivo Excel / CSV',
+          },
+          {
+            label: 'Nuevo Paciente',
+            icon: Plus,
+            onClick: () => setQuickModal('NUEVO_PACIENTE'),
+            variant: 'primary',
+          },
+        ]}
+      />
 
       {/* Quick Filter Tabs by Status (Swipeable on mobile) */}
       <div className="w-full max-w-full flex items-center gap-2 text-xs overflow-x-auto pb-1.5 no-scrollbar sm:flex-wrap snap-x touch-pan-x min-w-0">
@@ -512,13 +489,17 @@ export const PatientsListView: React.FC = () => {
 
       {/* Patients Display */}
       {filteredPatients.length === 0 ? (
-        <div className="bg-white border border-slate-200 rounded-2xl p-12 text-center text-slate-400 space-y-2">
-          <PawPrint className="w-12 h-12 mx-auto text-slate-300 mb-2" />
-          <p className="font-bold text-slate-700 text-sm">No se encontraron pacientes con los filtros seleccionados</p>
-          <p className="text-xs">
-            Probá ajustando los términos de búsqueda o registrá un nuevo paciente.
-          </p>
-        </div>
+        <EmptyState
+          icon={PawPrint}
+          title="No se encontraron pacientes"
+          description={
+            search || speciesFilter !== 'TODOS' || statusFilter !== 'TODOS'
+              ? 'No hay pacientes que coincidan con los términos de búsqueda o filtros seleccionados.'
+              : 'Aún no hay pacientes registrados en el censo hospitalario.'
+          }
+          actionLabel="Registrar Nuevo Paciente"
+          onAction={() => setQuickModal('NUEVO_PACIENTE')}
+        />
       ) : viewMode === 'GRID' ? (
         /* GRID MODE */
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">

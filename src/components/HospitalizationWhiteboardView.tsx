@@ -26,6 +26,7 @@ import {
 import { useVet } from '../context/VetContext';
 import { Hospitalization, HospitalPriority } from '../types';
 import { formatDate, formatDateTime, formatTime, formatWeight } from '../utils/formatters';
+import { PageHeader, StatusBadge, EmptyState } from './ui';
 
 export const HospitalizationWhiteboardView: React.FC = () => {
   const {
@@ -290,69 +291,48 @@ export const HospitalizationWhiteboardView: React.FC = () => {
       )}
 
       {/* Standard Header Section */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white border border-slate-200 p-5 rounded-2xl shadow-sm">
-        <div>
-          <div className="flex items-center gap-2 mb-1">
-            <span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse"></span>
-            <span className="text-xs font-bold text-red-600 uppercase tracking-wider">
-              Pizarra Whiteboard Hospitalaria ({activeHospital.length} Pacientes)
-            </span>
-          </div>
-          <h2 className="text-xl font-bold text-slate-900 tracking-tight">
-            Internación & Monitoreo Intensivo (UCI)
-          </h2>
-          <p className="text-xs text-slate-500 font-medium">
-            Control de fluidoterapia, balance hídrico, ronda horaria de fármacos, catéteres y pase de guardia
-          </p>
-        </div>
-
-        {/* Action Buttons */}
-        <div className="flex flex-wrap items-center gap-2.5">
-          <button
-            onClick={() => setIsTvMode(true)}
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-teal-400 border border-slate-800 text-xs font-bold shadow-md transition-all active:scale-95"
-            title="Abrir vista de pantalla completa para monitor de internación"
-          >
-            <Tv className="w-4 h-4 text-teal-400" />
-            <span>MODO TV GUARDIA</span>
-          </button>
-
-          <button
-            onClick={() => openMonitor()}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-950 hover:bg-slate-900 text-emerald-400 border border-slate-800 text-xs font-bold shadow-sm transition-all"
-            title="Abrir telemetría multiparamétrica de UCI"
-          >
-            <Radio className="w-3.5 h-3.5 text-emerald-400 animate-pulse" />
-            <span>Telemetría UCI</span>
-          </button>
-
-          <button
-            onClick={() => openCalculators()}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white hover:bg-slate-50 text-slate-800 border border-slate-200 text-xs font-bold shadow-2xs transition-all"
-            title="Calculadora de infusión y fluidoterapia"
-          >
-            <Calculator className="w-3.5 h-3.5 text-teal-600" />
-            <span>Calculadora Dosis/Fluidos</span>
-          </button>
-
-          <button
-            onClick={handleGenerateHandover}
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-teal-50 hover:bg-teal-100 text-teal-800 border border-teal-200 text-xs font-bold transition-all"
-            title="Generar pase de guardia estructurado con IA"
-          >
-            <Sparkles className="w-3.5 h-3.5 text-teal-600" />
-            <span>Pase de Guardia (IA)</span>
-          </button>
-
-          <button
-            onClick={() => setQuickModal('NUEVO_INGRESO_HOSPITAL')}
-            className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-teal-600 hover:bg-teal-500 text-white text-xs font-bold shadow-md shadow-teal-600/20 active:scale-95 transition-all"
-          >
-            <Plus className="w-4 h-4" />
-            <span>Ingresar Paciente</span>
-          </button>
-        </div>
-      </div>
+      <PageHeader
+        category={`Pizarra Whiteboard Hospitalaria (${activeHospital.length} Pacientes)`}
+        title="Internación & Monitoreo Intensivo (UCI)"
+        description="Control de fluidoterapia, balance hídrico, ronda horaria de fármacos, catéteres y pase de guardia"
+        icon={BedDouble}
+        actions={[
+          {
+            label: 'MODO TV',
+            icon: Tv,
+            onClick: () => setIsTvMode(true),
+            variant: 'secondary',
+            title: 'Abrir vista de pantalla completa para monitor de internación',
+          },
+          {
+            label: 'Telemetría',
+            icon: Radio,
+            onClick: () => openMonitor(),
+            variant: 'secondary',
+            title: 'Abrir telemetría multiparamétrica de UCI',
+          },
+          {
+            label: 'Dosis / Fluidos',
+            icon: Calculator,
+            onClick: () => openCalculators(),
+            variant: 'secondary',
+            title: 'Calculadora de infusión y fluidoterapia',
+          },
+          {
+            label: 'Pase Guardia (IA)',
+            icon: Sparkles,
+            onClick: handleGenerateHandover,
+            variant: 'secondary',
+            title: 'Generar pase de guardia estructurado con IA',
+          },
+          {
+            label: 'Ingresar Paciente',
+            icon: Plus,
+            onClick: () => setQuickModal('NUEVO_INGRESO_HOSPITAL'),
+            variant: 'primary',
+          },
+        ]}
+      />
 
       {/* Clean Assistance Sector & Species Filter Bar */}
       <div className="bg-white border border-slate-200 p-4 rounded-2xl shadow-xs space-y-3 text-xs">
@@ -435,8 +415,21 @@ export const HospitalizationWhiteboardView: React.FC = () => {
       )}
 
       {/* Grid of Hospitalized Patients Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-        {activeHospital.map((hosp) => {
+      {activeHospital.length === 0 ? (
+        <EmptyState
+          icon={BedDouble}
+          title="No hay pacientes internados"
+          description={
+            sectorFilter !== 'TODOS' || priorityFilter !== 'TODOS' || speciesFilter !== 'TODAS'
+              ? 'No se encontraron pacientes internados con los filtros de sector o prioridad seleccionados.'
+              : 'Actualmente no hay pacientes en las salas de internación o UCI del hospital.'
+          }
+          actionLabel="Ingresar Paciente a Internación"
+          onAction={() => setQuickModal('NUEVO_INGRESO_HOSPITAL')}
+        />
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          {activeHospital.map((hosp) => {
           const patient = patients.find((p) => p.id === hosp.patientId) || patients[0];
           const isCritical = hosp.priority === 'CRITICO';
 
@@ -677,6 +670,7 @@ export const HospitalizationWhiteboardView: React.FC = () => {
           );
         })}
       </div>
+      )}
 
       {/* 📊 MODAL DE BALANCE HÍDRICO & DIURESIS HORARIA */}
       {fluidBalanceHosp && (

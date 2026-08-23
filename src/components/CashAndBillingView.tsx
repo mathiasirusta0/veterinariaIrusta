@@ -35,6 +35,7 @@ import { Invoice, Estimate } from '../types';
 import { formatDate, formatDateTime, formatCurrency, formatInvoiceNumber } from '../utils/formatters';
 import { triggerHaptic } from '../utils/haptics';
 import { InvoiceMobileCard } from './InvoiceMobileCard';
+import { PageHeader, StatCard, EmptyState, StatusBadge } from './ui';
 
 export interface CashExpense {
   id: string;
@@ -289,60 +290,37 @@ export const CashAndBillingView: React.FC = () => {
   return (
     <div className="space-y-5 pb-2 w-full max-w-full">
       {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white border border-slate-200 p-5 rounded-2xl shadow-sm">
-        <div>
-          <div className="flex items-center gap-2 mb-1">
-            <span className="text-xs font-bold px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200">
-              ARCA (AFIP) Facturación Electrónica Homologada & Ticket Común
-            </span>
-            <span className="text-[11px] font-bold px-2 py-0.5 rounded bg-teal-50 text-teal-800 border border-teal-200">
-              {fiscalConfig.businessName}
-            </span>
-          </div>
-          <h2 className="text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
-            <Receipt className="w-6 h-6 text-teal-600" />
-            <span>Caja, Facturación ARCA & Finanzas</span>
-          </h2>
-          <p className="text-xs text-slate-500 font-medium">
-            Emisión de Facturas Oficiales A/B/C con CAE, Tickets Mostrador (Recibo X), Arqueo Z con conteo ciego y configuración fiscal.
-          </p>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-2.5">
-          <button
-            onClick={() => {
-              triggerHaptic('light');
-              setActiveTab('EGRESOS');
-            }}
-            className="flex items-center gap-1.5 px-3 py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-bold rounded-xl shadow-2xs transition-all active:scale-95"
-          >
-            <TrendingDown className="w-3.5 h-3.5" />
-            <span>Registrar Egreso</span>
-          </button>
-
-          <button
-            onClick={() => {
-              triggerHaptic('light');
-              setQuickModal('NUEVO_PRESUPUESTO');
-            }}
-            className="flex items-center gap-1.5 px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold rounded-xl shadow-2xs transition-all active:scale-95"
-          >
-            <Plus className="w-3.5 h-3.5" />
-            <span>Nuevo Presupuesto</span>
-          </button>
-
-          <button
-            onClick={() => {
-              triggerHaptic('medium');
-              setQuickModal('NUEVA_FACTURA');
-            }}
-            className="btn-physical btn-physical-teal flex items-center gap-1.5 px-4 py-2 text-white text-xs font-black shadow-md shadow-teal-600/20 active:scale-95 transition-all"
-          >
-            <Plus className="w-4 h-4 stroke-[3]" />
-            <span>Emitir Comprobante / Facturar</span>
-          </button>
-        </div>
-      </div>
+      <PageHeader
+        category="ARCA (AFIP) Facturación Electrónica Homologada & Ticket Común"
+        title="Caja, Facturación ARCA & Finanzas"
+        description="Emisión de Facturas Oficiales A/B/C con CAE, Tickets Mostrador (Recibo X), Arqueo Z con conteo ciego y configuración fiscal."
+        icon={Receipt}
+        badge={
+          <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-teal-50 text-teal-800 border border-teal-200">
+            {fiscalConfig.businessName}
+          </span>
+        }
+        actions={[
+          {
+            label: 'Registrar Egreso',
+            icon: TrendingDown,
+            onClick: () => setActiveTab('EGRESOS'),
+            variant: 'secondary',
+          },
+          {
+            label: 'Nuevo Presupuesto',
+            icon: Plus,
+            onClick: () => setQuickModal('NUEVO_PRESUPUESTO'),
+            variant: 'secondary',
+          },
+          {
+            label: 'Emitir Comprobante',
+            icon: Plus,
+            onClick: () => setQuickModal('NUEVA_FACTURA'),
+            variant: 'primary',
+          },
+        ]}
+      />
 
       {/* Top 5 Navigation Subtabs */}
       <div className="w-full max-w-full overflow-x-auto no-scrollbar scroll-smooth snap-x touch-pan-x min-w-0">
@@ -429,37 +407,37 @@ export const CashAndBillingView: React.FC = () => {
         <div className="space-y-5 animate-in fade-in duration-150">
           {/* Summary KPIs (Fluid Responsive Grid) */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4 text-xs w-full max-w-full">
-            <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs space-y-1">
-              <span className="text-slate-500 font-bold uppercase text-[10px]">Total Facturado Global:</span>
-              <div className="text-xl font-black text-slate-900 font-mono">
-                {formatCurrency(totalInvoiced)}
-              </div>
-              <span className="text-[10px] text-slate-400 font-medium">Facturas A, B, C y Tickets</span>
-            </div>
+            <StatCard
+              title="Total Facturado Global"
+              value={formatCurrency(totalInvoiced)}
+              subtitle="Facturas A, B, C y Tickets"
+              icon={Receipt}
+              variant="slate"
+            />
 
-            <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs space-y-1">
-              <span className="text-emerald-700 font-bold uppercase text-[10px]">Facturación ARCA (CAE):</span>
-              <div className="text-xl font-black text-emerald-700 font-mono">
-                {formatCurrency(totalInvoicedWithCAE)}
-              </div>
-              <span className="text-[10px] text-emerald-600 font-medium">Comprobantes oficiales AFIP</span>
-            </div>
+            <StatCard
+              title="Facturación ARCA (CAE)"
+              value={formatCurrency(totalInvoicedWithCAE)}
+              subtitle="Comprobantes oficiales AFIP"
+              icon={Building}
+              variant="emerald"
+            />
 
-            <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs space-y-1">
-              <span className="text-amber-700 font-bold uppercase text-[10px]">Tickets Mostrador (Recibo X):</span>
-              <div className="text-xl font-black text-amber-700 font-mono">
-                {formatCurrency(totalInvoicedTickets)}
-              </div>
-              <span className="text-[10px] text-amber-600 font-medium">Gastos internos sin ARCA</span>
-            </div>
+            <StatCard
+              title="Tickets Mostrador (Recibo X)"
+              value={formatCurrency(totalInvoicedTickets)}
+              subtitle="Gastos internos sin ARCA"
+              icon={Receipt}
+              variant="amber"
+            />
 
-            <div className="bg-teal-50/80 p-4 rounded-2xl border border-teal-200 shadow-2xs space-y-1">
-              <span className="text-teal-800 font-bold uppercase text-[10px]">Efectivo Disponible en Caja:</span>
-              <div className="text-xl font-black text-teal-800 font-mono">
-                {formatCurrency(theoreticalCashInDrawer)}
-              </div>
-              <span className="text-[10px] text-teal-700 font-medium">Fondo + Cobros - Egresos</span>
-            </div>
+            <StatCard
+              title="Efectivo en Caja"
+              value={formatCurrency(theoreticalCashInDrawer)}
+              subtitle="Fondo + Cobros - Egresos"
+              icon={DollarSign}
+              variant="teal"
+            />
           </div>
 
           {/* Search and Filters (Fluid Stacked / Grid for Mobile) */}
@@ -508,9 +486,17 @@ export const CashAndBillingView: React.FC = () => {
           {/* 1. MÓVIL (< md / < 768px): Cards Nativas de Facturación */}
           <div className="block md:hidden space-y-3 w-full max-w-full">
             {filteredInvoices.length === 0 ? (
-              <div className="bg-white border border-slate-200 rounded-2xl p-8 text-center text-slate-500 text-xs">
-                No se encontraron comprobantes con los filtros seleccionados.
-              </div>
+              <EmptyState
+                icon={Receipt}
+                title="No se encontraron comprobantes"
+                description={
+                  searchTerm || filterType !== 'TODOS' || filterMethod !== 'TODOS'
+                    ? 'No hay comprobantes que coincidan con la búsqueda o filtros seleccionados.'
+                    : 'Aún no se han emitido facturas ni tickets en la sesión actual.'
+                }
+                actionLabel="Emitir Primer Comprobante"
+                onAction={() => setQuickModal('NUEVA_FACTURA')}
+              />
             ) : (
               filteredInvoices.map((inv) => (
                 <InvoiceMobileCard

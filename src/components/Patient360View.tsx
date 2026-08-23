@@ -44,6 +44,7 @@ import { useVet } from '../context/VetContext';
 import { ProblemStatus, PatientProblem, Species, Sex, ReproductiveStatus, PatientStatus, PatientAlert, Patient } from '../types';
 import { formatDate, formatDateTime, formatTime, formatWeight, formatOwnerBalance } from '../utils/formatters';
 import { triggerHaptic } from '../utils/haptics';
+import { EmptyState, StatusBadge, ClinicalAlert, StatCard } from './ui';
 
 export const Patient360View: React.FC = () => {
   const {
@@ -187,11 +188,13 @@ export const Patient360View: React.FC = () => {
 
   if (!patient) {
     return (
-      <div className="p-12 text-center bg-white rounded-3xl border border-slate-200 text-slate-500 shadow-sm">
-        <PawPrint className="w-14 h-14 mx-auto mb-3 text-teal-500 opacity-60 animate-bounce" />
-        <h3 className="text-base font-bold text-slate-800">No se ha seleccionado ningún paciente</h3>
-        <p className="text-xs text-slate-400 mt-1">Seleccioná un paciente del directorio para ver su Ficha Médica 360°.</p>
-      </div>
+      <EmptyState
+        icon={PawPrint}
+        title="No se ha seleccionado ningún paciente"
+        description="Seleccioná un paciente del directorio para ver su Ficha Médica 360° y gestionar su historia clínica."
+        actionLabel="Volver al Directorio de Pacientes"
+        onAction={() => setActiveView('PACIENTES')}
+      />
     );
   }
   const patientVitals = vitals.filter((v) => v.patientId === patient.id);
