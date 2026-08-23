@@ -414,6 +414,270 @@ export async function syncInvoiceToSupabase(inv: Invoice) {
 }
 
 /**
+ * Sync single vital signs entry to Supabase
+ */
+export async function syncVitalSignsToSupabase(vital: VitalSigns) {
+  try {
+    const { error } = await supabase.from('vital_signs').upsert({
+      id: vital.id,
+      patient_id: vital.patientId,
+      recorded_at: vital.recordedAt,
+      temperature: vital.temperature,
+      heart_rate: vital.heartRate,
+      respiratory_rate: vital.respiratoryRate,
+      systolic_bp: vital.systolicBP,
+      diastolic_bp: vital.diastolicBP,
+      mean_bp: vital.meanBP,
+      capillary_refill_time_seconds: vital.capillaryRefillTime,
+      mucous_membranes: vital.mucousMembranes,
+      weight: vital.weight,
+      glycemia: vital.bloodGlucose,
+      oxygen_saturation: vital.spo2,
+      pain_score_glasgow: vital.painScale,
+      recorded_by: vital.recordedBy,
+      notes: vital.notes,
+    });
+    if (error) console.error('Error syncing vital signs to Supabase:', error);
+  } catch (err) {
+    console.warn('Offline: vital signs cached locally');
+  }
+}
+
+/**
+ * Sync single owner to Supabase
+ */
+export async function syncOwnerToSupabase(owner: Owner) {
+  try {
+    const { error } = await supabase.from('owners').upsert({
+      id: owner.id,
+      first_name: owner.firstName,
+      last_name: owner.lastName,
+      dni: owner.dni,
+      phone: owner.phone,
+      whatsapp: owner.whatsapp || owner.phone,
+      email: owner.email,
+      address: owner.address,
+      city: owner.city,
+      emergency_contact: owner.secondaryContactPhone || owner.secondaryContactName || '',
+      notes: owner.notes,
+      balance: owner.balance,
+      created_at: owner.createdAt,
+    });
+    if (error) console.error('Error syncing owner to Supabase:', error);
+  } catch (err) {
+    console.warn('Offline: owner cached locally');
+  }
+}
+
+/**
+ * Sync single problem to Supabase
+ */
+export async function syncProblemToSupabase(problem: PatientProblem) {
+  try {
+    const { error } = await supabase.from('patient_problems').upsert({
+      id: problem.id,
+      patient_id: problem.patientId,
+      title: problem.title,
+      description: problem.description,
+      status: problem.status,
+      onset_date: problem.onsetDate,
+      resolved_date: problem.resolvedDate,
+      vet_name: problem.vetName,
+      created_at: problem.onsetDate || new Date().toISOString(),
+    });
+    if (error) console.error('Error syncing problem to Supabase:', error);
+  } catch (err) {
+    console.warn('Offline: problem cached locally');
+  }
+}
+
+/**
+ * Sync single lab order to Supabase
+ */
+export async function syncLabOrderToSupabase(order: LaboratoryOrder) {
+  try {
+    const { error } = await supabase.from('laboratory_orders').upsert({
+      id: order.id,
+      patient_id: order.patientId,
+      order_number: order.orderNumber,
+      test_type: order.testType,
+      requested_by: order.requestedBy,
+      requested_at: order.requestedAt,
+      results_ready_at: order.resultsReadyAt,
+      status: order.status,
+      results: order.results,
+      conclusions: order.diagnosticReport || order.conclusions,
+    });
+    if (error) console.error('Error syncing lab order to Supabase:', error);
+  } catch (err) {
+    console.warn('Offline: lab order cached locally');
+  }
+}
+
+/**
+ * Sync single imaging study to Supabase
+ */
+export async function syncImagingToSupabase(study: ImagingStudy) {
+  try {
+    const { error } = await supabase.from('imaging_studies').upsert({
+      id: study.id,
+      patient_id: study.patientId,
+      study_number: study.studyNumber,
+      modality: study.modality,
+      region: study.region,
+      date: study.date,
+      image_urls: study.images?.map((img) => img.url) || [],
+      findings: study.report,
+      diagnosis: study.conclusion,
+      status: study.status,
+      reported_by: study.performedBy || study.requestedBy,
+    });
+    if (error) console.error('Error syncing imaging study to Supabase:', error);
+  } catch (err) {
+    console.warn('Offline: imaging study cached locally');
+  }
+}
+
+/**
+ * Sync single vaccination to Supabase
+ */
+export async function syncVaccinationToSupabase(vac: VaccinationRecord) {
+  try {
+    const { error } = await supabase.from('vaccinations').upsert({
+      id: vac.id,
+      patient_id: vac.patientId,
+      vaccine_name: vac.vaccineName,
+      batch_number: vac.batchNumber,
+      manufacturer: vac.manufacturer,
+      expiration_date: vac.expirationDate,
+      administered_date: vac.administeredDate,
+      next_due_date: vac.nextDueDate,
+      administered_by: vac.administeredBy,
+      vet_license: vac.vetLicense,
+      certificate_generated: vac.certificateGenerated,
+      created_at: vac.administeredDate || new Date().toISOString(),
+    });
+    if (error) console.error('Error syncing vaccination to Supabase:', error);
+  } catch (err) {
+    console.warn('Offline: vaccination cached locally');
+  }
+}
+
+/**
+ * Sync single product to Supabase
+ */
+export async function syncProductToSupabase(prod: Product) {
+  try {
+    const { error } = await supabase.from('products').upsert({
+      id: prod.id,
+      branch_id: prod.branchId,
+      code: prod.code,
+      commercial_name: prod.commercialName,
+      generic_name: prod.activeIngredient,
+      category: prod.category,
+      presentation: prod.presentation,
+      current_stock: prod.currentStock,
+      min_stock: prod.minStock,
+      unit: 'UNID',
+      cost_price: prod.costPrice,
+      sale_price: prod.salePrice,
+      current_batch: prod.currentBatch,
+      expiration_date: prod.expirationDate,
+      requires_prescription: prod.requiresPrescription,
+    });
+    if (error) console.error('Error syncing product to Supabase:', error);
+  } catch (err) {
+    console.warn('Offline: product cached locally');
+  }
+}
+
+/**
+ * Sync single appointment to Supabase
+ */
+export async function syncAppointmentToSupabase(apt: Appointment) {
+  try {
+    const { error } = await supabase.from('appointments').upsert({
+      id: apt.id,
+      branch_id: apt.branchId,
+      patient_id: apt.patientId,
+      owner_id: apt.ownerId,
+      vet_id: apt.vetId,
+      date: apt.date,
+      time: apt.time,
+      type: apt.type,
+      reason: apt.reason,
+      status: apt.status,
+      notes: apt.notes,
+    });
+    if (error) console.error('Error syncing appointment to Supabase:', error);
+  } catch (err) {
+    console.warn('Offline: appointment cached locally');
+  }
+}
+
+/**
+ * Sync single triage entry to Supabase
+ */
+export async function syncTriageToSupabase(triage: TriageEntry) {
+  try {
+    const { error } = await supabase.from('triage_entries').upsert({
+      id: triage.id,
+      patient_id: triage.patientId,
+      chief_complaint: triage.chiefComplaint,
+      priority: triage.priority,
+      arrived_at: triage.arrivedAt,
+      assigned_consulting_room: triage.assignedRoom,
+      assigned_vet_id: triage.assignedVetId,
+      status: triage.status,
+    });
+    if (error) console.error('Error syncing triage to Supabase:', error);
+  } catch (err) {
+    console.warn('Offline: triage cached locally');
+  }
+}
+
+/**
+ * Sync single document to Supabase
+ */
+export async function syncDocumentToSupabase(doc: ClinicalDocument) {
+  try {
+    const { error } = await supabase.from('clinical_documents').upsert({
+      id: doc.id,
+      patient_id: doc.patientId,
+      type: doc.type,
+      title: doc.title,
+      content: doc.content,
+      created_at: doc.createdAt,
+      signed_by: doc.signedByOwnerName,
+      status: doc.isSigned ? 'FIRMADO' : 'PENDIENTE',
+    });
+    if (error) console.error('Error syncing document to Supabase:', error);
+  } catch (err) {
+    console.warn('Offline: document cached locally');
+  }
+}
+
+/**
+ * Sync single clinical evolution note to Supabase (stored under clinical_documents)
+ */
+export async function syncClinicalEvolutionToSupabase(evo: any) {
+  try {
+    const { error } = await supabase.from('clinical_documents').upsert({
+      id: evo.id,
+      patient_id: evo.patientId,
+      type: 'EVOLUCION_CLINICA',
+      title: `Evolución Médica ${evo.type || 'CLINICA'} - ${evo.authorName || 'Profesional'}`,
+      content: JSON.stringify(evo),
+      status: evo.status || 'FIRMADO',
+      created_at: evo.createdAt || new Date().toISOString(),
+    });
+    if (error) console.error('Error syncing clinical evolution to Supabase:', error);
+  } catch (err) {
+    console.warn('Offline: clinical evolution cached locally');
+  }
+}
+
+/**
  * Sync audit log to Supabase
  */
 export async function syncAuditLogToSupabase(log: AuditLog) {

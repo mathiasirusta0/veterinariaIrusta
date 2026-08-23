@@ -69,10 +69,21 @@ import { checkSupabaseConnection } from '../lib/supabase';
 import {
   fetchInitialDataFromSupabase,
   syncPatientToSupabase,
+  syncOwnerToSupabase,
+  syncVitalSignsToSupabase,
+  syncProblemToSupabase,
   syncConsultationToSupabase,
   syncHospitalizationToSupabase,
   syncSurgeryToSupabase,
+  syncLabOrderToSupabase,
+  syncImagingToSupabase,
+  syncVaccinationToSupabase,
+  syncProductToSupabase,
+  syncAppointmentToSupabase,
+  syncTriageToSupabase,
   syncInvoiceToSupabase,
+  syncDocumentToSupabase,
+  syncClinicalEvolutionToSupabase,
   syncAuditLogToSupabase,
 } from '../lib/supabaseSync';
 import { hasViewPermission, getDefaultViewForRole, SystemView } from '../utils/rbac';
@@ -617,23 +628,125 @@ export const VetProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             setCloudSyncStatus('CONECTADO');
             const cloudData = await fetchInitialDataFromSupabase();
             if (cloudData && isMounted) {
-              if (cloudData.owners && cloudData.owners.length > 0) setOwners(cloudData.owners);
-              if (cloudData.patients && cloudData.patients.length > 0) setPatients(cloudData.patients);
-              if (cloudData.vitals && cloudData.vitals.length > 0) setVitals(cloudData.vitals);
-              if (cloudData.problems && cloudData.problems.length > 0) setProblems(cloudData.problems);
-              if (cloudData.consultations && cloudData.consultations.length > 0) setConsultations(cloudData.consultations);
-              if (cloudData.hospitalizations && cloudData.hospitalizations.length > 0) setHospitalizations(cloudData.hospitalizations);
-              if (cloudData.surgeries && cloudData.surgeries.length > 0) setSurgeries(cloudData.surgeries);
-              if (cloudData.products && cloudData.products.length > 0) setProducts(cloudData.products);
-              if (cloudData.invoices && cloudData.invoices.length > 0) setInvoices(cloudData.invoices);
-              if (cloudData.labOrders && cloudData.labOrders.length > 0) setLabOrders(cloudData.labOrders);
-              if (cloudData.imagingStudies && cloudData.imagingStudies.length > 0) setImagingStudies(cloudData.imagingStudies);
-              if (cloudData.vaccinations && cloudData.vaccinations.length > 0) setVaccinations(cloudData.vaccinations);
-              if (cloudData.appointments && cloudData.appointments.length > 0) setAppointments(cloudData.appointments);
-              if (cloudData.triageList && cloudData.triageList.length > 0) setTriageList(cloudData.triageList);
-              if (cloudData.documents && cloudData.documents.length > 0) setDocuments(cloudData.documents);
-              if (cloudData.estimates && cloudData.estimates.length > 0) setEstimates(cloudData.estimates);
-              if (cloudData.auditLogs && cloudData.auditLogs.length > 0) setAuditLogs(cloudData.auditLogs);
+              if (cloudData.owners && cloudData.owners.length > 0) {
+                setOwners((prev) => {
+                  const cloudIds = new Set(cloudData.owners!.map((o) => o.id));
+                  const localOnly = prev.filter((o) => !cloudIds.has(o.id));
+                  return [...cloudData.owners!, ...localOnly];
+                });
+              }
+              if (cloudData.patients && cloudData.patients.length > 0) {
+                setPatients((prev) => {
+                  const cloudIds = new Set(cloudData.patients!.map((p) => p.id));
+                  const localOnly = prev.filter((p) => !cloudIds.has(p.id));
+                  return [...cloudData.patients!, ...localOnly];
+                });
+              }
+              if (cloudData.vitals && cloudData.vitals.length > 0) {
+                setVitals((prev) => {
+                  const cloudIds = new Set(cloudData.vitals!.map((v) => v.id));
+                  const localOnly = prev.filter((v) => !cloudIds.has(v.id));
+                  return [...cloudData.vitals!, ...localOnly];
+                });
+              }
+              if (cloudData.problems && cloudData.problems.length > 0) {
+                setProblems((prev) => {
+                  const cloudIds = new Set(cloudData.problems!.map((pr) => pr.id));
+                  const localOnly = prev.filter((pr) => !cloudIds.has(pr.id));
+                  return [...cloudData.problems!, ...localOnly];
+                });
+              }
+              if (cloudData.consultations && cloudData.consultations.length > 0) {
+                setConsultations((prev) => {
+                  const cloudIds = new Set(cloudData.consultations!.map((c) => c.id));
+                  const localOnly = prev.filter((c) => !cloudIds.has(c.id));
+                  return [...cloudData.consultations!, ...localOnly];
+                });
+              }
+              if (cloudData.hospitalizations && cloudData.hospitalizations.length > 0) {
+                setHospitalizations((prev) => {
+                  const cloudIds = new Set(cloudData.hospitalizations!.map((h) => h.id));
+                  const localOnly = prev.filter((h) => !cloudIds.has(h.id));
+                  return [...cloudData.hospitalizations!, ...localOnly];
+                });
+              }
+              if (cloudData.surgeries && cloudData.surgeries.length > 0) {
+                setSurgeries((prev) => {
+                  const cloudIds = new Set(cloudData.surgeries!.map((s) => s.id));
+                  const localOnly = prev.filter((s) => !cloudIds.has(s.id));
+                  return [...cloudData.surgeries!, ...localOnly];
+                });
+              }
+              if (cloudData.products && cloudData.products.length > 0) {
+                setProducts((prev) => {
+                  const cloudIds = new Set(cloudData.products!.map((p) => p.id));
+                  const localOnly = prev.filter((p) => !cloudIds.has(p.id));
+                  return [...cloudData.products!, ...localOnly];
+                });
+              }
+              if (cloudData.invoices && cloudData.invoices.length > 0) {
+                setInvoices((prev) => {
+                  const cloudIds = new Set(cloudData.invoices!.map((i) => i.id));
+                  const localOnly = prev.filter((i) => !cloudIds.has(i.id));
+                  return [...cloudData.invoices!, ...localOnly];
+                });
+              }
+              if (cloudData.labOrders && cloudData.labOrders.length > 0) {
+                setLabOrders((prev) => {
+                  const cloudIds = new Set(cloudData.labOrders!.map((l) => l.id));
+                  const localOnly = prev.filter((l) => !cloudIds.has(l.id));
+                  return [...cloudData.labOrders!, ...localOnly];
+                });
+              }
+              if (cloudData.imagingStudies && cloudData.imagingStudies.length > 0) {
+                setImagingStudies((prev) => {
+                  const cloudIds = new Set(cloudData.imagingStudies!.map((img) => img.id));
+                  const localOnly = prev.filter((img) => !cloudIds.has(img.id));
+                  return [...cloudData.imagingStudies!, ...localOnly];
+                });
+              }
+              if (cloudData.vaccinations && cloudData.vaccinations.length > 0) {
+                setVaccinations((prev) => {
+                  const cloudIds = new Set(cloudData.vaccinations!.map((vac) => vac.id));
+                  const localOnly = prev.filter((vac) => !cloudIds.has(vac.id));
+                  return [...cloudData.vaccinations!, ...localOnly];
+                });
+              }
+              if (cloudData.appointments && cloudData.appointments.length > 0) {
+                setAppointments((prev) => {
+                  const cloudIds = new Set(cloudData.appointments!.map((a) => a.id));
+                  const localOnly = prev.filter((a) => !cloudIds.has(a.id));
+                  return [...cloudData.appointments!, ...localOnly];
+                });
+              }
+              if (cloudData.triageList && cloudData.triageList.length > 0) {
+                setTriageList((prev) => {
+                  const cloudIds = new Set(cloudData.triageList!.map((t) => t.id));
+                  const localOnly = prev.filter((t) => !cloudIds.has(t.id));
+                  return [...cloudData.triageList!, ...localOnly];
+                });
+              }
+              if (cloudData.documents && cloudData.documents.length > 0) {
+                setDocuments((prev) => {
+                  const cloudIds = new Set(cloudData.documents!.map((d) => d.id));
+                  const localOnly = prev.filter((d) => !cloudIds.has(d.id));
+                  return [...cloudData.documents!, ...localOnly];
+                });
+              }
+              if (cloudData.estimates && cloudData.estimates.length > 0) {
+                setEstimates((prev) => {
+                  const cloudIds = new Set(cloudData.estimates!.map((e) => e.id));
+                  const localOnly = prev.filter((e) => !cloudIds.has(e.id));
+                  return [...cloudData.estimates!, ...localOnly];
+                });
+              }
+              if (cloudData.auditLogs && cloudData.auditLogs.length > 0) {
+                setAuditLogs((prev) => {
+                  const cloudIds = new Set(cloudData.auditLogs!.map((a) => a.id));
+                  const localOnly = prev.filter((a) => !cloudIds.has(a.id));
+                  return [...cloudData.auditLogs!, ...localOnly];
+                });
+              }
             }
           } else {
             setCloudSyncStatus('OFFLINE_LOCAL');
@@ -690,6 +803,18 @@ export const VetProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     localStorage.setItem('vetsys_documents', JSON.stringify(documents));
   }, [documents]);
   useEffect(() => {
+    localStorage.setItem('vetsys_labOrders', JSON.stringify(labOrders));
+  }, [labOrders]);
+  useEffect(() => {
+    localStorage.setItem('vetsys_imaging', JSON.stringify(imagingStudies));
+  }, [imagingStudies]);
+  useEffect(() => {
+    localStorage.setItem('vetsys_vaccinations', JSON.stringify(vaccinations));
+  }, [vaccinations]);
+  useEffect(() => {
+    localStorage.setItem('vetsys_clinical_evolutions', JSON.stringify(clinicalEvolutions));
+  }, [clinicalEvolutions]);
+  useEffect(() => {
     localStorage.setItem('vetsys_auditLogs', JSON.stringify(auditLogs));
     localStorage.setItem('vetsys_regulatory_rules', JSON.stringify(regulatoryRules));
     localStorage.setItem('vetsys_controlled_drugs', JSON.stringify(controlledDrugs));
@@ -726,6 +851,7 @@ export const VetProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       balance: 0,
     };
     setOwners((prev) => [newOwner, ...prev]);
+    syncOwnerToSupabase(newOwner);
     logAudit('CREAR_PROPIETARIO', 'Owner', newOwner.id, `Alta de propietario: ${newOwner.firstName} ${newOwner.lastName} (DNI ${newOwner.dni})`);
     return newOwner;
   };
@@ -735,6 +861,7 @@ export const VetProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       prev.map((o) => {
         if (o.id === id) {
           const updated = { ...o, ...data };
+          syncOwnerToSupabase(updated);
           logAudit('EDITAR_PROPIETARIO', 'Owner', id, `Modificación de datos de propietario ${o.firstName} ${o.lastName}`);
           return updated;
         }
@@ -841,6 +968,7 @@ export const VetProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       weight: validWeight,
     };
     setVitals((prev) => [newVital, ...prev]);
+    syncVitalSignsToSupabase(newVital);
     logAudit('REGISTRO_PESO', 'Patient', patientId, `Control de peso: ${validWeight} kg por ${staff}`);
   };
 
@@ -850,6 +978,7 @@ export const VetProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       id: `prob-${Date.now()}`,
     };
     setProblems((prev) => [newProb, ...prev]);
+    syncProblemToSupabase(newProb);
     logAudit('REGISTRAR_PROBLEMA', 'PatientProblem', newProb.id, `Nuevo problema clínico: ${newProb.title} para paciente ID ${newProb.patientId}`);
   };
 
@@ -862,6 +991,7 @@ export const VetProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             status,
             resolvedDate: status === 'RESUELTO' ? new Date().toISOString().split('T')[0] : pr.resolvedDate,
           };
+          syncProblemToSupabase(updated);
           logAudit('ESTADO_PROBLEMA', 'PatientProblem', problemId, `Cambio de estado en problema ${pr.title} -> ${status}`);
           return updated;
         }
@@ -879,6 +1009,7 @@ export const VetProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       recordedBy: currentUser.name,
     };
     setVitals((prev) => [newVital, ...prev]);
+    syncVitalSignsToSupabase(newVital);
     
     // Also update patient weight if provided
     if (data.weight) {
@@ -1020,10 +1151,12 @@ export const VetProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       if (exists) {
         return prev.map((h) => {
           if (h.patientId === patientId && h.status === 'ACTIVA') {
-            return {
+            const updated = {
               ...h,
               medications: [...(h.medications || []), newMed],
             };
+            syncHospitalizationToSupabase(updated);
+            return updated;
           }
           return h;
         });
@@ -1062,6 +1195,7 @@ export const VetProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           status: 'ACTIVA',
           branchId: activeBranch.id,
         };
+        syncHospitalizationToSupabase(newHosp);
         return [newHosp, ...prev];
       }
     });
@@ -1118,7 +1252,9 @@ export const VetProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
           result = { success: true, message: `✅ Medicación ${med.drugName} administrada correctamente.` };
           showToast('success', 'Medicación Administrada', `${med.drugName} (${med.dose}) aplicada.`);
-          return { ...h, medications: updatedMeds };
+          const updatedHosp = { ...h, medications: updatedMeds };
+          syncHospitalizationToSupabase(updatedHosp);
+          return updatedHosp;
         }
         return h;
       })
@@ -1142,7 +1278,9 @@ export const VetProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setHospitalizations((prev) =>
       prev.map((h) => {
         if (h.id === hospitalizationId) {
-          return { ...h, hourlySheet: [newEntry, ...h.hourlySheet] };
+          const updated = { ...h, hourlySheet: [newEntry, ...h.hourlySheet] };
+          syncHospitalizationToSupabase(updated);
+          return updated;
         }
         return h;
       })
@@ -1157,12 +1295,14 @@ export const VetProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         if (h.id === hospitalizationId) {
           updatePatient(h.patientId, { status: 'ACTIVO' });
           logAudit('ALTA_MEDICA_INTERNACION', 'Hospitalization', hospitalizationId, `Alta médica otorgada. Resumen: ${summary}`);
-          return {
+          const updated: Hospitalization = {
             ...h,
             status: 'ALTA_MEDICA',
             dischargedAt: new Date().toISOString(),
             dischargeSummary: summary,
           };
+          syncHospitalizationToSupabase(updated);
+          return updated;
         }
         return h;
       })
@@ -1191,6 +1331,7 @@ export const VetProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       status: 'SOLICITADO',
     };
     setLabOrders((prev) => [newOrder, ...prev]);
+    syncLabOrderToSupabase(newOrder);
     showToast('info', 'Análisis Solicitado', `Orden ${newOrder.orderNumber} enviada a laboratorio.`);
     logAudit('ORDEN_LABORATORIO', 'LaboratoryOrder', newOrder.id, `Solicitud de ${newOrder.testType} para paciente ID ${newOrder.patientId}`);
   };
@@ -1206,6 +1347,7 @@ export const VetProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             status: 'FINALIZADO',
             resultsReadyAt: new Date().toISOString(),
           };
+          syncLabOrderToSupabase(updated);
           logAudit('RESULTADOS_LABORATORIO', 'LaboratoryOrder', orderId, `Carga de resultados y conclusión para ${lo.testType}`);
           return updated;
         }
@@ -1223,6 +1365,7 @@ export const VetProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       status: 'INFORMADO',
     };
     setImagingStudies((prev) => [newStudy, ...prev]);
+    syncImagingToSupabase(newStudy);
     showToast('success', 'Estudio Registrado', `Informe de ${newStudy.modality} guardado.`);
     logAudit('ESTUDIO_IMAGEN', 'ImagingStudy', newStudy.id, `Estudio de ${newStudy.modality} (${newStudy.region}) registrado`);
   };
@@ -1237,6 +1380,7 @@ export const VetProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       certificateGenerated: true,
     };
     setVaccinations((prev) => [newVac, ...prev]);
+    syncVaccinationToSupabase(newVac);
     showToast('success', 'Vacuna Registrada', `${newVac.vaccineName} aplicada (Lote ${newVac.batchNumber}).`);
     logAudit('VACUNACION', 'VaccinationRecord', newVac.id, `Vacuna ${newVac.vaccineName} (Lote: ${newVac.batchNumber}) aplicada a paciente ID ${newVac.patientId}`);
   };
@@ -1249,6 +1393,7 @@ export const VetProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       branchId: activeBranch.id,
     };
     setProducts((prev) => [newProd, ...prev]);
+    syncProductToSupabase(newProd);
     showToast('success', 'Producto Registrado', `${newProd.commercialName} ingresado a farmacia.`);
     logAudit('CREAR_PRODUCTO', 'Product', newProd.id, `Alta de producto farmacia: ${newProd.commercialName} (${newProd.code})`);
   };
@@ -1276,7 +1421,9 @@ export const VetProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           setInventoryMovements((m) => [movement, ...m]);
           showToast('info', 'Stock Actualizado', `${prod.commercialName}: ${quantityChange > 0 ? '+' : ''}${quantityChange} (${newStock} unid.)`);
           logAudit('MOVIMIENTO_STOCK', 'Product', productId, `${type}: ${quantityChange > 0 ? '+' : ''}${quantityChange} unid. (${prod.commercialName}) -> Stock final: ${newStock}`);
-          return { ...prod, currentStock: newStock };
+          const updatedProd = { ...prod, currentStock: newStock };
+          syncProductToSupabase(updatedProd);
+          return updatedProd;
         }
         return prod;
       })
@@ -1291,6 +1438,7 @@ export const VetProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       branchId: activeBranch.id,
     };
     setAppointments((prev) => [newApt, ...prev]);
+    syncAppointmentToSupabase(newApt);
     showToast('success', 'Turno Agendado', `Cita para ${newApt.date} a las ${newApt.time} hs.`);
     logAudit('NUEVO_TURNO', 'Appointment', newApt.id, `Turno agendado: ${newApt.type} para fecha ${newApt.date} ${newApt.time}`);
   };
@@ -1299,8 +1447,10 @@ export const VetProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setAppointments((prev) =>
       prev.map((a) => {
         if (a.id === id) {
+          const updated = { ...a, status };
+          syncAppointmentToSupabase(updated);
           logAudit('ESTADO_TURNO', 'Appointment', id, `Turno ${a.date} ${a.time} cambiado a: ${status}`);
-          return { ...a, status };
+          return updated;
         }
         return a;
       })
@@ -1316,6 +1466,7 @@ export const VetProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       status: 'EN_ESPERA',
     };
     setTriageList((prev) => [newEntry, ...prev]);
+    syncTriageToSupabase(newEntry);
     showToast('warning', 'Ingreso a Sala de Espera', `Triage: ${data.priority}`);
     logAudit('INGRESO_TRIAGE', 'TriageEntry', newEntry.id, `Paciente ingresado a sala de espera. Triage: ${data.priority} - Motivo: ${data.chiefComplaint}`);
   };
@@ -1324,8 +1475,10 @@ export const VetProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setTriageList((prev) =>
       prev.map((t) => {
         if (t.id === id) {
+          const updated = { ...t, status };
+          syncTriageToSupabase(updated);
           logAudit('ESTADO_TRIAGE', 'TriageEntry', id, `Sala de espera: estado actualizado a ${status}`);
-          return { ...t, status };
+          return updated;
         }
         return t;
       })
@@ -1402,6 +1555,7 @@ export const VetProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       createdAt: new Date().toISOString(),
     };
     setDocuments((prev) => [newDoc, ...prev]);
+    syncDocumentToSupabase(newDoc);
     logAudit('DOCUMENTO_CLINICO', 'ClinicalDocument', newDoc.id, `Documento generado: ${newDoc.title}`);
   };
 
@@ -1416,6 +1570,7 @@ export const VetProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             signatureDataUrl,
             isSigned: true,
           };
+          syncDocumentToSupabase(updated);
           logAudit('FIRMA_DIGITAL_CONSENTIMIENTO', 'ClinicalDocument', docId, `Consentimiento "${d.title}" firmado digitalmente por ${signerName} (DNI ${signerDni})`);
           return updated;
         }
@@ -1523,6 +1678,7 @@ Hoy hemos evaluado a ${petName} en nuestro centro hospitalario. Queremos transmi
     };
 
     setClinicalEvolutions((prev) => [newEntry, ...prev]);
+    syncClinicalEvolutionToSupabase(newEntry);
     showToast('success', 'Evolución Registrada', `Evolución (${newEntry.type}) firmada por ${newEntry.authorName}.`);
     logAudit('CREAR_EVOLUCION', 'ClinicalEvolution', newEntry.id, `Evolución ${newEntry.type} para paciente ${newEntry.patientId}`);
     return newEntry;
@@ -1530,15 +1686,18 @@ Hoy hemos evaluado a ${petName} en nuestro centro hospitalario. Queremos transmi
 
   const signClinicalEvolution = (id: string) => {
     setClinicalEvolutions((prev) =>
-      prev.map((evo) =>
-        evo.id === id
-          ? {
-              ...evo,
-              status: 'FIRMADO',
-              signatureHash: `SHA256:signed_${Date.now()}_${currentUser.name}`,
-            }
-          : evo
-      )
+      prev.map((evo) => {
+        if (evo.id === id) {
+          const updated = {
+            ...evo,
+            status: 'FIRMADO' as const,
+            signatureHash: `SHA256:signed_${Date.now()}_${currentUser.name}`,
+          };
+          syncClinicalEvolutionToSupabase(updated);
+          return updated;
+        }
+        return evo;
+      })
     );
     showToast('success', 'Evolución Firmada', 'La nota ha sido firmada digitalmente.');
   };
@@ -1556,15 +1715,18 @@ Hoy hemos evaluado a ${petName} en nuestro centro hospitalario. Queremos transmi
     };
 
     setClinicalEvolutions((prev) =>
-      prev.map((evo) =>
-        evo.id === id
-          ? {
-              ...evo,
-              status: 'CON_ADDENDUM',
-              addenda: [...(evo.addenda || []), newAddendum],
-            }
-          : evo
-      )
+      prev.map((evo) => {
+        if (evo.id === id) {
+          const updated = {
+            ...evo,
+            status: 'CON_ADDENDUM' as const,
+            addenda: [...(evo.addenda || []), newAddendum],
+          };
+          syncClinicalEvolutionToSupabase(updated);
+          return updated;
+        }
+        return evo;
+      })
     );
     showToast('success', 'Addendum Registrado', 'Se ha anexado una aclaración formal fechada a la nota médica.');
     logAudit('ADDENDUM_EVOLUCION', 'ClinicalEvolution', id, `Addendum agregado: ${reason}`);
