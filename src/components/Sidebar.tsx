@@ -155,18 +155,18 @@ interface SidebarNavGroup {
                     key={item.id}
                     onClick={() => handleSelect(item.id)}
                     className={`
-                      w-full flex items-center justify-between px-3 py-2 text-xs font-medium transition-all group rounded-xl
+                      w-full flex items-center justify-between px-3.5 py-2.5 text-xs transition-all duration-150 group rounded-xl
                       ${
                         isActive
-                          ? 'bg-teal-500/15 text-teal-400 border-l-4 border-teal-500 rounded-r-xl font-bold'
-                          : 'text-slate-400 hover:text-white hover:bg-slate-800/80'
+                          ? 'bg-gradient-to-r from-teal-500/20 to-teal-500/5 text-teal-300 border border-teal-500/30 font-bold shadow-xs'
+                          : 'text-slate-400 hover:text-slate-100 hover:bg-slate-800/60 font-medium'
                       }
                     `}
                   >
-                    <div className="flex items-center gap-2.5 min-w-0">
+                    <div className="flex items-center gap-3 min-w-0">
                       <Icon
                         className={`w-4 h-4 flex-shrink-0 transition-colors ${
-                          isActive ? 'text-teal-400' : 'text-slate-400 group-hover:text-white'
+                          isActive ? 'text-teal-400' : 'text-slate-400 group-hover:text-teal-400'
                         }`}
                       />
                       <span className="truncate">{item.label}</span>

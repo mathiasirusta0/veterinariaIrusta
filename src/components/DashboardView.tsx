@@ -104,7 +104,7 @@ export const DashboardView: React.FC = () => {
             title="Calculadora médica y dosis"
           >
             <Calculator className="w-4 h-4 text-teal-600" />
-            <span>CALCULADORA DOSIS</span>
+            <span>Calculadora Dosis</span>
           </button>
           <button
             onClick={() => openMonitor()}
@@ -112,95 +112,125 @@ export const DashboardView: React.FC = () => {
             title="Monitor multiparamétrico en vivo"
           >
             <Radio className="w-4 h-4 text-emerald-400 animate-pulse" />
-            <span>TELEMETRÍA UCI</span>
+            <span>Telemetría UCI</span>
           </button>
           <button
             onClick={() => setQuickModal('NUEVA_CONSULTA')}
             className="bg-teal-600 hover:bg-teal-500 text-white px-4 py-2.5 rounded-lg text-xs font-bold shadow-md shadow-teal-600/20 transition-all active:scale-95 flex items-center gap-1.5"
           >
             <Plus className="w-4 h-4" />
-            <span>+ NUEVA CONSULTA</span>
+            <span>+ Nueva Consulta</span>
           </button>
           <button
             onClick={() => setQuickModal('INGRESO_INTERNACION')}
             className="bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 px-4 py-2.5 rounded-lg text-xs font-bold shadow-sm transition-all flex items-center gap-1.5"
           >
             <BedDouble className="w-4 h-4 text-slate-500" />
-            <span>INTERNAR</span>
+            <span>Internar</span>
           </button>
         </div>
       </div>
 
-      {/* 4 Sleek Hero Metric Cards */}
+      {/* 4 Premium Hero Metric Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Card 1: Pacientes Críticos */}
         <div
           onClick={() => setActiveView('INTERNACION')}
-          className="bg-white p-5 rounded-xl shadow-sm border border-slate-200 border-l-4 border-l-red-500 flex flex-col justify-between cursor-pointer hover:shadow-md transition-shadow"
+          className="group relative bg-white p-5 rounded-2xl shadow-xs border border-slate-200/90 hover:border-rose-300 hover:shadow-md transition-all duration-200 cursor-pointer overflow-hidden"
         >
-          <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">
-            Pacientes Críticos
-          </span>
-          <span className="text-3xl font-black text-slate-900">
+          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-rose-500 to-red-600" />
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+              Pacientes Críticos
+            </span>
+            <div className="w-7 h-7 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center group-hover:scale-110 transition-transform">
+              <AlertTriangle className="w-4 h-4" />
+            </div>
+          </div>
+          <div className="text-3xl font-black text-slate-900 tracking-tight font-mono">
             {String(criticalPatients.length).padStart(2, '0')}
-          </span>
-          <span className="text-[10px] text-red-500 font-bold mt-2 flex items-center gap-1">
-            <AlertTriangle className="w-3 h-3" />
-            {criticalPatients.length > 0
-              ? 'REQUIEREN ATENCIÓN INMEDIATA'
-              : 'ESTABLES EN UCI'}
-          </span>
+          </div>
+          <div className="mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between">
+            <span className="text-[11px] text-rose-600 font-bold flex items-center gap-1">
+              {criticalPatients.length > 0 ? '⚠️ Atención Inmediata' : '✓ Estables en UCI'}
+            </span>
+            <span className="text-[10px] text-slate-400 font-medium">UCI 24hs</span>
+          </div>
         </div>
 
         {/* Card 2: Tratamientos Atrasados */}
         <div
           onClick={() => setActiveView('INTERNACION')}
-          className="bg-white p-5 rounded-xl shadow-sm border border-slate-200 border-l-4 border-l-orange-500 flex flex-col justify-between cursor-pointer hover:shadow-md transition-shadow"
+          className="group relative bg-white p-5 rounded-2xl shadow-xs border border-slate-200/90 hover:border-amber-300 hover:shadow-md transition-all duration-200 cursor-pointer overflow-hidden"
         >
-          <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">
-            Tratamientos Atrasados
-          </span>
-          <span className="text-3xl font-black text-slate-900">
+          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-500 to-orange-500" />
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+              Tratamientos en Ronda
+            </span>
+            <div className="w-7 h-7 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center group-hover:scale-110 transition-transform">
+              <Clock className="w-4 h-4" />
+            </div>
+          </div>
+          <div className="text-3xl font-black text-slate-900 tracking-tight font-mono">
             {String(overdueMedsCount).padStart(2, '0')}
-          </span>
-          <span className="text-[10px] text-orange-600 font-bold mt-2 flex items-center gap-1">
-            <Clock className="w-3 h-3" />
-            {overdueMedsCount > 0 ? `${overdueMedsCount} PENDIENTES DE APLICACIÓN` : 'RONDA AL DÍA'}
-          </span>
+          </div>
+          <div className="mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between">
+            <span className="text-[11px] text-amber-700 font-bold flex items-center gap-1">
+              {overdueMedsCount > 0 ? `⚠️ ${overdueMedsCount} Pendientes` : '✓ Ronda al Día'}
+            </span>
+            <span className="text-[10px] text-slate-400 font-medium">Farmacia UCI</span>
+          </div>
         </div>
 
         {/* Card 3: Internados */}
         <div
           onClick={() => setActiveView('INTERNACION')}
-          className="bg-white p-5 rounded-xl shadow-sm border border-slate-200 border-l-4 border-l-teal-500 flex flex-col justify-between cursor-pointer hover:shadow-md transition-shadow"
+          className="group relative bg-white p-5 rounded-2xl shadow-xs border border-slate-200/90 hover:border-teal-300 hover:shadow-md transition-all duration-200 cursor-pointer overflow-hidden"
         >
-          <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">
-            Internados en Canil/UCI
-          </span>
-          <span className="text-3xl font-black text-slate-900">
+          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-teal-500 to-emerald-500" />
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+              Ocupación UCI / Caniles
+            </span>
+            <div className="w-7 h-7 rounded-xl bg-teal-50 text-teal-600 flex items-center justify-center group-hover:scale-110 transition-transform">
+              <BedDouble className="w-4 h-4" />
+            </div>
+          </div>
+          <div className="text-3xl font-black text-slate-900 tracking-tight font-mono">
             {String(activeHospital.length).padStart(2, '0')}
-          </span>
-          <span className="text-[10px] text-teal-600 font-bold mt-2 flex items-center gap-1">
-            <BedDouble className="w-3 h-3" />
-            OCUPACIÓN: {Math.round((activeHospital.length / 18) * 100)}% ({activeHospital.length}/18 camas)
-          </span>
+          </div>
+          <div className="mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between">
+            <span className="text-[11px] text-teal-700 font-bold flex items-center gap-1">
+              {Math.round((activeHospital.length / 18) * 100)}% ({activeHospital.length}/18 Camas)
+            </span>
+            <span className="text-[10px] text-slate-400 font-medium">Sector Caniles</span>
+          </div>
         </div>
 
         {/* Card 4: Turnos de Hoy */}
         <div
           onClick={() => setActiveView('AGENDA')}
-          className="bg-white p-5 rounded-xl shadow-sm border border-slate-200 border-l-4 border-l-blue-500 flex flex-col justify-between cursor-pointer hover:shadow-md transition-shadow"
+          className="group relative bg-white p-5 rounded-2xl shadow-xs border border-slate-200/90 hover:border-indigo-300 hover:shadow-md transition-all duration-200 cursor-pointer overflow-hidden"
         >
-          <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">
-            Turnos de Hoy
-          </span>
-          <span className="text-3xl font-black text-slate-900">
+          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-indigo-500 to-blue-600" />
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+              Agenda & Sala de Espera
+            </span>
+            <div className="w-7 h-7 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center group-hover:scale-110 transition-transform">
+              <CalendarDays className="w-4 h-4" />
+            </div>
+          </div>
+          <div className="text-3xl font-black text-slate-900 tracking-tight font-mono">
             {String(todayAppointments.length).padStart(2, '0')}
-          </span>
-          <span className="text-[10px] text-blue-600 font-bold mt-2 flex items-center gap-1">
-            <CalendarDays className="w-3 h-3" />
-            {waitingTriage.length} EN SALA DE ESPERA
-          </span>
+          </div>
+          <div className="mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between">
+            <span className="text-[11px] text-indigo-700 font-bold flex items-center gap-1">
+              {waitingTriage.length} en Sala de Espera
+            </span>
+            <span className="text-[10px] text-slate-400 font-medium">Turnos Hoy</span>
+          </div>
         </div>
       </div>
 
