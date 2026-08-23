@@ -115,12 +115,18 @@ export const PatientMobileCard: React.FC<PatientMobileCardProps> = ({
       {/* 2. Demographic and Clinical Metric Badges */}
       <div className="flex items-center gap-1.5 flex-wrap text-xs">
         <span className="bg-slate-50 border border-slate-200 px-2.5 py-1 rounded-xl text-slate-700 font-semibold text-[11px]">
-          {patient.sex} • {patient.calculatedAge || 'Edad N/D'}
+          {patient.sex} {patient.reproductiveStatus ? `(${patient.reproductiveStatus})` : ''} • {patient.calculatedAge || 'Edad N/D'}
         </span>
 
         <span className="bg-teal-50 border border-teal-200 px-2.5 py-1 rounded-xl text-teal-800 font-mono font-black text-[11px]">
           ⚖️ {formatWeight(patient.weight)}
         </span>
+
+        {patient.color && (
+          <span className="bg-slate-50 border border-slate-200 px-2 py-1 rounded-xl text-slate-600 text-[10px] font-medium">
+            🎨 {patient.color}
+          </span>
+        )}
 
         {patient.microchip && (
           <button

@@ -758,12 +758,12 @@ export const PatientsListView: React.FC = () => {
                         {/* Species & Breed */}
                         <td className="p-3.5">
                           <span className="font-bold text-slate-900 block">{patient.species}</span>
-                          <span className="text-[11px] text-slate-500">{patient.breed}</span>
+                          <span className="text-[11px] text-slate-500">{[patient.breed, patient.color ? `(${patient.color})` : null].filter(Boolean).join(' ')}</span>
                         </td>
 
                         {/* Sex & Age */}
                         <td className="p-3.5">
-                          <span className="text-slate-800 block">{patient.sex}</span>
+                          <span className="text-slate-800 block">{patient.sex} {patient.reproductiveStatus ? `(${patient.reproductiveStatus})` : ''}</span>
                           <span className="text-[11px] text-slate-400">{patient.calculatedAge}</span>
                         </td>
 
