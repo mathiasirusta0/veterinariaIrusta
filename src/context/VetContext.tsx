@@ -188,6 +188,7 @@ interface VetContextType {
   updateSurgeryStatus: (id: string, status: SurgeryRecord['status']) => void;
   addLabOrder: (order: Omit<LaboratoryOrder, 'id' | 'orderNumber' | 'requestedAt' | 'status'>) => void;
   updateLabResults: (orderId: string, results: LaboratoryOrder['results'], conclusions: string) => void;
+  updateLabOrderStatus: (orderId: string, status: LaboratoryOrder['status']) => void;
   addImagingStudy: (study: Omit<ImagingStudy, 'id' | 'studyNumber' | 'date' | 'status'>) => void;
   addVaccination: (vac: Omit<VaccinationRecord, 'id' | 'administeredDate' | 'administeredBy' | 'vetLicense'>) => void;
 
@@ -1420,6 +1421,23 @@ export const VetProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     );
   };
 
+  const updateLabOrderStatus = (orderId: string, status: LaboratoryOrder['status']) => {
+    setLabOrders((prev) =>
+      prev.map((lo) => {
+        if (lo.id === orderId) {
+          const updated: LaboratoryOrder = { ...lo, status };
+          if (status === 'MUESTRA_OBTENIDA') updated.sampleCollectedAt = new Date().toISOString();
+          if (status === 'FINALIZADO') updated.resultsReadyAt = new Date().toISOString();
+          syncLabOrderToSupabase(updated);
+          logAudit('ESTADO_LABORATORIO', 'LaboratoryOrder', orderId, `Estado de orden de laboratorio cambiado a ${status}`);
+          return updated;
+        }
+        return lo;
+      })
+    );
+    showToast('info', 'Estado Actualizado', `Orden de laboratorio: ${status}`);
+  };
+
   const addImagingStudy = (data: Omit<ImagingStudy, 'id' | 'studyNumber' | 'date' | 'status'>) => {
     const newStudy: ImagingStudy = {
       ...data,
@@ -1893,6 +1911,7 @@ Hoy hemos evaluado a ${petName} en nuestro centro hospitalario. Queremos transmi
         updateSurgeryStatus,
         addLabOrder,
         updateLabResults,
+        updateLabOrderStatus,
         addImagingStudy,
         addVaccination,
 
