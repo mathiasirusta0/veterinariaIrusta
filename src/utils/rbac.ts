@@ -3,6 +3,9 @@ import { UserRole } from '../types';
 
 export type SystemView =
   | 'DASHBOARD'
+  | 'ATENCION'
+  | 'HOSPITAL'
+  | 'GESTION'
   | 'PACIENTES'
   | 'PROPIETARIOS'
   | 'AGENDA'
@@ -26,6 +29,9 @@ export type SystemView =
 export const ROLE_PERMISSIONS: Record<UserRole, SystemView[]> = {
   SUPERADMIN: [
     'DASHBOARD',
+    'ATENCION',
+    'HOSPITAL',
+    'GESTION',
     'PACIENTES',
     'PROPIETARIOS',
     'AGENDA',
@@ -47,6 +53,9 @@ export const ROLE_PERMISSIONS: Record<UserRole, SystemView[]> = {
   ],
   ADMINISTRADOR: [
     'DASHBOARD',
+    'ATENCION',
+    'HOSPITAL',
+    'GESTION',
     'PACIENTES',
     'PROPIETARIOS',
     'AGENDA',
@@ -68,6 +77,9 @@ export const ROLE_PERMISSIONS: Record<UserRole, SystemView[]> = {
   ],
   DIRECTOR_MEDICO: [
     'DASHBOARD',
+    'ATENCION',
+    'HOSPITAL',
+    'GESTION',
     'PACIENTES',
     'PROPIETARIOS',
     'AGENDA',
@@ -89,6 +101,9 @@ export const ROLE_PERMISSIONS: Record<UserRole, SystemView[]> = {
   ],
   VETERINARIO: [
     'DASHBOARD',
+    'ATENCION',
+    'HOSPITAL',
+    'GESTION',
     'PACIENTES',
     'PROPIETARIOS',
     'AGENDA',
@@ -134,6 +149,9 @@ export const ROLE_PERMISSIONS: Record<UserRole, SystemView[]> = {
   ],
   ENFERMERIA: [
     'DASHBOARD',
+    'ATENCION',
+    'HOSPITAL',
+    'GESTION',
     'PACIENTES',
     'AGENDA',
     'SALA_ESPERA',
@@ -145,6 +163,8 @@ export const ROLE_PERMISSIONS: Record<UserRole, SystemView[]> = {
   ],
   ASISTENTE: [
     'DASHBOARD',
+    'ATENCION',
+    'HOSPITAL',
     'PACIENTES',
     'PROPIETARIOS',
     'AGENDA',
@@ -155,6 +175,8 @@ export const ROLE_PERMISSIONS: Record<UserRole, SystemView[]> = {
   ],
   RECEPCION: [
     'DASHBOARD',
+    'ATENCION',
+    'GESTION',
     'PACIENTES',
     'PROPIETARIOS',
     'AGENDA',
@@ -163,6 +185,7 @@ export const ROLE_PERMISSIONS: Record<UserRole, SystemView[]> = {
   ],
   CAJA: [
     'DASHBOARD',
+    'GESTION',
     'PROPIETARIOS',
     'CAJA_FACTURACION',
     'DOCUMENTOS',

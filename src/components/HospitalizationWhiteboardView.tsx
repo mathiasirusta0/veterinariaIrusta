@@ -599,21 +599,41 @@ export const HospitalizationWhiteboardView: React.FC = () => {
                 </div>
               </div>
 
-              {/* Bottom Card Actions */}
-              <div className="pt-3 border-t border-slate-100 flex items-center gap-2">
+              {/* Bottom Card Actions — Contextual Clinical Actions */}
+              <div className="pt-3 border-t border-slate-100 grid grid-cols-2 sm:grid-cols-4 gap-1.5 text-xs">
                 <button
                   onClick={() => {
                     setSelectedPatientId(patient.id);
-                    setActivePatientTab('INTERNACION');
+                    setActivePatientTab('HISTORIA');
                     setActiveView('PACIENTES');
                   }}
-                  className="flex-1 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold rounded-lg text-xs transition-colors"
+                  className="py-1.5 px-2 bg-teal-600 hover:bg-teal-500 text-white font-bold rounded-lg text-[11px] transition-colors shadow-2xs text-center"
                 >
-                  Abrir Ficha Clínica
+                  + Evolucionar
+                </button>
+                <button
+                  onClick={() => {
+                    setSelectedPatientId(patient.id);
+                    setActivePatientTab('SIGNOS');
+                    setActiveView('PACIENTES');
+                  }}
+                  className="py-1.5 px-2 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold rounded-lg text-[11px] transition-colors text-center"
+                >
+                  Signos Vitales
+                </button>
+                <button
+                  onClick={() => {
+                    setSelectedPatientId(patient.id);
+                    setActivePatientTab('RESUMEN');
+                    setActiveView('PACIENTES');
+                  }}
+                  className="py-1.5 px-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-lg text-[11px] transition-colors text-center"
+                >
+                  Ficha 360°
                 </button>
                 <button
                   onClick={() => dischargeHospitalPatient(hosp.id, 'Alta médica hospitalaria programada.')}
-                  className="px-3 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold rounded-lg text-xs transition-colors"
+                  className="py-1.5 px-2 bg-white border border-slate-200 hover:bg-rose-50 hover:border-rose-200 hover:text-rose-700 text-slate-600 font-bold rounded-lg text-[11px] transition-colors text-center"
                 >
                   Dar de Alta
                 </button>

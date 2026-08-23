@@ -70,41 +70,14 @@ interface SidebarNavGroup {
 
   const rawNavGroups: SidebarNavGroup[] = [
     {
-      group: 'CLÍNICA Y ATENCIÓN',
+      group: 'ÁREAS PRINCIPALES',
       items: [
         { id: 'DASHBOARD', label: 'Inicio', icon: LayoutDashboard },
         { id: 'PACIENTES', label: 'Pacientes & Tutores', icon: PawPrint },
-        { id: 'AGENDA', label: 'Agenda', icon: CalendarDays, badge: todayAppointments },
-        { id: 'SALA_ESPERA', label: 'Sala de Espera', icon: Clock, badge: waitingTriageCount, badgeColor: 'bg-amber-500' },
-        { id: 'CONSULTAS', label: 'Consultas & SOAP', icon: Stethoscope },
-        { id: 'SIGNOS_VITALES', label: 'Signos Vitales', icon: Activity },
-        { id: 'RECETAS_OFICIALES', label: 'Recetario SENASA', icon: FileText },
-      ],
-    },
-    {
-      group: 'HOSPITAL & CIRUGÍAS',
-      items: [
-        { id: 'INTERNACION', label: 'Internación UCI', icon: BedDouble, badge: activeHospitalCount, badgeColor: 'bg-red-500' },
-        { id: 'CIRUGIAS', label: 'Cirugías & Anestesia', icon: Scissors },
-        { id: 'LABORATORIO', label: 'Laboratorio', icon: FlaskConical, badge: pendingLabsCount, badgeColor: 'bg-purple-500' },
-        { id: 'IMAGENES', label: 'Imágenes RX / Eco', icon: Scan },
-        { id: 'VACUNAS', label: 'Vacunación', icon: Syringe },
-      ],
-    },
-    {
-      group: 'FARMACIA & INVENTARIO',
-      items: [
-        { id: 'INVENTARIO', label: 'Farmacia & Stock', icon: Boxes, badge: lowStockCount, badgeColor: 'bg-red-500' },
-      ],
-    },
-    {
-      group: 'GESTIÓN & SISTEMA',
-      items: [
-        { id: 'CAJA_FACTURACION', label: 'Caja & Facturas ARCA', icon: Receipt },
-        { id: 'DOCUMENTOS', label: 'Documentos & Consentimientos', icon: FileCheck },
-        { id: 'CENTRO_QA', label: 'Centro de Pruebas QA', icon: FlaskConical },
-        { id: 'ASISTENTE_IA', label: 'Asistente IA', icon: Sparkles, badgeColor: 'bg-teal-500' },
-        { id: 'CONFIGURACION', label: 'Configuración', icon: ShieldCheck },
+        { id: 'AGENDA', label: 'Atención & Turnos', icon: CalendarDays, badge: todayAppointments + waitingTriageCount },
+        { id: 'INTERNACION', label: 'Hospital & Cirugías', icon: BedDouble, badge: activeHospitalCount, badgeColor: 'bg-red-500' },
+        { id: 'INVENTARIO', label: 'Gestión & Farmacia', icon: Boxes, badge: lowStockCount, badgeColor: 'bg-amber-500' },
+        { id: 'CONFIGURACION', label: 'Administración', icon: ShieldCheck },
       ],
     },
   ];

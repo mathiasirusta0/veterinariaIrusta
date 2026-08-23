@@ -899,3 +899,69 @@ export interface AuditLog {
   ipAddress?: string;
   deviceInfo?: string;
 }
+
+// EVOLUCIÓN CLÍNICA UNIFICADA
+export type EvolutionEntryType =
+  | 'MEDICA'
+  | 'ENFERMERIA'
+  | 'AUXILIAR'
+  | 'SIGNOS_VITALES'
+  | 'TRATAMIENTO'
+  | 'INTERNACION'
+  | 'CIRUGIA'
+  | 'LABORATORIO'
+  | 'PASE_GUARDIA'
+  | 'ALTA'
+  | 'ADDENDUM';
+
+export type EvolutionAuthorRole = 'VETERINARIO' | 'ENFERMERIA' | 'ASISTENTE' | 'DIRECTOR_MEDICO';
+export type EvolutionStatus = 'BORRADOR' | 'FIRMADO' | 'CON_ADDENDUM' | 'ANULADO';
+
+export interface EvolutionAddendum {
+  id: string;
+  entryId: string;
+  authorName: string;
+  authorRole: EvolutionAuthorRole;
+  authorLicense?: string;
+  dateTime: string;
+  content: string;
+  reason: string;
+}
+
+export interface ClinicalEvolutionEntry {
+  id: string;
+  patientId: string;
+  hospitalizationId?: string;
+  type: EvolutionEntryType;
+  status: EvolutionStatus;
+  dateTime: string; // Fecha y hora clínica
+  createdAt: string; // Timestamp real de creación
+  authorName: string;
+  authorRole: EvolutionAuthorRole;
+  authorLicense?: string; // Matrícula profesional si aplica
+  branchId?: string;
+  sector?: string;
+  subjectiveSummary?: string;
+  objectiveSummary?: string;
+  assessment?: string;
+  plan?: string;
+  nursingNotes?: string;
+  assistantNotes?: string;
+  administeredTreatments?: string[];
+  vitalSignsSnapshot?: {
+    heartRate?: number;
+    respiratoryRate?: number;
+    temperature?: number;
+    systolicBP?: number;
+    diastolicBP?: number;
+    spo2?: number;
+    bloodGlucose?: number;
+  };
+  nextAction?: string;
+  nextActionDueDate?: string;
+  nextActionAssignee?: string;
+  isEscalated?: boolean;
+  addenda?: EvolutionAddendum[];
+  signatureHash?: string;
+}
+

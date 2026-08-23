@@ -31,6 +31,7 @@ import {
   Prescription,
   AntimicrobialRecord,
   ClinicalAmendment,
+  ClinicalEvolutionEntry,
 } from '../types';
 import {
   INITIAL_BRANCHES,
@@ -59,6 +60,7 @@ import {
   INITIAL_PATHOLOGICAL_WASTE,
   INITIAL_PRESCRIPTIONS,
   INITIAL_ANTIMICROBIAL_RECORDS,
+  INITIAL_CLINICAL_EVOLUTIONS,
 } from '../mockData';
 import { ToastMessage } from '../components/ToastNotification';
 import { MedicalPrintData } from '../components/MedicalPrintModal';
@@ -119,6 +121,12 @@ interface VetContextType {
   pathologicalWaste: PathologicalWasteRecord[];
   prescriptions: Prescription[];
   antimicrobialRecords: AntimicrobialRecord[];
+  clinicalEvolutions: ClinicalEvolutionEntry[];
+
+  // Clinical Evolution Actions
+  addClinicalEvolution: (entry: Omit<ClinicalEvolutionEntry, 'id' | 'createdAt' | 'status'>) => ClinicalEvolutionEntry;
+  signClinicalEvolution: (id: string) => void;
+  addEvolutionAddendum: (id: string, content: string, reason: string) => void;
 
   // Regulatory & Controlled Drugs & Waste Actions
   addRegulatoryRule: (rule: Omit<RegulatoryRule, 'id' | 'lastReviewedAt'>) => void;
@@ -380,6 +388,11 @@ export const VetProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [antimicrobialRecords, setAntimicrobialRecords] = useState<AntimicrobialRecord[]>(() => {
     const saved = localStorage.getItem('vetsys_antimicrobial_records');
     return saved ? JSON.parse(saved) : INITIAL_ANTIMICROBIAL_RECORDS;
+  });
+
+  const [clinicalEvolutions, setClinicalEvolutions] = useState<ClinicalEvolutionEntry[]>(() => {
+    const saved = localStorage.getItem('vetsys_clinical_evolutions');
+    return saved ? JSON.parse(saved) : INITIAL_CLINICAL_EVOLUTIONS;
   });
 
   // Regulatory & Controlled Drugs & Waste Handlers
@@ -1423,10 +1436,66 @@ Hoy hemos evaluado a ${petName} en nuestro centro hospitalario. Queremos transmi
       console.warn('Backend AI assistance offline, using client fallback:', err);
     }
 
-    // Client fallback to ensure user experience is never broken
     const fallbackText = generateClientClinicalAiFallback(type, prompt, patientData);
     logAudit('CONSULTA_IA_CLINICA', 'AI_Assistant', type, `Asistente IA generó respuesta clínica (${type})`);
     return { success: true, text: fallbackText };
+  };
+
+  const addClinicalEvolution = (entryData: Omit<ClinicalEvolutionEntry, 'id' | 'createdAt' | 'status'>): ClinicalEvolutionEntry => {
+    const newEntry: ClinicalEvolutionEntry = {
+      ...entryData,
+      id: `evo-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
+      createdAt: new Date().toISOString(),
+      status: 'FIRMADO',
+      signatureHash: `SHA256:evo_${Date.now()}_${currentUser.name.replace(/\s+/g, '_')}`,
+    };
+
+    setClinicalEvolutions((prev) => [newEntry, ...prev]);
+    showToast('success', 'Evolución Registrada', `Evolución (${newEntry.type}) firmada por ${newEntry.authorName}.`);
+    logAudit('CREAR_EVOLUCION', 'ClinicalEvolution', newEntry.id, `Evolución ${newEntry.type} para paciente ${newEntry.patientId}`);
+    return newEntry;
+  };
+
+  const signClinicalEvolution = (id: string) => {
+    setClinicalEvolutions((prev) =>
+      prev.map((evo) =>
+        evo.id === id
+          ? {
+              ...evo,
+              status: 'FIRMADO',
+              signatureHash: `SHA256:signed_${Date.now()}_${currentUser.name}`,
+            }
+          : evo
+      )
+    );
+    showToast('success', 'Evolución Firmada', 'La nota ha sido firmada digitalmente.');
+  };
+
+  const addEvolutionAddendum = (id: string, addendumContent: string, reason: string) => {
+    const newAddendum = {
+      id: `add-${Date.now()}`,
+      entryId: id,
+      authorName: currentUser.name,
+      authorRole: currentUser.role as any,
+      authorLicense: currentUser.licenseNumber,
+      dateTime: new Date().toISOString(),
+      content: addendumContent,
+      reason,
+    };
+
+    setClinicalEvolutions((prev) =>
+      prev.map((evo) =>
+        evo.id === id
+          ? {
+              ...evo,
+              status: 'CON_ADDENDUM',
+              addenda: [...(evo.addenda || []), newAddendum],
+            }
+          : evo
+      )
+    );
+    showToast('success', 'Addendum Registrado', 'Se ha anexado una aclaración formal fechada a la nota médica.');
+    logAudit('ADDENDUM_EVOLUCION', 'ClinicalEvolution', id, `Addendum agregado: ${reason}`);
   };
 
   return (
@@ -1473,6 +1542,10 @@ Hoy hemos evaluado a ${petName} en nuestro centro hospitalario. Queremos transmi
         pathologicalWaste,
         prescriptions,
         antimicrobialRecords,
+    clinicalEvolutions,
+    addClinicalEvolution,
+    signClinicalEvolution,
+    addEvolutionAddendum,
 
         addRegulatoryRule,
         updateRegulatoryRuleStatus,

@@ -80,7 +80,36 @@ export const Patient360View: React.FC = () => {
     openWhatsAppHub,
     openImagingAnnotator,
     showToast,
+    currentUser,
+    clinicalEvolutions,
+    addClinicalEvolution,
+    addEvolutionAddendum,
   } = useVet();
+
+
+  // Unified Clinical Evolution State
+  const [showNewEvolutionModal, setShowNewEvolutionModal] = useState(false);
+  const [evolutionType, setEvolutionType] = useState<'MEDICA' | 'ENFERMERIA' | 'AUXILIAR' | 'PASE_GUARDIA'>('MEDICA');
+  const [evoSubjective, setEvoSubjective] = useState('');
+  const [evoObjective, setEvoObjective] = useState('');
+  const [evoAssessment, setEvoAssessment] = useState('');
+  const [evoPlan, setEvoPlan] = useState('');
+  const [evoNursingNotes, setEvoNursingNotes] = useState('');
+  const [evoAssistantNotes, setEvoAssistantNotes] = useState('');
+  const [evoTreatments, setEvoTreatments] = useState('');
+  const [evoNextAction, setEvoNextAction] = useState('');
+  const [evoNextDueDate, setEvoNextDueDate] = useState('');
+  const [evoNextAssignee, setEvoNextAssignee] = useState('');
+  const [evoSector, setEvoSector] = useState('UCI Canil 02');
+
+  // Addendum Modal State
+  const [showAddendumModal, setShowAddendumModal] = useState(false);
+  const [selectedEvoForAddendum, setSelectedEvoForAddendum] = useState<string | null>(null);
+  const [addendumContent, setAddendumContent] = useState('');
+  const [addendumReason, setAddendumReason] = useState('');
+
+  // Evolution Timeline Filter
+  const [evolutionFilter, setEvolutionFilter] = useState<string>('TODOS');
 
   const [aiGenerating, setAiGenerating] = useState(false);
   const [aiSummaryResult, setAiSummaryResult] = useState<string | null>(null);
@@ -203,7 +232,7 @@ export const Patient360View: React.FC = () => {
   const tabs = [
     { id: 'RESUMEN', label: 'Resumen 360°', icon: Activity },
     { id: 'TUTOR', label: 'Tutor Responsable', icon: User, count: owner ? 1 : 0 },
-    { id: 'HISTORIA', label: 'Historia Clínica', icon: FileText, count: timelineEvents.length },
+    { id: 'HISTORIA', label: 'Evolución Clínica & Historia', icon: Sparkles, count: (clinicalEvolutions?.filter(e => e.patientId === patient.id).length || 0) + timelineEvents.length },
     { id: 'CONSULTAS', label: 'Consultas SOAP', icon: Stethoscope, count: patientConsultations.length },
     { id: 'SIGNOS', label: 'Signos Vitales', icon: Heart, count: patientVitals.length },
     { id: 'PROBLEMAS', label: 'Problemas & Diagnósticos', icon: AlertTriangle, count: patientProblems.length },
@@ -231,6 +260,66 @@ export const Patient360View: React.FC = () => {
     if (res.success) {
       setAiSummaryResult(res.text);
     }
+  };
+
+
+  const handleCreateEvolution = (e: React.FormEvent) => {
+    e.preventDefault();
+    const effectiveRole = currentUser.role === 'ENFERMERIA' ? 'ENFERMERIA' : currentUser.role === 'ASISTENTE' ? 'ASISTENTE' : 'VETERINARIO';
+
+    addClinicalEvolution({
+      patientId: patient.id,
+      hospitalizationId: patientHosp?.id,
+      type: evolutionType,
+      dateTime: new Date().toISOString(),
+      authorName: currentUser.name,
+      authorRole: effectiveRole as any,
+      authorLicense: currentUser.licenseNumber,
+      sector: evoSector,
+      subjectiveSummary: evoSubjective,
+      objectiveSummary: evoObjective,
+      assessment: evoAssessment,
+      plan: evoPlan,
+      nursingNotes: evoNursingNotes,
+      assistantNotes: evoAssistantNotes,
+      administeredTreatments: evoTreatments ? evoTreatments.split(',').map(t => t.trim()) : undefined,
+      vitalSignsSnapshot: latestVital ? {
+        temperature: latestVital.temperature,
+        heartRate: latestVital.heartRate,
+        respiratoryRate: latestVital.respiratoryRate,
+        systolicBP: latestVital.systolicBP,
+        diastolicBP: latestVital.diastolicBP,
+        spo2: latestVital.spo2,
+        bloodGlucose: latestVital.bloodGlucose,
+      } : undefined,
+      nextAction: evoNextAction,
+      nextActionDueDate: evoNextDueDate,
+      nextActionAssignee: evoNextAssignee,
+    });
+
+    // Reset form
+    setEvoSubjective('');
+    setEvoObjective('');
+    setEvoAssessment('');
+    setEvoPlan('');
+    setEvoNursingNotes('');
+    setEvoAssistantNotes('');
+    setEvoTreatments('');
+    setEvoNextAction('');
+    setEvoNextDueDate('');
+    setEvoNextAssignee('');
+    setShowNewEvolutionModal(false);
+  };
+
+  const handleCreateAddendum = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedEvoForAddendum || !addendumContent || !addendumReason) return;
+
+    addEvolutionAddendum(selectedEvoForAddendum, addendumContent, addendumReason);
+    setAddendumContent('');
+    setAddendumReason('');
+    setSelectedEvoForAddendum(null);
+    setShowAddendumModal(false);
   };
 
   const handleCreateProblem = (e: React.FormEvent) => {
@@ -2103,6 +2192,239 @@ export const Patient360View: React.FC = () => {
                   className="px-5 py-2 bg-teal-600 hover:bg-teal-500 text-white rounded-xl font-bold shadow-md shadow-teal-600/20 active:scale-95 transition-all"
                 >
                   Guardar Pesaje
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: NUEVA EVOLUCIÓN CLÍNICA UNIFICADA */}
+      {showNewEvolutionModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs">
+          <div className="bg-white rounded-3xl max-w-2xl w-full p-6 space-y-5 shadow-2xl border border-slate-100 max-h-[90vh] overflow-y-auto text-left">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div>
+                <h3 className="text-base font-black text-slate-900">Registrar Evolución Clínica</h3>
+                <p className="text-xs text-slate-500">
+                  Paciente: <span className="font-bold text-teal-700">{patient.name}</span> (HC: {patient.clinicalRecordNumber}) • Autor: {currentUser.name}
+                </p>
+              </div>
+              <button onClick={() => setShowNewEvolutionModal(false)} className="text-slate-400 hover:text-slate-600 p-1 text-lg font-bold">
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleCreateEvolution} className="space-y-4 text-xs">
+              {/* Type Selection */}
+              <div className="space-y-1.5">
+                <label className="font-bold text-slate-700">Tipo de Evolución</label>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                  {[
+                    { id: 'MEDICA', label: 'Médica (SOAP)', roleReq: 'VET' },
+                    { id: 'ENFERMERIA', label: 'Técnica / Cuidados', roleReq: 'ALL' },
+                    { id: 'AUXILIAR', label: 'Auxiliar / Higiene', roleReq: 'ALL' },
+                    { id: 'PASE_GUARDIA', label: 'Pase de Guardia', roleReq: 'ALL' },
+                  ].map((t) => (
+                    <button
+                      type="button"
+                      key={t.id}
+                      onClick={() => setEvolutionType(t.id as any)}
+                      className={`p-2.5 rounded-xl font-bold border text-center transition-all ${
+                        evolutionType === t.id
+                          ? 'bg-teal-700 text-white border-teal-700 shadow-2xs'
+                          : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
+                      }`}
+                    >
+                      {t.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Form Fields by Type */}
+              {evolutionType === 'MEDICA' ? (
+                <div className="space-y-3">
+                  <div>
+                    <label className="font-bold text-slate-700 block mb-1">Subjetivo (Anamnesis / Estado general)</label>
+                    <textarea
+                      rows={2}
+                      value={evoSubjective}
+                      onChange={(e) => setEvoSubjective(e.target.value)}
+                      placeholder="Evolución clínica de las últimas horas, apetito, actitud..."
+                      className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-teal-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="font-bold text-slate-700 block mb-1">Objetivo (Hallazgos físicos relevantes)</label>
+                    <textarea
+                      rows={2}
+                      value={evoObjective}
+                      onChange={(e) => setEvoObjective(e.target.value)}
+                      placeholder="Constantes, palpación abdominal, auscultación cardiopulmonar..."
+                      className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-teal-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="font-bold text-slate-700 block mb-1">Evaluación Diagnóstica</label>
+                    <input
+                      type="text"
+                      value={evoAssessment}
+                      onChange={(e) => setEvoAssessment(e.target.value)}
+                      placeholder="Diagnóstico presuntivo o definitivo..."
+                      className="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-teal-500 font-medium"
+                    />
+                  </div>
+                  <div>
+                    <label className="font-bold text-slate-700 block mb-1">Plan Terapéutico & Indicaciones</label>
+                    <textarea
+                      rows={2}
+                      value={evoPlan}
+                      onChange={(e) => setEvoPlan(e.target.value)}
+                      placeholder="Fluidoterapia, antibióticos, dosis, horarios y estudios a solicitar..."
+                      className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-teal-500 font-medium"
+                    />
+                  </div>
+                </div>
+              ) : evolutionType === 'ENFERMERIA' ? (
+                <div className="space-y-3">
+                  <div>
+                    <label className="font-bold text-slate-700 block mb-1">Cuidados Técnicos & Procedimientos Realizados</label>
+                    <textarea
+                      rows={3}
+                      value={evoNursingNotes}
+                      onChange={(e) => setEvoNursingNotes(e.target.value)}
+                      placeholder="Administración de medicación, curación de vías, tolerancia digestiva..."
+                      className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-teal-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="font-bold text-slate-700 block mb-1">Tratamientos Administrados (separados por coma)</label>
+                    <input
+                      type="text"
+                      value={evoTreatments}
+                      onChange={(e) => setEvoTreatments(e.target.value)}
+                      placeholder="ej: Ringer Lactato 500ml, Maropitant 1.2ml IV, Omeprazol 20mg IV"
+                      className="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-teal-500 font-medium"
+                    />
+                  </div>
+                </div>
+              ) : (
+                <div>
+                  <label className="font-bold text-slate-700 block mb-1">Observaciones de Auxiliar / Higiene / Alimentación</label>
+                  <textarea
+                    rows={4}
+                    value={evoAssistantNotes}
+                    onChange={(e) => setEvoAssistantNotes(e.target.value)}
+                    placeholder="Higiene del canil, micción/defecación en paseo, consumo de agua o ración..."
+                    className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-teal-500"
+                  />
+                </div>
+              )}
+
+              {/* Next Action */}
+              <div className="p-3.5 bg-indigo-50/60 rounded-2xl border border-indigo-100 space-y-2">
+                <span className="font-bold text-indigo-950 uppercase text-[10px] block">
+                  Próxima Acción / Plan de Turno
+                </span>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                  <input
+                    type="text"
+                    value={evoNextAction}
+                    onChange={(e) => setEvoNextAction(e.target.value)}
+                    placeholder="Tarea a realizar (ej: Control glucemia)"
+                    className="p-2 bg-white border border-indigo-200 rounded-lg text-xs"
+                  />
+                  <input
+                    type="text"
+                    value={evoNextAssignee}
+                    onChange={(e) => setEvoNextAssignee(e.target.value)}
+                    placeholder="Responsable (ej: Enfermería)"
+                    className="p-2 bg-white border border-indigo-200 rounded-lg text-xs"
+                  />
+                  <input
+                    type="datetime-local"
+                    value={evoNextDueDate}
+                    onChange={(e) => setEvoNextDueDate(e.target.value)}
+                    className="p-2 bg-white border border-indigo-200 rounded-lg text-xs"
+                  />
+                </div>
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setShowNewEvolutionModal(false)}
+                  className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-xl font-bold"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 bg-teal-600 hover:bg-teal-500 text-white rounded-xl font-bold shadow-md shadow-teal-600/20"
+                >
+                  ✓ Firmar y Guardar Evolución
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: AGREGAR ADDENDUM A NOTA FIRMADA */}
+      {showAddendumModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs">
+          <div className="bg-white rounded-3xl max-w-lg w-full p-6 space-y-4 shadow-2xl border border-slate-100 text-left">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div>
+                <h3 className="text-base font-black text-slate-900">Agregar Addendum Fechado</h3>
+                <p className="text-xs text-slate-500">
+                  Las notas firmadas son inmutables. El addendum se anexará con fecha, hora y autor.
+                </p>
+              </div>
+              <button onClick={() => setShowAddendumModal(false)} className="text-slate-400 hover:text-slate-600 p-1 font-bold">
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleCreateAddendum} className="space-y-3 text-xs">
+              <div>
+                <label className="font-bold text-slate-700 block mb-1">Motivo del Addendum</label>
+                <input
+                  type="text"
+                  required
+                  value={addendumReason}
+                  onChange={(e) => setAddendumReason(e.target.value)}
+                  placeholder="ej: Aclaración de dosis, resultado de laboratorio tardío..."
+                  className="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-teal-500"
+                />
+              </div>
+
+              <div>
+                <label className="font-bold text-slate-700 block mb-1">Contenido de la Aclaración</label>
+                <textarea
+                  rows={4}
+                  required
+                  value={addendumContent}
+                  onChange={(e) => setAddendumContent(e.target.value)}
+                  placeholder="Escriba la aclaración médica o técnica a anexar..."
+                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-teal-500 font-medium"
+                />
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setShowAddendumModal(false)}
+                  className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-xl font-bold"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 bg-teal-600 hover:bg-teal-500 text-white rounded-xl font-bold"
+                >
+                  ✓ Anexar Addendum
                 </button>
               </div>
             </form>
