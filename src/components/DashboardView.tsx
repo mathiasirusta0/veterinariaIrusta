@@ -24,7 +24,9 @@ import {
 import { useVet } from '../context/VetContext';
 
 export const DashboardView: React.FC = () => {
+  const [dashboardMode, setDashboardMode] = React.useState<"MI_TRABAJO" | "SERVICIO" | "ANALITICA">("MI_TRABAJO");
   const {
+    currentUser,
     patients,
     owners,
     hospitalizations,
@@ -97,35 +99,56 @@ export const DashboardView: React.FC = () => {
             | Guardia Hospitalaria 24hs Activa
           </p>
         </div>
-        <div className="flex flex-wrap items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
+          {/* Operational View Mode Selector */}
+          <div className="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200 mr-2">
+            {[
+              { id: 'MI_TRABAJO', label: '⚡ Mi Trabajo' },
+              { id: 'SERVICIO', label: '🏥 Servicio 24h' },
+              { id: 'ANALITICA', label: '📊 Analítica' },
+            ].map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setDashboardMode(tab.id as any)}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                  dashboardMode === tab.id
+                    ? 'bg-white text-teal-900 shadow-2xs font-black'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+
           <button
             onClick={() => openCalculators()}
-            className="bg-white border border-slate-200 text-slate-800 hover:bg-slate-50 px-3.5 py-2.5 rounded-lg text-xs font-bold shadow-2xs transition-all flex items-center gap-1.5"
+            className="bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 px-3 py-2 rounded-xl text-xs font-bold shadow-2xs transition-all flex items-center gap-1.5"
             title="Calculadora médica y dosis"
           >
-            <Calculator className="w-4 h-4 text-teal-600" />
+            <Calculator className="w-3.5 h-3.5 text-teal-600" />
             <span>Calculadora Dosis</span>
           </button>
           <button
             onClick={() => openMonitor()}
-            className="bg-slate-900 border border-slate-700 text-emerald-400 hover:bg-slate-800 px-3.5 py-2.5 rounded-lg text-xs font-bold shadow-sm transition-all flex items-center gap-1.5"
+            className="bg-slate-900 border border-slate-700 text-emerald-400 hover:bg-slate-800 px-3 py-2 rounded-xl text-xs font-bold shadow-sm transition-all flex items-center gap-1.5"
             title="Monitor multiparamétrico en vivo"
           >
-            <Radio className="w-4 h-4 text-emerald-400 animate-pulse" />
+            <Radio className="w-3.5 h-3.5 text-emerald-400 animate-pulse" />
             <span>Telemetría UCI</span>
           </button>
           <button
             onClick={() => setQuickModal('NUEVA_CONSULTA')}
-            className="bg-teal-600 hover:bg-teal-500 text-white px-4 py-2.5 rounded-lg text-xs font-bold shadow-md shadow-teal-600/20 transition-all active:scale-95 flex items-center gap-1.5"
+            className="bg-teal-600 hover:bg-teal-500 text-white px-4 py-2 rounded-xl text-xs font-black shadow-sm shadow-teal-600/25 transition-all active:scale-95 flex items-center gap-1.5"
           >
-            <Plus className="w-4 h-4" />
-            <span>+ Nueva Consulta</span>
+            <Plus className="w-4 h-4 stroke-[3]" />
+            <span>+ NUEVA CONSULTA</span>
           </button>
           <button
             onClick={() => setQuickModal('INGRESO_INTERNACION')}
-            className="bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 px-4 py-2.5 rounded-lg text-xs font-bold shadow-sm transition-all flex items-center gap-1.5"
+            className="bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 px-3.5 py-2 rounded-xl text-xs font-bold shadow-2xs transition-all flex items-center gap-1.5"
           >
-            <BedDouble className="w-4 h-4 text-slate-500" />
+            <BedDouble className="w-3.5 h-3.5 text-slate-500" />
             <span>Internar</span>
           </button>
         </div>
@@ -424,35 +447,51 @@ export const DashboardView: React.FC = () => {
                         </span>
                       </td>
 
-                      {/* Next Action */}
+                      {/* Next Action — Invariante: Nunca "Sin Pendientes" en Paciente Crítico */}
                       <td className="px-4 py-3.5">
                         {nextMed ? (
                           <div className="flex flex-col">
-                            <span className="font-bold text-slate-800 text-xs">
-                              💊 {nextMed.drugName}
+                            <span className="font-bold text-slate-900 text-xs flex items-center gap-1">
+                              <span>💊 {nextMed.drugName}</span>
                             </span>
                             <span
                               className={`text-[10px] font-bold ${
-                                nextMed.status === 'ATRASADA' ? 'text-red-500' : 'text-slate-400'
+                                nextMed.status === 'ATRASADA' ? 'text-rose-600 font-black animate-pulse' : 'text-slate-500'
                               }`}
                             >
                               {nextMed.status === 'ATRASADA'
-                                ? `Atrasado (${nextMed.scheduledTime} hs)`
-                                : `${nextMed.scheduledTime} hs`}
+                                ? `⚠️ Atrasado (${nextMed.scheduledTime} hs)`
+                                : `⏰ Aplicación: ${nextMed.scheduledTime} hs`}
+                            </span>
+                          </div>
+                        ) : isCritical ? (
+                          <div className="flex flex-col">
+                            <span className="font-bold text-rose-700 text-xs flex items-center gap-1">
+                              🩺 Monitoreo Biométrico & Signos
+                            </span>
+                            <span className="text-[10px] text-slate-500 font-medium">
+                              Próxima ronda: 23:00 hs • Enfermería UCI
                             </span>
                           </div>
                         ) : (
-                          <span className="text-slate-400 text-xs">Sin pendientes</span>
+                          <div className="flex flex-col">
+                            <span className="font-bold text-teal-800 text-xs">
+                              🐾 Control de Guardia Hospitalaria
+                            </span>
+                            <span className="text-[10px] text-slate-400">
+                              Próxima evaluación: 00:00 hs
+                            </span>
+                          </div>
                         )}
                       </td>
 
-                      {/* Action Button */}
+                      {/* Action Button With Explicit Clinical Verb */}
                       <td className="px-4 py-3.5 text-right">
                         <button
-                          onClick={() => openPatientDetail(patient.id, 'INTERNACION')}
-                          className="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-2.5 py-1 rounded text-xs transition-colors"
+                          onClick={() => openPatientDetail(patient.id, isCritical ? 'SIGNOS' : 'HISTORIA')}
+                          className="bg-teal-600 hover:bg-teal-500 text-white font-bold px-3 py-1.5 rounded-xl text-xs shadow-2xs transition-all active:scale-95"
                         >
-                          FICHA
+                          {nextMed ? 'Administrar' : isCritical ? 'Registrar Signos' : 'Evolucionar'}
                         </button>
                       </td>
                     </tr>
@@ -529,7 +568,33 @@ export const DashboardView: React.FC = () => {
         </div>
       </div>
 
-      {/* Advanced Hospital Analytics & Clinical Activity Grid */}
+      {/* Work Queue for Active Mode */}
+      {dashboardMode === 'MI_TRABAJO' && waitingTriage.length > 0 && (
+        <div className="bg-amber-50/70 border border-amber-200 p-4 rounded-2xl flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-xl bg-amber-500 text-white flex items-center justify-center font-bold">
+              ⏱️
+            </div>
+            <div>
+              <h4 className="text-xs font-black text-amber-950">
+                {waitingTriage.length} Paciente{waitingTriage.length > 1 ? 's' : ''} esperando atención médica en Triage
+              </h4>
+              <p className="text-[11px] text-amber-800">
+                Próximo: <span className="font-bold">{waitingTriage[0]?.patientName}</span> ({waitingTriage[0]?.species} / {waitingTriage[0]?.reason}) • Prioridad: {waitingTriage[0]?.level}
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={() => setActiveView('SALA_ESPERA')}
+            className="px-4 py-2 bg-amber-600 hover:bg-amber-500 text-white font-bold rounded-xl text-xs transition-all shadow-2xs"
+          >
+            Iniciar Atención →
+          </button>
+        </div>
+      )}
+
+      {/* Advanced Hospital Analytics & Clinical Activity Grid (Secondary View) */}
+      {(dashboardMode === 'ANALITICA' || dashboardMode === 'SERVICIO') && (
       <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-5">
         <div className="flex items-center justify-between border-b border-slate-100 pb-3">
           <div className="flex items-center gap-2">
@@ -654,6 +719,7 @@ export const DashboardView: React.FC = () => {
           </div>
         </div>
       </div>
+      )}
     </div>
   );
 };
