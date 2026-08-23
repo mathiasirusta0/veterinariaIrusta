@@ -47,6 +47,17 @@ export const HospitalizationWhiteboardView: React.FC = () => {
   } = useVet();
 
   const [sectorFilter, setSectorFilter] = useState('TODOS');
+  const [speciesFilter, setSpeciesFilter] = useState('TODAS');
+  const [interventionHosp, setInterventionHosp] = useState<Hospitalization | null>(null);
+  const [interventionTab, setInterventionTab] = useState<'RESUMEN' | 'EVOLUCION' | 'PLAN' | 'RESULTADOS'>('RESUMEN');
+  const [showIndicateModal, setShowIndicateModal] = useState(false);
+  const [indicationType, setIndicationType] = useState<'MEDICACION' | 'FLUIDOS' | 'ESTUDIO' | 'PROCEDIMIENTO' | 'MONITOREO'>('MEDICACION');
+  const [newIndicationDrug, setNewIndicationDrug] = useState('');
+  const [newIndicationDose, setNewIndicationDose] = useState('');
+  const [newIndicationFreq, setNewIndicationFreq] = useState('Cada 12 horas');
+  const [newIndicationRoute, setNewIndicationRoute] = useState('IV');
+  const [newIndicationTarget, setNewIndicationTarget] = useState('');
+
   const [priorityFilter, setPriorityFilter] = useState('TODOS');
   const [administerMsg, setAdministerMsg] = useState<{ id: string; text: string; success: boolean } | null>(null);
 
@@ -82,9 +93,11 @@ export const HospitalizationWhiteboardView: React.FC = () => {
 
   const activeHospital = hospitalizations.filter((h) => {
     const isAct = h.status === 'ACTIVA';
-    const matchesSector = sectorFilter === 'TODOS' || h.sector === sectorFilter;
+    const pat = patients.find((p) => p.id === h.patientId);
+    const matchesSector = sectorFilter === 'TODOS' || h.sector === sectorFilter || (sectorFilter === 'UCI' && h.sector?.includes('UCI'));
     const matchesPriority = priorityFilter === 'TODOS' || h.priority === priorityFilter;
-    return isAct && matchesSector && matchesPriority;
+    const matchesSpecies = speciesFilter === 'TODAS' || pat?.species?.toUpperCase() === speciesFilter.toUpperCase();
+    return isAct && matchesSector && matchesPriority && matchesSpecies;
   });
 
   const handleAdminister = (hospitalizationId: string, medicationId: string) => {
@@ -341,37 +354,64 @@ export const HospitalizationWhiteboardView: React.FC = () => {
         </div>
       </div>
 
-      {/* Sector & Priority Filter Bar */}
-      <div className="bg-white border border-slate-200 p-4 rounded-xl shadow-sm flex flex-wrap items-center justify-between gap-3 text-xs">
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="font-bold text-slate-500 uppercase text-[10px]">Sector:</span>
-          {['TODOS', 'UCI', 'CANINOS', 'FELINOS', 'AISLAMIENTO_INFECCIOSOS'].map((sec) => (
-            <button
-              key={sec}
-              onClick={() => setSectorFilter(sec)}
-              className={`px-3 py-1.5 rounded-lg font-bold transition-all ${
-                sectorFilter === sec
-                  ? 'bg-teal-600 text-white shadow-xs'
-                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-              }`}
+      {/* Clean Assistance Sector & Species Filter Bar */}
+      <div className="bg-white border border-slate-200 p-4 rounded-2xl shadow-xs space-y-3 text-xs">
+        {/* Row 1: Clinical Assistance Sectors */}
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex flex-wrap items-center gap-1.5">
+            <span className="font-bold text-slate-400 uppercase text-[10px] mr-1">Sector Asistencial:</span>
+            {[
+              { id: 'TODOS', label: 'Todos los Sectores' },
+              { id: 'UCI', label: '🚨 Cuidados Intensivos (UCI)' },
+              { id: 'INTERNACION_GENERAL', label: '🏥 Internación General' },
+              { id: 'AISLAMIENTO_INFECCIOSOS', label: '🛡️ Aislamiento Infeccioso' },
+              { id: 'RECUPERACION_QUIRURGICA', label: '✂️ Recuperación Quirúrgica' },
+            ].map((sec) => (
+              <button
+                key={sec.id}
+                onClick={() => setSectorFilter(sec.id)}
+                className={`px-3 py-1.5 rounded-xl font-bold transition-all ${
+                  sectorFilter === sec.id
+                    ? 'bg-teal-700 text-white shadow-2xs'
+                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200/80'
+                }`}
+              >
+                {sec.label}
+              </button>
+            ))}
+          </div>
+
+          <div className="flex items-center gap-2">
+            <span className="font-bold text-slate-400 uppercase text-[10px]">Prioridad:</span>
+            <select
+              value={priorityFilter}
+              onChange={(e) => setPriorityFilter(e.target.value)}
+              className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-slate-700 font-bold focus:ring-2 focus:ring-teal-500"
             >
-              {sec.replace(/_/g, ' ')}
-            </button>
-          ))}
+              <option value="TODOS">Todas las Prioridades</option>
+              <option value="CRITICO">🚨 Crítico</option>
+              <option value="PRIORITARIO">⚠️ Prioritario</option>
+              <option value="ESTABLE">✓ Estable</option>
+            </select>
+          </div>
         </div>
 
-        <div className="flex items-center gap-2">
-          <span className="font-bold text-slate-500 uppercase text-[10px]">Prioridad:</span>
-          <select
-            value={priorityFilter}
-            onChange={(e) => setPriorityFilter(e.target.value)}
-            className="bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1 text-slate-700 font-bold focus:outline-none focus:ring-2 focus:ring-teal-500"
-          >
-            <option value="TODOS">Todas las Prioridades</option>
-            <option value="CRITICO">Crítico</option>
-            <option value="PRIORITARIO">Prioritario</option>
-            <option value="ESTABLE">Estable</option>
-          </select>
+        {/* Row 2: Species Filter (Separated from Clinical Sectors) */}
+        <div className="pt-2 border-t border-slate-100 flex items-center gap-2">
+          <span className="font-bold text-slate-400 uppercase text-[10px]">Filtrar Especie:</span>
+          {['TODAS', 'CANINO', 'FELINO', 'EXOTICO'].map((sp) => (
+            <button
+              key={sp}
+              onClick={() => setSpeciesFilter(sp)}
+              className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all ${
+                speciesFilter === sp
+                  ? 'bg-slate-900 text-white'
+                  : 'bg-slate-100 text-slate-500 hover:text-slate-800'
+              }`}
+            >
+              {sp === 'TODAS' ? 'Todas las especies' : sp === 'CANINO' ? '🐶 Caninos' : sp === 'FELINO' ? '🐱 Felinos' : '🦜 Exóticos'}
+            </button>
+          ))}
         </div>
       </div>
 
@@ -599,43 +639,38 @@ export const HospitalizationWhiteboardView: React.FC = () => {
                 </div>
               </div>
 
-              {/* Bottom Card Actions — Contextual Clinical Actions */}
-              <div className="pt-3 border-t border-slate-100 grid grid-cols-2 sm:grid-cols-4 gap-1.5 text-xs">
+              {/* Bottom Card Actions — Single Primary Action & Contextual Actions */}
+              <div className="pt-3 border-t border-slate-100 flex items-center justify-between gap-2 text-xs">
                 <button
                   onClick={() => {
                     setSelectedPatientId(patient.id);
-                    setActivePatientTab('HISTORIA');
-                    setActiveView('PACIENTES');
+                    setInterventionHosp(hosp);
+                    setInterventionTab('RESUMEN');
                   }}
-                  className="py-1.5 px-2 bg-teal-600 hover:bg-teal-500 text-white font-bold rounded-lg text-[11px] transition-colors shadow-2xs text-center"
+                  className="flex-1 py-2 px-4 bg-teal-600 hover:bg-teal-500 text-white font-black rounded-xl text-xs transition-all shadow-sm shadow-teal-600/20 active:scale-95 flex items-center justify-center gap-1.5"
                 >
-                  + Evolucionar
+                  <span>Abrir Intervención</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
                 </button>
-                <button
-                  onClick={() => {
-                    setSelectedPatientId(patient.id);
-                    setActivePatientTab('SIGNOS');
-                    setActiveView('PACIENTES');
-                  }}
-                  className="py-1.5 px-2 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold rounded-lg text-[11px] transition-colors text-center"
-                >
-                  Signos Vitales
-                </button>
+
                 <button
                   onClick={() => {
                     setSelectedPatientId(patient.id);
                     setActivePatientTab('RESUMEN');
                     setActiveView('PACIENTES');
                   }}
-                  className="py-1.5 px-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-lg text-[11px] transition-colors text-center"
+                  className="py-2 px-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs transition-all"
+                  title="Abrir Ficha 360° Completa"
                 >
                   Ficha 360°
                 </button>
+
                 <button
                   onClick={() => dischargeHospitalPatient(hosp.id, 'Alta médica hospitalaria programada.')}
-                  className="py-1.5 px-2 bg-white border border-slate-200 hover:bg-rose-50 hover:border-rose-200 hover:text-rose-700 text-slate-600 font-bold rounded-lg text-[11px] transition-colors text-center"
+                  className="py-2 px-3 bg-white border border-slate-200 hover:bg-rose-50 hover:border-rose-200 hover:text-rose-700 text-slate-500 font-bold rounded-xl text-xs transition-all"
+                  title="Dar de alta al paciente"
                 >
-                  Dar de Alta
+                  Alta
                 </button>
               </div>
             </div>
@@ -911,6 +946,310 @@ export const HospitalizationWhiteboardView: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* 🏥 ESPACIO DE INTERVENCIÓN RÁPIDA DEL PACIENTE (MODAL WORKSPACE) */}
+      {interventionHosp && (() => {
+        const patient = patients.find((p) => p.id === interventionHosp.patientId) || patients[0];
+        const isCritical = interventionHosp.priority === 'CRITICO';
+
+        return (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-slate-950/70 backdrop-blur-xs animate-in fade-in">
+            <div className="bg-white rounded-3xl max-w-4xl w-full h-[90vh] flex flex-col shadow-2xl border border-slate-100 overflow-hidden text-left">
+              {/* Persistent Header */}
+              <div className="p-5 bg-slate-900 text-white flex flex-wrap items-center justify-between gap-4 flex-shrink-0">
+                <div className="flex items-center gap-3.5">
+                  <div className="w-12 h-12 rounded-2xl bg-teal-500 text-slate-950 font-black text-xl flex items-center justify-center shadow-md">
+                    {patient.species === 'CANINO' ? '🐶' : patient.species === 'FELINO' ? '🐱' : '🐾'}
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h2 className="text-lg font-black text-white">{patient.name}</h2>
+                      <span className="text-xs text-teal-300 font-medium font-mono">HC: {patient.clinicalRecordNumber}</span>
+                      <span
+                        className={`text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase ${
+                          isCritical ? 'bg-rose-600 text-white' : 'bg-teal-600 text-white'
+                        }`}
+                      >
+                        {interventionHosp.priority}
+                      </span>
+                    </div>
+                    <p className="text-xs text-slate-300">
+                      {patient.species} • {patient.breed} • {formatWeight(patient.weight)} • <span className="text-teal-400 font-bold">Canil {interventionHosp.kennelNumber} ({interventionHosp.sector})</span>
+                    </p>
+                  </div>
+                </div>
+
+                {/* 3 Main Action Buttons */}
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => {
+                      setSelectedPatientId(patient.id);
+                      setActivePatientTab('HISTORIA');
+                      setActiveView('PACIENTES');
+                    }}
+                    className="px-3.5 py-2 bg-teal-500 hover:bg-teal-400 text-slate-950 font-black text-xs rounded-xl transition-all shadow-sm flex items-center gap-1.5"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>Evolucionar</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      setSelectedPatientId(patient.id);
+                      setActivePatientTab('SIGNOS');
+                      setActiveView('PACIENTES');
+                    }}
+                    className="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-teal-300 font-bold text-xs rounded-xl transition-all border border-slate-700 flex items-center gap-1.5"
+                  >
+                    <Heart className="w-3.5 h-3.5" />
+                    <span>Registrar Signos</span>
+                  </button>
+                  <button
+                    onClick={() => setShowIndicateModal(true)}
+                    className="px-3.5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs rounded-xl transition-all shadow-sm flex items-center gap-1.5"
+                  >
+                    <Pill className="w-3.5 h-3.5" />
+                    <span>+ Indicar</span>
+                  </button>
+                  <button
+                    onClick={() => setInterventionHosp(null)}
+                    className="text-slate-400 hover:text-white p-2 text-lg font-bold ml-2"
+                  >
+                    ✕
+                  </button>
+                </div>
+              </div>
+
+              {/* Workspace Navigation Tabs */}
+              <div className="px-6 py-2.5 bg-slate-100/90 border-b border-slate-200 flex items-center gap-2 flex-shrink-0">
+                {[
+                  { id: 'RESUMEN', label: '1. Resumen Clínico' },
+                  { id: 'PLAN', label: '2. Plan de Intervención & Fármacos' },
+                  { id: 'EVOLUCION', label: '3. Línea de Evolución' },
+                  { id: 'RESULTADOS', label: '4. Estudios & Lab' },
+                ].map((tab) => (
+                  <button
+                    key={tab.id}
+                    onClick={() => setInterventionTab(tab.id as any)}
+                    className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+                      interventionTab === tab.id
+                        ? 'bg-white text-teal-900 shadow-2xs font-black'
+                        : 'text-slate-600 hover:bg-white/60'
+                    }`}
+                  >
+                    {tab.label}
+                  </button>
+                ))}
+              </div>
+
+              {/* Workspace Body */}
+              <div className="p-6 flex-1 overflow-y-auto space-y-6">
+                {interventionTab === 'RESUMEN' && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    {/* Diagnosis & Fluid Status */}
+                    <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-3">
+                      <span className="font-bold text-teal-900 text-xs uppercase tracking-wider block">
+                        Diagnóstico & Fluidoterapia
+                      </span>
+                      <p className="text-sm font-bold text-slate-800">{interventionHosp.primaryDiagnosis}</p>
+                      {interventionHosp.fluidTherapy?.isActive && (
+                        <div className="p-3 bg-teal-100/60 rounded-xl text-xs text-teal-950 font-medium space-y-1">
+                          <div className="font-bold">💧 Solución: {interventionHosp.fluidTherapy.solutionType}</div>
+                          <div>Tasa: <span className="font-black font-mono">{interventionHosp.fluidTherapy.rateMlPerHour} ml/h</span> ({interventionHosp.fluidTherapy.dropsPerMinute} gtt/min)</div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Next Meds Queue */}
+                    <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-3">
+                      <span className="font-bold text-indigo-900 text-xs uppercase tracking-wider block">
+                        Medicaciones Próximas en Ronda
+                      </span>
+                      <div className="space-y-2">
+                        {(interventionHosp.medications || []).map((med) => (
+                          <div key={med.id} className="p-2.5 bg-white rounded-xl border border-slate-200 flex items-center justify-between text-xs">
+                            <div>
+                              <div className="font-bold text-slate-900">{med.drugName} ({med.dose})</div>
+                              <div className="text-[10px] text-slate-500 font-mono">⏰ {med.scheduledTime} hs • Vía {med.route}</div>
+                            </div>
+                            <button
+                              onClick={() => handleAdminister(interventionHosp.id, med.id)}
+                              className="px-3 py-1 bg-teal-600 hover:bg-teal-500 text-white rounded-lg font-bold text-[11px]"
+                            >
+                              ✓ Administrar
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {interventionTab === 'PLAN' && (
+                  <div className="space-y-4 text-xs">
+                    <div className="flex items-center justify-between">
+                      <h4 className="text-sm font-bold text-slate-900">Plan Farmacológico y Terapéutico Activo</h4>
+                      <button
+                        onClick={() => setShowIndicateModal(true)}
+                        className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold text-xs"
+                      >
+                        + Nueva Indicación
+                      </button>
+                    </div>
+
+                    <div className="divide-y divide-slate-100 border border-slate-200 rounded-2xl overflow-hidden bg-white">
+                      {(interventionHosp.medications || []).map((med) => (
+                        <div key={med.id} className="p-4 flex items-center justify-between hover:bg-slate-50">
+                          <div>
+                            <div className="font-bold text-slate-900 text-sm">💊 {med.drugName}</div>
+                            <div className="text-slate-500 text-xs mt-0.5">Dosis: {med.dose} • Vía: {med.route} • Frecuencia: {med.frequency}</div>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <span className="text-xs font-mono font-bold text-slate-700">{med.scheduledTime} hs</span>
+                            <button
+                              onClick={() => handleAdminister(interventionHosp.id, med.id)}
+                              className="px-3.5 py-1.5 bg-teal-600 hover:bg-teal-500 text-white rounded-xl font-bold"
+                            >
+                              ✓ Registrar Aplicación
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {interventionTab === 'EVOLUCION' && (
+                  <div className="text-center py-8 text-slate-500 text-xs space-y-3">
+                    <p>Las evoluciones del paciente están sincronizadas con su ficha médica.</p>
+                    <button
+                      onClick={() => {
+                        setSelectedPatientId(patient.id);
+                        setActivePatientTab('HISTORIA');
+                        setActiveView('PACIENTES');
+                      }}
+                      className="px-4 py-2 bg-teal-600 hover:bg-teal-500 text-white rounded-xl font-bold text-xs"
+                    >
+                      Abrir Ficha de Evolución Completa →
+                    </button>
+                  </div>
+                )}
+
+                {interventionTab === 'RESULTADOS' && (
+                  <div className="text-center py-8 text-slate-500 text-xs space-y-3">
+                    <p>Órdenes de laboratorio e informes radiológicos vinculados al paciente.</p>
+                    <button
+                      onClick={() => {
+                        setSelectedPatientId(patient.id);
+                        setActivePatientTab('LABORATORIO');
+                        setActiveView('PACIENTES');
+                      }}
+                      className="px-4 py-2 bg-teal-600 hover:bg-teal-500 text-white rounded-xl font-bold text-xs"
+                    >
+                      Ver Resultados de Laboratorio e Imágenes →
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* MODAL: INDICAR TRATAMIENTO O ESTUDIO */}
+      {showIndicateModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-xs">
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl border border-slate-100 text-left text-xs">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <h3 className="font-black text-sm text-slate-900">+ Indicar al Plan Terapéutico</h3>
+              <button onClick={() => setShowIndicateModal(false)} className="text-slate-400 hover:text-slate-600 font-bold">
+                ✕
+              </button>
+            </div>
+
+            <div className="space-y-3">
+              <div>
+                <label className="font-bold text-slate-700 block mb-1">Tipo de Indicación</label>
+                <div className="grid grid-cols-3 gap-1.5">
+                  {['MEDICACION', 'FLUIDOS', 'ESTUDIO'].map((t) => (
+                    <button
+                      type="button"
+                      key={t}
+                      onClick={() => setIndicationType(t as any)}
+                      className={`py-1.5 px-2 rounded-lg font-bold text-center ${
+                        indicationType === t
+                          ? 'bg-indigo-600 text-white'
+                          : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                      }`}
+                    >
+                      {t === 'MEDICACION' ? '💊 Medicación' : t === 'FLUIDOS' ? '💧 Fluidos' : '🧪 Estudio'}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <label className="font-bold text-slate-700 block mb-1">Fármaco / Procedimiento / Estudio</label>
+                <input
+                  type="text"
+                  value={newIndicationDrug}
+                  onChange={(e) => setNewIndicationDrug(e.target.value)}
+                  placeholder="ej: Maropitant 10mg/ml, Ringer Lactato, Hemograma..."
+                  className="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="font-bold text-slate-700 block mb-1">Dosis / Volumen</label>
+                  <input
+                    type="text"
+                    value={newIndicationDose}
+                    onChange={(e) => setNewIndicationDose(e.target.value)}
+                    placeholder="ej: 1.2 ml (1mg/kg)"
+                    className="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl"
+                  />
+                </div>
+                <div>
+                  <label className="font-bold text-slate-700 block mb-1">Vía de Aplicación</label>
+                  <select
+                    value={newIndicationRoute}
+                    onChange={(e) => setNewIndicationRoute(e.target.value)}
+                    className="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl font-bold"
+                  >
+                    <option value="IV">Intravenosa (IV)</option>
+                    <option value="SC">Subcutánea (SC)</option>
+                    <option value="IM">Intramuscular (IM)</option>
+                    <option value="PO">Oral (PO)</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
+              <button
+                type="button"
+                onClick={() => setShowIndicateModal(false)}
+                className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-xl font-bold"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  showToast('success', 'Indicación Guardada', `${newIndicationDrug || 'Fármaco'} agregado al plan terapéutico.`);
+                  setShowIndicateModal(false);
+                  setNewIndicationDrug('');
+                  setNewIndicationDose('');
+                }}
+                className="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold shadow-md shadow-indigo-600/20"
+              >
+                ✓ Guardar Indicación
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 };
