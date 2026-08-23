@@ -27,11 +27,11 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({ onOpenMobileMe
 
   return (
     <nav
-      aria-label="Navegación principal móvil"
+      aria-label="Navegación principal móvil y tablet"
       className="md:hidden fixed-viewport-bottom bg-white border-t border-slate-200/90 shadow-[0_-4px_25px_rgba(0,0,0,0.08)] select-none safe-bottom"
     >
-      <div className="w-full max-w-screen-xl mx-auto flex items-center justify-between px-1.5 sm:px-3 h-[64px] sm:h-[70px]">
-        {/* 1. Pacientes */}
+      <div className="w-full max-w-screen-xl mx-auto grid grid-cols-5 h-[64px] sm:h-[70px] items-center px-1">
+        {/* Slot 1: Pacientes */}
         <button
           type="button"
           onClick={() => {
@@ -39,11 +39,12 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({ onOpenMobileMe
             setSelectedPatientId(null);
             setActiveView('PACIENTES');
           }}
-          className={`flex-1 flex flex-col items-center justify-center gap-0.5 h-full py-1 rounded-xl transition-all active:scale-95 touch-manipulation ${
+          className={`flex flex-col items-center justify-center gap-0.5 h-full w-full py-1 rounded-xl transition-all active:scale-95 touch-manipulation min-h-[48px] ${
             isPatientsActive
               ? 'text-teal-700 font-black'
               : 'text-slate-500 hover:text-slate-800'
           }`}
+          aria-label="Ir a Directorio de Pacientes"
         >
           <div
             className={`p-1 rounded-xl transition-colors ${
@@ -57,18 +58,19 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({ onOpenMobileMe
           </span>
         </button>
 
-        {/* 2. Caja & ARCA */}
+        {/* Slot 2: Caja & ARCA */}
         <button
           type="button"
           onClick={() => {
             triggerHaptic('light');
             setActiveView('CAJA_FACTURACION');
           }}
-          className={`flex-1 flex flex-col items-center justify-center gap-0.5 h-full py-1 rounded-xl transition-all active:scale-95 touch-manipulation ${
+          className={`flex flex-col items-center justify-center gap-0.5 h-full w-full py-1 rounded-xl transition-all active:scale-95 touch-manipulation min-h-[48px] ${
             isBillingActive
               ? 'text-teal-700 font-black'
               : 'text-slate-500 hover:text-slate-800'
           }`}
+          aria-label="Ir a Caja y Facturación"
         >
           <div
             className={`p-1 rounded-xl transition-colors ${
@@ -82,34 +84,35 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({ onOpenMobileMe
           </span>
         </button>
 
-        {/* 3. Botón Central "+" Dinámico & Destacado */}
-        <div className="flex-1 flex items-center justify-center h-full px-1">
+        {/* Slot 3: Botón Central "+" Matemáticamente Centrado en la Columna 3 */}
+        <div className="flex items-center justify-center h-full w-full">
           <button
             type="button"
             onClick={() => {
               triggerHaptic('medium');
               setQuickModal('QUICK_ACTIONS');
             }}
-            className="btn-physical btn-physical-teal w-[54px] h-[54px] sm:w-[60px] sm:h-[60px] -mt-5 rounded-full border-4 border-white text-white shadow-lg active:scale-90 flex items-center justify-center transition-transform"
-            title="Acción rápida de urgencia o consulta"
-            aria-label="Nueva acción rápida"
+            className="btn-physical btn-physical-teal w-[54px] h-[54px] sm:w-[60px] sm:h-[60px] -mt-5 rounded-full border-4 border-white text-white shadow-xl active:scale-90 flex items-center justify-center transition-transform min-w-[48px] min-h-[48px] z-10"
+            title="Acción rápida de urgencia o consulta clínica"
+            aria-label="Nueva acción clínica rápida"
           >
             <Plus className="w-7 h-7 stroke-[3]" />
           </button>
         </div>
 
-        {/* 4. Farmacia */}
+        {/* Slot 4: Farmacia */}
         <button
           type="button"
           onClick={() => {
             triggerHaptic('light');
             setActiveView('INVENTARIO');
           }}
-          className={`flex-1 flex flex-col items-center justify-center gap-0.5 h-full py-1 rounded-xl transition-all active:scale-95 touch-manipulation ${
+          className={`flex flex-col items-center justify-center gap-0.5 h-full w-full py-1 rounded-xl transition-all active:scale-95 touch-manipulation min-h-[48px] ${
             isPharmacyActive
               ? 'text-teal-700 font-black'
               : 'text-slate-500 hover:text-slate-800'
           }`}
+          aria-label="Ir a Farmacia e Inventario"
         >
           <div
             className={`p-1 rounded-xl transition-colors ${
@@ -123,15 +126,16 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({ onOpenMobileMe
           </span>
         </button>
 
-        {/* 5. Menú */}
+        {/* Slot 5: Menú */}
         <button
           type="button"
           onClick={() => {
             triggerHaptic('light');
             onOpenMobileMenu();
           }}
-          className="flex-1 flex flex-col items-center justify-center gap-0.5 h-full py-1 rounded-xl text-slate-500 hover:text-slate-900 active:scale-95 touch-manipulation transition-all"
+          className="flex flex-col items-center justify-center gap-0.5 h-full w-full py-1 rounded-xl text-slate-500 hover:text-slate-900 active:scale-95 touch-manipulation transition-all min-h-[48px]"
           title="Abrir menú de navegación"
+          aria-label="Abrir menú de navegación"
         >
           <div className="p-1 rounded-xl text-slate-500">
             <Menu className="w-5 h-5 stroke-[2.2]" />

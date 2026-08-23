@@ -26,6 +26,7 @@ import {
 import { useVet } from '../context/VetContext';
 import { formatWeight, formatOwnerBalance } from '../utils/formatters';
 import { triggerHaptic } from '../utils/haptics';
+import { PatientMobileCard } from './PatientMobileCard';
 
 export const PatientsListView: React.FC = () => {
   const {
@@ -708,166 +709,25 @@ export const PatientsListView: React.FC = () => {
           <div className="block sm:hidden space-y-3 w-full">
             {filteredPatients.map((patient) => {
               const owner = owners.find((o) => o.id === patient.ownerId);
-              const isInterned = patient.status === 'INTERNADO' || hospitalizations.some((h) => h.patientId === patient.id && h.status === 'ACTIVA');
-              const hasCriticalAlerts = patient.alerts && patient.alerts.length > 0;
+              const isInterned =
+                patient.status === 'INTERNADO' ||
+                hospitalizations.some((h) => h.patientId === patient.id && h.status === 'ACTIVA');
 
               return (
-                <div
+                <PatientMobileCard
                   key={patient.id}
-                  onClick={() => handleOpenPatient(patient.id)}
-                  className="bg-white border border-slate-200 hover:border-teal-500/60 rounded-2xl p-4 shadow-xs space-y-3 cursor-pointer active:scale-[0.99] transition-all w-full"
-                >
-                  {/* Top: Avatar, Name, Species & Status */}
-                  <div className="flex items-start justify-between gap-2.5">
-                    <div className="flex items-center gap-3 min-w-0">
-                      <div className="relative flex-shrink-0">
-                        <img
-                          src={patient.photoUrl || 'https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=100'}
-                          alt={patient.name}
-                          className="w-12 h-12 rounded-xl object-cover border border-slate-200 shadow-xs"
-                          referrerPolicy="no-referrer"
-                        />
-                        <span className="absolute -bottom-1 -right-1 text-xs">
-                          {patient.species === 'Canino' ? '🐕' : patient.species === 'Felino' ? '🐈' : '🦜'}
-                        </span>
-                      </div>
-                      <div className="min-w-0">
-                        <div className="flex items-center gap-1.5 flex-wrap">
-                          <h3 className="text-sm font-bold text-slate-900 truncate">
-                            {patient.name || 'Paciente'}
-                          </h3>
-                          <span className="text-[10px] font-mono bg-slate-100 px-1.5 py-0.5 rounded text-slate-600 border border-slate-200">
-                            {patient.clinicalRecordNumber || 'HC-0000'}
-                          </span>
-                        </div>
-                        <p className="text-[11px] text-slate-500 font-medium truncate">
-                          {[patient.species, patient.breed].filter(Boolean).join(' • ')}
-                        </p>
-                      </div>
-                    </div>
-
-                    <span
-                      className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase flex-shrink-0 ${
-                        isInterned
-                          ? 'bg-red-50 text-red-600 border border-red-200 font-black animate-pulse'
-                          : 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                      }`}
-                    >
-                      {isInterned ? 'INTERNADO' : patient.status}
-                    </span>
-                  </div>
-
-                  {/* Badges: Sex, Age, Weight, Chip */}
-                  <div className="flex items-center gap-2 flex-wrap text-xs">
-                    <span className="bg-slate-50 border border-slate-200 px-2 py-0.5 rounded-lg text-slate-700 font-semibold text-[11px]">
-                      {patient.sex} • {patient.calculatedAge || 'Edad N/D'}
-                    </span>
-                    <span className="bg-teal-50 border border-teal-200 px-2 py-0.5 rounded-lg text-teal-800 font-mono font-black text-[11px]">
-                      ⚖️ {formatWeight(patient.weight)}
-                    </span>
-                    {patient.microchip && (
-                      <span className="bg-slate-100 border border-slate-200 px-2 py-0.5 rounded-lg text-slate-600 font-mono text-[10px]">
-                        CHIP: {patient.microchip}
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Critical Alerts Pill */}
-                  {hasCriticalAlerts && (
-                    <div className="flex flex-wrap gap-1">
-                      {patient.alerts.map((al, idx) => (
-                        <span
-                          key={idx}
-                          className="text-[10px] font-bold px-2 py-0.5 rounded bg-red-50 text-red-600 border border-red-200 truncate max-w-full"
-                        >
-                          ⚠️ {al.type}: {al.description}
-                        </span>
-                      ))}
-                    </div>
-                  )}
-
-                  {/* Owner Bar with 1-tap WhatsApp */}
-                  {owner && (
-                    <div className="flex items-center justify-between bg-slate-50 px-3 py-2 rounded-xl border border-slate-100 text-xs">
-                      <div className="truncate mr-2">
-                        <span className="text-[10px] text-slate-400 font-bold block uppercase">Tutor:</span>
-                        <span className="font-semibold text-slate-800 text-[11px] truncate block">
-                          {owner.firstName} {owner.lastName}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-1.5 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            triggerHaptic('light');
-                            openWhatsAppHub({
-                              patientName: patient.name,
-                              species: patient.species,
-                              ownerName: `${owner.firstName} ${owner.lastName}`,
-                              ownerPhone: owner.phone,
-                              diagnosis: 'Control general en clínica veterinaria',
-                            });
-                          }}
-                          className="p-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 text-xs font-bold flex items-center gap-1"
-                          title="WhatsApp"
-                        >
-                          <span>💬</span>
-                        </button>
-                        <a
-                          href={`tel:${(owner.phone || '').replace(/[^0-9]/g, '')}`}
-                          className="p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 text-xs font-bold"
-                          title="Llamar"
-                        >
-                          <span>📞</span>
-                        </a>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Card Fast Actions */}
-                  <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-xs gap-2">
-                    <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          triggerHaptic('medium');
-                          setSelectedPatientId(patient.id);
-                          setQuickModal('NUEVA_CONSULTA');
-                        }}
-                        className="px-2.5 py-1 rounded-lg bg-teal-50 hover:bg-teal-100 text-teal-700 font-bold text-[10px] border border-teal-200"
-                      >
-                        + SOAP
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          triggerHaptic('light');
-                          openDentalChart(patient.id);
-                        }}
-                        className="p-1 rounded-lg bg-slate-50 hover:bg-slate-100 text-slate-600 border border-slate-200 text-[10px]"
-                        title="Odontograma"
-                      >
-                        🦷
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          triggerHaptic('light');
-                          openBodyMap(patient.id);
-                        }}
-                        className="p-1 rounded-lg bg-slate-50 hover:bg-slate-100 text-slate-600 border border-slate-200 text-[10px]"
-                        title="Mapa Corporal"
-                      >
-                        🐾
-                      </button>
-                    </div>
-
-                    <span className="font-bold text-teal-600 text-xs flex items-center gap-1">
-                      <span>Ficha 360°</span>
-                      <ArrowRight className="w-3.5 h-3.5" />
-                    </span>
-                  </div>
-                </div>
+                  patient={patient}
+                  owner={owner}
+                  isInterned={isInterned}
+                  onOpenPatient={handleOpenPatient}
+                  onOpenSOAP={(id) => {
+                    setSelectedPatientId(id);
+                    setQuickModal('NUEVA_CONSULTA');
+                  }}
+                  onOpenDentalChart={openDentalChart}
+                  onOpenBodyMap={openBodyMap}
+                  onOpenWhatsApp={openWhatsAppHub}
+                />
               );
             })}
           </div>

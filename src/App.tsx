@@ -266,12 +266,12 @@ const MainLayout: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#F1F5F9] text-[#1E293B] flex flex-col font-sans selection:bg-teal-500 selection:text-white">
+    <div className="min-h-screen min-h-[100dvh] bg-[#F1F5F9] text-[#1E293B] flex flex-col font-sans selection:bg-teal-500 selection:text-white w-full max-w-full overflow-x-hidden">
       {/* Top Navbar */}
       <Navbar onToggleMobileMenu={() => setIsMobileMenuOpen(!isMobileMenuOpen)} />
 
       {/* Main App Container */}
-      <div className="flex-1 flex overflow-hidden relative">
+      <div className="flex-1 flex overflow-hidden relative w-full max-w-full">
         {/* Left Sidebar (Desktop fixed + Mobile sliding drawer) */}
         <Sidebar
           isOpenMobile={isMobileMenuOpen}
@@ -279,7 +279,7 @@ const MainLayout: React.FC = () => {
         />
 
         {/* Dynamic Main Content Workspace with safe bottom padding for fixed mobile nav */}
-        <main className="flex-1 overflow-y-auto overflow-x-hidden p-3 sm:p-5 md:p-6 lg:p-8 custom-scrollbar bg-[#F1F5F9] pb-[calc(70px+env(safe-area-inset-bottom,0px))] md:pb-8">
+        <main className="flex-1 overflow-y-auto overflow-x-hidden p-3 sm:p-5 md:p-6 lg:p-8 custom-scrollbar bg-[#F1F5F9] pb-[calc(76px+env(safe-area-inset-bottom,0px))] md:pb-8 w-full max-w-full">
           <div className="max-w-7xl mx-auto w-full">{renderActiveView()}</div>
         </main>
       </div>

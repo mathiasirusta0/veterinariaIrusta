@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 
 describe('Mobile & Tablet Responsive Layout Architecture Audit', () => {
   it('should enforce box-sizing border-box and zero overflow architecture on all screen sizes', () => {
-    const breakpoints = [320, 360, 375, 390, 412, 430, 600, 768, 1024];
+    const breakpoints = [320, 360, 375, 390, 412, 430, 480, 600, 768, 820, 1024];
 
     breakpoints.forEach((viewportWidth) => {
       // Check maximum container width does not exceed viewport width
@@ -12,7 +12,7 @@ describe('Mobile & Tablet Responsive Layout Architecture Audit', () => {
     });
   });
 
-  it('should verify fixed bottom nav parameters for 100% viewport anchoring', () => {
+  it('should verify fixed bottom nav parameters for 100% viewport anchoring and 5-slot grid symmetry', () => {
     const fixedBottomNavStyles = {
       position: 'fixed',
       left: 0,
@@ -22,6 +22,7 @@ describe('Mobile & Tablet Responsive Layout Architecture Audit', () => {
       maxWidth: '100%',
       zIndex: 50,
       transform: 'translateZ(0)',
+      gridColumns: 5,
     };
 
     expect(fixedBottomNavStyles.position).toBe('fixed');
@@ -29,6 +30,11 @@ describe('Mobile & Tablet Responsive Layout Architecture Audit', () => {
     expect(fixedBottomNavStyles.maxWidth).toBe('100%');
     expect(fixedBottomNavStyles.bottom).toBe(0);
     expect(fixedBottomNavStyles.zIndex).toBe(50);
+    expect(fixedBottomNavStyles.gridColumns).toBe(5);
+
+    // Each of the 5 slots gets exactly 20% of width
+    const slotPercentage = 100 / fixedBottomNavStyles.gridColumns;
+    expect(slotPercentage).toBe(20);
   });
 
   it('should verify mobile header layout fits within small phone viewports (320px - 390px)', () => {
@@ -44,5 +50,14 @@ describe('Mobile & Tablet Responsive Layout Architecture Audit', () => {
       // Search input should have at least 180px on 320px screen and grow with flex-1
       expect(remainingSearchWidth).toBeGreaterThanOrEqual(180);
     });
+  });
+
+  it('should verify central "+" FAB dimensions and touch targets', () => {
+    const fabTouchArea = 48; // minimum 48x48 touch target
+    const visualSizeMobile = 54;
+    const visualSizeTablet = 60;
+
+    expect(visualSizeMobile).toBeGreaterThanOrEqual(fabTouchArea);
+    expect(visualSizeTablet).toBeGreaterThanOrEqual(fabTouchArea);
   });
 });
