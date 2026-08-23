@@ -96,14 +96,18 @@ export const CashAndBillingView: React.FC = () => {
     estimates,
     cashSession,
     currentUser,
+    owners,
+    patients,
+    updateOwner,
     convertEstimateToInvoice,
     setQuickModal,
     openPrintModal,
+    openWhatsAppHub,
     showToast,
     logAudit,
   } = useVet();
 
-  const [activeTab, setActiveTab] = useState<'FACTURAS' | 'PRESUPUESTOS' | 'EGRESOS' | 'CAJA' | 'CONFIGURACION_FISCAL'>('FACTURAS');
+  const [activeTab, setActiveTab] = useState<'FACTURAS' | 'PRESUPUESTOS' | 'CUENTAS_CORRIENTES' | 'EGRESOS' | 'CAJA' | 'CONFIGURACION_FISCAL'>('FACTURAS');
 
   // Search and Filter States
   const [searchTerm, setSearchTerm] = useState('');
@@ -147,6 +151,13 @@ export const CashAndBillingView: React.FC = () => {
   const [sessionActive, setSessionActive] = useState<boolean>(!cashSession.isClosed);
   const [initialCashAmount, setInitialCashAmount] = useState<number>(cashSession.initialCash || 50000);
   const [shiftName, setShiftName] = useState<string>('Turno Mañana');
+
+  // Cuentas Corrientes States
+  const [selectedOwnerForPayment, setSelectedOwnerForPayment] = useState<any | null>(null);
+  const [paymentOnAccountAmount, setPaymentOnAccountAmount] = useState<string>('');
+  const [paymentOnAccountMethod, setPaymentOnAccountMethod] = useState<'EFECTIVO' | 'TRANSFERENCIA' | 'MERCADOPAGO_QR' | 'TARJETA_DEBITO'>('EFECTIVO');
+  const [paymentOnAccountNotes, setPaymentOnAccountNotes] = useState<string>('Cobro a cuenta corriente');
+  const [ccFilter, setCcFilter] = useState<'TODOS' | 'DEUDORES' | 'AL_DIA'>('TODOS');
 
   // Billete Physical Count State (Blind Cash Drawer Count)
   const [billCounts, setBillCounts] = useState<{ [denom: number]: number }>({
@@ -343,6 +354,21 @@ export const CashAndBillingView: React.FC = () => {
           <button
             onClick={() => {
               triggerHaptic('light');
+              setActiveTab('CUENTAS_CORRIENTES');
+            }}
+            className={`flex-shrink-0 snap-start px-3.5 py-2 rounded-xl font-black transition-all flex items-center gap-1.5 ${
+              activeTab === 'CUENTAS_CORRIENTES'
+                ? 'bg-white text-teal-800 shadow-sm border border-slate-200'
+                : 'text-slate-600 hover:text-slate-900'
+            }`}
+          >
+            <Wallet className="w-4 h-4 text-teal-600" />
+            <span>Cuentas Corrientes ({owners.filter(o => (o.balance || 0) < 0).length} deudas)</span>
+          </button>
+
+          <button
+            onClick={() => {
+              triggerHaptic('light');
               setActiveTab('PRESUPUESTOS');
             }}
             className={`flex-shrink-0 snap-start px-3.5 py-2 rounded-xl font-black transition-all flex items-center gap-1.5 ${
@@ -505,7 +531,18 @@ export const CashAndBillingView: React.FC = () => {
                   onPrint={handlePrintInvoice}
                   onWhatsApp={(i) => {
                     triggerHaptic('light');
-                    showToast('info', 'Enviado por WhatsApp', `Comprobante ${i.invoiceNumber} enviado al tutor.`);
+                    openWhatsAppHub({
+                      patientName: i.customerName,
+                      ownerName: i.customerName,
+                      ownerPhone: i.customerDniCuit || '',
+                      type: 'FACTURA_COMPROBANTE',
+                      details: {
+                        invoiceNumber: i.invoiceNumber,
+                        totalAmount: formatCurrency(i.totalAmount),
+                        paymentMethod: i.paymentMethod,
+                        caeNumber: i.caeNumber || 'N/A',
+                      },
+                    });
                   }}
                 />
               ))
