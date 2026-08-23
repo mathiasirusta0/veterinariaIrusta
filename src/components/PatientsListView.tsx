@@ -27,7 +27,7 @@ import { useVet } from '../context/VetContext';
 import { formatWeight, formatOwnerBalance } from '../utils/formatters';
 import { triggerHaptic } from '../utils/haptics';
 import { PatientMobileCard } from './PatientMobileCard';
-import { PageHeader, StatusBadge, EmptyState } from './ui';
+import { PageHeader, StatusBadge, EmptyState, SearchInput } from './ui';
 
 export const PatientsListView: React.FC = () => {
   const {
@@ -431,14 +431,11 @@ export const PatientsListView: React.FC = () => {
 
       {/* Search & Layout Toggle Bar */}
       <div className="bg-white border border-slate-200 p-3 sm:p-4 rounded-2xl shadow-sm flex flex-col md:flex-row items-center justify-between gap-3 text-xs w-full max-w-full">
-        <div className="flex-1 w-full relative">
-          <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-          <input
-            type="text"
+        <div className="flex-1 w-full">
+          <SearchInput
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={setSearch}
             placeholder="Buscar por nombre, historia clínica, raza, microchip ISO, tutor o teléfono..."
-            className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-4 py-2.5 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500 font-medium"
           />
         </div>
 

@@ -12,7 +12,7 @@ import {
   MessageCircle,
 } from 'lucide-react';
 import { useVet } from '../context/VetContext';
-import { PageHeader, EmptyState } from './ui';
+import { PageHeader, EmptyState, SearchInput } from './ui';
 
 export const OwnersView: React.FC = () => {
   const {
@@ -57,17 +57,12 @@ export const OwnersView: React.FC = () => {
       />
 
       {/* Search Bar */}
-      <div className="bg-white border border-slate-200 p-4 rounded-xl shadow-sm">
-        <div className="relative">
-          <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
-          <input
-            type="text"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Buscar por nombre, DNI, teléfono, email..."
-            className="w-full bg-slate-50 border border-slate-200 rounded-lg pl-10 pr-4 py-2 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500"
-          />
-        </div>
+      <div className="bg-white border border-slate-200 p-3 sm:p-4 rounded-2xl shadow-xs">
+        <SearchInput
+          value={search}
+          onChange={setSearch}
+          placeholder="Buscar tutor por nombre, DNI, teléfono, email..."
+        />
       </div>
 
       {/* Owners Grid */}
