@@ -10,7 +10,6 @@ import {
   CalendarDays,
   ArrowRight,
   Plus,
-  Sparkles,
   CheckCircle2,
   Activity,
   Droplet,
@@ -496,40 +495,6 @@ export const DashboardView: React.FC = () => {
                 </div>
               )}
             </div>
-          </div>
-
-          {/* Sleek Dark IA Assistant Feature Card — Clinically Safe & Auditable */}
-          <div className="bg-[#1E293B] rounded-2xl shadow-lg p-5 flex flex-col relative overflow-hidden text-white space-y-3">
-            <div className="absolute -top-4 -right-4 w-24 h-24 bg-teal-500/15 rounded-full blur-2xl pointer-events-none" />
-            <div className="flex items-center justify-between border-b border-slate-700/60 pb-2.5">
-              <div className="flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-teal-400" />
-                <h3 className="text-white text-sm font-bold">Asistente Clínico IA (Gemini 3.7)</h3>
-              </div>
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-teal-500/20 text-teal-300 border border-teal-500/30">
-                Borrador Clínico
-              </span>
-            </div>
-
-            <div className="space-y-1.5 text-xs text-slate-300">
-              <p className="font-bold text-teal-300 text-[11px]">
-                Sugerencia para: Toby (Canil UCI-02) • Canino / Golden Retriever (28 kg)
-              </p>
-              <p className="text-slate-300 leading-relaxed text-[11px]">
-                Fiebre persistente + diarrea hemorrágica. Se sugiere reevaluar tasa de fluidoterapia de reemplazo y verificar compatibilidad antibiótica.
-              </p>
-            </div>
-
-            <div className="p-2.5 rounded-xl bg-slate-900/80 border border-amber-400/30 text-[10px] text-amber-200/90 leading-tight">
-              ⚠️ <strong>Borrador orientativo asistido:</strong> Requiere validación y prescripción médica por profesional matriculado (Ley 11.076 CMVC).
-            </div>
-
-            <button
-              onClick={() => setActiveView('ASISTENTE_IA')}
-              className="w-full py-2.5 bg-teal-500 hover:bg-teal-400 text-[#0F172A] rounded-xl text-xs font-bold transition-all uppercase tracking-wide shadow-sm active:scale-98"
-            >
-              Abrir Asistente IA →
-            </button>
           </div>
         </div>
       </div>
