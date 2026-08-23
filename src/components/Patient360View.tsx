@@ -572,7 +572,7 @@ export const Patient360View: React.FC = () => {
                   title="Enviar aviso o cobro de insumos por WhatsApp"
                 >
                   <span>💬</span>
-                  <span>WhatsApp Insumos</span>
+                  <span>WhatsApp al Tutor</span>
                 </button>
 
                 <a
@@ -706,9 +706,25 @@ export const Patient360View: React.FC = () => {
                     <span className="text-[9px] font-bold text-slate-500 block">O2 & Hemogluco</span>
                   </div>
                 </div>
+              ) : patient.status === 'INTERNADO' || patientHosp ? (
+                <div className="p-4 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 text-xs space-y-2 text-left">
+                  <div className="flex items-center gap-2 font-bold">
+                    <AlertTriangle className="w-4 h-4 text-amber-600 flex-shrink-0" />
+                    <span>Faltan signos vitales para esta internación</span>
+                  </div>
+                  <p className="text-[11px] text-amber-800 leading-relaxed">
+                    No se han registrado constantes biométricas recientes en la UCI. Registralos ahora para garantizar la seguridad clínica del paciente.
+                  </p>
+                  <button
+                    onClick={() => setActivePatientTab('SIGNOS')}
+                    className="px-3.5 py-1.5 bg-amber-600 hover:bg-amber-500 text-white rounded-xl text-xs font-bold transition-all shadow-2xs"
+                  >
+                    + Registrar Signos Vitales
+                  </button>
+                </div>
               ) : (
                 <div className="text-center py-6 text-slate-400 text-xs">
-                  No hay signos vitales registrados para este paciente.
+                  Todavía no hay signos vitales registrados para este paciente ambulatorio.
                 </div>
               )}
 
@@ -754,10 +770,10 @@ export const Patient360View: React.FC = () => {
                   <div className="h-28 w-full flex items-end justify-between gap-2 px-3 pt-3 relative">
                     <div className="absolute inset-x-0 top-1/2 border-b border-dashed border-slate-300"></div>
                     {[
-                      { date: 'Hace 3m', weight: (patient.weight * 0.94).toFixed(1), temp: 38.4 },
-                      { date: 'Hace 2m', weight: (patient.weight * 0.97).toFixed(1), temp: 38.6 },
-                      { date: 'Hace 1m', weight: (patient.weight * 0.99).toFixed(1), temp: 38.5 },
-                      { date: 'Actual', weight: patient.weight.toFixed(1), temp: latestVital?.temperature || 38.5 },
+                      { date: new Date(Date.now() - 90*24*60*60*1000).toLocaleDateString('es-AR') + ' · hace 3 meses', weight: (patient.weight * 0.94).toFixed(1), temp: 38.4 },
+                      { date: new Date(Date.now() - 60*24*60*60*1000).toLocaleDateString('es-AR') + ' · hace 2 meses', weight: (patient.weight * 0.97).toFixed(1), temp: 38.6 },
+                      { date: new Date(Date.now() - 30*24*60*60*1000).toLocaleDateString('es-AR') + ' · hace 1 mes', weight: (patient.weight * 0.99).toFixed(1), temp: 38.5 },
+                      { date: new Date().toLocaleDateString('es-AR') + ' · hoy (actual)', weight: patient.weight.toFixed(1), temp: latestVital?.temperature || 38.5 },
                     ].map((pt, idx) => (
                       <div key={idx} className="flex-1 flex flex-col items-center gap-1 z-10">
                         <span className={`text-[10px] font-bold font-mono ${idx === 3 ? 'text-teal-700 font-black' : 'text-slate-500'}`}>
@@ -818,9 +834,27 @@ export const Patient360View: React.FC = () => {
                 ))}
 
                 {patientProblems.length === 0 && (
-                  <p className="text-xs text-slate-400 text-center py-4">
-                    Sin problemas activos registrados en la historia clínica.
-                  </p>
+                  patient.status === 'INTERNADO' || patientHosp ? (
+                    <div className="p-3 bg-amber-50 rounded-2xl border border-amber-200 text-amber-900 text-xs space-y-1.5">
+                      <div className="flex items-center gap-1.5 font-bold">
+                        <AlertTriangle className="w-3.5 h-3.5 text-amber-600 flex-shrink-0" />
+                        <span>Revisar lista de problemas de internación</span>
+                      </div>
+                      <p className="text-[11px] text-amber-800">
+                        El paciente está internado pero no tiene diagnósticos activos vinculados en su ficha.
+                      </p>
+                      <button
+                        onClick={() => setShowNewProblemModal(true)}
+                        className="px-2.5 py-1 bg-amber-600 hover:bg-amber-500 text-white rounded-lg text-[11px] font-bold"
+                      >
+                        + Vincular Diagnóstico / Problema
+                      </button>
+                    </div>
+                  ) : (
+                    <p className="text-xs text-slate-400 text-center py-4">
+                      No hay diagnósticos ni problemas activos registrados.
+                    </p>
+                  )
                 )}
               </div>
             </div>
