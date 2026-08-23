@@ -70,7 +70,7 @@ export interface Owner {
   createdAt: string;
 }
 
-export type Species = 'CANINO' | 'FELINO' | 'EQUINO' | 'BOVINO' | 'OVINO' | 'CAPRINO' | 'PORCINO' | 'AVE' | 'EXOTICO';
+export type Species = 'CANINO' | 'FELINO' | 'EQUINO' | 'ASNAL' | 'MULAR' | 'BOVINO' | 'OVINO' | 'CAPRINO' | 'PORCINO' | 'AVE' | 'EXOTICO';
 export type Sex = 'MACHO' | 'HEMBRA';
 export type ReproductiveStatus = 'ENTERO' | 'CASTRADO' | 'GESTANTE' | 'LACTANTE';
 export type PatientStatus = 'ACTIVO' | 'INTERNADO' | 'EN_CONSULTA' | 'EN_CIRUGIA' | 'FALLECIDO' | 'DERIVADO';
@@ -517,7 +517,8 @@ export interface ImagingStudy {
 export interface VaccinationRecord {
   id: string;
   patientId: string;
-  vaccineName: string; // ej: Séxtuple Canina, Antirrábica, Triple Felina
+  vaccineName: string; // ej: Toxoide Tetánico Equino, Adenitis, Influenza, Antirrábica, Séxtuple
+  type?: string; // ej: 'Plan Sanitario Militar', 'Vacunación Obligatoria SENASA', 'Desparasitación'
   manufacturer: string;
   batchNumber: string;
   expirationDate: string;
@@ -526,6 +527,8 @@ export interface VaccinationRecord {
   vetLicense: string;
   nextDueDate: string;
   certificateGenerated?: boolean;
+  regimentUnit?: string; // Unidad / Regimiento / Escuadrón / Sección K9
+  notes?: string;
 }
 
 // FARMACIA, STOCK Y PSICOTRÓPICOS
