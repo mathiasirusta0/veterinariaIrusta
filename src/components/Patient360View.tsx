@@ -45,6 +45,7 @@ import { ProblemStatus, PatientProblem, Species, Sex, ReproductiveStatus, Patien
 import { formatDate, formatDateTime, formatTime, formatWeight, formatOwnerBalance } from '../utils/formatters';
 import { triggerHaptic } from '../utils/haptics';
 import { EmptyState, StatusBadge, ClinicalAlert, StatCard } from './ui';
+import { PatientFullReportView } from './PatientFullReportView';
 
 export const Patient360View: React.FC = () => {
   const {
@@ -283,6 +284,7 @@ export const Patient360View: React.FC = () => {
   ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
   const tabs = [
+    { id: 'INFORME_COMPLETO', label: '📄 Informe Completo (Expediente)', icon: FileText, count: undefined },
     { id: 'SIGNOS', label: '1. Signos Vitales', icon: Heart, count: patientVitals.length },
     { id: 'RECETAS', label: '2. Medicación & Indicaciones', icon: Pill, count: (patientHosp?.medications?.length || 0) + patientPrescriptions.length },
     { id: 'HISTORIA', label: '3. Evolución Médica', icon: Sparkles, count: (clinicalEvolutions?.filter(e => e.patientId === patient.id).length || 0) },
@@ -721,6 +723,11 @@ export const Patient360View: React.FC = () => {
       </div>
 
       {/* TAB CONTENT AREA */}
+
+      {/* 0. 📄 TAB: INFORME COMPLETO (EXPEDIENTE CLÍNICO INTEGRAL) */}
+      {activePatientTab === 'INFORME_COMPLETO' && (
+        <PatientFullReportView patient={patient} owner={owner} />
+      )}
 
       {/* 1. ❤️ TAB: SIGNOS VITALES (CARGA DIRECTA + TABLA HISTÓRICA) */}
       {activePatientTab === 'SIGNOS' && (
