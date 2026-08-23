@@ -17,6 +17,7 @@ import {
   InventoryMovement,
   Appointment,
   TriageEntry,
+  TriagePriority,
   Invoice,
   Estimate,
   CashRegisterSession,
@@ -198,6 +199,7 @@ interface VetContextType {
   updateAppointmentStatus: (id: string, status: Appointment['status']) => void;
   addTriageEntry: (triage: Omit<TriageEntry, 'id' | 'arrivedAt' | 'waitTimeMinutes' | 'status'>) => void;
   updateTriageStatus: (id: string, status: TriageEntry['status']) => void;
+  updateTriagePriority: (id: string, priority: TriagePriority) => void;
 
   // Billing & Cash
   createInvoice: (inv: Omit<Invoice, 'id' | 'invoiceNumber' | 'date' | 'caeNumber' | 'caeExpirationDate' | 'branchId'>) => Invoice;
@@ -1531,6 +1533,21 @@ export const VetProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     );
   };
 
+  const updateTriagePriority = (id: string, priority: TriagePriority) => {
+    setTriageList((prev) =>
+      prev.map((t) => {
+        if (t.id === id) {
+          const updated = { ...t, priority };
+          syncTriageToSupabase(updated);
+          logAudit('RECLASIFICACION_TRIAGE', 'TriageEntry', id, `Triage reclasificado a: ${priority}`);
+          return updated;
+        }
+        return t;
+      })
+    );
+    showToast('info', 'Triage Reclasificado', `El paciente fue reclasificado a prioridad ${priority}.`);
+  };
+
   // Invoices & Estimates
   const createInvoice = (data: Omit<Invoice, 'id' | 'invoiceNumber' | 'date' | 'caeNumber' | 'caeExpirationDate' | 'branchId'>): Invoice => {
     const invNumber = `0001-${(invoices.length + 100).toString().padStart(8, '0')}`;
@@ -1869,6 +1886,7 @@ Hoy hemos evaluado a ${petName} en nuestro centro hospitalario. Queremos transmi
         updateAppointmentStatus,
         addTriageEntry,
         updateTriageStatus,
+        updateTriagePriority,
 
         createInvoice,
         createEstimate,
