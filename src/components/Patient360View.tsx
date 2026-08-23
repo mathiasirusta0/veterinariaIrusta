@@ -43,11 +43,14 @@ import {
 import { useVet } from '../context/VetContext';
 import { ProblemStatus, PatientProblem, Species, Sex, ReproductiveStatus, PatientStatus, PatientAlert, Patient } from '../types';
 import { formatDate, formatDateTime, formatTime, formatWeight, formatOwnerBalance } from '../utils/formatters';
+import { triggerHaptic } from '../utils/haptics';
 
 export const Patient360View: React.FC = () => {
   const {
     selectedPatientId,
     setSelectedPatientId,
+    setActiveView,
+    setQuickModal,
     patients,
     owners,
     vitals,
@@ -59,12 +62,21 @@ export const Patient360View: React.FC = () => {
     vaccinations,
     surgeries,
     invoices,
+    estimates,
     documents,
     prescriptions,
+    openPrintModal,
+    openCalculators,
+    openMonitor,
+    openDentalChart,
+    openAnatomicalMap,
+    openAnesthesiaChart,
+    openWhatsAppHub,
+    openImagingAnnotator,
+    showToast,
+    currentUser,
     activePatientTab,
     setActivePatientTab,
-    setActiveView,
-    setQuickModal,
     updatePatient,
     addPatientAlert,
     removePatientAlert,
@@ -72,16 +84,6 @@ export const Patient360View: React.FC = () => {
     addProblem,
     updateProblemStatus,
     callAiAssistant,
-    openCalculators,
-    openMonitor,
-    openPrintModal,
-    openDentalChart,
-    openBodyMap,
-    openAnesthesiaChart,
-    openWhatsAppHub,
-    openImagingAnnotator,
-    showToast,
-    currentUser,
     clinicalEvolutions,
     addClinicalEvolution,
     addEvolutionAddendum,
@@ -667,11 +669,14 @@ export const Patient360View: React.FC = () => {
             return (
               <button
                 key={tab.id}
-                onClick={() => setActivePatientTab(tab.id as any)}
-                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-black whitespace-nowrap transition-all snap-start active:scale-95 touch-manipulation ${
+                onClick={() => {
+                  triggerHaptic('light');
+                  setActivePatientTab(tab.id as any);
+                }}
+                className={`btn-physical flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-black whitespace-nowrap transition-all snap-start active:scale-95 touch-manipulation ${
                   isActive
-                    ? 'bg-teal-600 text-white shadow-md shadow-teal-600/20'
-                    : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 bg-slate-50/60'
+                    ? 'btn-physical-teal text-white shadow-md'
+                    : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900 bg-slate-50 border border-slate-200'
                 }`}
               >
                 <Icon className={`w-4 h-4 flex-shrink-0 ${isActive ? 'text-white' : 'text-slate-400'}`} />
@@ -822,9 +827,10 @@ export const Patient360View: React.FC = () => {
                 </span>
                 <button
                   type="submit"
-                  className="px-6 py-2.5 bg-teal-600 hover:bg-teal-500 text-white font-black text-xs rounded-xl shadow-md shadow-teal-600/20 active:scale-95 transition-all flex items-center gap-2"
+                  onClick={() => triggerHaptic('success')}
+                  className="btn-physical btn-physical-rose px-6 py-2.5 text-white font-black text-xs rounded-xl shadow-md flex items-center gap-2"
                 >
-                  <Check className="w-4 h-4" />
+                  <Check className="w-4 h-4 stroke-[2.5]" />
                   <span>✓ Guardar Signos Vitales</span>
                 </button>
               </div>
@@ -1027,9 +1033,10 @@ export const Patient360View: React.FC = () => {
                 </span>
                 <button
                   type="submit"
-                  className="px-6 py-2.5 bg-teal-600 hover:bg-teal-500 text-white font-black text-xs rounded-xl shadow-md shadow-teal-600/20 active:scale-95 transition-all flex items-center gap-2"
+                  onClick={() => triggerHaptic('success')}
+                  className="btn-physical btn-physical-teal px-6 py-2.5 text-white font-black text-xs rounded-xl shadow-md flex items-center gap-2"
                 >
-                  <Plus className="w-4 h-4" />
+                  <Plus className="w-4 h-4 stroke-[3]" />
                   <span>+ Indicar Medicación</span>
                 </button>
               </div>
@@ -1237,9 +1244,10 @@ export const Patient360View: React.FC = () => {
                 </span>
                 <button
                   type="submit"
-                  className="px-6 py-2.5 bg-teal-600 hover:bg-teal-500 text-white font-black text-xs rounded-xl shadow-md shadow-teal-600/20 active:scale-95 transition-all flex items-center gap-2"
+                  onClick={() => triggerHaptic('success')}
+                  className="btn-physical btn-physical-emerald px-6 py-2.5 text-white font-black text-xs rounded-xl shadow-md flex items-center gap-2"
                 >
-                  <Check className="w-4 h-4" />
+                  <Check className="w-4 h-4 stroke-[2.5]" />
                   <span>✓ Guardar y Firmar Evolución</span>
                 </button>
               </div>
@@ -1368,9 +1376,10 @@ export const Patient360View: React.FC = () => {
               <div className="flex items-center justify-end pt-2">
                 <button
                   type="submit"
-                  className="px-6 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-black text-xs rounded-xl shadow-md shadow-blue-600/20 active:scale-95 transition-all flex items-center gap-2"
+                  onClick={() => triggerHaptic('success')}
+                  className="btn-physical btn-physical-dark px-6 py-2.5 text-white font-black text-xs rounded-xl shadow-md flex items-center gap-2"
                 >
-                  <Plus className="w-4 h-4" />
+                  <Plus className="w-4 h-4 stroke-[3]" />
                   <span>✓ Cargar Estudio / Resultado</span>
                 </button>
               </div>
@@ -1568,7 +1577,8 @@ export const Patient360View: React.FC = () => {
                 <div className="flex items-center justify-end pt-3 border-t border-slate-100">
                   <button
                     type="submit"
-                    className="px-6 py-2.5 bg-teal-600 hover:bg-teal-500 text-white font-black text-xs rounded-xl shadow-md shadow-teal-600/20 active:scale-95 transition-all flex items-center gap-2"
+                    onClick={() => triggerHaptic('success')}
+                    className="btn-physical btn-physical-teal px-6 py-2.5 text-white font-black text-xs rounded-xl shadow-md flex items-center gap-2"
                   >
                     <span>💾 Guardar Cambios del Tutor</span>
                   </button>
@@ -1906,6 +1916,88 @@ export const Patient360View: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Native Physical Mobile Action Dock (Visible on smartphones < md, fixed above bottom navigation bar) */}
+      <aside aria-label="Acciones rápidas móviles" className="md:hidden fixed bottom-[58px] inset-x-0 z-20 px-3 py-2 bg-white/95 backdrop-blur-md border-t border-slate-200/90 shadow-[0_-6px_20px_rgba(0,0,0,0.08)] flex items-center gap-2">
+        {activePatientTab === 'SIGNOS' && (
+          <button
+            type="button"
+            onClick={() => {
+              triggerHaptic('medium');
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+            className="btn-physical btn-physical-rose w-full py-3 text-xs text-white flex items-center justify-center gap-2 font-black shadow-md"
+          >
+            <Heart className="w-4 h-4 fill-white" />
+            <span>+ Cargar Signos Vitales</span>
+          </button>
+        )}
+        {activePatientTab === 'RECETAS' && (
+          <button
+            type="button"
+            onClick={() => {
+              triggerHaptic('medium');
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+            className="btn-physical btn-physical-teal w-full py-3 text-xs text-white flex items-center justify-center gap-2 font-black shadow-md"
+          >
+            <Pill className="w-4 h-4" />
+            <span>+ Indicar Medicación</span>
+          </button>
+        )}
+        {activePatientTab === 'HISTORIA' && (
+          <button
+            type="button"
+            onClick={() => {
+              triggerHaptic('medium');
+              setShowNewEvolutionModal(true);
+            }}
+            className="btn-physical btn-physical-emerald w-full py-3 text-xs text-white flex items-center justify-center gap-2 font-black shadow-md"
+          >
+            <Sparkles className="w-4 h-4" />
+            <span>+ Nueva Evolución Médica</span>
+          </button>
+        )}
+        {activePatientTab === 'ESTUDIOS' && (
+          <button
+            type="button"
+            onClick={() => {
+              triggerHaptic('medium');
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+            className="btn-physical btn-physical-dark w-full py-3 text-xs text-white flex items-center justify-center gap-2 font-black shadow-md"
+          >
+            <FlaskConical className="w-4 h-4" />
+            <span>+ Cargar / Solicitar Estudio</span>
+          </button>
+        )}
+        {activePatientTab === 'TUTOR' && (
+          <button
+            type="button"
+            onClick={() => {
+              triggerHaptic('medium');
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+            className="btn-physical btn-physical-teal w-full py-3 text-xs text-white flex items-center justify-center gap-2 font-black shadow-md"
+          >
+            <User className="w-4 h-4" />
+            <span>+ Editar Datos del Tutor</span>
+          </button>
+        )}
+        {activePatientTab === 'PRESUPUESTOS' && (
+          <button
+            type="button"
+            onClick={() => {
+              triggerHaptic('medium');
+              setShowBillingModal(true);
+            }}
+            className="btn-physical btn-physical-emerald w-full py-3 text-xs text-white flex items-center justify-center gap-2 font-black shadow-md"
+          >
+            <Receipt className="w-4 h-4" />
+            <span>+ Emitir Comprobante / Facturar</span>
+          </button>
+        )}
+      </aside>
     </div>
   );
 };

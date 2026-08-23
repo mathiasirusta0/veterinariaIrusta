@@ -62,3 +62,126 @@
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
+/* ==============================================================================
+   PHYSICAL 3D TACTILE BUTTONS FOR MOBILE & DESKTOP
+   Simulates authentic physical switch/button depression with elevation & depth.
+   ============================================================================== */
+
+.btn-physical {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  border-radius: 0.875rem;
+  transition: all 0.08s cubic-bezier(0.4, 0, 0.2, 1);
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+  cursor: pointer;
+}
+
+.btn-physical:active {
+  transform: translateY(2px) scale(0.985);
+}
+
+/* Teal Physical Button */
+.btn-physical-teal {
+  background-color: #0d9488;
+  color: #ffffff;
+  border-top: 1px solid #2dd4bf;
+  border-left: 1px solid #14b8a6;
+  border-right: 1px solid #0f766e;
+  border-bottom: 3.5px solid #115e59;
+  box-shadow: 0 4px 12px -2px rgba(13, 148, 136, 0.35);
+}
+.btn-physical-teal:hover {
+  background-color: #0f766e;
+}
+.btn-physical-teal:active {
+  border-bottom-width: 1px;
+  box-shadow: 0 1px 3px rgba(13, 148, 136, 0.2);
+}
+
+/* Emerald Physical Button */
+.btn-physical-emerald {
+  background-color: #059669;
+  color: #ffffff;
+  border-top: 1px solid #34d399;
+  border-left: 1px solid #10b981;
+  border-right: 1px solid #047857;
+  border-bottom: 3.5px solid #065f46;
+  box-shadow: 0 4px 12px -2px rgba(5, 150, 105, 0.35);
+}
+.btn-physical-emerald:hover {
+  background-color: #047857;
+}
+.btn-physical-emerald:active {
+  border-bottom-width: 1px;
+  box-shadow: 0 1px 3px rgba(5, 150, 105, 0.2);
+}
+
+/* Rose Physical Button */
+.btn-physical-rose {
+  background-color: #e11d48;
+  color: #ffffff;
+  border-top: 1px solid #fb7185;
+  border-left: 1px solid #f43f5e;
+  border-right: 1px solid #be123c;
+  border-bottom: 3.5px solid #9f1239;
+  box-shadow: 0 4px 12px -2px rgba(225, 29, 72, 0.35);
+}
+.btn-physical-rose:hover {
+  background-color: #be123c;
+}
+.btn-physical-rose:active {
+  border-bottom-width: 1px;
+  box-shadow: 0 1px 3px rgba(225, 29, 72, 0.2);
+}
+
+/* Slate / Neutral Physical Button */
+.btn-physical-slate {
+  background-color: #f8fafc;
+  color: #1e293b;
+  border-top: 1px solid #ffffff;
+  border-left: 1px solid #e2e8f0;
+  border-right: 1px solid #cbd5e1;
+  border-bottom: 3px solid #94a3b8;
+  box-shadow: 0 2px 6px -1px rgba(0, 0, 0, 0.08);
+}
+.btn-physical-slate:hover {
+  background-color: #f1f5f9;
+}
+.btn-physical-slate:active {
+  border-bottom-width: 1px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+/* Dark Slate Physical Button */
+.btn-physical-dark {
+  background-color: #0f172a;
+  color: #ffffff;
+  border-top: 1px solid #334155;
+  border-left: 1px solid #1e293b;
+  border-right: 1px solid #0f172a;
+  border-bottom: 3.5px solid #020617;
+  box-shadow: 0 4px 12px -2px rgba(15, 23, 42, 0.45);
+}
+.btn-physical-dark:hover {
+  background-color: #1e293b;
+}
+.btn-physical-dark:active {
+  border-bottom-width: 1px;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.3);
+}
+
+/* Mobile Fixed Action Dock Elevation */
+.mobile-action-dock {
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-top: 1px solid rgba(226, 232, 240, 0.9);
+  box-shadow: 0 -8px 24px -4px rgba(0, 0, 0, 0.08);
+}
+

@@ -25,6 +25,7 @@ import {
 } from 'lucide-react';
 import { useVet } from '../context/VetContext';
 import { formatWeight, formatOwnerBalance } from '../utils/formatters';
+import { triggerHaptic } from '../utils/haptics';
 
 export const PatientsListView: React.FC = () => {
   const {
@@ -90,6 +91,7 @@ export const PatientsListView: React.FC = () => {
     });
 
   const handleOpenPatient = (id: string, tab = 'SIGNOS') => {
+    triggerHaptic('medium');
     setSelectedPatientId(id);
     setActivePatientTab(tab);
     setActiveView('PACIENTES');

@@ -16,6 +16,7 @@ import { ToastNotification } from './components/ToastNotification';
 import { AccessDeniedView } from './components/AccessDeniedView';
 import { ModuleErrorBoundary } from './components/ModuleErrorBoundary';
 import { hasViewPermission, SystemView } from './utils/rbac';
+import { triggerHaptic } from './utils/haptics';
 
 // Icons for Mobile Bottom Navigation Bar
 import {
@@ -282,55 +283,74 @@ const MainLayout: React.FC = () => {
         </main>
       </div>
 
-      {/* Modern Mobile Bottom Navigation Bar (Visible only on < md screens) */}
-      <nav className="md:hidden fixed bottom-0 inset-x-0 bg-white/95 backdrop-blur-md border-t border-slate-200/90 z-30 px-3 py-1 flex items-center justify-around shadow-2xl safe-bottom">
+      {/* Native Physical Mobile Bottom Navigation Bar (Visible only on < md screens) */}
+      <nav className="md:hidden fixed bottom-0 inset-x-0 bg-white/95 backdrop-blur-md border-t border-slate-200/90 z-30 px-3 py-1.5 flex items-center justify-around shadow-[0_-4px_16px_rgba(0,0,0,0.08)] safe-bottom">
         <button
           onClick={() => {
+            triggerHaptic('light');
             setSelectedPatientId(null);
             setActiveView('PACIENTES');
           }}
-          className={`flex flex-col items-center justify-center gap-0.5 min-h-[48px] min-w-[48px] px-2 py-1 rounded-xl transition-all active:scale-90 ${
-            activeView === 'PACIENTES' ? 'text-teal-600 font-black' : 'text-slate-500 hover:text-slate-800'
+          className={`flex flex-col items-center justify-center gap-0.5 min-h-[50px] min-w-[50px] px-2 py-1 rounded-xl transition-all active:scale-90 active:translate-y-0.5 ${
+            activeView === 'PACIENTES'
+              ? 'text-teal-700 font-black bg-teal-50/80 shadow-sm border border-teal-200/60'
+              : 'text-slate-500 hover:text-slate-800'
           }`}
         >
-          <PawPrint className="w-5 h-5" />
+          <PawPrint className="w-5 h-5 stroke-[2.2]" />
           <span className="text-[10px] font-bold tracking-tight">Pacientes</span>
         </button>
 
         <button
-          onClick={() => setActiveView('CAJA_FACTURACION')}
-          className={`flex flex-col items-center justify-center gap-0.5 min-h-[48px] min-w-[48px] px-2 py-1 rounded-xl transition-all active:scale-90 ${
-            activeView === 'CAJA_FACTURACION' || activeView === 'CAJA_FACTURAS' ? 'text-teal-600 font-black' : 'text-slate-500 hover:text-slate-800'
+          onClick={() => {
+            triggerHaptic('light');
+            setActiveView('CAJA_FACTURACION');
+          }}
+          className={`flex flex-col items-center justify-center gap-0.5 min-h-[50px] min-w-[50px] px-2 py-1 rounded-xl transition-all active:scale-90 active:translate-y-0.5 ${
+            activeView === 'CAJA_FACTURACION' || activeView === 'CAJA_FACTURAS'
+              ? 'text-teal-700 font-black bg-teal-50/80 shadow-sm border border-teal-200/60'
+              : 'text-slate-500 hover:text-slate-800'
           }`}
         >
-          <Receipt className="w-5 h-5" />
+          <Receipt className="w-5 h-5 stroke-[2.2]" />
           <span className="text-[10px] font-bold tracking-tight">Caja & ARCA</span>
         </button>
 
-        {/* Center Quick Action Floating Trigger */}
+        {/* Center Quick Action Physical Floating Button */}
         <button
-          onClick={() => setQuickModal('QUICK_ACTIONS')}
-          className="flex items-center justify-center -mt-6 bg-teal-600 text-white w-12 h-12 rounded-full shadow-lg shadow-teal-600/35 active:scale-90 transition-transform border-4 border-white"
-          title="Acción Rápida"
+          onClick={() => {
+            triggerHaptic('medium');
+            setQuickModal('QUICK_ACTIONS');
+          }}
+          className="btn-physical btn-physical-teal w-13 h-13 -mt-6 rounded-full border-4 border-white text-white shadow-lg active:scale-90 flex items-center justify-center"
+          title="Acción Rápida de Urgencia"
         >
-          <Plus className="w-6 h-6 stroke-[2.5]" />
+          <Plus className="w-7 h-7 stroke-[3]" />
         </button>
 
         <button
-          onClick={() => setActiveView('INVENTARIO')}
-          className={`flex flex-col items-center justify-center gap-0.5 min-h-[48px] min-w-[48px] px-2 py-1 rounded-xl transition-all active:scale-90 ${
-            activeView === 'INVENTARIO' || activeView === 'FARMACIA' ? 'text-teal-600 font-black' : 'text-slate-500 hover:text-slate-800'
+          onClick={() => {
+            triggerHaptic('light');
+            setActiveView('INVENTARIO');
+          }}
+          className={`flex flex-col items-center justify-center gap-0.5 min-h-[50px] min-w-[50px] px-2 py-1 rounded-xl transition-all active:scale-90 active:translate-y-0.5 ${
+            activeView === 'INVENTARIO' || activeView === 'FARMACIA'
+              ? 'text-teal-700 font-black bg-teal-50/80 shadow-sm border border-teal-200/60'
+              : 'text-slate-500 hover:text-slate-800'
           }`}
         >
-          <Boxes className="w-5 h-5" />
+          <Boxes className="w-5 h-5 stroke-[2.2]" />
           <span className="text-[10px] font-bold tracking-tight">Farmacia</span>
         </button>
 
         <button
-          onClick={() => setIsMobileMenuOpen(true)}
-          className="flex flex-col items-center justify-center gap-0.5 min-h-[48px] min-w-[48px] px-2 py-1 rounded-xl text-slate-500 hover:text-slate-900 active:scale-90 transition-all"
+          onClick={() => {
+            triggerHaptic('light');
+            setIsMobileMenuOpen(true);
+          }}
+          className="flex flex-col items-center justify-center gap-0.5 min-h-[50px] min-w-[50px] px-2 py-1 rounded-xl text-slate-500 hover:text-slate-900 active:scale-90 active:translate-y-0.5 transition-all"
         >
-          <Menu className="w-5 h-5" />
+          <Menu className="w-5 h-5 stroke-[2.2]" />
           <span className="text-[10px] font-bold tracking-tight">Menú</span>
         </button>
       </nav>
