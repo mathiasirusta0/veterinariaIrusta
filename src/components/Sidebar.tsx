@@ -1,59 +1,17 @@
 import React from 'react';
 import {
-  LayoutDashboard,
   PawPrint,
-  CalendarDays,
-  Clock,
-  Stethoscope,
-  BedDouble,
-  Scissors,
-  FlaskConical,
-  Scan,
-  Syringe,
   Boxes,
-  Receipt,
-  FileText,
-  Sparkles,
   ShieldCheck,
-  Building2,
-  Calculator,
-  Radio,
-  Activity,
   X,
-  FileCheck,
 } from 'lucide-react';
 import { useVet } from '../context/VetContext';
-
 import { hasViewPermission, SystemView } from '../utils/rbac';
 
-export const Sidebar: React.FC<{ isOpenMobile?: boolean; onCloseMobile?: () => void }> = ({
-  isOpenMobile,
-  onCloseMobile,
-}) => {
-  const {
-    activeView,
-    setActiveView,
-    hospitalizations,
-    triageList,
-    appointments,
-    labOrders,
-    products,
-    currentUser,
-    activeBranch,
-    openCalculators,
-    openMonitor,
-    openWhatsAppHub,
-    openDentalChart,
-    openBodyMap,
-  } = useVet();
-
-  const activeHospitalCount = hospitalizations.filter((h) => h.status === 'ACTIVA').length;
-  const waitingTriageCount = triageList.filter((t) => t.status === 'EN_ESPERA').length;
-  const todayAppointments = appointments.filter(
-    (a) => a.date === new Date().toISOString().split('T')[0] && a.status !== 'CANCELADO'
-  ).length;
-  const pendingLabsCount = labOrders.filter((l) => l.status === 'SOLICITADO' || l.status === 'EN_PROCESO').length;
-  const lowStockCount = products.filter((p) => p.currentStock <= p.minStock).length;
+interface SidebarProps {
+  isOpenMobile?: boolean;
+  onCloseMobile?: () => void;
+}
 
 interface SidebarNavItem {
   id: string;
@@ -68,21 +26,30 @@ interface SidebarNavGroup {
   items: SidebarNavItem[];
 }
 
+export const Sidebar: React.FC<SidebarProps> = ({ isOpenMobile, onCloseMobile }) => {
+  const {
+    activeView,
+    setActiveView,
+    currentUser,
+    patients,
+    products,
+    setSelectedPatientId,
+  } = useVet();
+
+  const lowStockCount = products.filter((p) => p.currentStock <= p.minStock).length;
+
   const rawNavGroups: SidebarNavGroup[] = [
     {
-      group: 'ÁREAS PRINCIPALES',
+      group: 'PROGRAMA PRINCIPAL',
       items: [
-        { id: 'DASHBOARD', label: 'Inicio', icon: LayoutDashboard },
-        { id: 'PACIENTES', label: 'Pacientes & Tutores', icon: PawPrint },
-        { id: 'AGENDA', label: 'Atención & Turnos', icon: CalendarDays, badge: todayAppointments + waitingTriageCount },
-        { id: 'INTERNACION', label: 'Hospital & Cirugías', icon: BedDouble, badge: activeHospitalCount, badgeColor: 'bg-red-500' },
-        { id: 'INVENTARIO', label: 'Gestión & Farmacia', icon: Boxes, badge: lowStockCount, badgeColor: 'bg-amber-500' },
+        { id: 'PACIENTES', label: 'Pacientes', icon: PawPrint, badge: patients.length },
+        { id: 'INVENTARIO', label: 'Gestión & Farmacia', icon: Boxes, badge: lowStockCount > 0 ? lowStockCount : undefined, badgeColor: 'bg-amber-500' },
         { id: 'CONFIGURACION', label: 'Administración', icon: ShieldCheck },
       ],
     },
   ];
 
-  // Filtrar grupos y elementos según los permisos del rol actual
+  // Filtrar grupos según permisos RBAC
   const navGroups = rawNavGroups
     .map((grp) => ({
       ...grp,
@@ -91,6 +58,9 @@ interface SidebarNavGroup {
     .filter((grp) => grp.items.length > 0);
 
   const handleSelect = (id: string) => {
+    if (id === 'PACIENTES') {
+      setSelectedPatientId(null);
+    }
     setActiveView(id);
     if (onCloseMobile) onCloseMobile();
   };
@@ -114,7 +84,7 @@ interface SidebarNavGroup {
       >
         {/* Brand Header */}
         <div className="p-4 sm:p-5 flex items-center justify-between border-b border-slate-800">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 cursor-pointer" onClick={() => handleSelect('PACIENTES')}>
             <div className="w-8 h-8 bg-teal-500 rounded-xl flex items-center justify-center font-black text-lg text-slate-900 shadow-sm shadow-teal-500/30">
               V
             </div>
@@ -126,7 +96,6 @@ interface SidebarNavGroup {
             </div>
           </div>
 
-          {/* Close button on mobile */}
           {onCloseMobile && (
             <button
               onClick={onCloseMobile}
@@ -138,28 +107,26 @@ interface SidebarNavGroup {
         </div>
 
         {/* Navigation Links */}
-        <nav className="flex-1 py-4 overflow-y-auto space-y-4 px-3 custom-scrollbar">
+        <nav className="flex-1 py-5 overflow-y-auto space-y-4 px-3 custom-scrollbar">
           {navGroups.map((group) => (
-            <div key={group.group} className="space-y-1">
-              <h4 className="px-3 text-[10px] font-bold uppercase tracking-wider text-slate-400/80 mb-1.5">
+            <div key={group.group} className="space-y-1.5">
+              <h4 className="px-3 text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-2">
                 {group.group}
               </h4>
               {group.items.map((item) => {
                 const Icon = item.icon;
-                const isActive =
-                  activeView === item.id ||
-                  (item.id === 'DASHBOARD' && activeView === 'INICIO');
+                const isActive = activeView === item.id || (item.id === 'PACIENTES' && (activeView === 'DASHBOARD' || activeView === 'INICIO' || activeView === 'OPERACION'));
 
                 return (
                   <button
                     key={item.id}
                     onClick={() => handleSelect(item.id)}
                     className={`
-                      w-full flex items-center justify-between px-3.5 py-2.5 text-xs transition-all duration-150 group rounded-xl
+                      w-full flex items-center justify-between px-3.5 py-3 text-xs transition-all duration-150 group rounded-xl
                       ${
                         isActive
-                          ? 'bg-gradient-to-r from-teal-500/20 to-teal-500/5 text-teal-300 border border-teal-500/30 font-bold shadow-xs'
-                          : 'text-slate-400 hover:text-slate-100 hover:bg-slate-800/60 font-medium'
+                          ? 'bg-gradient-to-r from-teal-500/25 to-teal-500/10 text-teal-300 border border-teal-500/30 font-black shadow-xs'
+                          : 'text-slate-400 hover:text-slate-100 hover:bg-slate-800/60 font-semibold'
                       }
                     `}
                   >
@@ -169,12 +136,12 @@ interface SidebarNavGroup {
                           isActive ? 'text-teal-400' : 'text-slate-400 group-hover:text-teal-400'
                         }`}
                       />
-                      <span className="truncate">{item.label}</span>
+                      <span className="truncate text-sm">{item.label}</span>
                     </div>
 
                     {item.badge !== undefined && item.badge > 0 && (
                       <span
-                        className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold text-white ${
+                        className={`px-2 py-0.5 rounded-full text-[10px] font-black text-white ${
                           item.badgeColor || 'bg-slate-700'
                         }`}
                       >
@@ -186,49 +153,17 @@ interface SidebarNavGroup {
               })}
             </div>
           ))}
-
-          {/* Clinical Tools Fast Access */}
-          <div className="pt-2 border-t border-slate-800 space-y-1">
-            <h4 className="px-3 text-[10px] font-bold uppercase tracking-wider text-slate-400/80 mb-1.5">
-              HERRAMIENTAS CLÍNICAS
-            </h4>
-            <button
-              onClick={() => {
-                openCalculators();
-                if (onCloseMobile) onCloseMobile();
-              }}
-              className="w-full flex items-center justify-between px-3 py-2 text-xs font-medium text-slate-400 hover:text-white hover:bg-slate-800/80 rounded-xl transition-all group"
-            >
-              <div className="flex items-center gap-2.5">
-                <Calculator className="w-4 h-4 text-teal-400 group-hover:text-white" />
-                <span>Calculadora Dosis/Fluidos</span>
-              </div>
-            </button>
-
-            <button
-              onClick={() => {
-                openDentalChart();
-                if (onCloseMobile) onCloseMobile();
-              }}
-              className="w-full flex items-center justify-between px-3 py-2 text-xs font-medium text-slate-400 hover:text-white hover:bg-slate-800/80 rounded-xl transition-all group"
-            >
-              <div className="flex items-center gap-2.5">
-                <span>🦷</span>
-                <span>Odontograma Triadan</span>
-              </div>
-            </button>
-          </div>
         </nav>
 
-        {/* Footer: Active User & Hospital Mode */}
-        <div className="p-3.5 border-t border-slate-800 bg-[#0B1120] text-xs flex items-center justify-between">
+        {/* Footer: User Identity */}
+        <div className="p-4 border-t border-slate-800 bg-[#0B1120] text-xs flex items-center justify-between">
           <div className="flex items-center gap-2.5 overflow-hidden">
-            <div className="w-7 h-7 rounded-full bg-teal-600/30 border border-teal-500/50 flex items-center justify-center font-bold text-teal-400 text-xs">
+            <div className="w-8 h-8 rounded-xl bg-teal-600/30 border border-teal-500/50 flex items-center justify-center font-black text-teal-400 text-xs">
               {currentUser.name.charAt(0)}
             </div>
             <div className="truncate">
               <span className="font-bold text-slate-200 block truncate">{currentUser.name}</span>
-              <span className="text-[10px] text-teal-400 font-mono block">{currentUser.role}</span>
+              <span className="text-[10px] text-teal-400 font-mono block uppercase">{currentUser.role}</span>
             </div>
           </div>
         </div>

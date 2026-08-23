@@ -124,9 +124,10 @@ const MainLayout: React.FC = () => {
       case 'OPERACION':
       case 'DASHBOARD':
       case 'INICIO':
+      case 'PACIENTES':
         return (
-          <ModuleErrorBoundary moduleName="Operación Hospitalaria">
-            <DashboardView />
+          <ModuleErrorBoundary moduleName="Directorio de Pacientes">
+            {selectedPatientId ? <Patient360View /> : <PatientsListView />}
           </ModuleErrorBoundary>
         );
       case 'GESTION':
@@ -135,12 +136,7 @@ const MainLayout: React.FC = () => {
             <InventoryView />
           </ModuleErrorBoundary>
         );
-      case 'PACIENTES':
-        return (
-          <ModuleErrorBoundary moduleName="Directorio de Pacientes">
-            {selectedPatientId ? <Patient360View /> : <PatientsListView />}
-          </ModuleErrorBoundary>
-        );
+
       case 'PROPIETARIOS':
         return (
           <ModuleErrorBoundary moduleName="Propietarios & Tutores">
