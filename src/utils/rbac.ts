@@ -16,7 +16,6 @@ export type SystemView =
   | 'IMAGENES'
   | 'VACUNAS'
   | 'INVENTARIO'
-  | 'CONTROL_PSICOTROPICOS'
   | 'RESIDUOS_PATOLOGICOS'
   | 'CAJA_FACTURACION'
   | 'DOCUMENTOS'
@@ -42,7 +41,6 @@ export const ROLE_PERMISSIONS: Record<UserRole, SystemView[]> = {
     'IMAGENES',
     'VACUNAS',
     'INVENTARIO',
-    'CONTROL_PSICOTROPICOS',
     'RESIDUOS_PATOLOGICOS',
     'CAJA_FACTURACION',
     'DOCUMENTOS',
@@ -66,7 +64,6 @@ export const ROLE_PERMISSIONS: Record<UserRole, SystemView[]> = {
     'IMAGENES',
     'VACUNAS',
     'INVENTARIO',
-    'CONTROL_PSICOTROPICOS',
     'RESIDUOS_PATOLOGICOS',
     'CAJA_FACTURACION',
     'DOCUMENTOS',
@@ -90,7 +87,6 @@ export const ROLE_PERMISSIONS: Record<UserRole, SystemView[]> = {
     'IMAGENES',
     'VACUNAS',
     'INVENTARIO',
-    'CONTROL_PSICOTROPICOS',
     'RESIDUOS_PATOLOGICOS',
     'CAJA_FACTURACION',
     'DOCUMENTOS',
@@ -114,7 +110,6 @@ export const ROLE_PERMISSIONS: Record<UserRole, SystemView[]> = {
     'IMAGENES',
     'VACUNAS',
     'INVENTARIO',
-    'CONTROL_PSICOTROPICOS',
     'RESIDUOS_PATOLOGICOS',
     'DOCUMENTOS',
     'ASISTENTE_IA',
@@ -142,7 +137,6 @@ export const ROLE_PERMISSIONS: Record<UserRole, SystemView[]> = {
     'PROPIETARIOS',
     'CONSULTAS',
     'RECETAS_OFICIALES',
-    'CONTROL_PSICOTROPICOS',
     'RESIDUOS_PATOLOGICOS',
     'CAJA_FACTURACION',
     'DOCUMENTOS',
@@ -189,7 +183,6 @@ export const ROLE_PERMISSIONS: Record<UserRole, SystemView[]> = {
   FARMACIA: [
     'DASHBOARD',
     'INVENTARIO',
-    'CONTROL_PSICOTROPICOS',
     'RECETAS_OFICIALES',
     'PACIENTES',
     'CAJA_FACTURACION',

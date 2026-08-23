@@ -100,7 +100,6 @@ interface SidebarNavGroup {
       group: 'FARMACIA & NORMATIVA',
       items: [
         { id: 'INVENTARIO', label: 'Farmacia & Stock', icon: Boxes, badge: lowStockCount, badgeColor: 'bg-red-500' },
-        { id: 'CONTROL_PSICOTROPICOS', label: 'Psicotrópicos & Ketamina', icon: Lock },
         { id: 'RESIDUOS_PATOLOGICOS', label: 'Residuos Patológicos', icon: Trash2 },
         { id: 'CUMPLIMIENTO_NORMATIVO', label: 'Cumplimiento Legal CMVC', icon: Scale },
       ],

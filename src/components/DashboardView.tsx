@@ -304,14 +304,6 @@ export const DashboardView: React.FC = () => {
           </button>
 
           <button
-            onClick={() => setActiveView('CONTROL_PSICOTROPICOS')}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-200 border border-slate-700 transition-colors"
-          >
-            <Lock className="w-3.5 h-3.5 text-rose-400" />
-            <span>Psicotrópicos</span>
-          </button>
-
-          <button
             onClick={() => setActiveView('RESIDUOS_PATOLOGICOS')}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-200 border border-slate-700 transition-colors"
           >
