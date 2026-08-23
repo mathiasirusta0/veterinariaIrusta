@@ -304,14 +304,6 @@ export const DashboardView: React.FC = () => {
           </button>
 
           <button
-            onClick={() => setActiveView('CUMPLIMIENTO_NORMATIVO')}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-200 border border-slate-700 transition-colors"
-          >
-            <Scale className="w-3.5 h-3.5 text-teal-400" />
-            <span>Normativa CMVC</span>
-          </button>
-
-          <button
             onClick={() => setActiveView('CENTRO_QA')}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-teal-600 hover:bg-teal-500 text-white text-xs font-bold shadow-sm transition-colors"
           >

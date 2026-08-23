@@ -19,7 +19,6 @@ export type SystemView =
   | 'CAJA_FACTURACION'
   | 'DOCUMENTOS'
   | 'ASISTENTE_IA'
-  | 'CUMPLIMIENTO_NORMATIVO'
   | 'CENTRO_QA'
   | 'CONFIGURACION';
 
@@ -43,7 +42,6 @@ export const ROLE_PERMISSIONS: Record<UserRole, SystemView[]> = {
     'CAJA_FACTURACION',
     'DOCUMENTOS',
     'ASISTENTE_IA',
-    'CUMPLIMIENTO_NORMATIVO',
     'CENTRO_QA',
     'CONFIGURACION',
   ],
@@ -65,7 +63,6 @@ export const ROLE_PERMISSIONS: Record<UserRole, SystemView[]> = {
     'CAJA_FACTURACION',
     'DOCUMENTOS',
     'ASISTENTE_IA',
-    'CUMPLIMIENTO_NORMATIVO',
     'CENTRO_QA',
     'CONFIGURACION',
   ],
@@ -87,7 +84,6 @@ export const ROLE_PERMISSIONS: Record<UserRole, SystemView[]> = {
     'CAJA_FACTURACION',
     'DOCUMENTOS',
     'ASISTENTE_IA',
-    'CUMPLIMIENTO_NORMATIVO',
     'CENTRO_QA',
     'CONFIGURACION',
   ],
@@ -108,7 +104,6 @@ export const ROLE_PERMISSIONS: Record<UserRole, SystemView[]> = {
     'INVENTARIO',
     'DOCUMENTOS',
     'ASISTENTE_IA',
-    'CUMPLIMIENTO_NORMATIVO',
   ],
   ESPECIALISTA: [
     'DASHBOARD',
@@ -134,7 +129,6 @@ export const ROLE_PERMISSIONS: Record<UserRole, SystemView[]> = {
     'RECETAS_OFICIALES',
     'CAJA_FACTURACION',
     'DOCUMENTOS',
-    'CUMPLIMIENTO_NORMATIVO',
     'CENTRO_QA',
     'CONFIGURACION',
   ],

@@ -46,7 +46,6 @@ import { CashAndBillingView } from './components/CashAndBillingView';
 import { DocumentsView } from './components/DocumentsView';
 import { AiAssistantView } from './components/AiAssistantView';
 import { SettingsAndUsersView } from './components/SettingsAndUsersView';
-import { RegulatoryComplianceView } from './components/RegulatoryComplianceView';
 import { PrescriptionsView } from './components/PrescriptionsView';
 import { SystemQaTestCenterView } from './components/SystemQaTestCenterView';
 
@@ -230,13 +229,6 @@ const MainLayout: React.FC = () => {
         return (
           <ModuleErrorBoundary moduleName="Recetario Veterinario Oficial SENASA">
             <PrescriptionsView />
-          </ModuleErrorBoundary>
-        );
-      case 'CUMPLIMIENTO_NORMATIVO':
-      case 'NORMATIVA':
-        return (
-          <ModuleErrorBoundary moduleName="Centro de Cumplimiento Normativo">
-            <RegulatoryComplianceView />
           </ModuleErrorBoundary>
         );
       case 'CENTRO_QA':

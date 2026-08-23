@@ -97,10 +97,9 @@ interface SidebarNavGroup {
       ],
     },
     {
-      group: 'FARMACIA & NORMATIVA',
+      group: 'FARMACIA & INVENTARIO',
       items: [
         { id: 'INVENTARIO', label: 'Farmacia & Stock', icon: Boxes, badge: lowStockCount, badgeColor: 'bg-red-500' },
-        { id: 'CUMPLIMIENTO_NORMATIVO', label: 'Cumplimiento Legal CMVC', icon: Scale },
       ],
     },
     {
