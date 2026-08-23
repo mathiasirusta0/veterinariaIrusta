@@ -733,8 +733,8 @@ export const Patient360View: React.FC = () => {
           )}
         </div>
 
-        {/* 12-Tab Clinical Navigation Bar */}
-        <div className="flex items-center gap-1 overflow-x-auto pb-1 border-t border-slate-100 pt-3">
+        {/* 6 Autonomous Clinical Navigation Tabs */}
+        <div className="flex items-center gap-2 overflow-x-auto pb-2 border-t border-slate-100 pt-3.5 scrollbar-none no-scrollbar snap-x snap-mandatory scroll-smooth">
           {tabs.map((tab) => {
             const Icon = tab.icon;
             const isActive = activePatientTab === tab.id;
@@ -742,18 +742,18 @@ export const Patient360View: React.FC = () => {
               <button
                 key={tab.id}
                 onClick={() => setActivePatientTab(tab.id as any)}
-                className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
+                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-black whitespace-nowrap transition-all snap-start active:scale-95 touch-manipulation ${
                   isActive
-                    ? 'bg-teal-600 text-white shadow-xs'
-                    : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                    ? 'bg-teal-600 text-white shadow-md shadow-teal-600/20'
+                    : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 bg-slate-50/60'
                 }`}
               >
-                <Icon className={`w-4 h-4 ${isActive ? 'text-white' : 'text-slate-400'}`} />
+                <Icon className={`w-4 h-4 flex-shrink-0 ${isActive ? 'text-white' : 'text-slate-400'}`} />
                 <span>{tab.label}</span>
                 {tab.count !== undefined && tab.count > 0 && (
                   <span
-                    className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono font-bold ${
-                      isActive ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-700'
+                    className={`text-[10px] px-1.5 py-0.5 rounded-full font-mono font-bold ${
+                      isActive ? 'bg-white/25 text-white' : 'bg-slate-200 text-slate-700'
                     }`}
                   >
                     {tab.count}
@@ -1675,9 +1675,9 @@ export const Patient360View: React.FC = () => {
 
       {/* 💳 MODAL FACTURACIÓN ARCA VS TICKET COMÚN */}
       {showBillingModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-slate-950/75 backdrop-blur-xs animate-in fade-in">
-          <div className="bg-white rounded-3xl max-w-2xl w-full p-6 space-y-5 shadow-2xl border border-slate-100 text-left text-xs max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-6 bg-slate-950/75 backdrop-blur-xs animate-in fade-in">
+          <div className="bg-white rounded-t-3xl sm:rounded-3xl max-w-2xl w-full p-5 sm:p-6 space-y-5 shadow-2xl border border-slate-100 text-left text-xs max-h-[92vh] sm:max-h-[85vh] overflow-y-auto">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3 sticky top-0 bg-white z-10">
               <div>
                 <span className="text-[10px] font-black uppercase tracking-wider text-teal-800 bg-teal-50 px-2 py-0.5 rounded-full border border-teal-200">
                   Caja & Facturación Hospitalaria
@@ -1686,7 +1686,7 @@ export const Patient360View: React.FC = () => {
                   Liquidación de Gastos: {patient.name}
                 </h3>
               </div>
-              <button onClick={() => setShowBillingModal(false)} className="text-slate-400 hover:text-slate-600 font-bold p-1 text-base">
+              <button onClick={() => setShowBillingModal(false)} className="text-slate-400 hover:text-slate-600 font-bold p-1.5 text-base">
                 ✕
               </button>
             </div>
@@ -1694,7 +1694,7 @@ export const Patient360View: React.FC = () => {
             {/* Selector: Factura ARCA vs Ticket Común */}
             <div className="space-y-2">
               <label className="font-bold text-slate-700 block">Tipo de Comprobante:</label>
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 <button
                   type="button"
                   onClick={() => setBillingInvoiceType('TICKET_COMUN')}
@@ -1805,18 +1805,18 @@ export const Patient360View: React.FC = () => {
             {/* Payment Method Selector */}
             <div>
               <label className="font-bold text-slate-700 block mb-1">Medio de Pago:</label>
-              <div className="grid grid-cols-4 gap-2">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                 {[
                   { id: 'EFECTIVO', label: '💵 Efectivo' },
                   { id: 'TRANSFERENCIA', label: '🏦 Transferencia' },
-                  { id: 'MERCADOPAGO_QR', label: '📱 Mercado Pago / QR' },
-                  { id: 'TARJETA_DEBITO', label: '💳 Tarjeta Débito' },
+                  { id: 'MERCADOPAGO_QR', label: '📱 QR / MP' },
+                  { id: 'TARJETA_DEBITO', label: '💳 Débito' },
                 ].map((m) => (
                   <button
                     key={m.id}
                     type="button"
                     onClick={() => setBillingPaymentMethod(m.id as any)}
-                    className={`py-2 px-2 rounded-xl text-center font-bold text-xs border transition-all ${
+                    className={`py-2.5 px-2 rounded-xl text-center font-bold text-xs border transition-all ${
                       billingPaymentMethod === m.id
                         ? 'bg-slate-900 text-white border-slate-900 shadow-2xs'
                         : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
@@ -1829,7 +1829,7 @@ export const Patient360View: React.FC = () => {
             </div>
 
             {/* Actions */}
-            <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
+            <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100 sticky bottom-0 bg-white">
               <button
                 type="button"
                 onClick={() => setShowBillingModal(false)}
@@ -1846,7 +1846,7 @@ export const Patient360View: React.FC = () => {
                   setShowTicketPreview(true);
                   showToast('success', 'Cobro Registrado', `Comprobante ${num} generado exitosamente.`);
                 }}
-                className="px-6 py-2.5 bg-teal-600 hover:bg-teal-500 text-white rounded-xl font-black shadow-md shadow-teal-600/20"
+                className="px-6 py-2.5 bg-teal-600 hover:bg-teal-500 text-white rounded-xl font-black shadow-md shadow-teal-600/20 active:scale-95"
               >
                 ✓ Cobrar & Ver Ticket
               </button>
@@ -1857,8 +1857,8 @@ export const Patient360View: React.FC = () => {
 
       {/* 📄 MODAL VISTA PREVIA COMPLETA DEL TICKET / COMPROBANTE PARA EL PROPIETARIO */}
       {showTicketPreview && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-slate-950/80 backdrop-blur-xs animate-in fade-in">
-          <div className="bg-white rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl border border-slate-100 text-left text-xs font-mono">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-6 bg-slate-950/80 backdrop-blur-xs animate-in fade-in">
+          <div className="bg-white rounded-t-3xl sm:rounded-3xl max-w-md w-full p-5 sm:p-6 space-y-4 shadow-2xl border border-slate-100 text-left text-xs font-mono max-h-[92vh] sm:max-h-[85vh] overflow-y-auto">
             <div className="text-center border-b border-dashed border-slate-300 pb-4 space-y-1">
               <h2 className="font-black text-base tracking-tight text-slate-900">VET SYSTEM HOSPITAL VETERINARIO</h2>
               <p className="text-[11px] text-slate-500">Sede Central 24 Horas • CUIT 30-71234567-8</p>

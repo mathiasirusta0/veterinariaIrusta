@@ -25,6 +25,9 @@ import {
   Clock,
   Plus,
   Menu,
+  Receipt,
+  Boxes,
+  ShieldCheck,
 } from 'lucide-react';
 
 // Views
@@ -54,6 +57,7 @@ const MainLayout: React.FC = () => {
     activeView,
     setActiveView,
     selectedPatientId,
+    setSelectedPatientId,
     currentUser,
     hospitalizations,
     triageList,
@@ -279,54 +283,55 @@ const MainLayout: React.FC = () => {
       </div>
 
       {/* Modern Mobile Bottom Navigation Bar (Visible only on < md screens) */}
-      <nav className="md:hidden fixed bottom-0 inset-x-0 bg-white/95 backdrop-blur-md border-t border-slate-200 z-30 px-2 py-1 flex items-center justify-around shadow-lg">
+      <nav className="md:hidden fixed bottom-0 inset-x-0 bg-white/95 backdrop-blur-md border-t border-slate-200 z-30 px-2 py-1.5 flex items-center justify-around shadow-2xl safe-bottom">
         <button
-          onClick={() => setActiveView('DASHBOARD')}
-          className={`flex flex-col items-center gap-0.5 p-2 rounded-xl transition-all ${
-            activeView === 'DASHBOARD' || activeView === 'INICIO' ? 'text-teal-600 font-bold' : 'text-slate-500'
-          }`}
-        >
-          <LayoutDashboard className="w-5 h-5" />
-          <span className="text-[10px]">Inicio</span>
-        </button>
-
-        <button
-          onClick={() => setActiveView('PACIENTES')}
-          className={`flex flex-col items-center gap-0.5 p-2 rounded-xl transition-all ${
-            activeView === 'PACIENTES' ? 'text-teal-600 font-bold' : 'text-slate-500'
+          onClick={() => {
+            setSelectedPatientId(null);
+            setActiveView('PACIENTES');
+          }}
+          className={`flex flex-col items-center gap-0.5 p-1.5 rounded-xl transition-all ${
+            activeView === 'PACIENTES' ? 'text-teal-600 font-black scale-105' : 'text-slate-500'
           }`}
         >
           <PawPrint className="w-5 h-5" />
-          <span className="text-[10px]">Pacientes</span>
+          <span className="text-[10px] font-bold">Pacientes</span>
+        </button>
+
+        <button
+          onClick={() => setActiveView('CAJA_FACTURACION')}
+          className={`flex flex-col items-center gap-0.5 p-1.5 rounded-xl transition-all ${
+            activeView === 'CAJA_FACTURACION' || activeView === 'CAJA_FACTURAS' ? 'text-teal-600 font-black scale-105' : 'text-slate-500'
+          }`}
+        >
+          <Receipt className="w-5 h-5" />
+          <span className="text-[10px] font-bold">Caja & ARCA</span>
         </button>
 
         {/* Center Quick Action Floating Trigger */}
         <button
           onClick={() => setQuickModal('QUICK_ACTIONS')}
-          className="flex flex-col items-center -mt-5 bg-teal-600 text-white p-3 rounded-full shadow-lg shadow-teal-600/30 active:scale-95 transition-transform border-4 border-white"
+          className="flex flex-col items-center -mt-6 bg-teal-600 text-white p-3.5 rounded-full shadow-lg shadow-teal-600/40 active:scale-90 transition-transform border-4 border-white"
+          title="Acción Rápida"
         >
           <Plus className="w-6 h-6 font-black" />
         </button>
 
         <button
-          onClick={() => setActiveView('INTERNACION')}
-          className={`flex flex-col items-center gap-0.5 p-2 rounded-xl transition-all relative ${
-            activeView === 'INTERNACION' ? 'text-teal-600 font-bold' : 'text-slate-500'
+          onClick={() => setActiveView('INVENTARIO')}
+          className={`flex flex-col items-center gap-0.5 p-1.5 rounded-xl transition-all ${
+            activeView === 'INVENTARIO' || activeView === 'FARMACIA' ? 'text-teal-600 font-black scale-105' : 'text-slate-500'
           }`}
         >
-          <BedDouble className="w-5 h-5" />
-          <span className="text-[10px]">UCI</span>
-          {activeHospitalCount > 0 && (
-            <span className="absolute top-1 right-2 w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
-          )}
+          <Boxes className="w-5 h-5" />
+          <span className="text-[10px] font-bold">Farmacia</span>
         </button>
 
         <button
           onClick={() => setIsMobileMenuOpen(true)}
-          className="flex flex-col items-center gap-0.5 p-2 rounded-xl text-slate-500 hover:text-slate-900"
+          className="flex flex-col items-center gap-0.5 p-1.5 rounded-xl text-slate-500 hover:text-slate-900 active:scale-95"
         >
           <Menu className="w-5 h-5" />
-          <span className="text-[10px]">Más (18)</span>
+          <span className="text-[10px] font-bold">Menú</span>
         </button>
       </nav>
 

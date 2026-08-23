@@ -492,9 +492,9 @@ export const QuickModals: React.FC = () => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-      <div className="bg-white border border-slate-200 rounded-2xl w-full max-w-2xl p-6 space-y-4 max-h-[90vh] overflow-y-auto custom-scrollbar shadow-2xl animate-in zoom-in-95 duration-150">
-        <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+    <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4">
+      <div className="bg-white border border-slate-200 rounded-t-3xl sm:rounded-3xl w-full max-w-2xl p-5 sm:p-6 space-y-4 max-h-[92vh] sm:max-h-[85vh] overflow-y-auto custom-scrollbar shadow-2xl animate-in slide-in-from-bottom-5 sm:zoom-in-95 duration-150">
+        <div className="flex items-center justify-between border-b border-slate-100 pb-3 sticky top-0 bg-white z-10">
           <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
             {quickModal === 'QUICK_ACTIONS' && '⚡ Acciones Rápidas del Hospital'}
             {quickModal === 'NUEVO_PACIENTE' && '🐾 Alta de Nuevo Paciente'}
@@ -508,13 +508,13 @@ export const QuickModals: React.FC = () => {
             {quickModal === 'NUEVA_IMAGEN' && '🔍 Solicitar Estudio de Imagen'}
             {quickModal === 'NUEVA_VACUNA' && '💉 Aplicar Vacuna & Libreta'}
             {quickModal === 'NUEVO_PRODUCTO' && '📦 Alta de Producto / Medicamento'}
-            {quickModal === 'NUEVA_FACTURA' && '🧾 Emitir Factura Electrónica AFIP'}
+            {quickModal === 'NUEVA_FACTURA' && (invType === 'RECIBO_X' ? '📄 Emitir Ticket Común' : '🧾 Emitir Factura ARCA (AFIP)')}
             {quickModal === 'NUEVO_PRESUPUESTO' && '📋 Generar Nuevo Presupuesto Clínico'}
             {quickModal === 'NUEVO_CONSENTIMIENTO' && '📑 Generar Consentimiento Informado'}
           </h3>
           <button
             onClick={() => setQuickModal(null)}
-            className="text-slate-400 hover:text-slate-700 p-1 rounded-lg hover:bg-slate-100 transition-colors"
+            className="text-slate-400 hover:text-slate-700 p-1.5 rounded-xl hover:bg-slate-100 transition-colors"
           >
             <X className="w-5 h-5" />
           </button>

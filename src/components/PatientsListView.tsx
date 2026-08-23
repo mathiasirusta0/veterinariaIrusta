@@ -90,7 +90,7 @@ export const PatientsListView: React.FC = () => {
       return 0;
     });
 
-  const handleOpenPatient = (id: string, tab = 'RESUMEN') => {
+  const handleOpenPatient = (id: string, tab = 'SIGNOS') => {
     setSelectedPatientId(id);
     setActivePatientTab(tab);
     setActiveView('PACIENTES');
@@ -284,7 +284,7 @@ export const PatientsListView: React.FC = () => {
                                 key={p.id}
                                 onClick={() => {
                                   setSelectedPatientId(p.id);
-                                  setActivePatientTab('RESUMEN');
+                                  setActivePatientTab('SIGNOS');
                                   setActiveView('PACIENTES');
                                 }}
                                 className="flex items-center gap-1.5 px-2.5 py-1 bg-slate-50 hover:bg-slate-100 rounded-lg text-xs font-semibold text-teal-800 border border-slate-200 hover:border-teal-400 transition-colors"
