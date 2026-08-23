@@ -32,12 +32,12 @@ export const RegulatoryComplianceView: React.FC = () => {
 
   // Filtered Rules
   const filteredRules = regulatoryRules.filter((r) => {
-    const q = searchQuery.toLowerCase();
+    const q = (searchQuery || '').toLowerCase();
     const matchesSearch =
-      r.lawTitle.toLowerCase().includes(q) ||
-      r.lawNumber.toLowerCase().includes(q) ||
-      r.description.toLowerCase().includes(q) ||
-      r.organism.toLowerCase().includes(q);
+      (r.lawTitle || '').toLowerCase().includes(q) ||
+      (r.lawNumber || '').toLowerCase().includes(q) ||
+      (r.description || '').toLowerCase().includes(q) ||
+      (r.organism || '').toLowerCase().includes(q);
     const matchesStatus = statusFilter === 'TODOS' || r.status === statusFilter;
     const matchesModule = moduleFilter === 'TODOS' || r.affectedModule === moduleFilter;
     return matchesSearch && matchesStatus && matchesModule;

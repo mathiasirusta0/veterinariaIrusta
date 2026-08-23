@@ -34,14 +34,14 @@ export const PrescriptionsView: React.FC = () => {
   const [senasaCat, setSenasaCat] = useState<SENASACategory>('CAT_III_RECETA');
 
   const filteredPrescriptions = prescriptions.filter((p) => {
-    const q = searchQuery.toLowerCase();
+    const q = (searchQuery || '').toLowerCase();
     const pat = patients.find((pt) => pt.id === p.patientId);
     const ow = pat ? owners.find((o) => o.id === pat.ownerId) : null;
     const matchesSearch =
-      p.prescriptionNumber.toLowerCase().includes(q) ||
-      p.vetName.toLowerCase().includes(q) ||
-      (pat && pat.name.toLowerCase().includes(q)) ||
-      (ow && `${ow.firstName} ${ow.lastName}`.toLowerCase().includes(q));
+      (p.prescriptionNumber || '').toLowerCase().includes(q) ||
+      (p.vetName || '').toLowerCase().includes(q) ||
+      (pat && (pat.name || '').toLowerCase().includes(q)) ||
+      (ow && `${ow.firstName || ''} ${ow.lastName || ''}`.toLowerCase().includes(q));
     const matchesType = typeFilter === 'TODOS' || p.prescriptionType === typeFilter;
     return matchesSearch && matchesType;
   });

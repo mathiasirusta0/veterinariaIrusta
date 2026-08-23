@@ -60,7 +60,7 @@ export const AiAssistantView: React.FC = () => {
         <div>
           <div className="flex items-center gap-2 mb-1">
             <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-teal-50 text-teal-700 border border-teal-200 uppercase tracking-wider">
-              Gemini 2.5 Flash Integrado (Server-Side)
+              Gemini 3.7 Flash Integrado (Server-Side)
             </span>
           </div>
           <h2 className="text-xl font-bold text-slate-900 tracking-tight flex items-center gap-2">

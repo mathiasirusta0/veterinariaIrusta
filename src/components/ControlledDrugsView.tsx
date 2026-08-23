@@ -45,10 +45,10 @@ export const ControlledDrugsView: React.FC = () => {
   const [formObservations, setFormObservations] = useState('Administración como inductor anestésico en quirófano.');
 
   const filteredMovements = controlledMovements.filter((m) => {
-    const q = searchQuery.toLowerCase();
+    const q = (searchQuery || '').toLowerCase();
     return (
-      m.drugName.toLowerCase().includes(q) ||
-      m.activeIngredient.toLowerCase().includes(q) ||
+      (m.drugName || '').toLowerCase().includes(q) ||
+      (m.activeIngredient || '').toLowerCase().includes(q) ||
       (m.patientName && m.patientName.toLowerCase().includes(q)) ||
       (m.ownerName && m.ownerName.toLowerCase().includes(q)) ||
       (m.vetName && m.vetName.toLowerCase().includes(q)) ||

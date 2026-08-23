@@ -53,9 +53,9 @@ export const PatientsListView: React.FC = () => {
       const ownerPhone = owner?.phone || '';
 
       const matchesSearch =
-        p.name.toLowerCase().includes(q) ||
-        p.clinicalRecordNumber.toLowerCase().includes(q) ||
-        p.breed.toLowerCase().includes(q) ||
+        (p.name || '').toLowerCase().includes(q) ||
+        (p.clinicalRecordNumber || '').toLowerCase().includes(q) ||
+        (p.breed || '').toLowerCase().includes(q) ||
         (p.microchip && p.microchip.includes(q)) ||
         ownerName.includes(q) ||
         ownerPhone.includes(q);

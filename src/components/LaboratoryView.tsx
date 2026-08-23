@@ -27,12 +27,12 @@ export const LaboratoryView: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState('TODOS');
 
   const filteredOrders = labOrders.filter((lab) => {
-    const q = search.toLowerCase();
+    const q = (search || '').toLowerCase();
     const patient = patients.find((p) => p.id === lab.patientId);
-    const petName = patient?.name.toLowerCase() || '';
-    const test = lab.testType.toLowerCase();
-    const orderNum = lab.orderNumber.toLowerCase();
-    const reqBy = lab.requestedBy.toLowerCase();
+    const petName = (patient?.name || '').toLowerCase();
+    const test = (lab.testType || '').toLowerCase();
+    const orderNum = (lab.orderNumber || '').toLowerCase();
+    const reqBy = (lab.requestedBy || '').toLowerCase();
 
     const matchesSearch =
       petName.includes(q) || test.includes(q) || orderNum.includes(q) || reqBy.includes(q);

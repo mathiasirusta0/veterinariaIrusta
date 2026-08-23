@@ -50,7 +50,7 @@ export const SurgeriesView: React.FC = () => {
   });
 
   const filteredSurgeries = surgeries.filter((surg) => {
-    const q = search.toLowerCase();
+    const q = (search || '').toLowerCase();
     const patient = patients.find((p) => p.id === surg.patientId);
     const petName = patient?.name?.toLowerCase() || '';
     const proc = (surg.procedureName || '').toLowerCase();

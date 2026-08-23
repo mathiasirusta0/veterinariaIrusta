@@ -138,9 +138,9 @@ export const TriageView: React.FC = () => {
                   />
                   <div>
                     <div className="flex items-center gap-2 mb-1">
-                      <h3 className="text-base font-bold text-slate-900">{patient?.name}</h3>
+                      <h3 className="text-base font-bold text-slate-900">{patient?.name || 'Paciente en Espera'}</h3>
                       <span className="text-xs text-slate-500 font-medium">
-                        ({patient?.species} - {patient?.breed})
+                        ({patient?.species || 'Canino'} - {patient?.breed || 'Mestizo'})
                       </span>
                       <span
                         className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase ${
@@ -160,7 +160,7 @@ export const TriageView: React.FC = () => {
                     </p>
 
                     <div className="flex flex-wrap items-center gap-3 text-[11px] text-slate-500">
-                      <span>Tutor: {owner ? `${owner.firstName} ${owner.lastName}` : 'N/A'}</span>
+                      <span>Tutor: {owner ? `${owner.firstName} ${owner.lastName}` : (patient ? `Tutor de ${patient.name}` : 'Tutor registrado')}</span>
                       <span>•</span>
                       <span>
                         Llegada: {formatTime(entry.arrivedAt)}

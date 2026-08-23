@@ -59,9 +59,9 @@ export const GlobalSearchModal: React.FC = () => {
   const filteredPatients = q
     ? patients.filter(
         (p) =>
-          p.name.toLowerCase().includes(q) ||
-          p.clinicalRecordNumber.toLowerCase().includes(q) ||
-          p.breed.toLowerCase().includes(q) ||
+          (p.name || '').toLowerCase().includes(q) ||
+          (p.clinicalRecordNumber || '').toLowerCase().includes(q) ||
+          (p.breed || '').toLowerCase().includes(q) ||
           (p.microchip && p.microchip.includes(q))
       )
     : patients.slice(0, 4);
@@ -69,27 +69,27 @@ export const GlobalSearchModal: React.FC = () => {
   const filteredOwners = q
     ? owners.filter(
         (o) =>
-          `${o.firstName} ${o.lastName}`.toLowerCase().includes(q) ||
-          o.dni.includes(q) ||
-          o.phone.includes(q) ||
-          o.email.toLowerCase().includes(q)
+          `${o.firstName || ''} ${o.lastName || ''}`.toLowerCase().includes(q) ||
+          (o.dni || '').includes(q) ||
+          (o.phone || '').includes(q) ||
+          (o.email || '').toLowerCase().includes(q)
       )
     : owners.slice(0, 3);
 
   const filteredProducts = q
     ? products.filter(
         (pr) =>
-          pr.commercialName.toLowerCase().includes(q) ||
-          pr.activeIngredient.toLowerCase().includes(q) ||
-          pr.code.toLowerCase().includes(q)
+          (pr.commercialName || '').toLowerCase().includes(q) ||
+          (pr.activeIngredient || '').toLowerCase().includes(q) ||
+          (pr.code || '').toLowerCase().includes(q)
       )
     : [];
 
   const filteredInvoices = q
     ? invoices.filter(
         (inv) =>
-          inv.invoiceNumber.toLowerCase().includes(q) ||
-          inv.customerName.toLowerCase().includes(q)
+          (inv.invoiceNumber || '').toLowerCase().includes(q) ||
+          (inv.customerName || '').toLowerCase().includes(q)
       )
     : [];
 

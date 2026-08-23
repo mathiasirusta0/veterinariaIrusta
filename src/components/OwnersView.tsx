@@ -28,12 +28,12 @@ export const OwnersView: React.FC = () => {
   const [search, setSearch] = useState('');
 
   const filteredOwners = owners.filter((o) => {
-    const q = search.toLowerCase();
+    const q = (search || '').toLowerCase();
     return (
-      `${o.firstName} ${o.lastName}`.toLowerCase().includes(q) ||
-      o.dni.includes(q) ||
-      o.phone.includes(q) ||
-      o.email.toLowerCase().includes(q)
+      `${o.firstName || ''} ${o.lastName || ''}`.toLowerCase().includes(q) ||
+      (o.dni || '').includes(q) ||
+      (o.phone || '').includes(q) ||
+      (o.email || '').toLowerCase().includes(q)
     );
   });
 

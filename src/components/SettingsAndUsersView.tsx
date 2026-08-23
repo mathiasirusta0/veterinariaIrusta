@@ -101,24 +101,32 @@ export const SettingsAndUsersView: React.FC = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 font-mono">
-                {auditLogs.map((log) => (
-                  <tr key={log.id} className="hover:bg-slate-50/80">
-                    <td className="p-3 text-[11px] text-slate-500">
-                      {formatDateTime(log.timestamp)}
+                {auditLogs.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} className="p-8 text-center text-slate-400 font-sans text-xs">
+                      No hay registros de auditoría aún.
                     </td>
-                    <td className="p-3">
-                      <span className="text-slate-900 font-bold">{log.userName}</span>
-                      <span className="text-[10px] text-teal-700 block font-sans font-semibold">{log.userRole}</span>
-                    </td>
-                    <td className="p-3">
-                      <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200">
-                        {log.action}
-                      </span>
-                    </td>
-                    <td className="p-3 text-slate-500">{log.entity}</td>
-                    <td className="p-3 text-slate-700 font-sans text-xs">{log.details}</td>
                   </tr>
-                ))}
+                ) : (
+                  auditLogs.map((log) => (
+                    <tr key={log.id} className="hover:bg-slate-50/80">
+                      <td className="p-3 text-[11px] text-slate-500">
+                        {formatDateTime(log.timestamp)}
+                      </td>
+                      <td className="p-3">
+                        <span className="text-slate-900 font-bold">{log.userName}</span>
+                        <span className="text-[10px] text-teal-700 block font-sans font-semibold">{log.userRole}</span>
+                      </td>
+                      <td className="p-3">
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200">
+                          {log.action}
+                        </span>
+                      </td>
+                      <td className="p-3 text-slate-500">{log.entity}</td>
+                      <td className="p-3 text-slate-700 font-sans text-xs">{log.details}</td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>

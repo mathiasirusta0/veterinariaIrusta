@@ -300,18 +300,18 @@ export const CashAndBillingView: React.FC = () => {
                     </div>
 
                     <span className="text-base font-black text-slate-900 font-mono">
-                      ${est.totalAmount.toLocaleString('es-AR')}
+                      ${(est.totalAmount || 0).toLocaleString('es-AR')}
                     </span>
                   </div>
 
                   <div className="space-y-1.5 py-3 text-xs">
-                    {est.items.map((item) => (
+                    {(est.items || []).map((item) => (
                       <div
                         key={item.id}
                         className="flex items-center justify-between text-slate-700 bg-slate-50 p-2 rounded-lg border border-slate-100"
                       >
                         <span>{item.quantity}x {item.description}</span>
-                        <span className="font-mono font-bold text-slate-900">${item.subtotal.toLocaleString('es-AR')}</span>
+                        <span className="font-mono font-bold text-slate-900">${(item.subtotal || 0).toLocaleString('es-AR')}</span>
                       </div>
                     ))}
                   </div>
