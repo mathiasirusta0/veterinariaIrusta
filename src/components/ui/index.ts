@@ -3,3 +3,8 @@ export * from './StatusBadge';
 export * from './ClinicalAlert';
 export * from './EmptyState';
 export * from './StatCard';
+export * from './SearchInput';
+export * from './FilterBar';
+export * from './Buttons';
+export * from './Modal';
+export * from './ConfirmDialog';

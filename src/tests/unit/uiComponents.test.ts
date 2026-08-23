@@ -5,6 +5,11 @@ import { StatusBadge } from '../../components/ui/StatusBadge';
 import { ClinicalAlert } from '../../components/ui/ClinicalAlert';
 import { EmptyState } from '../../components/ui/EmptyState';
 import { StatCard } from '../../components/ui/StatCard';
+import { SearchInput } from '../../components/ui/SearchInput';
+import { FilterBar } from '../../components/ui/FilterBar';
+import { PrimaryButton, SecondaryButton, DangerButton } from '../../components/ui/Buttons';
+import { Modal } from '../../components/ui/Modal';
+import { ConfirmDialog } from '../../components/ui/ConfirmDialog';
 import { PawPrint } from 'lucide-react';
 
 describe('Design System UI Components Unit Tests', () => {
@@ -14,6 +19,13 @@ describe('Design System UI Components Unit Tests', () => {
     expect(ClinicalAlert).toBeDefined();
     expect(EmptyState).toBeDefined();
     expect(StatCard).toBeDefined();
+    expect(SearchInput).toBeDefined();
+    expect(FilterBar).toBeDefined();
+    expect(PrimaryButton).toBeDefined();
+    expect(SecondaryButton).toBeDefined();
+    expect(DangerButton).toBeDefined();
+    expect(Modal).toBeDefined();
+    expect(ConfirmDialog).toBeDefined();
   });
 
   it('should render correct properties for StatCard', () => {

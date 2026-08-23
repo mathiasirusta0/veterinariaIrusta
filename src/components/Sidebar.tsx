@@ -237,14 +237,18 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpenMobile, onCloseMobile })
           ))}
         </nav>
 
-        {/* Footer: User Identity */}
+        {/* Footer: User Identity & Profile Quick Link */}
         <div className="p-3.5 border-t border-slate-100 bg-slate-50/80 text-xs flex items-center justify-between">
-          <div className="flex items-center gap-3 overflow-hidden min-w-0">
-            <div className="w-8 h-8 rounded-xl bg-teal-100 border border-teal-200 flex items-center justify-center font-black text-teal-800 text-xs shadow-2xs flex-shrink-0">
+          <div
+            onClick={() => handleSelect('CONFIGURACION')}
+            className="flex items-center gap-3 overflow-hidden min-w-0 cursor-pointer group flex-1"
+            title="Ver configuración y perfil del usuario"
+          >
+            <div className="w-8 h-8 rounded-xl bg-teal-100 border border-teal-200 flex items-center justify-center font-black text-teal-800 text-xs shadow-2xs flex-shrink-0 group-hover:bg-teal-200 transition-colors">
               {currentUser.name.charAt(0)}
             </div>
             <div className="truncate min-w-0">
-              <span className="font-bold text-slate-900 block truncate text-xs">
+              <span className="font-bold text-slate-900 block truncate text-xs group-hover:text-teal-700 transition-colors">
                 {currentUser.name}
               </span>
               <span className="text-[10px] text-teal-800 font-mono block uppercase font-bold truncate">
@@ -252,6 +256,15 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpenMobile, onCloseMobile })
               </span>
             </div>
           </div>
+
+          <button
+            type="button"
+            onClick={() => handleSelect('CONFIGURACION')}
+            className="p-1.5 text-slate-400 hover:text-teal-700 hover:bg-slate-200/60 rounded-lg transition-colors flex-shrink-0"
+            title="Configuración del sistema"
+          >
+            <ShieldCheck className="w-4 h-4" />
+          </button>
         </div>
       </aside>
     </>
