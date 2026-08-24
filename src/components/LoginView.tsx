@@ -178,7 +178,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ onBackToLanding }) => {
               Acceso a <span className="text-[#6E8268]">VET SYSTEM</span>
             </h1>
             <p className="text-sm text-[#556956] font-medium">
-              Plataforma hospitalaria veterinaria de alta complejidad, equinos y pequeños animales.
+              Clínica Veterinaria para Grandes y Pequeños Animales • Dirección Dr. Matías Irusta
             </p>
           </div>
         </div>
