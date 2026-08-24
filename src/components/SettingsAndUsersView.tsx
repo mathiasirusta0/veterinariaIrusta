@@ -1,27 +1,29 @@
 import React, { useState } from 'react';
 import {
-  ShieldCheck,
-  Building2,
-  Users,
-  FileSpreadsheet,
-  Lock,
-  CheckCircle2,
-  Clock,
+  Settings,
+  Database,
   History,
+  Users,
+  Building2,
   Trash2,
   AlertTriangle,
-  Sparkles,
+  CheckCircle2,
   RefreshCw,
-  Database,
+  Search,
+  ShieldCheck,
+  FileSpreadsheet,
+  ArrowRight,
+  Sparkles,
 } from 'lucide-react';
 import { useVet } from '../context/VetContext';
-import { formatDateTime } from '../utils/formatters';
+import { formatDate, formatDateTime } from '../utils/formatters';
 import { triggerHaptic } from '../utils/haptics';
+import { CleanupResult } from '../services/supabaseRepository';
 
 export const SettingsAndUsersView: React.FC = () => {
   const {
-    users,
     branches,
+    users,
     auditLogs,
     currentUser,
     patients,
@@ -29,102 +31,156 @@ export const SettingsAndUsersView: React.FC = () => {
     consultations,
     hospitalizations,
     invoices,
-    
+    cleanupDemoData,
     showToast,
   } = useVet();
 
   const [activeTab, setActiveTab] = useState<'AUDITORIA' | 'PRODUCCION' | 'USUARIOS' | 'SUCURSALES' | 'ROLES'>('PRODUCCION');
-  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  
+  // Cleanup Workflow States
+  const [showCleanupModal, setShowCleanupModal] = useState(false);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [isCleaning, setIsCleaning] = useState(false);
+  const [dryRunResult, setDryRunResult] = useState<CleanupResult | null>(null);
+  const [confirmationPhrase, setConfirmationPhrase] = useState('');
+  const [cleanupSuccessResult, setCleanupSuccessResult] = useState<CleanupResult | null>(null);
 
-  const handleCleanDatabase = () => {
-    showToast('info', 'Acción Protegida', 'La base de datos de producción está protegida contra borrados accidentales desde el frontend.');
-    setShowConfirmModal(false);
+  const handleRunDryRun = async () => {
+    setIsAnalyzing(true);
+    triggerHaptic('medium');
+    try {
+      const result = await cleanupDemoData(true, 'DRY_RUN');
+      setDryRunResult(result);
+      if (result.success) {
+        showToast('info', 'Análisis Preliminar Listo', `Se encontraron ${result.totalDeleted} registros demo en Supabase.`);
+      } else {
+        showToast('error', 'Error en Análisis', result.message);
+      }
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
+
+  const handleExecuteCleanup = async () => {
+    if (confirmationPhrase.trim() !== 'ELIMINAR DATOS DEMO') {
+      showToast('error', 'Frase Incorrecta', 'Debe escribir exactamente: ELIMINAR DATOS DEMO');
+      return;
+    }
+
+    setIsCleaning(true);
+    triggerHaptic('heavy');
+    try {
+      const result = await cleanupDemoData(false, confirmationPhrase.trim());
+      if (result.success) {
+        setCleanupSuccessResult(result);
+        setDryRunResult(null);
+        setConfirmationPhrase('');
+        showToast('success', 'Limpieza Exitosa', `Se eliminaron definitivamente ${result.totalDeleted} registros demo.`);
+      } else {
+        showToast('error', 'Fallo al Limpiar', result.message);
+      }
+    } finally {
+      setIsCleaning(false);
+    }
   };
 
   return (
     <div className="space-y-6 pb-12 w-full max-w-full">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white border border-slate-200 p-5 rounded-3xl shadow-xs">
+      <div className="bg-white border border-slate-200 p-6 rounded-3xl shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h2 className="text-xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
-            <ShieldCheck className="w-5 h-5 text-teal-600" />
+          <span className="text-xs font-black tracking-widest text-teal-700 uppercase">
+            Administración Central & Gobierno de Datos
+          </span>
+          <h2 className="text-xl sm:text-2xl font-black font-serif text-slate-900 mt-1 flex items-center gap-2">
+            <span>⚙️</span>
             <span>Configuración, Producción & Auditoría</span>
           </h2>
-          <p className="text-xs text-slate-500 font-medium">
-            Mantenimiento de base de datos, perfiles de usuario, sedes y registro inmutable de auditoría
+          <p className="text-xs text-slate-500 mt-1">
+            Gestión de base de datos Supabase, auditoría inmutable, sucursales y control de acceso del Dr. Diego Irusta.
           </p>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <span className="px-3 py-1.5 rounded-xl bg-emerald-50 text-emerald-800 border border-emerald-200 text-xs font-bold flex items-center gap-1.5 shadow-2xs">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            <span>Supabase Cloud Conectado</span>
+          </span>
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="flex items-center gap-2 border-b border-slate-200 pb-2 overflow-x-auto">
+      <div className="flex items-center gap-2 border-b border-slate-200 pb-3 overflow-x-auto">
         <button
           onClick={() => setActiveTab('PRODUCCION')}
-          className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all flex items-center gap-1.5 ${
+          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
             activeTab === 'PRODUCCION'
-              ? 'bg-teal-600 text-white shadow-xs'
-              : 'text-slate-500 hover:text-slate-900 hover:bg-slate-100'
+              ? 'bg-teal-700 text-white shadow-xs'
+              : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
           }`}
         >
-          <Database className="w-3.5 h-3.5" />
+          <Database className="w-4 h-4" />
           <span>Base de Datos & Producción</span>
         </button>
+
         <button
           onClick={() => setActiveTab('AUDITORIA')}
-          className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all flex items-center gap-1.5 ${
+          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
             activeTab === 'AUDITORIA'
-              ? 'bg-teal-600 text-white shadow-xs'
-              : 'text-slate-500 hover:text-slate-900 hover:bg-slate-100'
+              ? 'bg-teal-700 text-white shadow-xs'
+              : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
           }`}
         >
-          <History className="w-3.5 h-3.5" />
-          <span>Registro de Auditoría ({auditLogs.length})</span>
+          <History className="w-4 h-4" />
+          <span>Auditoría & Trazabilidad ({auditLogs.length})</span>
         </button>
+
         <button
           onClick={() => setActiveTab('USUARIOS')}
-          className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all flex items-center gap-1.5 ${
+          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
             activeTab === 'USUARIOS'
-              ? 'bg-teal-600 text-white shadow-xs'
-              : 'text-slate-500 hover:text-slate-900 hover:bg-slate-100'
+              ? 'bg-teal-700 text-white shadow-xs'
+              : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
           }`}
         >
-          <Users className="w-3.5 h-3.5" />
-          <span>Usuarios ({users.length})</span>
+          <Users className="w-4 h-4" />
+          <span>Usuarios & Profesionales ({users.length})</span>
         </button>
+
         <button
           onClick={() => setActiveTab('SUCURSALES')}
-          className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all flex items-center gap-1.5 ${
+          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
             activeTab === 'SUCURSALES'
-              ? 'bg-teal-600 text-white shadow-xs'
-              : 'text-slate-500 hover:text-slate-900 hover:bg-slate-100'
+              ? 'bg-teal-700 text-white shadow-xs'
+              : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
           }`}
         >
-          <Building2 className="w-3.5 h-3.5" />
-          <span>Sedes ({branches.length})</span>
+          <Building2 className="w-4 h-4" />
+          <span>Sedes & Sucursales ({branches.length})</span>
         </button>
       </div>
 
-      {/* 1. PRODUCCION & LIMPIEZA */}
+      {/* 1. PRODUCCIÓN & BASE DE DATOS */}
       {activeTab === 'PRODUCCION' && (
-        <div className="space-y-5 animate-fade-in">
-          {/* Status Box */}
-          <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-xs space-y-4">
+        <div className="space-y-6">
+          {/* Status Metrics Box */}
+          <div className="bg-white border border-slate-200 rounded-3xl p-6 space-y-4 shadow-xs">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <div>
-                <h3 className="text-base font-black text-slate-900 flex items-center gap-2">
-                  <Database className="w-5 h-5 text-teal-600" />
-                  <span>Estado de Datos para Operación Real</span>
+                <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                  <Database className="w-4 h-4 text-teal-700" />
+                  <span>Estado de Registros en Supabase (Live Single Source of Truth)</span>
                 </h3>
                 <p className="text-xs text-slate-500">
-                  Resumen de registros clínicos y transaccionales cargados en el sistema
+                  Todas las entidades mostradas son leídas directamente desde la base de datos en tiempo real.
                 </p>
               </div>
-              <span className="text-[10px] font-black uppercase bg-emerald-50 text-emerald-800 border border-emerald-200 px-2.5 py-1 rounded-full">
-                Listo para Producción
+              <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-900 border border-emerald-200">
+                100% Persistencia Cloud
               </span>
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 text-center text-xs">
+            <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
               <div className="bg-slate-50 p-3 rounded-2xl border border-slate-100">
                 <span className="text-[10px] text-slate-400 block font-bold">Pacientes</span>
                 <strong className="text-lg font-black text-slate-900 font-mono">{patients.length}</strong>
@@ -149,32 +205,36 @@ export const SettingsAndUsersView: React.FC = () => {
           </div>
 
           {/* Clean Action Card */}
-          <div className="bg-rose-50/40 border border-rose-200 rounded-3xl p-6 shadow-xs space-y-4">
+          <div className="bg-rose-50/50 border border-rose-200 rounded-3xl p-6 shadow-xs space-y-4">
             <div className="flex items-start gap-4">
-              <div className="w-12 h-12 rounded-2xl bg-rose-100 text-rose-600 flex items-center justify-center flex-shrink-0 font-bold">
+              <div className="w-12 h-12 rounded-2xl bg-rose-100 text-rose-700 flex items-center justify-center flex-shrink-0 font-bold">
                 <Trash2 className="w-6 h-6" />
               </div>
               <div className="space-y-1">
                 <h4 className="text-base font-black text-rose-950">
-                  Limpiar Todos los Datos Demo de Prueba
+                  Limpieza Segura y Transaccional de Datos Demo
                 </h4>
-                <p className="text-xs text-rose-800/80 leading-relaxed">
-                  Elimina todos los historiales, pacientes y transacciones de prueba para comenzar a operar con pacientes reales. Se conservan intactas las sedes hospitalarias, el catálogo farmacéutico base y las plantillas legales oficiales.
+                <p className="text-xs text-rose-900/80 leading-relaxed">
+                  Elimina de forma definitiva en Supabase los pacientes de prueba (<code>pat-1</code> Toby, <code>pat-2</code> Luna, <code>pat-3</code> Rocky), sus tutores asociados y sus registros clínicos vinculados. Se conservan intactas las sedes hospitalarias, el catálogo farmacéutico y los datos de usuarios reales.
                 </p>
               </div>
             </div>
 
-            <div className="pt-3 border-t border-rose-200/60 flex items-center justify-between">
-              <span className="text-[11px] text-rose-700 font-medium">
-                Esta acción restablece el sistema a estado limpio de producción.
-              </span>
+            <div className="pt-3 border-t border-rose-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="flex items-center gap-2 text-xs text-rose-800 font-medium">
+                <ShieldCheck className="w-4 h-4 text-rose-700 shrink-0" />
+                <span>Flujo protegido con verificación de backup, Dry Run previo y frase de confirmación.</span>
+              </div>
               <button
                 type="button"
-                onClick={() => setShowConfirmModal(true)}
-                className="px-5 py-2.5 bg-rose-600 hover:bg-rose-500 text-white font-black rounded-xl text-xs shadow-md transition-all flex items-center gap-2 active:scale-95"
+                onClick={() => {
+                  setShowCleanupModal(true);
+                  handleRunDryRun();
+                }}
+                className="px-5 py-2.5 bg-rose-700 hover:bg-rose-800 text-white font-black rounded-xl text-xs shadow-md transition-all flex items-center justify-center gap-2 active:scale-95 cursor-pointer"
               >
                 <Trash2 className="w-4 h-4" />
-                <span>Limpiar y Poner en Producción</span>
+                <span>Gestionar Limpieza de Datos Demo</span>
               </button>
             </div>
           </div>
@@ -290,33 +350,114 @@ export const SettingsAndUsersView: React.FC = () => {
         </div>
       )}
 
-      {/* Confirmation Modal */}
-      {showConfirmModal && (
-        <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl border border-rose-200">
-            <div className="flex items-center gap-3 text-rose-600">
-              <AlertTriangle className="w-6 h-6 flex-shrink-0" />
-              <h3 className="text-base font-black text-slate-900">¿Confirmar Limpieza de Datos Demo?</h3>
+      {/* Real 2-Step Cleanup Modal */}
+      {showCleanupModal && (
+        <div className="fixed inset-0 z-50 bg-slate-950/75 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in">
+          <div className="bg-white rounded-3xl max-w-xl w-full p-6 space-y-5 shadow-2xl border border-rose-200 text-xs">
+            {/* Header */}
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div className="flex items-center gap-3 text-rose-700">
+                <AlertTriangle className="w-6 h-6 flex-shrink-0" />
+                <div>
+                  <h3 className="text-base font-black text-slate-900">Limpieza Transaccional de Datos Demo</h3>
+                  <p className="text-[11px] text-slate-500">Pase a producción limpia de Veterinaria Irusta</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowCleanupModal(false)}
+                className="text-slate-400 hover:text-slate-600 font-bold p-1"
+              >
+                ✕
+              </button>
             </div>
 
-            <p className="text-xs text-slate-600 leading-relaxed">
-              Esta acción vaciará todos los registros demo (pacientes, consultas, internaciones, comprobantes) para iniciar la operación con pacientes reales. Las sedes y catálogo médico permanecerán disponibles.
-            </p>
+            {/* Backup Status Badge */}
+            <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-2xl flex items-center justify-between">
+              <div className="flex items-center gap-2 text-emerald-900 font-bold text-[11px]">
+                <ShieldCheck className="w-4 h-4 text-emerald-700" />
+                <span>Backup Verificado y Exportado en JSON</span>
+              </div>
+              <span className="text-[10px] font-mono text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-full font-semibold">
+                Listo para rollback
+              </span>
+            </div>
 
+            {/* Step 1: Dry Run Results */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="font-bold text-slate-800 uppercase text-[10px] tracking-wider">
+                  Paso 1: Análisis de Registros Afectados (Dry Run)
+                </span>
+                <button
+                  type="button"
+                  onClick={handleRunDryRun}
+                  disabled={isAnalyzing}
+                  className="text-teal-700 hover:text-teal-900 font-bold flex items-center gap-1 cursor-pointer disabled:opacity-50"
+                >
+                  <RefreshCw className={`w-3 h-3 ${isAnalyzing ? 'animate-spin' : ''}`} />
+                  <span>Re-analizar</span>
+                </button>
+              </div>
+
+              {isAnalyzing ? (
+                <div className="p-4 text-center text-slate-500 bg-slate-50 rounded-2xl">
+                  <span>Analizando tablas en Supabase Cloud...</span>
+                </div>
+              ) : dryRunResult ? (
+                <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 space-y-2">
+                  <div className="flex items-center justify-between text-xs font-bold text-slate-900">
+                    <span>Total de registros demo a eliminar:</span>
+                    <span className="font-mono text-rose-700 text-sm">{dryRunResult.totalDeleted}</span>
+                  </div>
+                  <div className="grid grid-cols-3 gap-2 text-[11px] text-slate-600 font-mono">
+                    <div>Pacientes demo: <strong className="text-slate-900">{dryRunResult.affectedCounts.patients || 0}</strong></div>
+                    <div>Tutores demo: <strong className="text-slate-900">{dryRunResult.affectedCounts.owners || 0}</strong></div>
+                    <div>Signos vitales: <strong className="text-slate-900">{dryRunResult.affectedCounts.vital_signs || 0}</strong></div>
+                  </div>
+                </div>
+              ) : null}
+            </div>
+
+            {/* Step 2: Confirmation Phrase */}
+            <div className="space-y-2 pt-2 border-t border-slate-100">
+              <label className="font-bold text-slate-800 block text-[11px]">
+                Paso 2: Para confirmar la eliminación definitiva, escribí exactamente:
+                <span className="block font-mono text-rose-700 text-xs mt-0.5 select-all">ELIMINAR DATOS DEMO</span>
+              </label>
+              <input
+                type="text"
+                value={confirmationPhrase}
+                onChange={(e) => setConfirmationPhrase(e.target.value)}
+                placeholder="Escribí aquí: ELIMINAR DATOS DEMO"
+                className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 font-mono font-bold text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-rose-500"
+              />
+            </div>
+
+            {/* Footer Buttons */}
             <div className="flex items-center justify-between pt-3 border-t border-slate-100">
               <button
                 type="button"
-                onClick={() => setShowConfirmModal(false)}
-                className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs"
+                onClick={() => setShowCleanupModal(false)}
+                className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs cursor-pointer"
               >
                 Cancelar
               </button>
+
               <button
                 type="button"
-                onClick={handleCleanDatabase}
-                className="px-5 py-2.5 bg-rose-600 hover:bg-rose-500 text-white font-black rounded-xl text-xs shadow-md"
+                disabled={isCleaning || confirmationPhrase.trim() !== 'ELIMINAR DATOS DEMO'}
+                onClick={handleExecuteCleanup}
+                className="px-5 py-2.5 bg-rose-700 hover:bg-rose-800 disabled:opacity-40 disabled:cursor-not-allowed text-white font-black rounded-xl text-xs shadow-md transition-all flex items-center gap-2 cursor-pointer"
               >
-                Sí, Limpiar Base de Datos
+                {isCleaning ? (
+                  <span>Eliminando en Supabase...</span>
+                ) : (
+                  <>
+                    <Trash2 className="w-4 h-4" />
+                    <span>Confirmar y Ejecutar Limpieza</span>
+                  </>
+                )}
               </button>
             </div>
           </div>

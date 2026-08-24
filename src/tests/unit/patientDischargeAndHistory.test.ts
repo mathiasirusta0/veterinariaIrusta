@@ -1,13 +1,16 @@
 import { describe, it, expect } from 'vitest';
-import { Patient, Hospitalization, VitalSigns, ClinicalEvolution, ClinicalDocument } from '../../types';
+import { Patient, Hospitalization, VitalSigns, ClinicalEvolutionEntry, ClinicalDocument } from '../../types';
 
 describe('Gestión de Alta Médica, Archivado y Descarga de Historia Clínica', () => {
   const mockPatient: Patient = {
     id: 'pat-alta-01',
     name: 'Simba',
-    species: 'Canino',
+    species: 'CANINO',
     breed: 'Golden Retriever',
-    sex: 'Macho',
+    sex: 'MACHO',
+    reproductiveStatus: 'ENTERO',
+    color: 'Dorado',
+    branchId: 'branch-1',
     birthDate: '2021-05-10',
     calculatedAge: '5 años',
     weight: 32.5,
@@ -21,36 +24,63 @@ describe('Gestión de Alta Médica, Archivado y Descarga de Historia Clínica', 
   const mockHospitalization: Hospitalization = {
     id: 'hosp-01',
     patientId: 'pat-alta-01',
+    vetInChargeId: 'usr-1',
+    vetInChargeName: 'Dr. Diego Irusta',
     sector: 'UCI',
     kennelNumber: '03',
     admittedAt: '2026-08-20T10:00:00.000Z',
-    priority: 'AMARILLO_URGENTE',
+    priority: 'PRIORITARIO',
     status: 'ACTIVA',
     primaryDiagnosis: 'Gastroenteritis aguda severa con deshidratación 8%',
+    fluidTherapy: {
+      isActive: true,
+      solutionType: 'Ringer Lactato',
+      volumeTotalMl: 1000,
+      rateMlPerHour: 45,
+      infusionRoute: 'IV',
+      startedAt: '2026-08-20T10:00:00.000Z',
+      prescribedBy: 'Dr. Diego Irusta',
+    },
+    feeding: {
+      dietType: 'NPO_AYUNO',
+      foodBrand: 'Ayuno Inicial 12hs',
+      amountGramsOrMl: 0,
+      frequency: 'NPO',
+      tolerance: 'EXCELENTE',
+    },
+    eliminations: [],
+    tasks: [],
+    intervalHours: 2,
+    branchId: 'branch-1',
     hourlySheet: [],
     medications: [
       {
         id: 'med-01',
+        hospitalizationId: 'hosp-01',
+        patientId: 'pat-alta-01',
         drugName: 'Maropitant (Cerenia)',
         dose: '1 mg/kg',
         route: 'SC',
         frequency: 'Cada 24 hs',
-        schedule: '10:00',
-        durationDays: 3,
-        administeredDoses: [
-          {
-            administeredAt: '2026-08-20T10:30:00.000Z',
-            administeredBy: 'Dr. Diego Irusta',
-            status: 'APLICADO',
-            notes: 'Dosis inicial aplicada sin reacciones adversas',
-          },
-          {
-            administeredAt: '2026-08-21T10:30:00.000Z',
-            administeredBy: 'Dr. Diego Irusta',
-            status: 'APLICADO',
-            notes: 'Segunda dosis',
-          },
-        ],
+        scheduledTime: '10:00',
+        status: 'REALIZADA',
+        administeredAt: '2026-08-20T10:30:00.000Z',
+        administeredBy: 'Dr. Diego Irusta',
+        notes: 'Dosis inicial aplicada sin reacciones adversas',
+      },
+      {
+        id: 'med-02',
+        hospitalizationId: 'hosp-01',
+        patientId: 'pat-alta-01',
+        drugName: 'Maropitant (Cerenia)',
+        dose: '1 mg/kg',
+        route: 'SC',
+        frequency: 'Cada 24 hs',
+        scheduledTime: '10:00',
+        status: 'REALIZADA',
+        administeredAt: '2026-08-21T10:30:00.000Z',
+        administeredBy: 'Dr. Diego Irusta',
+        notes: 'Segunda dosis',
       },
     ],
   };
@@ -64,11 +94,11 @@ describe('Gestión de Alta Médica, Archivado y Descarga de Historia Clínica', 
       temperature: 39.4,
       heartRate: 140,
       respiratoryRate: 36,
-      systolicBp: 130,
-      diastolicBp: 80,
-      glucoseMgDl: 110,
-      oxygenSaturation: 98,
-      painScaleScore: 4,
+      systolicBP: 130,
+      diastolicBP: 80,
+      bloodGlucose: 110,
+      spo2: 98,
+      painScale: 4,
     },
     {
       id: 'vit-02',
@@ -78,11 +108,11 @@ describe('Gestión de Alta Médica, Archivado y Descarga de Historia Clínica', 
       temperature: 38.6,
       heartRate: 95,
       respiratoryRate: 22,
-      systolicBp: 120,
-      diastolicBp: 75,
-      glucoseMgDl: 95,
-      oxygenSaturation: 99,
-      painScaleScore: 0,
+      systolicBP: 120,
+      diastolicBP: 75,
+      bloodGlucose: 95,
+      spo2: 99,
+      painScale: 0,
     },
   ];
 
@@ -134,16 +164,16 @@ describe('Gestión de Alta Médica, Archivado y Descarga de Historia Clínica', 
     const doses: { date: string; time: string; drug: string; dose: string; adminBy: string }[] = [];
 
     mockHospitalization.medications.forEach((med) => {
-      med.administeredDoses.forEach((d) => {
-        const dt = new Date(d.administeredAt);
+      if (med.administeredAt) {
+        const dt = new Date(med.administeredAt);
         doses.push({
           date: dt.toISOString().split('T')[0],
           time: dt.toISOString().split('T')[1].substring(0, 5),
           drug: med.drugName,
           dose: med.dose,
-          adminBy: d.administeredBy || 'Dr. Diego Irusta',
+          adminBy: med.administeredBy || 'Dr. Diego Irusta',
         });
-      });
+      }
     });
 
     expect(doses.length).toBe(2);

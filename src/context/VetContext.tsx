@@ -103,6 +103,18 @@ import { ToastMessage } from '../components/ToastNotification';
 import { MedicalPrintData } from '../components/MedicalPrintModal';
 import { checkSupabaseConnection } from '../lib/supabase';
 import {
+  patientRepository,
+  ownerRepository,
+  vitalsRepository,
+  consultationRepository,
+  hospitalizationRepository,
+  encounterRepository,
+  documentRepository,
+  auditRepository,
+  executeDemoCleanupRPC,
+  CleanupResult,
+} from '../services/supabaseRepository';
+import {
   fetchInitialDataFromSupabase,
   seedInitialDataToSupabase,
   syncPatientToSupabase,
@@ -272,6 +284,7 @@ interface VetContextType {
   // Audit
   logAudit: (action: string, entity: string, entityId: string, details: string, prev?: string, next?: string) => void;
   clearAllDataToCleanProduction: () => void;
+  cleanupDemoData: (dryRun: boolean, confirmationPhrase: string) => Promise<CleanupResult>;
   // Clinical Encounter & Operational Hub
   encounters: ClinicalEncounter[];
   activeEncounterId: string | null;
