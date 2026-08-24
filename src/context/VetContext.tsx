@@ -232,6 +232,7 @@ interface VetContextType {
 
   // Audit
   logAudit: (action: string, entity: string, entityId: string, details: string, prev?: string, next?: string) => void;
+  clearAllDataToCleanProduction: () => void;
 
   // AI Assistant helper
 
@@ -1162,6 +1163,67 @@ export const VetProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   }, [regulatoryRules, controlledDrugs, controlledMovements, pathologicalWaste, prescriptions, antimicrobialRecords, auditLogs]);
 
   // Audit Logger helper
+
+  const clearAllDataToCleanProduction = () => {
+    const storageKeys = [
+      'vetsys_owners',
+      'vetsys_patients',
+      'vetsys_problems',
+      'vetsys_vitals',
+      'vetsys_consultations',
+      'vetsys_hospitalizations',
+      'vetsys_surgeries',
+      'vetsys_labOrders',
+      'vetsys_imaging',
+      'vetsys_vaccinations',
+      'vetsys_appointments',
+      'vetsys_triage',
+      'vetsys_invoices',
+      'vetsys_estimates',
+      'vetsys_documents',
+      'vetsys_financial_movements',
+      'vetsys_account_debts',
+      'vetsys_audit_logs',
+      'vetsys_controlled_movements',
+      'vetsys_pathological_waste',
+      'vetsys_prescriptions',
+      'vetsys_antimicrobials',
+      'vetsys_evolutions',
+    ];
+    storageKeys.forEach((k) => {
+      try {
+        localStorage.removeItem(k);
+      } catch {}
+    });
+
+    setOwners([]);
+    setPatients([]);
+    setProblems([]);
+    setVitals([]);
+    setConsultations([]);
+    setHospitalizations([]);
+    setSurgeries([]);
+    setLabOrders([]);
+    setImagingStudies([]);
+    setVaccinations([]);
+    setAppointments([]);
+    setTriageList([]);
+    setInvoices([]);
+    setEstimates([]);
+    setDocuments([]);
+    setFinancialMovements([]);
+    setAccountDebts([]);
+    setControlledMovements([]);
+    setPathologicalWaste([]);
+    setPrescriptions([]);
+    setAntimicrobialRecords([]);
+    setClinicalEvolutions([]);
+    setSelectedPatientId(null);
+
+    logAudit('SISTEMA_REINICIADO_PRODUCCION', 'System', 'ROOT', 'Base de datos limpiada para inicio de operaciones reales');
+    showToast('success', 'Base de Datos Limpia', 'El sistema está 100% listo para uso real.');
+  };
+
   const logAudit = (action: string, entity: string, entityId: string, details: string, prev?: string, next?: string) => {
     const newLog: AuditLog = {
       id: `audit-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
@@ -2244,6 +2306,7 @@ export const VetProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         signDocument,
 
         logAudit,
+        clearAllDataToCleanProduction,
 
         quickModal,
         setQuickModal,
