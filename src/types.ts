@@ -829,6 +829,7 @@ export interface Invoice {
   paymentMethod: PaymentMethod;
   caeNumber: string; // CAE simulado ARCA/AFIP
   caeExpirationDate: string;
+  isFiscal?: boolean;
   qrFiscalData?: string;
   isHomologationMode?: boolean;
   branchId: string;

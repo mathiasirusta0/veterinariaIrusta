@@ -1,3 +1,4 @@
+import { supabase } from '../lib/supabase';
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import {
   Branch,
@@ -88,7 +89,6 @@ import {
   seedInitialDataToSupabase,
   syncPatientToSupabase,
   syncOwnerToSupabase,
-  wipeRemoteSupabaseData,
   syncVitalSignsToSupabase,
   syncProblemToSupabase,
   syncConsultationToSupabase,
@@ -104,6 +104,11 @@ import {
   syncDocumentToSupabase,
   syncClinicalEvolutionToSupabase,
   syncAuditLogToSupabase,
+  syncEncounterToSupabase,
+  syncProcedureToSupabase,
+  syncEncounterConsumptionToSupabase,
+  syncFinancialMovementToSupabase,
+  syncAccountDebtToSupabase,
 } from '../lib/supabaseSync';
 import { hasViewPermission, getDefaultViewForRole, SystemView } from '../utils/rbac';
 
@@ -119,7 +124,8 @@ interface VetContextType {
   setActivePatientTab: (tab: string) => void;
 
   // Active Environment
-  currentUser: User;
+  currentUser: User | null;
+  logout: () => Promise<void>;
   setCurrentUser: (user: User) => void;
   activeBranch: Branch;
   setActiveBranch: (branch: Branch) => void;
@@ -335,42 +341,6 @@ const INITIAL_ACCOUNT_DEBTS: AccountDebt[] = [];
 
 const CURRENT_DATA_VERSION = 'v2026_clean_production_v2';
 
-// Automatic purge on startup to clear any legacy demo data from browser storage
-if (typeof window !== 'undefined') {
-  try {
-    const currentVer = localStorage.getItem('vetsys_version_flag');
-    if (currentVer !== CURRENT_DATA_VERSION) {
-      const keysToPurge = [
-        'vetsys_owners',
-        'vetsys_patients',
-        'vetsys_problems',
-        'vetsys_vitals',
-        'vetsys_consultations',
-        'vetsys_hospitalizations',
-        'vetsys_surgeries',
-        'vetsys_labOrders',
-        'vetsys_imaging',
-        'vetsys_vaccinations',
-        'vetsys_appointments',
-        'vetsys_triage',
-        'vetsys_invoices',
-        'vetsys_estimates',
-        'vetsys_documents',
-        'vetsys_financial_movements',
-        'vetsys_account_debts',
-        'vetsys_controlled_movements',
-        'vetsys_pathological_waste',
-        'vetsys_prescriptions',
-        'vetsys_antimicrobial_records',
-        'vetsys_clinical_evolutions',
-        'vetsys_cash_expenses',
-      ];
-      keysToPurge.forEach((k) => localStorage.setItem(k, JSON.stringify([])));
-      localStorage.setItem('vetsys_version_flag', CURRENT_DATA_VERSION);
-    }
-  } catch {}
-}
-
 export const VetProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [activeView, setActiveView] = useState<string>('PACIENTES');
   const [selectedPatientId, setSelectedPatientId] = useState<string | null>(null); // Default select Toby
@@ -381,7 +351,15 @@ export const VetProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [activeBranch, setActiveBranch] = useState<Branch>(INITIAL_BRANCHES[0]);
 
   const [users] = useState<User[]>(INITIAL_USERS);
-  const [currentUser, setCurrentUser] = useState<User>(INITIAL_USERS[0]); // Default Dr. Martín López
+  const [currentUser, setCurrentUser] = useState<User | null>(() => {
+    const saved = localStorage.getItem('vetsys_auth_user');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch {}
+    }
+    return null;
+  });
 
   // Main collections with local storage initialization
   const [owners, setOwners] = useState<Owner[]>(() => {
@@ -1051,76 +1029,6 @@ export const VetProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   // Audit Logger helper
 
-  const clearAllDataToCleanProduction = async () => {
-    try {
-      await wipeRemoteSupabaseData();
-    } catch {}
-
-    const storageKeys = [
-      'vetsys_owners',
-      'vetsys_patients',
-      'vetsys_problems',
-      'vetsys_vitals',
-      'vetsys_consultations',
-      'vetsys_hospitalizations',
-      'vetsys_surgeries',
-      'vetsys_labOrders',
-      'vetsys_imaging',
-      'vetsys_vaccinations',
-      'vetsys_appointments',
-      'vetsys_triage',
-      'vetsys_invoices',
-      'vetsys_estimates',
-      'vetsys_documents',
-      'vetsys_financial_movements',
-      'vetsys_account_debts',
-      'vetsys_controlled_movements',
-      'vetsys_pathological_waste',
-      'vetsys_prescriptions',
-      'vetsys_antimicrobial_records',
-      'vetsys_clinical_evolutions',
-      'vetsys_cash_expenses',
-      'vetsys_auditLogs',
-    ];
-    storageKeys.forEach((k) => {
-      try {
-        localStorage.setItem(k, JSON.stringify([]));
-      } catch {}
-    });
-    localStorage.setItem('vetsys_version_flag', CURRENT_DATA_VERSION);
-
-    setOwners([]);
-    setPatients([]);
-    setProblems([]);
-    setVitals([]);
-    setConsultations([]);
-    setHospitalizations([]);
-    setSurgeries([]);
-    setLabOrders([]);
-    setImagingStudies([]);
-    setVaccinations([]);
-    setAppointments([]);
-    setTriageList([]);
-    setInvoices([]);
-    setEstimates([]);
-    setDocuments([]);
-    setFinancialMovements([]);
-    setAccountDebts([]);
-    setControlledMovements([]);
-    setPathologicalWaste([]);
-    setPrescriptions([]);
-    setAntimicrobialRecords([]);
-    setClinicalEvolutions([]);
-    setEncounters([]);
-    setProcedures([]);
-    setEncounterConsumptions([]);
-    setActiveEncounterId(null);
-    setSelectedPatientId(null);
-
-    logAudit('SISTEMA_REINICIADO_PRODUCCION', 'System', 'ROOT', 'Base de datos limpiada para inicio de operaciones reales');
-    showToast('success', 'Base de Datos Limpia', 'El sistema está 100% listo para uso real.');
-  };
-
   const logAudit = (action: string, entity: string, entityId: string, details: string, prev?: string, next?: string) => {
     const newLog: AuditLog = {
       id: `audit-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
@@ -1458,7 +1366,7 @@ export const VetProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         subtotal: priceItem.price,
         status: 'CONFIRMADO',
         performedAt: new Date().toISOString(),
-        performedBy: currentUser.name,
+        performedBy: currentUser?.name || 'Veterinario',
         isBilled: false,
       };
       setEncounterConsumptions((prev) => [consumption, ...prev]);
@@ -1737,7 +1645,9 @@ export const VetProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const getEncounterPreInvoice = (encounterId: string) => {
-    const list = getEncounterConsumptions(encounterId);
+    const list = encounterConsumptions.filter(
+      (c) => c.encounterId === encounterId && c.status !== 'ANULADO' && !c.isBilled
+    );
     const items = list.map((c) => ({
       id: c.id,
       concept: c.concept,
@@ -1760,6 +1670,11 @@ export const VetProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const pat = patients.find((p) => p.id === enc?.patientId);
     const own = owners.find((o) => o.id === pat?.ownerId);
     const { items, totalAmount } = getEncounterPreInvoice(encounterId);
+
+    if (items.length === 0) {
+      showToast('warning', 'Sin Consumos Pendientes', 'Esta atención ya no tiene consumos pendientes por facturar.');
+      throw new Error('Sin consumos pendientes de facturación en este episodio.');
+    }
 
     const finalAmount = Math.max(0, totalAmount - discountAmount);
 
@@ -1785,31 +1700,40 @@ export const VetProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       items: invoiceItems,
       totalAmount: finalAmount,
       paymentMethod,
-      caeNumber: '7' + Math.floor(10000000000000 + Math.random() * 90000000000000).toString(),
-      caeExpirationDate: new Date(Date.now() + 10 * 86400000).toISOString().split('T')[0],
+      caeNumber: '',
+      caeExpirationDate: '',
       branchId: activeBranch.id,
+      isFiscal: false,
     };
 
     setInvoices((prev) => [newInvoice, ...prev]);
+    syncInvoiceToSupabase(newInvoice);
 
-    // Mark all encounter consumptions as billed
+    // Mark all billed consumptions as isBilled: true
+    const billedItemIds = new Set(items.map((it) => it.id));
     setEncounterConsumptions((prev) =>
-      prev.map((c) => (c.encounterId === encounterId ? { ...c, isBilled: true, invoiceId: newInvoice.id } : c))
+      prev.map((c) => (billedItemIds.has(c.id) ? { ...c, isBilled: true, invoiceId: newInvoice.id } : c))
     );
 
     // Register financial movement
-    addFinancialMovement({
+    const finMovement: FinancialMovement = {
+      id: 'fin-' + Date.now() + '-' + Math.random().toString(36).substring(2, 6),
       date: new Date().toISOString().split('T')[0],
       type: 'INGRESO',
-      category: enc?.type === 'INTERNACION' ? 'Internación' : 'Consultas & Tratamientos',
+      category: enc?.type === 'INTERNACION' ? 'Internación & UCI' : 'Consultas',
       concept: `Cobro Factura ${newInvoice.invoiceNumber} - Atención de ${pat?.name || 'Paciente'}`,
       description: items.map((i) => i.concept).join(', '),
       amount: finalAmount,
       paymentMethod: paymentMethod as any,
-      status: 'COBRADO',
+      branchId: activeBranch.id,
       clientId: own?.id,
       clientName: own ? `${own.firstName} ${own.lastName}` : undefined,
-    });
+      status: 'COBRADO',
+      createdAt: new Date().toISOString(),
+      createdBy: currentUser?.name || 'Sistema',
+    };
+    setFinancialMovements((prev) => [finMovement, ...prev]);
+    syncFinancialMovementToSupabase(finMovement);
 
     logAudit('FACTURACION_ATENCION', 'Invoice', newInvoice.id, `Factura ${newInvoice.invoiceNumber} generada por ${finalAmount} para atención ${encounterId}`);
     showToast('success', 'Facturación Confirmada', `Comprobante ${newInvoice.invoiceNumber} generado por ${finalAmount.toLocaleString('es-AR')}.`);
@@ -1847,10 +1771,12 @@ export const VetProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const addHospitalMedication = (patientId: string, med: Partial<MedicationSchedule>) => {
+    const targetHosp = hospitalizations.find((h) => (med.hospitalizationId && h.id === med.hospitalizationId) || (h.patientId === patientId && h.status === 'ACTIVA'));
+    
     const newMed: MedicationSchedule = {
       id: `med-${Date.now()}`,
       patientId,
-      hospitalizationId: '',
+      hospitalizationId: targetHosp?.id || '',
       drugName: med.drugName || 'Fármaco',
       dose: med.dose || '1 ml',
       route: med.route || 'IV',
@@ -1862,11 +1788,10 @@ export const VetProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       ...med,
     };
 
-    setHospitalizations((prev) => {
-      const exists = prev.some((h) => h.patientId === patientId && h.status === 'ACTIVA');
-      if (exists) {
-        return prev.map((h) => {
-          if (h.patientId === patientId && h.status === 'ACTIVA') {
+    if (targetHosp) {
+      setHospitalizations((prev) =>
+        prev.map((h) => {
+          if (h.id === targetHosp.id) {
             const updated = {
               ...h,
               medications: [...(h.medications || []), newMed],
@@ -1875,48 +1800,41 @@ export const VetProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             return updated;
           }
           return h;
-        });
-      } else {
-        const newHosp: Hospitalization = {
-          id: `hosp-${Date.now()}`,
-          patientId,
-          vetInChargeId: currentUser.id,
-          vetInChargeName: currentUser.name,
-          sector: 'UCI',
-          kennelNumber: '01',
-          admittedAt: new Date().toISOString(),
-          primaryDiagnosis: 'Seguimiento Terapéutico',
-          priority: 'ESTABLE',
-          fluidTherapy: {
-            isActive: false,
-            solutionType: 'RINGER_LACTATO',
-            volumeTotalMl: 500,
-            rateMlPerHour: 0,
-            infusionRoute: 'IV',
-            startedAt: new Date().toISOString(),
-            prescribedBy: currentUser.name,
+        })
+      );
+    } else {
+      // Register as ambulatory prescription record
+      const patientObj = patients.find((p) => p.id === patientId);
+      const newRx: Prescription = {
+        id: 'rx-' + Date.now(),
+        prescriptionNumber: 'RX-' + Date.now().toString().slice(-6),
+        prescriptionType: 'RECETA_COMUN',
+        patientId,
+        ownerId: patientObj?.ownerId || 'owner-general',
+        vetId: currentUser?.id || 'vet-1',
+        vetName: currentUser?.name || 'Dr. Veterinario',
+        vetLicense: currentUser?.licenseNumber || 'MP 8412',
+        date: new Date().toISOString().split('T')[0],
+        items: [
+          {
+            id: 'rx-it-' + Date.now(),
+            medicationName: newMed.drugName || 'Fármaco',
+            presentation: 'Presentación estándar',
+            dose: newMed.dose || '1 dosis',
+            route: (newMed.route as any) || 'ORAL',
+            frequency: newMed.frequency || 'Cada 12 horas',
+            duration: '3 días',
+            instructions: newMed.notes || 'Administrar según indicación profesional',
           },
-          feeding: {
-            dietType: 'ORAL',
-            foodBrand: 'Dieta estándar',
-            amountGramsOrMl: 100,
-            frequency: 'Cada 12 horas',
-            tolerance: 'EXCELENTE',
-          },
-          eliminations: [],
-          medications: [newMed],
-          tasks: [],
-          hourlySheet: [],
-          intervalHours: 2,
-          status: 'ACTIVA',
-          branchId: activeBranch.id,
-        };
-        syncHospitalizationToSupabase(newHosp);
-        return [newHosp, ...prev];
-      }
-    });
+        ],
+        diagnosis: 'Indicación médica ambulatoria',
+        notes: newMed.notes,
+        isDispensed: true,
+      };
+      setPrescriptions((prev) => [newRx, ...prev]);
+    }
 
-    logAudit('INDICACION_MEDICACION', 'Hospitalization', patientId, `Indicación de ${newMed.drugName} (${newMed.dose}) por ${currentUser.name}`);
+    logAudit('INDICACION_MEDICACION', 'Medication', patientId, `Indicación de ${newMed.drugName} (${newMed.dose}) por ${currentUser?.name || 'Veterinario'}`);
   };
 
   const administerMedication = (hospitalizationId: string, medicationScheduleId: string, notes?: string) => {
@@ -2531,6 +2449,47 @@ export const VetProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     logAudit('EVOLUCION_CLINICA_ADDENDUM', 'ClinicalEvolution', evolutionId, `Addendum agregado a evolución ${evolutionId}`);
   };
 
+
+  const logout = async () => {
+    try {
+      await supabase.auth.signOut();
+    } catch {}
+    localStorage.removeItem('vetsys_auth_user');
+    setCurrentUser(null);
+    showToast('info', 'Sesión Finalizada', 'Has cerrado sesión correctamente.');
+  };
+
+  useEffect(() => {
+    if (currentUser) {
+      localStorage.setItem('vetsys_auth_user', JSON.stringify(currentUser));
+    } else {
+      localStorage.removeItem('vetsys_auth_user');
+    }
+  }, [currentUser]);
+
+  useEffect(() => {
+    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+      if (session?.user) {
+        const userMeta = session.user.user_metadata || {};
+        const userObj: User = {
+          id: session.user.id,
+          name: userMeta.name || session.user.email?.split('@')[0] || 'Profesional',
+          email: session.user.email || '',
+          role: userMeta.role || 'VETERINARIO',
+          branchId: activeBranch.id,
+          licenseNumber: userMeta.license_number || 'MP 8412',
+        };
+        setCurrentUser(userObj);
+      } else if (event === 'SIGNED_OUT') {
+        setCurrentUser(null);
+      }
+    });
+
+    return () => {
+      authListener.subscription.unsubscribe();
+    };
+  }, [activeBranch.id]);
+
   return (
     <VetContext.Provider
       value={{
@@ -2544,6 +2503,7 @@ export const VetProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setActivePatientTab,
 
         currentUser,
+        logout,
         setCurrentUser: switchCurrentUser,
         activeBranch,
         setActiveBranch: switchActiveBranch,
@@ -2645,7 +2605,6 @@ export const VetProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         signDocument,
 
         logAudit,
-        clearAllDataToCleanProduction,
 
         encounters,
         activeEncounterId,

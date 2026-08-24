@@ -25,6 +25,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleMobileMenu }) => {
     setActiveBranch,
     branches,
     currentUser,
+    logout,
     setCurrentUser,
     users,
     hospitalizations,

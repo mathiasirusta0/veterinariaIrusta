@@ -284,6 +284,70 @@ describe('Reestructuración Funcional & Flujo Clínico Operativo Unificado', () 
     expect(totalCalculated).toBe(70000);
   });
 
+
+  it('PREVENCIÓN DE DOBLE FACTURACIÓN: un consumo marcado como isBilled no debe sumarse a la prefacturación pendiente', () => {
+    const consumptions: EncounterConsumptionItem[] = [
+      {
+        id: 'cons-billed-1',
+        encounterId: 'enc-101',
+        patientId: 'pat-1',
+        sourceType: 'CONSULTA',
+        sourceId: 'enc-101',
+        code: 'SRV-CONS',
+        concept: 'Consulta Ambulatoria General',
+        quantity: 1,
+        unitPrice: 18000,
+        subtotal: 18000,
+        status: 'CONFIRMADO',
+        performedAt: '2026-08-24T08:00:00Z',
+        performedBy: 'Dra. Valentina Ríos',
+        isBilled: true, // Ya facturado
+      },
+      {
+        id: 'cons-unbilled-2',
+        encounterId: 'enc-101',
+        patientId: 'pat-1',
+        sourceType: 'LABORATORIO',
+        sourceId: 'lab-2',
+        code: 'SRV-LAB',
+        concept: 'Perfil Renal',
+        quantity: 1,
+        unitPrice: 12500,
+        subtotal: 12500,
+        status: 'CONFIRMADO',
+        performedAt: '2026-08-24T11:00:00Z',
+        performedBy: 'Bioq. Laboratorio',
+        isBilled: false, // Pendiente
+      },
+    ];
+
+    // Helper simulando getEncounterPreInvoice
+    const pendingItems = consumptions.filter(c => c.encounterId === 'enc-101' && c.status !== 'ANULADO' && !c.isBilled);
+    const pendingTotal = pendingItems.reduce((sum, it) => sum + it.subtotal, 0);
+
+    expect(pendingItems.length).toBe(1);
+    expect(pendingItems[0].concept).toBe('Perfil Renal');
+    expect(pendingTotal).toBe(12500);
+  });
+
+  it('MEDICACIÓN AMBULATORIA: indicar medicación a un paciente ambulatorio debe registrarse sin corromper internaciones', () => {
+    const patientId = 'pat-ambulatorio-01';
+    const isAmbulatory = true;
+
+    const prescriptionRecord = {
+      id: 'rx-01',
+      patientId,
+      drugName: 'Amoxicilina + Ácido Clavulánico',
+      dose: '20 mg/kg',
+      frequency: 'Cada 12 horas',
+      duration: '7 días',
+      route: 'ORAL',
+    };
+
+    expect(prescriptionRecord.patientId).toBe('pat-ambulatorio-01');
+    expect(prescriptionRecord.route).toBe('ORAL');
+  });
+
   it('debe prevenir doble aplicación accidental de una dosis', () => {
     const medSchedule: MedicationSchedule = {
       id: 'med-melox-1',

@@ -334,10 +334,20 @@ const MainLayout: React.FC = () => {
   );
 };
 
+const AppContent: React.FC = () => {
+  const { currentUser } = useVet();
+
+  if (!currentUser) {
+    return <LoginView />;
+  }
+
+  return <MainLayout />;
+};
+
 export default function App() {
   return (
     <VetProvider>
-      <MainLayout />
+      <AppContent />
     </VetProvider>
   );
 }

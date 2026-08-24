@@ -29,16 +29,15 @@ export const SettingsAndUsersView: React.FC = () => {
     consultations,
     hospitalizations,
     invoices,
-    clearAllDataToCleanProduction,
+    
     showToast,
   } = useVet();
 
   const [activeTab, setActiveTab] = useState<'AUDITORIA' | 'PRODUCCION' | 'USUARIOS' | 'SUCURSALES' | 'ROLES'>('PRODUCCION');
   const [showConfirmModal, setShowConfirmModal] = useState(false);
 
-  const handleCleanDatabase = async () => {
-    triggerHaptic('medium');
-    await clearAllDataToCleanProduction();
+  const handleCleanDatabase = () => {
+    showToast('info', 'Acción Protegida', 'La base de datos de producción está protegida contra borrados accidentales desde el frontend.');
     setShowConfirmModal(false);
   };
 

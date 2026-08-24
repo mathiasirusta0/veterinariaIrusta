@@ -878,38 +878,226 @@ export async function syncAuditLogToSupabase(log: AuditLog) {
 /**
  * Wipe all clinical and transactional demo records from Supabase tables
  */
-export async function wipeRemoteSupabaseData(): Promise<boolean> {
+
+/**
+ * Normalizers and Sync Methods for Unified Clinical Encounters, Consumptions, and Finances
+ */
+
+export function normalizeEncounter(raw: any) {
+  return {
+    id: raw.id,
+    patientId: raw.patient_id || raw.patientId || '',
+    type: raw.type || 'AMBULATORIA',
+    status: raw.status || 'EN_CURSO',
+    admittedAt: raw.admitted_at || raw.admittedAt || new Date().toISOString(),
+    dischargedAt: raw.discharged_at || raw.dischargedAt,
+    vetInChargeId: raw.vet_in_charge_id || raw.vetInChargeId || '',
+    vetInChargeName: raw.vet_in_charge_name || raw.vetInChargeName || 'Dr. Veterinario',
+    reason: raw.reason || '',
+    initialDiagnosis: raw.initial_diagnosis || raw.initialDiagnosis || '',
+    finalDiagnosis: raw.final_diagnosis || raw.finalDiagnosis,
+    dischargeNotes: raw.discharge_notes || raw.dischargeNotes,
+    dischargePrescription: raw.discharge_prescription || raw.dischargePrescription,
+    followUpDate: raw.follow_up_date || raw.followUpDate,
+    sector: raw.sector,
+    kennelNumber: raw.kennel_number || raw.kennelNumber,
+    priority: raw.priority,
+    branchId: raw.branch_id || raw.branchId || 'branch-1',
+  };
+}
+
+export async function syncEncounterToSupabase(enc: any) {
   try {
-    const tables = [
-      'debt_payments',
-      'account_debts',
-      'financial_transactions',
-      'invoices',
-      'estimates',
-      'clinical_documents',
-      'laboratory_orders',
-      'imaging_studies',
-      'vaccinations',
-      'surgeries',
-      'hospitalizations',
-      'consultations',
-      'vital_signs',
-      'patient_problems',
-      'appointments',
-      'triage_entries',
-      'patients',
-      'owners',
-    ];
-    for (const table of tables) {
-      try {
-        await supabase.from(table).delete().neq('id', '00000000-0000-0000-0000-000000000000');
-      } catch (err) {
-        console.warn('Wipe table error ' + table, err);
-      }
-    }
-    return true;
+    const { error } = await supabase.from('encounters').upsert({
+      id: enc.id,
+      patient_id: enc.patientId,
+      type: enc.type,
+      status: enc.status,
+      admitted_at: enc.admittedAt,
+      discharged_at: enc.dischargedAt,
+      vet_in_charge_id: enc.vetInChargeId,
+      vet_in_charge_name: enc.vetInChargeName,
+      reason: enc.reason,
+      initial_diagnosis: enc.initialDiagnosis,
+      final_diagnosis: enc.finalDiagnosis,
+      discharge_notes: enc.dischargeNotes,
+      discharge_prescription: enc.dischargePrescription,
+      follow_up_date: enc.followUpDate,
+      sector: enc.sector,
+      kennel_number: enc.kennelNumber,
+      priority: enc.priority,
+      branch_id: enc.branchId,
+    });
+    if (error) console.warn('Supabase encounters table sync:', error.message);
   } catch (err) {
-    console.warn('Supabase wipeRemoteSupabaseData failed:', err);
-    return false;
+    console.warn('Offline: encounter cached locally');
+  }
+}
+
+export function normalizeProcedure(raw: any) {
+  return {
+    id: raw.id,
+    encounterId: raw.encounter_id || raw.encounterId,
+    patientId: raw.patient_id || raw.patientId || '',
+    procedureName: raw.procedure_name || raw.procedureName || '',
+    category: raw.category || 'TERAPEUTICO',
+    isPerformed: typeof raw.is_performed === 'boolean' ? raw.is_performed : !!raw.isPerformed,
+    performedAt: raw.performed_at || raw.performedAt,
+    performedBy: raw.performed_by || raw.performedBy,
+    price: typeof raw.price === 'number' ? raw.price : 0,
+    isBillable: typeof raw.is_billable === 'boolean' ? raw.is_billable : (typeof raw.isBillable === 'boolean' ? raw.isBillable : true),
+    notes: raw.notes || '',
+    createdAt: raw.created_at || raw.createdAt || new Date().toISOString(),
+  };
+}
+
+export async function syncProcedureToSupabase(proc: any) {
+  try {
+    const { error } = await supabase.from('procedures').upsert({
+      id: proc.id,
+      encounter_id: proc.encounterId,
+      patient_id: proc.patientId,
+      procedure_name: proc.procedureName,
+      category: proc.category,
+      is_performed: proc.isPerformed,
+      performed_at: proc.performedAt,
+      performed_by: proc.performedBy,
+      price: proc.price,
+      is_billable: proc.isBillable,
+      notes: proc.notes,
+      created_at: proc.createdAt,
+    });
+    if (error) console.warn('Supabase procedures table sync:', error.message);
+  } catch (err) {
+    console.warn('Offline: procedure cached locally');
+  }
+}
+
+export function normalizeEncounterConsumption(raw: any) {
+  return {
+    id: raw.id,
+    encounterId: raw.encounter_id || raw.encounterId || '',
+    patientId: raw.patient_id || raw.patientId || '',
+    sourceType: raw.source_type || raw.sourceType || 'PROCEDIMIENTO',
+    sourceId: raw.source_id || raw.sourceId || '',
+    code: raw.code || 'CONS',
+    concept: raw.concept || '',
+    quantity: typeof raw.quantity === 'number' ? raw.quantity : 1,
+    unitPrice: typeof raw.unit_price === 'number' ? raw.unit_price : (typeof raw.unitPrice === 'number' ? raw.unitPrice : 0),
+    subtotal: typeof raw.subtotal === 'number' ? raw.subtotal : 0,
+    status: raw.status || 'CONFIRMADO',
+    performedAt: raw.performed_at || raw.performedAt || new Date().toISOString(),
+    performedBy: raw.performed_by || raw.performedBy || 'Personal Veterinario',
+    isBilled: typeof raw.is_billed === 'boolean' ? raw.is_billed : !!raw.isBilled,
+  };
+}
+
+export async function syncEncounterConsumptionToSupabase(cons: any) {
+  try {
+    const { error } = await supabase.from('encounter_consumptions').upsert({
+      id: cons.id,
+      encounter_id: cons.encounterId,
+      patient_id: cons.patientId,
+      source_type: cons.sourceType,
+      source_id: cons.sourceId,
+      code: cons.code,
+      concept: cons.concept,
+      quantity: cons.quantity,
+      unit_price: cons.unitPrice,
+      subtotal: cons.subtotal,
+      status: cons.status,
+      performed_at: cons.performedAt,
+      performed_by: cons.performedBy,
+      is_billed: cons.isBilled,
+    });
+    if (error) console.warn('Supabase encounter_consumptions sync:', error.message);
+  } catch (err) {
+    console.warn('Offline: encounter consumption cached locally');
+  }
+}
+
+export function normalizeFinancialMovement(raw: any) {
+  return {
+    id: raw.id,
+    date: raw.date || new Date().toISOString().split('T')[0],
+    type: raw.type || 'INGRESO',
+    category: raw.category || 'Consultas',
+    concept: raw.concept || '',
+    amount: typeof raw.amount === 'number' ? raw.amount : 0,
+    paymentMethod: raw.payment_method || raw.paymentMethod || 'EFECTIVO',
+    branchId: raw.branch_id || raw.branchId || 'branch-1',
+    patientId: raw.patient_id || raw.patientId,
+    ownerId: raw.owner_id || raw.ownerId,
+    status: raw.status || 'CONFIRMADO',
+    referenceId: raw.reference_id || raw.referenceId,
+    notes: raw.notes,
+    createdAt: raw.created_at || raw.createdAt || new Date().toISOString(),
+  };
+}
+
+export async function syncFinancialMovementToSupabase(mov: any) {
+  try {
+    const { error } = await supabase.from('financial_transactions').upsert({
+      id: mov.id,
+      date: mov.date,
+      type: mov.type,
+      category: mov.category,
+      concept: mov.concept,
+      amount: mov.amount,
+      payment_method: mov.paymentMethod,
+      branch_id: mov.branchId,
+      patient_id: mov.patientId,
+      owner_id: mov.ownerId,
+      status: mov.status,
+      reference_id: mov.referenceId,
+      notes: mov.notes,
+      created_at: mov.createdAt,
+    });
+    if (error) console.warn('Supabase financial_transactions sync:', error.message);
+  } catch (err) {
+    console.warn('Offline: financial movement cached locally');
+  }
+}
+
+export function normalizeAccountDebt(raw: any) {
+  return {
+    id: raw.id,
+    type: raw.type || 'A_COBRAR',
+    personName: raw.person_name || raw.personName || '',
+    ownerId: raw.owner_id || raw.ownerId,
+    concept: raw.concept || '',
+    totalAmount: typeof raw.total_amount === 'number' ? raw.total_amount : (typeof raw.totalAmount === 'number' ? raw.totalAmount : 0),
+    paidAmount: typeof raw.paid_amount === 'number' ? raw.paid_amount : (typeof raw.paidAmount === 'number' ? raw.paidAmount : 0),
+    remainingAmount: typeof raw.remaining_amount === 'number' ? raw.remaining_amount : (typeof raw.remainingAmount === 'number' ? raw.remainingAmount : 0),
+    issueDate: raw.issue_date || raw.issueDate || new Date().toISOString().split('T')[0],
+    dueDate: raw.due_date || raw.dueDate || new Date().toISOString().split('T')[0],
+    status: raw.status || 'PENDIENTE',
+    branchId: raw.branch_id || raw.branchId || 'branch-1',
+    payments: Array.isArray(raw.payments) ? raw.payments : [],
+    createdAt: raw.created_at || raw.createdAt || new Date().toISOString(),
+  };
+}
+
+export async function syncAccountDebtToSupabase(debt: any) {
+  try {
+    const { error } = await supabase.from('account_debts').upsert({
+      id: debt.id,
+      type: debt.type,
+      person_name: debt.personName,
+      owner_id: debt.ownerId,
+      concept: debt.concept,
+      total_amount: debt.totalAmount,
+      paid_amount: debt.paidAmount,
+      remaining_amount: debt.remainingAmount,
+      issue_date: debt.issueDate,
+      due_date: debt.dueDate,
+      status: debt.status,
+      branch_id: debt.branchId,
+      payments: debt.payments,
+      created_at: debt.createdAt,
+    });
+    if (error) console.warn('Supabase account_debts sync:', error.message);
+  } catch (err) {
+    console.warn('Offline: account debt cached locally');
   }
 }

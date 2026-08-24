@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import {
   BedDouble,
+  Stethoscope,
   Activity,
   FileText,
   FlaskConical,
@@ -55,6 +56,7 @@ export const HospitalizationWhiteboardView: React.FC = () => {
     patients,
     owners,
     hospitalizations,
+    triageList,
     encounters,
     activeEncounterId,
     setActiveEncounterId,
@@ -359,20 +361,17 @@ export const HospitalizationWhiteboardView: React.FC = () => {
   const handleAddMedicationSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!currentPatient) return;
-    if (currentHosp) {
-      addHospitalMedication(currentHosp.id, {
-        patientId: currentPatient.id,
-        drugName: medName,
-        dose: medDose,
-        route: medRoute,
-        frequency: medFreq,
-        scheduledTime: new Date().toISOString().slice(11, 16),
-        notes: 'Indicación en atención',
-      });
-    } else {
-      // Ambulatory medication indication
-      showToast('success', 'Medicación Indicada', medName + ' (' + medDose + ') indicada.');
-    }
+    addHospitalMedication(currentPatient.id, {
+      patientId: currentPatient.id,
+      hospitalizationId: currentHosp?.id,
+      drugName: medName,
+      dose: medDose,
+      route: medRoute,
+      frequency: medFreq,
+      scheduledTime: new Date().toISOString().slice(11, 16),
+      notes: 'Indicación en atención ' + (currentHosp ? 'internada' : 'ambulatoria'),
+    });
+    showToast('success', 'Medicación Guardada', medName + ' (' + medDose + ') indicada correctamente.');
     setShowMedModal(false);
   };
 
@@ -697,7 +696,85 @@ export const HospitalizationWhiteboardView: React.FC = () => {
             })}
           </div>
 
-          {/* TAB 1: RESUMEN */}
+                  {/* TAB 0: TRIAGE & SALA DE ESPERA */}
+        {activeTab === 'TRIAGE' && (
+          <div className="space-y-4 animate-in fade-in">
+            <div className="bg-white border border-slate-200 p-4 rounded-3xl shadow-xs flex flex-wrap items-center justify-between gap-3">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center font-bold">
+                  ⏱️
+                </div>
+                <div>
+                  <h3 className="text-sm font-black text-slate-900">Cola Activa de Triage & Guardia</h3>
+                  <p className="text-xs text-slate-500">Pacientes en espera de atención clasificados por severidad clínica</p>
+                </div>
+              </div>
+              <span className="text-xs font-bold bg-slate-100 text-slate-700 px-3 py-1 rounded-xl">
+                {triageList.filter(t => t.status === 'EN_ESPERA').length} pacientes aguardando
+              </span>
+            </div>
+
+            {triageList.filter(t => t.status === 'EN_ESPERA').length === 0 ? (
+              <div className="bg-white border border-slate-200 rounded-3xl p-10 text-center space-y-2">
+                <div className="text-3xl">🎉</div>
+                <h4 className="text-sm font-bold text-slate-800">No hay pacientes en espera en este momento</h4>
+                <p className="text-xs text-slate-500">La sala de espera y guardia están al día.</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                {triageList.filter(t => t.status === 'EN_ESPERA').map((tr) => {
+                  const pat = patients.find(p => p.id === tr.patientId);
+                  const own = owners.find(o => o.id === pat?.ownerId);
+                  const isCrit = tr.priority === 'CRITICO' || tr.priority === 'EMERGENCIA';
+
+                  return (
+                    <div key={tr.id} className="bg-white border border-slate-200 hover:border-teal-400 p-4 rounded-3xl shadow-xs space-y-3 transition-all">
+                      <div className="flex items-start justify-between gap-2">
+                        <div>
+                          <span className="text-[10px] font-mono text-slate-500 block">Ingreso: {tr.arrivalTime?.slice(11, 16) || 'Reciente'}</span>
+                          <h4 className="text-base font-black text-slate-900">{pat?.name || 'Paciente'}</h4>
+                          <p className="text-xs text-slate-500">{pat?.species} • {pat?.breed} ({own ? `${own.firstName} ${own.lastName}` : 'Sin tutor'})</p>
+                        </div>
+                        <span className={`text-[10px] font-black px-2 py-0.5 rounded-full uppercase ${
+                          isCrit ? 'bg-red-100 text-red-700 border border-red-200 animate-pulse' : 'bg-amber-100 text-amber-800 border border-amber-200'
+                        }`}>
+                          {tr.priority}
+                        </span>
+                      </div>
+
+                      <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100 text-xs">
+                        <span className="font-bold text-slate-700 block mb-0.5">Motivo / Síntomas:</span>
+                        <p className="text-slate-600">{tr.chiefComplaint || 'Evaluación médica general'}</p>
+                      </div>
+
+                      <button
+                        onClick={() => {
+                          triggerHaptic('medium');
+                          const newEnc = startEncounter({
+                            patientId: tr.patientId,
+                            type: isCrit ? 'INTERNACION' : 'AMBULATORIA',
+                            reason: tr.chiefComplaint || 'Atención desde Triage',
+                            initialDiagnosis: 'En evaluación diagnóstica',
+                            priority: tr.priority === 'CRITICO' ? 'CRITICO' : 'PRIORITARIO',
+                          });
+                          setSelectedEncId(newEnc.id);
+                          setActiveTab('RESUMEN');
+                          showToast('success', 'Atención Iniciada', `Iniciando consulta para ${pat?.name || 'paciente'}`);
+                        }}
+                        className="w-full py-2 bg-teal-600 hover:bg-teal-500 text-white text-xs font-black rounded-xl transition-all shadow-sm flex items-center justify-center gap-1.5"
+                      >
+                        <Stethoscope className="w-3.5 h-3.5" />
+                        <span>🩺 Iniciar Atención Clínica</span>
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* TAB 1: RESUMEN */}
           {activeTab === 'RESUMEN' && (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
               <div className="md:col-span-2 space-y-5">
