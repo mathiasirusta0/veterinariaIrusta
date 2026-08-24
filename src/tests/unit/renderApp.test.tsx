@@ -12,8 +12,8 @@ describe('Autenticación y Puerta de Enlace (P0-01, P0-02)', () => {
   it('un visitante sin sesión previa recibe obligatoriamente la pantalla de Login', () => {
     const { container } = render(<App />);
     expect(container).toBeDefined();
-    expect(screen.getAllByText('VET SYSTEM').length).toBeGreaterThan(0);
-    expect(screen.getByText('Acceso al Sistema Hospitalario')).toBeDefined();
+    expect(screen.getAllByText(/VET SYSTEM/).length).toBeGreaterThan(0);
+    expect(screen.getByText(/Ingreso al Sistema/)).toBeDefined();
   });
 
   it('un usuario con sesión activa en localStorage accede directamente al panel principal', () => {

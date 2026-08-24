@@ -61,9 +61,9 @@ export const INITIAL_BRANCHES: Branch[] = [
 // 2. USUARIO MAESTRO SUPERADMIN
 export const INITIAL_USERS: User[] = [
   {
-    id: 'user-1',
-    name: 'Superadmin Sistema',
-    email: 'admin@vetsystem.com.ar',
+    id: 'user-irusta-superadmin',
+    name: 'Dr. Matías Irusta',
+    email: 'irusta@gmail.com',
     role: 'SUPERADMIN',
     licenseNumber: 'MP 8412 - Dirección Médica',
     branchId: 'branch-1',
