@@ -1,3 +1,21 @@
+
+function sanitizeCleanArray<T>(key: string, fallback: T[]): T[] {
+  try {
+    const raw = localStorage.getItem(key);
+    if (!raw) return fallback;
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return fallback;
+    // Filter out old demo entities with dummy IDs
+    const clean = parsed.filter((item: any) => {
+      const id = item?.id || '';
+      return !['pat-1', 'pat-2', 'pat-3', 'pat-4', 'pat-thor', 'pat-luna', 'pat-simba', 'pat-rocky', 'own-1', 'own-2', 'own-3', 'own-4'].includes(id);
+    });
+    return clean;
+  } catch {
+    return fallback;
+  }
+}
+
 import { supabase } from '../lib/supabase';
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import {
@@ -362,15 +380,9 @@ export const VetProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   });
 
   // Main collections with local storage initialization
-  const [owners, setOwners] = useState<Owner[]>(() => {
-    const saved = localStorage.getItem('vetsys_owners');
-    return saved ? JSON.parse(saved) : INITIAL_OWNERS;
-  });
+  const [owners, setOwners] = useState<Owner[]>(() => sanitizeCleanArray('vetsys_owners', INITIAL_OWNERS));
 
-  const [patients, setPatients] = useState<Patient[]>(() => {
-    const saved = localStorage.getItem('vetsys_patients');
-    return saved ? JSON.parse(saved) : INITIAL_PATIENTS;
-  });
+  const [patients, setPatients] = useState<Patient[]>(() => sanitizeCleanArray('vetsys_patients', INITIAL_PATIENTS));
 
   const [problems, setProblems] = useState<PatientProblem[]>(() => {
     const saved = localStorage.getItem('vetsys_problems');

@@ -18,6 +18,7 @@ import {
   VaccinationRecord,
   Estimate,
   FluidTherapy,
+  Prescription,
 } from '../types';
 
 export { checkSupabaseConnection };
@@ -338,6 +339,27 @@ function normalizeTriage(raw: any): TriageEntry {
   };
 }
 
+
+function normalizePrescription(raw: any): Prescription {
+  return {
+    id: raw.id,
+    prescriptionNumber: raw.prescription_number || raw.prescriptionNumber || 'RX-001',
+    prescriptionType: raw.prescription_type || raw.prescriptionType || 'RECETA_COMUN',
+    patientId: raw.patient_id || raw.patientId || '',
+    ownerId: raw.owner_id || raw.ownerId || '',
+    vetId: raw.vet_id || raw.vetId || '',
+    vetName: raw.vet_name || raw.vetName || 'Dr. Diego Irusta',
+    vetLicense: raw.vet_license || raw.vetLicense || 'MP 8412',
+    date: raw.date || new Date().toISOString().split('T')[0],
+    diagnosis: raw.diagnosis,
+    items: Array.isArray(raw.items) ? raw.items : [],
+    notes: raw.notes,
+    isDispensed: typeof raw.is_dispensed === 'boolean' ? raw.is_dispensed : !!raw.isDispensed,
+    dispensedAt: raw.dispensed_at || raw.dispensedAt,
+    digitalSignatureHash: raw.digital_signature_hash || raw.digitalSignatureHash,
+  };
+}
+
 function normalizeDocument(raw: any): ClinicalDocument {
   return {
     id: raw.id,
@@ -358,6 +380,9 @@ function normalizeDocument(raw: any): ClinicalDocument {
  */
 export async function fetchInitialDataFromSupabase() {
   try {
+    const isConn = await checkSupabaseConnection();
+    if (!isConn.connected) return null;
+
     const [
       ownersRes,
       patientsRes,
@@ -376,6 +401,12 @@ export async function fetchInitialDataFromSupabase() {
       imagingRes,
       vaccinationsRes,
       estimatesRes,
+      prescriptionsRes,
+      encountersRes,
+      proceduresRes,
+      consumptionsRes,
+      financialRes,
+      debtsRes,
     ] = await Promise.all([
       supabase.from('owners').select('*'),
       supabase.from('patients').select('*'),
@@ -394,36 +425,44 @@ export async function fetchInitialDataFromSupabase() {
       supabase.from('imaging_studies').select('*'),
       supabase.from('vaccinations').select('*'),
       supabase.from('estimates').select('*'),
+      supabase.from('prescriptions').select('*'),
+      supabase.from('encounters').select('*'),
+      supabase.from('procedures').select('*'),
+      supabase.from('encounter_consumptions').select('*'),
+      supabase.from('financial_transactions').select('*'),
+      supabase.from('account_debts').select('*'),
     ]);
 
     return {
-      owners: Array.isArray(ownersRes.data) && ownersRes.data.length > 0 ? ownersRes.data.map(normalizeOwner) : null,
-      patients: Array.isArray(patientsRes.data) && patientsRes.data.length > 0 ? patientsRes.data.map(normalizePatient) : null,
-      vitals: Array.isArray(vitalsRes.data) && vitalsRes.data.length > 0 ? vitalsRes.data.map(normalizeVitalSigns) : null,
-      problems: Array.isArray(problemsRes.data) && problemsRes.data.length > 0 ? problemsRes.data.map(normalizeProblem) : null,
-      consultations: Array.isArray(consultationsRes.data) && consultationsRes.data.length > 0 ? consultationsRes.data.map(normalizeConsultation) : null,
-      hospitalizations: Array.isArray(hospitalizationsRes.data) && hospitalizationsRes.data.length > 0 ? hospitalizationsRes.data.map(normalizeHospitalization) : null,
-      surgeries: Array.isArray(surgeriesRes.data) && surgeriesRes.data.length > 0 ? surgeriesRes.data.map(normalizeSurgery) : null,
-      products: Array.isArray(productsRes.data) && productsRes.data.length > 0 ? productsRes.data.map(normalizeProduct) : null,
-      invoices: Array.isArray(invoicesRes.data) && invoicesRes.data.length > 0 ? invoicesRes.data.map(normalizeInvoice) : null,
-      documents: Array.isArray(documentsRes.data) && documentsRes.data.length > 0 ? documentsRes.data.map(normalizeDocument) : null,
-      auditLogs: (auditLogsRes.data as AuditLog[]) || null,
-      appointments: Array.isArray(appointmentsRes.data) && appointmentsRes.data.length > 0 ? appointmentsRes.data.map(normalizeAppointment) : null,
-      triageList: Array.isArray(triageRes.data) && triageRes.data.length > 0 ? triageRes.data.map(normalizeTriage) : null,
-      labOrders: Array.isArray(labsRes.data) && labsRes.data.length > 0 ? labsRes.data.map(normalizeLabOrder) : null,
-      imagingStudies: Array.isArray(imagingRes.data) && imagingRes.data.length > 0 ? imagingRes.data.map(normalizeImaging) : null,
-      vaccinations: Array.isArray(vaccinationsRes.data) && vaccinationsRes.data.length > 0 ? vaccinationsRes.data.map(normalizeVaccination) : null,
-      estimates: (estimatesRes.data as Estimate[]) || null,
+      owners: Array.isArray(ownersRes.data) ? ownersRes.data.map(normalizeOwner) : [],
+      patients: Array.isArray(patientsRes.data) ? patientsRes.data.map(normalizePatient) : [],
+      vitals: Array.isArray(vitalsRes.data) ? vitalsRes.data.map(normalizeVitalSigns) : [],
+      problems: Array.isArray(problemsRes.data) ? problemsRes.data.map(normalizeProblem) : [],
+      consultations: Array.isArray(consultationsRes.data) ? consultationsRes.data.map(normalizeConsultation) : [],
+      hospitalizations: Array.isArray(hospitalizationsRes.data) ? hospitalizationsRes.data.map(normalizeHospitalization) : [],
+      surgeries: Array.isArray(surgeriesRes.data) ? surgeriesRes.data.map(normalizeSurgery) : [],
+      products: Array.isArray(productsRes.data) ? productsRes.data.map(normalizeProduct) : [],
+      invoices: Array.isArray(invoicesRes.data) ? invoicesRes.data.map(normalizeInvoice) : [],
+      documents: Array.isArray(documentsRes.data) ? documentsRes.data.map(normalizeDocument) : [],
+      auditLogs: Array.isArray(auditLogsRes.data) ? (auditLogsRes.data as AuditLog[]) : [],
+      appointments: Array.isArray(appointmentsRes.data) ? appointmentsRes.data.map(normalizeAppointment) : [],
+      triageList: Array.isArray(triageRes.data) ? triageRes.data.map(normalizeTriage) : [],
+      labOrders: Array.isArray(labsRes.data) ? labsRes.data.map(normalizeLabOrder) : [],
+      imagingStudies: Array.isArray(imagingRes.data) ? imagingRes.data.map(normalizeImaging) : [],
+      vaccinations: Array.isArray(vaccinationsRes.data) ? vaccinationsRes.data.map(normalizeVaccination) : [],
+      estimates: Array.isArray(estimatesRes.data) ? (estimatesRes.data as Estimate[]) : [],
+      prescriptions: Array.isArray(prescriptionsRes.data) ? prescriptionsRes.data.map(normalizePrescription) : [],
+      encounters: Array.isArray(encountersRes.data) ? encountersRes.data.map(normalizeEncounter) : [],
+      procedures: Array.isArray(proceduresRes.data) ? proceduresRes.data.map(normalizeProcedure) : [],
+      encounterConsumptions: Array.isArray(consumptionsRes.data) ? consumptionsRes.data.map(normalizeEncounterConsumption) : [],
+      financialMovements: Array.isArray(financialRes.data) ? financialRes.data.map(normalizeFinancialMovement) : [],
+      accountDebts: Array.isArray(debtsRes.data) ? debtsRes.data.map(normalizeAccountDebt) : [],
     };
   } catch (error) {
-    console.warn('Supabase fetch failed, continuing with local storage cache:', error);
+    console.warn('Supabase fetch notice:', error);
     return null;
   }
 }
-
-/**
- * Seed initial mock/local state to Supabase if tables are newly initialized
- */
 export async function seedInitialDataToSupabase(data: {
   owners?: Owner[];
   patients?: Patient[];
