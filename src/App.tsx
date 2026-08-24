@@ -49,6 +49,7 @@ import { VaccinationView } from './components/VaccinationView';
 import { InventoryView } from './components/InventoryView';
 import { FinancesUnifiedView } from './components/FinancesUnifiedView';
 import { LoginView } from './components/LoginView';
+import { PublicLandingView } from './components/PublicLandingView';
 import { DocumentsView } from './components/DocumentsView';
 import { SettingsAndUsersView } from './components/SettingsAndUsersView';
 import { PrescriptionsView } from './components/PrescriptionsView';
@@ -336,9 +337,13 @@ const MainLayout: React.FC = () => {
 
 const AppContent: React.FC = () => {
   const { currentUser } = useVet();
+  const [showLogin, setShowLogin] = useState(false);
 
   if (!currentUser) {
-    return <LoginView />;
+    if (showLogin) {
+      return <LoginView onBackToLanding={() => setShowLogin(false)} />;
+    }
+    return <PublicLandingView onOpenLogin={() => setShowLogin(true)} />;
   }
 
   return <MainLayout />;
