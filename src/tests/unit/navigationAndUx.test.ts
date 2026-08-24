@@ -6,12 +6,9 @@ describe('Simplificación de Nombres de Navegación & UX (Fase 1)', () => {
   it('debe contener los nombres visibles oficiales simplificados en 4 áreas clínicas y administrativas', () => {
     expect(getNavLabel('PACIENTES')).toBe('Pacientes & Tutores');
     expect(getNavLabel('CONSULTAS')).toBe('Consultas Médicas');
-    expect(getNavLabel('INTERNACION')).toBe('Internación & UCI');
-    expect(getNavLabel('SALA_ESPERA')).toBe('Sala de Espera & Triage');
+    expect(getNavLabel('INTERNACION')).toBe('Internación & Atención');
     expect(getNavLabel('AGENDA')).toBe('Agenda de Turnos');
     expect(getNavLabel('CIRUGIAS')).toBe('Cirugía & Quirófano');
-    expect(getNavLabel('LABORATORIO')).toBe('Laboratorio');
-    expect(getNavLabel('IMAGENES')).toBe('Diagnóstico por Imágenes');
     expect(getNavLabel('VACUNAS')).toBe('Plan de Vacunación');
     expect(getNavLabel('INVENTARIO')).toBe('Farmacia & Stock');
     expect(getNavLabel('CAJA_FACTURACION')).toBe('Finanzas');

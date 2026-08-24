@@ -152,7 +152,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleMobileMenu }) => {
         <button
           onClick={() => {
             triggerHaptic('light');
-            setActiveView('SALA_ESPERA');
+            setActiveView('INTERNACION');
           }}
           className="relative p-2 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors flex-shrink-0"
           title="Sala de espera y notificaciones"

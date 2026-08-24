@@ -107,7 +107,7 @@ const MainLayout: React.FC = () => {
     if (activeView === 'PACIENTES') viewKey = 'PACIENTES';
     else if (activeView === 'PROPIETARIOS') viewKey = 'PROPIETARIOS';
     else if (activeView === 'INTERNACION') viewKey = 'INTERNACION';
-    else if (activeView === 'SALA_ESPERA') viewKey = 'SALA_ESPERA';
+    else if (activeView === 'SALA_ESPERA') viewKey = 'INTERNACION';
     else if (activeView === 'AGENDA') viewKey = 'AGENDA';
     else if (activeView === 'CONSULTAS') viewKey = 'CONSULTAS';
     else if (activeView === 'SIGNOS_VITALES' || activeView === 'SIGNOS' || activeView === 'BIOMETRIA') viewKey = 'SIGNOS_VITALES';
@@ -156,8 +156,8 @@ const MainLayout: React.FC = () => {
         );
       case 'SALA_ESPERA':
         return (
-          <ModuleErrorBoundary moduleName="Sala de Espera & Triage">
-            <TriageView />
+          <ModuleErrorBoundary moduleName="Internación & Atención">
+            <HospitalizationWhiteboardView />
           </ModuleErrorBoundary>
         );
       case 'AGENDA':

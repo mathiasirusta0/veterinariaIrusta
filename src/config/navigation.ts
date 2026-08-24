@@ -75,22 +75,13 @@ export const NAVIGATION_ITEMS: NavItemConfig[] = [
 
   // B. GUARDIA E INTERNACIÓN
   {
-    id: 'SALA_ESPERA',
-    label: 'Sala de Espera & Triage',
-    shortLabel: 'Triage',
-    description: 'Recepción, clasificación por urgencia y sala de espera',
-    icon: Clock,
-    group: 'GUARDIA_INTERNACION',
-    badgeColor: 'bg-amber-500',
-  },
-  {
     id: 'INTERNACION',
-    label: 'Internación & UCI',
+    label: 'Internación & Atención',
     shortLabel: 'Internación',
-    description: 'Pizarra de hospitalización, cuidados críticos y monitoreo',
+    description: 'Centro operativo de atención ambulatoria, internación y monitoreo',
     icon: BedDouble,
     group: 'GUARDIA_INTERNACION',
-    badgeColor: 'bg-rose-500',
+    badgeColor: 'bg-teal-500',
   },
   {
     id: 'CIRUGIAS',
@@ -110,22 +101,6 @@ export const NAVIGATION_ITEMS: NavItemConfig[] = [
   },
 
   // C. SERVICIOS CLÍNICOS
-  {
-    id: 'LABORATORIO',
-    label: 'Laboratorio',
-    shortLabel: 'Laboratorio',
-    description: 'Órdenes de laboratorio, perfiles bioquímicos e informes',
-    icon: FlaskConical,
-    group: 'SERVICIOS_CLINICOS',
-  },
-  {
-    id: 'IMAGENES',
-    label: 'Diagnóstico por Imágenes',
-    shortLabel: 'Imágenes',
-    description: 'Radiografías, ecografías Doppler, tomografías e informes',
-    icon: Scan,
-    group: 'SERVICIOS_CLINICOS',
-  },
   {
     id: 'INVENTARIO',
     label: 'Farmacia & Stock',

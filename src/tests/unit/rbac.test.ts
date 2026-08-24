@@ -16,7 +16,6 @@ describe('RBAC Permissions Matrix Unit Tests', () => {
 
     // Allowed for reception
     expect(hasViewPermission('RECEPCION', 'AGENDA')).toBe(true);
-    expect(hasViewPermission('RECEPCION', 'SALA_ESPERA')).toBe(true);
     expect(hasViewPermission('RECEPCION', 'PACIENTES')).toBe(true);
     expect(hasViewPermission('RECEPCION', 'PROPIETARIOS')).toBe(true);
   });

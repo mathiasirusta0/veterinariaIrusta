@@ -26,6 +26,10 @@ import {
   Prescription,
   AntimicrobialRecord,
   ClinicalEvolutionEntry,
+  ClinicalEncounter,
+  ClinicalProcedure,
+  EncounterConsumptionItem,
+  ServicePriceItem,
 } from './types';
 
 // 1. SUCURSALES HOSPITALARIAS
@@ -90,6 +94,31 @@ export const INITIAL_PATHOLOGICAL_WASTE: PathologicalWasteRecord[] = [];
 export const INITIAL_PRESCRIPTIONS: Prescription[] = [];
 export const INITIAL_ANTIMICROBIAL_RECORDS: AntimicrobialRecord[] = [];
 export const INITIAL_CLINICAL_EVOLUTIONS: ClinicalEvolutionEntry[] = [];
+
+// 3.1 ENCOUNTERS, PROCEDIMIENTOS Y CONSUMOS (LIMPIOS PARA USO REAL)
+export const INITIAL_ENCOUNTERS: ClinicalEncounter[] = [];
+export const INITIAL_PROCEDURES: ClinicalProcedure[] = [];
+export const INITIAL_ENCOUNTER_CONSUMPTIONS: EncounterConsumptionItem[] = [];
+
+// 3.2 CATÁLOGO CENTRAL DE PRECIOS DE SERVICIOS
+export const INITIAL_SERVICE_PRICES: ServicePriceItem[] = [
+  { id: 'srv-1', code: 'SRV-CONS-01', name: 'Consulta Médica General Ambulatoria', category: 'CONSULTA', price: 18000, isBillable: true },
+  { id: 'srv-2', code: 'SRV-CONS-02', name: 'Consulta de Guardia / Urgencia', category: 'CONSULTA', price: 28000, isBillable: true },
+  { id: 'srv-3', code: 'SRV-HOSP-01', name: 'Día de Internación General (Caniles)', category: 'INTERNACION', price: 35000, isBillable: true },
+  { id: 'srv-4', code: 'SRV-HOSP-02', name: 'Día de Internación UCI / Cuidados Críticos', category: 'INTERNACION', price: 65000, isBillable: true },
+  { id: 'srv-5', code: 'SRV-LAB-01', name: 'Hemograma Completo con Frotis', category: 'LABORATORIO', price: 14000, isBillable: true },
+  { id: 'srv-6', code: 'SRV-LAB-02', name: 'Perfil Bioquímico Renal y Hepático', category: 'LABORATORIO', price: 22000, isBillable: true },
+  { id: 'srv-7', code: 'SRV-LAB-03', name: 'Uranálisis Completo con Sedimento', category: 'LABORATORIO', price: 11000, isBillable: true },
+  { id: 'srv-8', code: 'SRV-IMG-01', name: 'Radiografía Digital (2 Proyecciones)', category: 'IMAGENES', price: 26000, isBillable: true },
+  { id: 'srv-9', code: 'SRV-IMG-02', name: 'Ecografía Abdominal Completa', category: 'IMAGENES', price: 29000, isBillable: true },
+  { id: 'srv-10', code: 'SRV-IMG-03', name: 'Ecocardiograma Doppler Color', category: 'IMAGENES', price: 42000, isBillable: true },
+  { id: 'srv-11', code: 'SRV-PROC-01', name: 'Colocación de Vía Endovenosa / Catéter', category: 'PROCEDIMIENTO', price: 7500, isBillable: true },
+  { id: 'srv-12', code: 'SRV-PROC-02', name: 'Curación Simple / Vendaje', category: 'PROCEDIMIENTO', price: 9000, isBillable: true },
+  { id: 'srv-13', code: 'SRV-PROC-03', name: 'Sondaje Uretral Evacuador', category: 'PROCEDIMIENTO', price: 18500, isBillable: true },
+  { id: 'srv-14', code: 'SRV-PROC-04', name: 'Sesión de Oxigenoterapia (x hora)', category: 'PROCEDIMIENTO', price: 8000, isBillable: true },
+  { id: 'srv-15', code: 'SRV-PROC-05', name: 'Nebulización Terapéutica', category: 'PROCEDIMIENTO', price: 6500, isBillable: true },
+];
+
 
 // 4. SESIÓN DE CAJA
 export const INITIAL_CASH_SESSIONS: CashRegisterSession[] = [

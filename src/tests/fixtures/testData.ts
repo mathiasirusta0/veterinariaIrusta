@@ -6,6 +6,10 @@ import {
   Invoice,
   RegulatoryRule,
   ControlledDrugMovement,
+  ClinicalEncounter,
+  ClinicalProcedure,
+  EncounterConsumptionItem,
+  ServicePriceItem,
 } from '../../types';
 
 export const TEST_OWNERS: Owner[] = [
@@ -355,5 +359,56 @@ export const TEST_CONTROLLED_MOVEMENTS: ControlledDrugMovement[] = [
     vetLicense: 'MP 8412',
     vetName: 'Dr. Martín López',
     vetId: 'user-1',
+  },
+];
+
+
+export const TEST_ENCOUNTERS: ClinicalEncounter[] = [
+  {
+    id: 'enc-1',
+    patientId: 'pat-1',
+    type: 'AMBULATORIA',
+    status: 'EN_CURSO',
+    admittedAt: '2026-08-20T10:00:00Z',
+    vetInChargeId: 'user-1',
+    vetInChargeName: 'Dr. Martín López',
+    reason: 'Gastroenteritis aguda y vómitos',
+    initialDiagnosis: 'Sospecha gastroenteritis infecciosa',
+    branchId: 'branch-1',
+  },
+];
+
+export const TEST_PROCEDURES: ClinicalProcedure[] = [
+  {
+    id: 'proc-1',
+    encounterId: 'enc-1',
+    patientId: 'pat-1',
+    procedureName: 'Colocación de Vía Endovenosa',
+    category: 'ENFERMERIA',
+    isPerformed: true,
+    performedAt: '2026-08-20T10:15:00Z',
+    performedBy: 'Dr. Martín López',
+    price: 7500,
+    isBillable: true,
+    createdAt: '2026-08-20T10:05:00Z',
+  },
+];
+
+export const TEST_CONSUMPTIONS: EncounterConsumptionItem[] = [
+  {
+    id: 'cons-1',
+    encounterId: 'enc-1',
+    patientId: 'pat-1',
+    sourceType: 'PROCEDIMIENTO',
+    sourceId: 'proc-1',
+    code: 'SRV-PROC-01',
+    concept: 'Colocación de Vía Endovenosa',
+    quantity: 1,
+    unitPrice: 7500,
+    subtotal: 7500,
+    status: 'CONFIRMADO',
+    performedAt: '2026-08-20T10:15:00Z',
+    performedBy: 'Dr. Martín López',
+    isBilled: false,
   },
 ];

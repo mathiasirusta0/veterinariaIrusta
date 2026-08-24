@@ -11,6 +11,9 @@ import {
   Hospitalization,
   SurgeryRecord,
   LaboratoryOrder,
+  LabResultItem,
+  PaymentMethod,
+  InvoiceType,
   ImagingStudy,
   VaccinationRecord,
   Product,
@@ -33,6 +36,10 @@ import {
   AntimicrobialRecord,
   ClinicalAmendment,
   ClinicalEvolutionEntry,
+  ClinicalEncounter,
+  ClinicalProcedure,
+  EncounterConsumptionItem,
+  ServicePriceItem,
   MedicationSchedule,
   FinancialMovement,
   AccountDebt,
@@ -68,6 +75,10 @@ import {
   INITIAL_PRESCRIPTIONS,
   INITIAL_ANTIMICROBIAL_RECORDS,
   INITIAL_CLINICAL_EVOLUTIONS,
+  INITIAL_ENCOUNTERS,
+  INITIAL_PROCEDURES,
+  INITIAL_ENCOUNTER_CONSUMPTIONS,
+  INITIAL_SERVICE_PRICES,
 } from '../mockData';
 import { ToastMessage } from '../components/ToastNotification';
 import { MedicalPrintData } from '../components/MedicalPrintModal';
@@ -234,6 +245,27 @@ interface VetContextType {
   // Audit
   logAudit: (action: string, entity: string, entityId: string, details: string, prev?: string, next?: string) => void;
   clearAllDataToCleanProduction: () => void;
+  // Clinical Encounter & Operational Hub
+  encounters: ClinicalEncounter[];
+  activeEncounterId: string | null;
+  setActiveEncounterId: (id: string | null) => void;
+  procedures: ClinicalProcedure[];
+  encounterConsumptions: EncounterConsumptionItem[];
+  servicePrices: ServicePriceItem[];
+  startEncounter: (data: Omit<ClinicalEncounter, 'id' | 'status' | 'admittedAt'>) => ClinicalEncounter;
+  closeEncounter: (encounterId: string, dischargeData: { finalDiagnosis: string; dischargeNotes: string; dischargeMedications?: string; nextFollowUpDate?: string }) => void;
+  updateEncounter: (encounterId: string, partial: Partial<ClinicalEncounter>) => void;
+  addProcedure: (proc: Omit<ClinicalProcedure, 'id' | 'createdAt' | 'isPerformed'>) => ClinicalProcedure;
+  performProcedure: (procedureId: string, performedBy?: string, notes?: string) => void;
+  addEncounterLabOrder: (order: Omit<LaboratoryOrder, 'id' | 'orderNumber' | 'requestedAt' | 'status' | 'results'>, price?: number) => LaboratoryOrder;
+  performLabOrder: (orderId: string, results: LabResultItem[], diagnosticReport: string, conclusions: string, attachedPdfUrl?: string) => void;
+  addEncounterImagingStudy: (study: Omit<ImagingStudy, 'id' | 'studyNumber' | 'date' | 'status'>, price?: number) => ImagingStudy;
+  performImagingStudy: (studyId: string, report: string, conclusion: string, images?: { id: string; url: string; caption: string }[]) => void;
+  getEncounterConsumptions: (encounterId: string) => EncounterConsumptionItem[];
+  getEncounterPreInvoice: (encounterId: string) => { items: { id: string; concept: string; quantity: number; unitPrice: number; subtotal: number; sourceType: string }[]; totalAmount: number };
+  billEncounter: (encounterId: string, paymentMethod: PaymentMethod, invoiceType?: InvoiceType, discountAmount?: number) => Invoice;
+  updateServicePrice: (id: string, newPrice: number) => void;
+
 
   // AI Assistant helper
 
@@ -430,6 +462,28 @@ export const VetProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   });
 
   const [cashSession] = useState<CashRegisterSession>(INITIAL_CASH_SESSION);
+
+  const [encounters, setEncounters] = useState<ClinicalEncounter[]>(() => {
+    const saved = localStorage.getItem('vetsys_encounters');
+    return saved ? JSON.parse(saved) : INITIAL_ENCOUNTERS;
+  });
+  const [activeEncounterId, setActiveEncounterId] = useState<string | null>(null);
+
+  const [procedures, setProcedures] = useState<ClinicalProcedure[]>(() => {
+    const saved = localStorage.getItem('vetsys_procedures');
+    return saved ? JSON.parse(saved) : INITIAL_PROCEDURES;
+  });
+
+  const [encounterConsumptions, setEncounterConsumptions] = useState<EncounterConsumptionItem[]>(() => {
+    const saved = localStorage.getItem('vetsys_encounter_consumptions');
+    return saved ? JSON.parse(saved) : INITIAL_ENCOUNTER_CONSUMPTIONS;
+  });
+
+  const [servicePrices, setServicePrices] = useState<ServicePriceItem[]>(() => {
+    const saved = localStorage.getItem('vetsys_service_prices');
+    return saved ? JSON.parse(saved) : INITIAL_SERVICE_PRICES;
+  });
+
 
   const [financialMovements, setFinancialMovements] = useState<FinancialMovement[]>(() => {
     const saved = localStorage.getItem('vetsys_financial_movements');
@@ -698,7 +752,7 @@ export const VetProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (activeView === 'PACIENTES') viewKey = 'PACIENTES';
     else if (activeView === 'PROPIETARIOS') viewKey = 'PROPIETARIOS';
     else if (activeView === 'INTERNACION') viewKey = 'INTERNACION';
-    else if (activeView === 'SALA_ESPERA') viewKey = 'SALA_ESPERA';
+    else if (activeView === 'SALA_ESPERA') viewKey = 'INTERNACION';
     else if (activeView === 'AGENDA') viewKey = 'AGENDA';
     else if (activeView === 'CONSULTAS') viewKey = 'CONSULTAS';
     else if (activeView === 'SIGNOS_VITALES') viewKey = 'SIGNOS_VITALES';
@@ -976,6 +1030,23 @@ export const VetProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     localStorage.setItem('vetsys_controlled_movements', JSON.stringify(controlledMovements));
     localStorage.setItem('vetsys_pathological_waste', JSON.stringify(pathologicalWaste));
     localStorage.setItem('vetsys_prescriptions', JSON.stringify(prescriptions));
+
+  useEffect(() => {
+    localStorage.setItem('vetsys_encounters', JSON.stringify(encounters));
+  }, [encounters]);
+
+  useEffect(() => {
+    localStorage.setItem('vetsys_procedures', JSON.stringify(procedures));
+  }, [procedures]);
+
+  useEffect(() => {
+    localStorage.setItem('vetsys_encounter_consumptions', JSON.stringify(encounterConsumptions));
+  }, [encounterConsumptions]);
+
+  useEffect(() => {
+    localStorage.setItem('vetsys_service_prices', JSON.stringify(servicePrices));
+  }, [servicePrices]);
+
     localStorage.setItem('vetsys_antimicrobial_records', JSON.stringify(antimicrobialRecords));
   }, [regulatoryRules, controlledDrugs, controlledMovements, pathologicalWaste, prescriptions, antimicrobialRecords, auditLogs]);
 
@@ -1041,6 +1112,10 @@ export const VetProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setPrescriptions([]);
     setAntimicrobialRecords([]);
     setClinicalEvolutions([]);
+    setEncounters([]);
+    setProcedures([]);
+    setEncounterConsumptions([]);
+    setActiveEncounterId(null);
     setSelectedPatientId(null);
 
     logAudit('SISTEMA_REINICIADO_PRODUCCION', 'System', 'ROOT', 'Base de datos limpiada para inicio de operaciones reales');
@@ -1327,6 +1402,426 @@ export const VetProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     logAudit('INGRESO_INTERNACION', 'Hospitalization', newHosp.id, `Ingreso a internación (${data.sector} - Canil ${data.kennelNumber}) - Prioridad: ${data.priority}`);
     return newHosp;
   };
+  const addHospitalization = admitPatientToHospital;
+
+  // CLINICAL ENCOUNTER METHODS
+  const startEncounter = (data: Omit<ClinicalEncounter, 'id' | 'status' | 'admittedAt'>): ClinicalEncounter => {
+    const newEnc: ClinicalEncounter = {
+      ...data,
+      id: 'enc-' + Date.now() + '-' + Math.random().toString(36).substring(2, 6),
+      status: 'EN_CURSO',
+      admittedAt: new Date().toISOString(),
+      branchId: data.branchId || activeBranch.id,
+    };
+
+    setEncounters((prev) => [newEnc, ...prev]);
+    setActiveEncounterId(newEnc.id);
+    setSelectedPatientId(newEnc.patientId);
+
+    // If internación, also register hospitalization
+    if (newEnc.type === 'INTERNACION') {
+      const hosp = addHospitalization({
+        patientId: newEnc.patientId,
+        sector: (newEnc.sector as any) || 'UCI',
+        kennelNumber: newEnc.kennelNumber || 'CANIL-01',
+        primaryDiagnosis: newEnc.initialDiagnosis || newEnc.reason,
+        priority: newEnc.priority || 'PRIORITARIO',
+        fluidTherapy: {
+          isActive: false,
+          solutionType: 'Ringer Lactato',
+          volumeTotalMl: 0,
+          rateMlPerHour: 0,
+          infusionRoute: 'IV',
+          startedAt: new Date().toISOString(),
+          prescribedBy: currentUser.name,
+        },
+        feeding: {
+          dietType: 'ORAL',
+          foodBrand: 'Alimento Balanceado',
+          amountGramsOrMl: 100,
+          frequency: 'Cada 12 horas',
+          tolerance: 'EXCELENTE',
+        },
+      });
+
+      // Register initial admission consumption
+      const priceItem = servicePrices.find((p) => p.category === 'INTERNACION') || { price: 35000, code: 'SRV-HOSP-01', name: 'Día de Internación' };
+      const consumption: EncounterConsumptionItem = {
+        id: 'cons-' + Date.now() + '-hosp',
+        encounterId: newEnc.id,
+        patientId: newEnc.patientId,
+        sourceType: 'INTERNACION',
+        sourceId: hosp.id,
+        code: priceItem.code,
+        concept: priceItem.name,
+        quantity: 1,
+        unitPrice: priceItem.price,
+        subtotal: priceItem.price,
+        status: 'CONFIRMADO',
+        performedAt: new Date().toISOString(),
+        performedBy: currentUser.name,
+        isBilled: false,
+      };
+      setEncounterConsumptions((prev) => [consumption, ...prev]);
+    } else {
+      // Ambulatory consultation consumption
+      const priceItem = servicePrices.find((p) => p.category === 'CONSULTA') || { price: 18000, code: 'SRV-CONS-01', name: 'Consulta Médica General' };
+      const consumption: EncounterConsumptionItem = {
+        id: 'cons-' + Date.now() + '-cons',
+        encounterId: newEnc.id,
+        patientId: newEnc.patientId,
+        sourceType: 'CONSULTA',
+        sourceId: newEnc.id,
+        code: priceItem.code,
+        concept: priceItem.name,
+        quantity: 1,
+        unitPrice: priceItem.price,
+        subtotal: priceItem.price,
+        status: 'CONFIRMADO',
+        performedAt: new Date().toISOString(),
+        performedBy: currentUser.name,
+        isBilled: false,
+      };
+      setEncounterConsumptions((prev) => [consumption, ...prev]);
+    }
+
+    logAudit('INICIAR_ATENCION', 'ClinicalEncounter', newEnc.id, `Atención ${newEnc.type} iniciada para paciente ${newEnc.patientId}`);
+    showToast('success', 'Atención Iniciada', `Episodio ${newEnc.type.toLowerCase()} abierto exitosamente.`);
+    return newEnc;
+  };
+
+  const closeEncounter = (
+    encounterId: string,
+    dischargeData: { finalDiagnosis: string; dischargeNotes: string; dischargeMedications?: string; nextFollowUpDate?: string }
+  ) => {
+    setEncounters((prev) =>
+      prev.map((e) => {
+        if (e.id !== encounterId) return e;
+        return {
+          ...e,
+          status: 'ALTA_MEDICA',
+          closedAt: new Date().toISOString(),
+          finalDiagnosis: dischargeData.finalDiagnosis,
+          dischargeNotes: dischargeData.dischargeNotes,
+          dischargeMedications: dischargeData.dischargeMedications,
+          nextFollowUpDate: dischargeData.nextFollowUpDate,
+        };
+      })
+    );
+
+    // Also close linked active hospitalization if exists
+    const enc = encounters.find((e) => e.id === encounterId);
+    if (enc && enc.patientId) {
+      const activeHosp = hospitalizations.find((h) => h.patientId === enc.patientId && h.status === 'ACTIVA');
+      if (activeHosp) {
+        dischargeHospitalPatient(activeHosp.id, dischargeData.dischargeNotes);
+      }
+    }
+
+    logAudit('ALTA_ATENCION', 'ClinicalEncounter', encounterId, `Alta médica emitida con diagnóstico: ${dischargeData.finalDiagnosis}`);
+    showToast('success', 'Alta Médica Registrada', 'La atención ha sido cerrada y guardada en el historial.');
+  };
+
+  const updateEncounter = (encounterId: string, partial: Partial<ClinicalEncounter>) => {
+    setEncounters((prev) => prev.map((e) => (e.id === encounterId ? { ...e, ...partial } : e)));
+  };
+
+  // PROCEDURES
+  const addProcedure = (proc: Omit<ClinicalProcedure, 'id' | 'createdAt' | 'isPerformed'>): ClinicalProcedure => {
+    const priceItem = servicePrices.find((p) => p.name.toLowerCase() === proc.procedureName.toLowerCase()) || { price: proc.price || 7500 };
+    const newProc: ClinicalProcedure = {
+      ...proc,
+      id: 'proc-' + Date.now() + '-' + Math.random().toString(36).substring(2, 6),
+      price: proc.price || priceItem.price,
+      isBillable: proc.isBillable ?? true,
+      isPerformed: false,
+      createdAt: new Date().toISOString(),
+    };
+    setProcedures((prev) => [newProc, ...prev]);
+    logAudit('PROCEDIMIENTO_INDICADO', 'ClinicalProcedure', newProc.id, `Procedimiento ${newProc.procedureName} indicado para paciente ${newProc.patientId}`);
+    return newProc;
+  };
+
+  const performProcedure = (procedureId: string, performedBy?: string, notes?: string) => {
+    setProcedures((prev) =>
+      prev.map((p) => {
+        if (p.id !== procedureId) return p;
+        if (p.isPerformed) {
+          showToast('warning', 'Procedimiento Ya Realizado', 'Este procedimiento ya fue confirmado previamente.');
+          return p;
+        }
+
+        const performer = performedBy || currentUser.name;
+        const performedTime = new Date().toISOString();
+
+        // Create billable consumption automatically upon performance
+        if (p.isBillable && p.price > 0) {
+          const consumption: EncounterConsumptionItem = {
+            id: 'cons-' + Date.now() + '-proc',
+            encounterId: p.encounterId || activeEncounterId || 'enc-general',
+            patientId: p.patientId,
+            sourceType: 'PROCEDIMIENTO',
+            sourceId: p.id,
+            code: 'SRV-PROC',
+            concept: p.procedureName,
+            quantity: 1,
+            unitPrice: p.price,
+            subtotal: p.price,
+            status: 'CONFIRMADO',
+            performedAt: performedTime,
+            performedBy: performer,
+            isBilled: false,
+          };
+          setEncounterConsumptions((cPrev) => [consumption, ...cPrev]);
+        }
+
+        logAudit('PROCEDIMIENTO_REALIZADO', 'ClinicalProcedure', p.id, `Procedimiento ${p.procedureName} realizado por ${performer}`);
+        showToast('success', 'Procedimiento Realizado', `${p.procedureName} completado.`);
+
+        return {
+          ...p,
+          isPerformed: true,
+          performedAt: performedTime,
+          performedBy: performer,
+          notes: notes || p.notes,
+        };
+      })
+    );
+  };
+
+  // ENCOUNTER LAB ORDERS WITH CONSUMPTION INTEGRATION
+  const addEncounterLabOrder = (
+    order: Omit<LaboratoryOrder, 'id' | 'orderNumber' | 'requestedAt' | 'status' | 'results'>,
+    price?: number
+  ): LaboratoryOrder => {
+    const priceItem = servicePrices.find((p) => p.name.includes(order.testType) || p.category === 'LABORATORIO') || { price: price || 14000 };
+    const newOrder: LaboratoryOrder = {
+      ...order,
+      id: 'lab-' + Date.now() + '-' + Math.random().toString(36).substring(2, 6),
+      orderNumber: 'LAB-' + (labOrders.length + 101).toString(),
+      requestedAt: new Date().toISOString(),
+      status: 'SOLICITADO',
+      results: [],
+      diagnosticReport: '',
+      conclusions: '',
+    };
+
+    setLabOrders((prev) => [newOrder, ...prev]);
+    logAudit('LAB_ORDEN_SOLICITADA', 'LaboratoryOrder', newOrder.id, `Estudio ${newOrder.testType} solicitado por ${newOrder.requestedBy}`);
+    showToast('info', 'Estudio de Laboratorio Solicitado', `Orden ${newOrder.orderNumber} creada. Pendiente de toma de muestra y realización.`);
+    return newOrder;
+  };
+
+  const performLabOrder = (
+    orderId: string,
+    results: LabResultItem[],
+    diagnosticReport: string,
+    conclusions: string,
+    attachedPdfUrl?: string
+  ) => {
+    setLabOrders((prev) =>
+      prev.map((o) => {
+        if (o.id !== orderId) return o;
+        if (o.status === 'FINALIZADO') {
+          showToast('warning', 'Laboratorio Ya Finalizado', 'Los resultados de esta orden ya fueron cargados.');
+          return o;
+        }
+
+        const priceItem = servicePrices.find((p) => p.category === 'LABORATORIO') || { price: 14000, code: 'SRV-LAB' };
+        const consumption: EncounterConsumptionItem = {
+          id: 'cons-' + Date.now() + '-lab',
+          encounterId: activeEncounterId || 'enc-general',
+          patientId: o.patientId,
+          sourceType: 'LABORATORIO',
+          sourceId: o.id,
+          code: priceItem.code,
+          concept: `Laboratorio: ${o.testType.replace(/_/g, ' ')}`,
+          quantity: 1,
+          unitPrice: priceItem.price,
+          subtotal: priceItem.price,
+          status: 'CONFIRMADO',
+          performedAt: new Date().toISOString(),
+          performedBy: currentUser.name,
+          isBilled: false,
+        };
+        setEncounterConsumptions((cPrev) => [consumption, ...cPrev]);
+
+        logAudit('LAB_ORDEN_REALIZADA', 'LaboratoryOrder', o.id, `Resultados cargados para ${o.orderNumber} por ${currentUser.name}`);
+        showToast('success', 'Laboratorio Realizado', `Resultados de ${o.orderNumber} registrados y consumo cargado a prefacturación.`);
+
+        return {
+          ...o,
+          status: 'FINALIZADO' as const,
+          results,
+          diagnosticReport,
+          conclusions,
+          resultsReadyAt: new Date().toISOString(),
+          attachedPdfUrl,
+        };
+      })
+    );
+  };
+
+  // ENCOUNTER IMAGING WITH CONSUMPTION INTEGRATION
+  const addEncounterImagingStudy = (
+    study: Omit<ImagingStudy, 'id' | 'studyNumber' | 'date' | 'status'>,
+    price?: number
+  ): ImagingStudy => {
+    const newStudy: ImagingStudy = {
+      ...study,
+      id: 'img-' + Date.now() + '-' + Math.random().toString(36).substring(2, 6),
+      studyNumber: 'IMG-' + (imagingStudies.length + 101).toString(),
+      date: new Date().toISOString().split('T')[0],
+      status: 'SOLICITADO',
+      report: '',
+      conclusion: '',
+      images: [],
+    };
+
+    setImagingStudies((prev) => [newStudy, ...prev]);
+    logAudit('IMAGEN_SOLICITADA', 'ImagingStudy', newStudy.id, `Estudio ${newStudy.modality} en ${newStudy.region} solicitado por ${newStudy.requestedBy}`);
+    showToast('info', 'Estudio de Imagen Solicitado', `${newStudy.modality} solicitada. Pendiente de realización.`);
+    return newStudy;
+  };
+
+  const performImagingStudy = (
+    studyId: string,
+    report: string,
+    conclusion: string,
+    images?: { id: string; url: string; caption: string }[]
+  ) => {
+    setImagingStudies((prev) =>
+      prev.map((s) => {
+        if (s.id !== studyId) return s;
+        if (s.status === 'INFORMADO') {
+          showToast('warning', 'Estudio Ya Informado', 'Este estudio ya fue completado.');
+          return s;
+        }
+
+        const priceItem = servicePrices.find((p) => p.name.includes(s.modality) || p.category === 'IMAGENES') || { price: 26000, code: 'SRV-IMG' };
+        const consumption: EncounterConsumptionItem = {
+          id: 'cons-' + Date.now() + '-img',
+          encounterId: activeEncounterId || 'enc-general',
+          patientId: s.patientId,
+          sourceType: 'IMAGEN',
+          sourceId: s.id,
+          code: priceItem.code,
+          concept: `${s.modality}: ${s.region}`,
+          quantity: 1,
+          unitPrice: priceItem.price,
+          subtotal: priceItem.price,
+          status: 'CONFIRMADO',
+          performedAt: new Date().toISOString(),
+          performedBy: currentUser.name,
+          isBilled: false,
+        };
+        setEncounterConsumptions((cPrev) => [consumption, ...cPrev]);
+
+        logAudit('IMAGEN_REALIZADA', 'ImagingStudy', s.id, `Informe cargado para ${s.studyNumber} (${s.modality}) por ${currentUser.name}`);
+        showToast('success', 'Estudio de Imagen Realizado', `Informe de ${s.modality} guardado y consumo cargado a prefacturación.`);
+
+        return {
+          ...s,
+          status: 'INFORMADO' as const,
+          report,
+          conclusion,
+          performedBy: currentUser.name,
+          images: images || s.images,
+        };
+      })
+    );
+  };
+
+  // CONSUMPTIONS & PRE-INVOICE CALCULATION
+  const getEncounterConsumptions = (encounterId: string): EncounterConsumptionItem[] => {
+    return encounterConsumptions.filter((c) => c.encounterId === encounterId && c.status !== 'ANULADO');
+  };
+
+  const getEncounterPreInvoice = (encounterId: string) => {
+    const list = getEncounterConsumptions(encounterId);
+    const items = list.map((c) => ({
+      id: c.id,
+      concept: c.concept,
+      quantity: c.quantity,
+      unitPrice: c.unitPrice,
+      subtotal: c.subtotal,
+      sourceType: c.sourceType,
+    }));
+    const totalAmount = items.reduce((sum, item) => sum + item.subtotal, 0);
+    return { items, totalAmount };
+  };
+
+  const billEncounter = (
+    encounterId: string,
+    paymentMethod: PaymentMethod,
+    invoiceType: InvoiceType = 'FACTURA_B',
+    discountAmount: number = 0
+  ): Invoice => {
+    const enc = encounters.find((e) => e.id === encounterId);
+    const pat = patients.find((p) => p.id === enc?.patientId);
+    const own = owners.find((o) => o.id === pat?.ownerId);
+    const { items, totalAmount } = getEncounterPreInvoice(encounterId);
+
+    const finalAmount = Math.max(0, totalAmount - discountAmount);
+
+    const invoiceItems = items.map((it, idx) => ({
+      id: 'inv-it-' + Date.now() + '-' + idx,
+      description: it.concept,
+      quantity: it.quantity,
+      unitPrice: it.unitPrice,
+      subtotal: it.subtotal,
+    }));
+
+    const newInvoice: Invoice = {
+      id: 'inv-' + Date.now(),
+      invoiceNumber: '0001-' + (invoices.length + 1).toString().padStart(8, '0'),
+      type: invoiceType,
+      pointOfSale: 1,
+      date: new Date().toISOString().split('T')[0],
+      ownerId: own?.id || 'owner-general',
+      patientId: pat?.id,
+      customerName: own ? `${own.firstName} ${own.lastName}` : 'Consumidor Final',
+      customerDniCuit: own?.dni || own?.cuit || '00.000.000',
+      customerTaxCondition: own?.taxCondition || 'Consumidor Final',
+      items: invoiceItems,
+      totalAmount: finalAmount,
+      paymentMethod,
+      caeNumber: '7' + Math.floor(10000000000000 + Math.random() * 90000000000000).toString(),
+      caeExpirationDate: new Date(Date.now() + 10 * 86400000).toISOString().split('T')[0],
+      branchId: activeBranch.id,
+    };
+
+    setInvoices((prev) => [newInvoice, ...prev]);
+
+    // Mark all encounter consumptions as billed
+    setEncounterConsumptions((prev) =>
+      prev.map((c) => (c.encounterId === encounterId ? { ...c, isBilled: true, invoiceId: newInvoice.id } : c))
+    );
+
+    // Register financial movement
+    addFinancialMovement({
+      date: new Date().toISOString().split('T')[0],
+      type: 'INGRESO',
+      category: enc?.type === 'INTERNACION' ? 'Internación' : 'Consultas & Tratamientos',
+      concept: `Cobro Factura ${newInvoice.invoiceNumber} - Atención de ${pat?.name || 'Paciente'}`,
+      description: items.map((i) => i.concept).join(', '),
+      amount: finalAmount,
+      paymentMethod: paymentMethod as any,
+      status: 'COBRADO',
+      clientId: own?.id,
+      clientName: own ? `${own.firstName} ${own.lastName}` : undefined,
+    });
+
+    logAudit('FACTURACION_ATENCION', 'Invoice', newInvoice.id, `Factura ${newInvoice.invoiceNumber} generada por ${finalAmount} para atención ${encounterId}`);
+    showToast('success', 'Facturación Confirmada', `Comprobante ${newInvoice.invoiceNumber} generado por ${finalAmount.toLocaleString('es-AR')}.`);
+    return newInvoice;
+  };
+
+  const updateServicePrice = (id: string, newPrice: number) => {
+    setServicePrices((prev) => prev.map((sp) => (sp.id === id ? { ...sp, price: newPrice } : sp)));
+    logAudit('PRECIO_SERVICIO_ACTUALIZADO', 'ServicePrice', id, `Precio actualizado a ${newPrice}`);
+  };
+
 
   const updateHospitalPriority = (hospitalizationId: string, priority: HospitalPriority) => {
     setHospitalizations((prev) =>
@@ -1465,6 +1960,27 @@ export const VetProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             updateProductStock(med.productId, -1, 'USO_INTERNACION', `Uso internación: ${med.drugName} en paciente`);
           }
 
+          // Register billable consumption for pre-invoicing
+          const prod = products.find((p) => p.id === med.productId || p.commercialName.toLowerCase().includes(med.drugName.toLowerCase()));
+          const unitPrice = prod?.salePrice || 4500;
+          const consumption: EncounterConsumptionItem = {
+            id: 'cons-' + Date.now() + '-med',
+            encounterId: activeEncounterId || hospitalizationId,
+            patientId: h.patientId,
+            sourceType: 'MEDICAMENTO',
+            sourceId: med.id,
+            code: prod?.code || 'MED-APPL',
+            concept: `Aplicación: ${med.drugName} (${med.dose} ${med.route})`,
+            quantity: 1,
+            unitPrice,
+            subtotal: unitPrice,
+            status: 'CONFIRMADO',
+            performedAt: new Date().toISOString(),
+            performedBy: currentUser.name,
+            isBilled: false,
+          };
+          setEncounterConsumptions((cPrev) => [consumption, ...cPrev]);
+
           logAudit(
             'ADMINISTRACION_MEDICACION',
             'Hospitalization',
@@ -1473,7 +1989,7 @@ export const VetProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           );
 
           result = { success: true, message: `✅ Medicación ${med.drugName} administrada correctamente.` };
-          showToast('success', 'Medicación Administrada', `${med.drugName} (${med.dose}) aplicada.`);
+          showToast('success', 'Medicación Administrada', `${med.drugName} (${med.dose}) aplicada y cargada a cuenta.`);
           const updatedHosp = { ...h, medications: updatedMeds };
           syncHospitalizationToSupabase(updatedHosp);
           return updatedHosp;
@@ -1510,6 +2026,7 @@ export const VetProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     logAudit('REGISTRO_HOJA_INTERNACION', 'Hospitalization', hospitalizationId, `Ronda horaria (${timeNow}) registrada por ${currentUser.name}`);
   };
+
 
   const dischargeHospitalPatient = (hospitalizationId: string, summary: string) => {
     setHospitalizations((prev) =>
@@ -2130,6 +2647,27 @@ export const VetProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
         logAudit,
         clearAllDataToCleanProduction,
+
+        encounters,
+        activeEncounterId,
+        setActiveEncounterId,
+        procedures,
+        encounterConsumptions,
+        servicePrices,
+        startEncounter,
+        closeEncounter,
+        updateEncounter,
+        addProcedure,
+        performProcedure,
+        addEncounterLabOrder,
+        performLabOrder,
+        addEncounterImagingStudy,
+        performImagingStudy,
+        getEncounterConsumptions,
+        getEncounterPreInvoice,
+        billEncounter,
+        updateServicePrice,
+
 
         quickModal,
         setQuickModal,

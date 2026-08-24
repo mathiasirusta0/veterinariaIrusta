@@ -1030,3 +1030,166 @@ export interface AccountDebt {
   createdBy: string;
   branchId?: string;
 }
+
+
+// ==========================================
+// MODELO DE ATENCIÓN OPERATIVA UNIFICADA & CONSUMOS
+// ==========================================
+
+export type EncounterType = 'AMBULATORIA' | 'INTERNACION';
+export type EncounterStatus = 'EN_CURSO' | 'ALTA_MEDICA' | 'CERRADA';
+
+export interface ClinicalEncounter {
+  id: string;
+  patientId: string;
+  type: EncounterType;
+  status: EncounterStatus;
+  admittedAt: string;
+  closedAt?: string;
+  vetInChargeId: string;
+  vetInChargeName: string;
+  reason: string;
+  initialDiagnosis: string;
+  finalDiagnosis?: string;
+  dischargeNotes?: string;
+  dischargeMedications?: string;
+  nextFollowUpDate?: string;
+  sector?: string; // ej: "Consultorio 1", "Canil UCI-01", "Felinos Canil 3"
+  kennelNumber?: string;
+  priority?: HospitalPriority;
+  notes?: string;
+  branchId?: string;
+}
+
+export interface ClinicalProcedure {
+  id: string;
+  encounterId?: string;
+  patientId: string;
+  procedureName: string;
+  category: 'ENFERMERIA' | 'QUIRURGICO' | 'TERAPEUTICO' | 'DIAGNOSTICO' | 'OTRO';
+  scheduledAt?: string;
+  performedAt?: string;
+  performedBy?: string;
+  isPerformed: boolean;
+  notes?: string;
+  price: number;
+  isBillable: boolean;
+  createdAt: string;
+}
+
+export interface EncounterConsumptionItem {
+  id: string;
+  encounterId: string;
+  patientId: string;
+  sourceType: 'CONSULTA' | 'INTERNACION' | 'LABORATORIO' | 'IMAGEN' | 'MEDICAMENTO' | 'PROCEDIMIENTO' | 'INSUMO';
+  sourceId: string;
+  code: string;
+  concept: string;
+  quantity: number;
+  unitPrice: number;
+  subtotal: number;
+  status: 'PENDIENTE' | 'CONFIRMADO' | 'ANULADO';
+  performedAt: string;
+  performedBy: string;
+  isBilled: boolean;
+  invoiceId?: string;
+}
+
+export interface ServicePriceItem {
+  id: string;
+  code: string;
+  name: string;
+  category: 'CONSULTA' | 'INTERNACION' | 'LABORATORIO' | 'IMAGENES' | 'PROCEDIMIENTO' | 'MEDICAMENTO' | 'CIRUGIA' | 'INSUMO' | 'OTRO';
+  price: number;
+  isBillable: boolean;
+  description?: string;
+}
+
+// Catálogo de Razas Dinámicas por Especie
+export const SPECIES_LIST: { id: Species; label: string; icon: string }[] = [
+  { id: 'CANINO', label: 'Canino', icon: '🐕' },
+  { id: 'FELINO', label: 'Felino', icon: '🐈' },
+  { id: 'EQUINO', label: 'Equino', icon: '🐎' },
+  { id: 'AVE', label: 'Ave', icon: '🦜' },
+  { id: 'EXOTICO', label: 'Exótico (Conejo, Hurón, etc.)', icon: '🐇' },
+  { id: 'BOVINO', label: 'Bovino', icon: '🐄' },
+  { id: 'OVINO', label: 'Ovino', icon: '🐑' },
+  { id: 'CAPRINO', label: 'Caprino', icon: '🐐' },
+  { id: 'PORCINO', label: 'Porcino', icon: '🐖' },
+  { id: 'ASNAL', label: 'Asnal / Mular', icon: '🫏' },
+];
+
+export const BREEDS_BY_SPECIES: Record<Species, string[]> = {
+  CANINO: [
+    'Labrador Retriever',
+    'Pastor Alemán / Ovejero',
+    'Caniche / Poodle',
+    'Golden Retriever',
+    'Bulldog Francés',
+    'Bulldog Inglés',
+    'Beagle',
+    'Boxer',
+    'Rottweiler',
+    'Border Collie',
+    'Yorkshire Terrier',
+    'Dachshund / Salchicha',
+    'Schnauzer Miniatura',
+    'Pitbull / American Bully',
+    'Dogo Argentino',
+    'Mestizo / Cruza',
+    'Otra / No especificada',
+  ],
+  FELINO: [
+    'Siamés',
+    'Persa',
+    'Europeo Común / Doméstico',
+    'Maine Coon',
+    'Bengala',
+    'Ragdoll',
+    'Angora Turco',
+    'Sphynx / Esfinge',
+    'British Shorthair',
+    'Azul Ruso',
+    'Mestizo / Cruza',
+    'Otra / No especificada',
+  ],
+  EQUINO: [
+    'Criollo',
+    'Pura Sangre de Carrera (PSC)',
+    'Silla Argentino',
+    'Cuarto de Milla',
+    'Árabe',
+    'Percherón',
+    'Polo Argentino',
+    'Mestizo / Cruza',
+    'Otra / No especificada',
+  ],
+  AVE: [
+    'Canario',
+    'Periquito Australiano',
+    'Loro Hablador (Amazona)',
+    'Calopsita / Ninfa',
+    'Cacatúa',
+    'Guacamayo',
+    'Agapornis / Inseparable',
+    'Paloma Mensajera / Doméstica',
+    'Otra / No especificada',
+  ],
+  EXOTICO: [
+    'Conejo Enano / Mini Lop',
+    'Cobayo / Cavia porcellus',
+    'Hurón / Ferret',
+    'Hámster Sirio / Ruso',
+    'Chinchilla',
+    'Erizo Africano',
+    'Tortuga de Tierra / Agua',
+    'Iguana / Dragón Barbudo',
+    'Otra / No especificada',
+  ],
+  BOVINO: ['Holando Argentino', 'Aberdeen Angus', 'Hereford', 'Braford', 'Brangus', 'Criollo', 'Otra / No especificada'],
+  OVINO: ['Corriedale', 'Merino', 'Pampinta', 'Hampshire Down', 'Romney Marsh', 'Criollo', 'Otra / No especificada'],
+  CAPRINO: ['Saanen', 'Anglo Nubian', 'Boer', 'Criolla', 'Toggenburg', 'Otra / No especificada'],
+  PORCINO: ['Landrace', 'Large White', 'Duroc Jersey', 'Hampshire', 'Pietrain', 'Otra / No especificada'],
+  ASNAL: ['Asno Común', 'Burro Criollo', 'Mula / Mulo', 'Otra / No especificada'],
+  MULAR: ['Mula / Mulo', 'Burro', 'Otra / No especificada'],
+};

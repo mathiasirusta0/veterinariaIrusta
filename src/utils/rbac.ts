@@ -10,7 +10,6 @@ export type SystemView =
   | 'PACIENTES'
   | 'PROPIETARIOS'
   | 'AGENDA'
-  | 'SALA_ESPERA'
   | 'CONSULTAS'
   | 'SIGNOS_VITALES'
   | 'RECETAS_OFICIALES'
@@ -37,7 +36,6 @@ export const ROLE_PERMISSIONS: Record<UserRole, SystemView[]> = {
     'PACIENTES',
     'PROPIETARIOS',
     'AGENDA',
-    'SALA_ESPERA',
     'CONSULTAS',
     'SIGNOS_VITALES',
     'RECETAS_OFICIALES',
@@ -62,7 +60,6 @@ export const ROLE_PERMISSIONS: Record<UserRole, SystemView[]> = {
     'PACIENTES',
     'PROPIETARIOS',
     'AGENDA',
-    'SALA_ESPERA',
     'CONSULTAS',
     'SIGNOS_VITALES',
     'RECETAS_OFICIALES',
@@ -87,7 +84,6 @@ export const ROLE_PERMISSIONS: Record<UserRole, SystemView[]> = {
     'PACIENTES',
     'PROPIETARIOS',
     'AGENDA',
-    'SALA_ESPERA',
     'CONSULTAS',
     'SIGNOS_VITALES',
     'RECETAS_OFICIALES',
@@ -112,7 +108,6 @@ export const ROLE_PERMISSIONS: Record<UserRole, SystemView[]> = {
     'PACIENTES',
     'PROPIETARIOS',
     'AGENDA',
-    'SALA_ESPERA',
     'CONSULTAS',
     'SIGNOS_VITALES',
     'RECETAS_OFICIALES',
@@ -131,7 +126,6 @@ export const ROLE_PERMISSIONS: Record<UserRole, SystemView[]> = {
     'PACIENTES',
     'PROPIETARIOS',
     'AGENDA',
-    'SALA_ESPERA',
     'CONSULTAS',
     'SIGNOS_VITALES',
     'RECETAS_OFICIALES',
@@ -162,7 +156,6 @@ export const ROLE_PERMISSIONS: Record<UserRole, SystemView[]> = {
     'GESTION',
     'PACIENTES',
     'AGENDA',
-    'SALA_ESPERA',
     'SIGNOS_VITALES',
     'INTERNACION',
     'CIRUGIAS',
@@ -177,7 +170,6 @@ export const ROLE_PERMISSIONS: Record<UserRole, SystemView[]> = {
     'PACIENTES',
     'PROPIETARIOS',
     'AGENDA',
-    'SALA_ESPERA',
     'SIGNOS_VITALES',
     'INTERNACION',
     'VACUNAS',
@@ -190,7 +182,6 @@ export const ROLE_PERMISSIONS: Record<UserRole, SystemView[]> = {
     'PACIENTES',
     'PROPIETARIOS',
     'AGENDA',
-    'SALA_ESPERA',
     'CAJA_FACTURACION',
     'GESTION_ECONOMICA',
     'DOCUMENTOS',
@@ -251,7 +242,6 @@ export const QUICK_ACTION_VIEW_MAP: Record<string, SystemView> = {
   NUEVO_PACIENTE: 'PACIENTES',
   NUEVO_PROPIETARIO: 'PROPIETARIOS',
   NUEVO_TURNO: 'AGENDA',
-  NUEVO_TRIAGE: 'SALA_ESPERA',
   INGRESO_INTERNACION: 'INTERNACION',
   NUEVA_CIRUGIA: 'CIRUGIAS',
   NUEVO_LAB: 'LABORATORIO',

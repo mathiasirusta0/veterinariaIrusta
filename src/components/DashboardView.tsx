@@ -297,7 +297,7 @@ export const DashboardView: React.FC = () => {
         </button>
 
         <button
-          onClick={() => setActiveView('SALA_ESPERA')}
+          onClick={() => setActiveView('INTERNACION')}
           className="bg-white p-3 rounded-xl border border-slate-200 hover:border-slate-300 flex items-center justify-between text-left transition-colors shadow-xs"
         >
           <div className="flex items-center gap-2.5">
@@ -306,7 +306,7 @@ export const DashboardView: React.FC = () => {
             </div>
             <div>
               <div className="text-xs font-bold text-slate-900">{waitingTriage.length} Pacientes</div>
-              <div className="text-[10px] text-slate-400">Triage / Espera</div>
+              <div className="text-[10px] text-slate-400">Internación / Atención</div>
             </div>
           </div>
           <span className="text-xs text-amber-600 font-bold">Ver</span>
@@ -590,7 +590,7 @@ export const DashboardView: React.FC = () => {
             </div>
           </div>
           <button
-            onClick={() => setActiveView('SALA_ESPERA')}
+            onClick={() => setActiveView('INTERNACION')}
             className="px-4 py-2 bg-amber-600 hover:bg-amber-500 text-white font-bold rounded-xl text-xs transition-all shadow-2xs"
           >
             Iniciar Atención →
