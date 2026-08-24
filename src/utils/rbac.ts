@@ -73,6 +73,7 @@ export const ROLE_PERMISSIONS: Record<UserRole, SystemView[]> = {
     'VACUNAS',
     'INVENTARIO',
     'CAJA_FACTURACION',
+    'GESTION_ECONOMICA',
     'DOCUMENTOS',
     'CENTRO_QA',
     'CONFIGURACION',
@@ -97,6 +98,7 @@ export const ROLE_PERMISSIONS: Record<UserRole, SystemView[]> = {
     'VACUNAS',
     'INVENTARIO',
     'CAJA_FACTURACION',
+    'GESTION_ECONOMICA',
     'DOCUMENTOS',
     'CENTRO_QA',
     'CONFIGURACION',
@@ -121,6 +123,7 @@ export const ROLE_PERMISSIONS: Record<UserRole, SystemView[]> = {
     'VACUNAS',
     'INVENTARIO',
     'CAJA_FACTURACION',
+    'GESTION_ECONOMICA',
     'DOCUMENTOS',
   ],
   ESPECIALISTA: [
@@ -137,6 +140,7 @@ export const ROLE_PERMISSIONS: Record<UserRole, SystemView[]> = {
     'LABORATORIO',
     'IMAGENES',
     'CAJA_FACTURACION',
+    'GESTION_ECONOMICA',
     'DOCUMENTOS',
   ],
   AUDITOR: [
@@ -146,6 +150,7 @@ export const ROLE_PERMISSIONS: Record<UserRole, SystemView[]> = {
     'CONSULTAS',
     'RECETAS_OFICIALES',
     'CAJA_FACTURACION',
+    'GESTION_ECONOMICA',
     'DOCUMENTOS',
     'CENTRO_QA',
     'CONFIGURACION',
@@ -187,6 +192,7 @@ export const ROLE_PERMISSIONS: Record<UserRole, SystemView[]> = {
     'AGENDA',
     'SALA_ESPERA',
     'CAJA_FACTURACION',
+    'GESTION_ECONOMICA',
     'DOCUMENTOS',
   ],
   CAJA: [
@@ -194,6 +200,7 @@ export const ROLE_PERMISSIONS: Record<UserRole, SystemView[]> = {
     'GESTION',
     'PROPIETARIOS',
     'CAJA_FACTURACION',
+    'GESTION_ECONOMICA',
     'DOCUMENTOS',
   ],
   FARMACIA: [
