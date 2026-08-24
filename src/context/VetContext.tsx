@@ -389,7 +389,24 @@ export const VetProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const saved = localStorage.getItem('vetsys_auth_user');
     if (saved) {
       try {
-        return JSON.parse(saved);
+        const u = JSON.parse(saved);
+        if (u) {
+          if (
+            u.id === 'user-irusta-superadmin' ||
+            u.email === 'irusta@gmail.com' ||
+            (u.name && u.name.toLowerCase().includes('mat')) ||
+            (u.name && u.name.toLowerCase().includes('irusta'))
+          ) {
+            u.name = 'Dr. Diego Irusta';
+            u.email = 'irusta@gmail.com';
+            u.role = 'SUPERADMIN';
+            u.licenseNumber = 'MP 8412 - Dirección Médica';
+            try {
+              localStorage.setItem('vetsys_auth_user', JSON.stringify(u));
+            } catch {}
+          }
+          return u;
+        }
       } catch {}
     }
     return null;

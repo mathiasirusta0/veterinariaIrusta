@@ -238,7 +238,7 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onOpenLogi
         </div>
       </section>
 
-      {/* 👨‍⚕️ DIRECCIÓN MÉDICA: DR. MATÍAS IRUSTA */}
+      {/* 👨‍⚕️ DIRECCIÓN MÉDICA: DR. DIEGO IRUSTA */}
       <section id="equipo" className="bg-[#EFECE3] py-14 px-4 sm:px-8 border-y border-[#DDD7C8]">
         <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
           <div className="lg:col-span-4">
