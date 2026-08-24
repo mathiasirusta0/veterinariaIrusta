@@ -207,7 +207,7 @@ export const ClinicalCalculatorsModal: React.FC<{ isOpen: boolean; onClose: () =
 }) => {
   const { patients, selectedPatientId, showToast } = useVet();
 
-  const [activeTab, setActiveTab] = useState<'FARMACOS' | 'FLUIDOS' | 'CRI' | 'VADEMECUM'>('FARMACOS');
+  const [activeTab, setActiveTab] = useState<'URGENCIA_RCP' | 'FARMACOS' | 'FLUIDOS' | 'CRI' | 'VADEMECUM'>('URGENCIA_RCP');
 
   // Selected patient for auto-weight
   const initialPatient = patients.find((p) => p.id === selectedPatientId) || patients[0];
@@ -386,6 +386,17 @@ export const ClinicalCalculatorsModal: React.FC<{ isOpen: boolean; onClose: () =
         {/* Tab Buttons */}
         <div className="flex border-b border-slate-200 px-4 sm:px-5 pt-3 gap-2 bg-white overflow-x-auto">
           <button
+            onClick={() => setActiveTab('URGENCIA_RCP')}
+            className={`px-4 py-2 text-xs font-black rounded-t-xl transition-all whitespace-nowrap flex items-center gap-1.5 ${
+              activeTab === 'URGENCIA_RCP'
+                ? 'bg-rose-600 text-white shadow-sm ring-2 ring-rose-500/30'
+                : 'text-rose-700 bg-rose-50 hover:bg-rose-100 hover:text-rose-900 border-b border-rose-200'
+            }`}
+          >
+            <AlertTriangle className="w-4 h-4 animate-pulse text-white" />
+            <span>🚑 Drogas de Urgencia & RCP</span>
+          </button>
+          <button
             onClick={() => setActiveTab('FARMACOS')}
             className={`px-4 py-2 text-xs font-bold rounded-t-xl transition-all whitespace-nowrap flex items-center gap-1.5 ${
               activeTab === 'FARMACOS'
@@ -433,6 +444,211 @@ export const ClinicalCalculatorsModal: React.FC<{ isOpen: boolean; onClose: () =
 
         {/* Content Area */}
         <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4 custom-scrollbar text-xs">
+          {/* TAB 0: DROGAS DE URGENCIA, RCP Y SHOCK (ALTA PRIORIDAD CLÍNICA) */}
+          {activeTab === 'URGENCIA_RCP' && (
+            <div className="space-y-4 animate-fade-in">
+              {/* Emergency Banner */}
+              <div className="bg-gradient-to-r from-rose-900 via-rose-800 to-slate-900 text-white p-4 rounded-3xl shadow-lg border border-rose-700/50 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-2xl bg-rose-600/80 border border-rose-400/50 flex items-center justify-center text-2xl font-black shadow-inner flex-shrink-0 animate-pulse">
+                    ⚡
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] uppercase font-black tracking-widest bg-rose-500/40 text-rose-200 px-2 py-0.5 rounded-full border border-rose-400/30">
+                        Protocolo RECOVER / Guardia 24hs
+                      </span>
+                    </div>
+                    <h3 className="text-base sm:text-lg font-black text-white leading-tight mt-0.5">
+                      Cálculo Inmediato de Resucitación & Emergencias para {activePat.name} ({weightKg} kg)
+                    </h3>
+                    <p className="text-xs text-rose-200/90 font-medium">
+                      Volúmenes exactos en ml calculados para administración IV/IO en shock-room
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 w-full sm:w-auto">
+                  <button
+                    onClick={() => {
+                      const summary = [
+                        `🚨 PLAN DE URGENCIA / RCP - ${activePat.name} (${weightKg} kg):`,
+                        `1. Adrenalina 1mg/ml (Dosis baja 0.01 mg/kg): ${(weightKg * 0.01).toFixed(2)} ml IV`,
+                        `2. Atropina 1mg/ml (0.04 mg/kg): ${(weightKg * 0.04).toFixed(2)} ml IV`,
+                        `3. Diazepam 5mg/ml (0.5 mg/kg): ${(weightKg * 0.1).toFixed(2)} ml IV`,
+                        `4. Fentanilo 0.05mg/ml (0.005 mg/kg): ${(weightKg * 0.1).toFixed(2)} ml IV`,
+                        `5. Bolo Shock Ringer Lactato: ${(weightKg * (species === 'Felino' ? 12 : 18)).toFixed(0)} ml en 15 min`,
+                      ].join('\n');
+                      copyResult(summary);
+                    }}
+                    className="w-full sm:w-auto px-3.5 py-2 bg-white text-rose-900 hover:bg-rose-50 font-black text-xs rounded-xl shadow-md transition-all active:scale-95 flex items-center justify-center gap-1.5 flex-shrink-0"
+                  >
+                    <Copy className="w-3.5 h-3.5" />
+                    <span>Copiar Dosis de Urgencia</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Grid of Critical Emergency Drugs */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 text-xs">
+                {[
+                  {
+                    name: 'Adrenalina / Epinefrina',
+                    doseText: '0.01 mg/kg (Dosis baja RCP)',
+                    concText: '1 mg/ml (1:1000)',
+                    volumeMl: (weightKg * 0.01).toFixed(2),
+                    syringe: 'Jeringa 1 ml (Tuberculina)',
+                    route: 'IV / IO / IT',
+                    indication: 'Asistolia, AESP, Shock anafiláctico',
+                    badge: 'PARO CARDIORRESPIRATORIO',
+                    color: 'border-rose-300 bg-rose-50/60 text-rose-950',
+                  },
+                  {
+                    name: 'Atropina Sulfato',
+                    doseText: '0.04 mg/kg',
+                    concText: '1 mg/ml',
+                    volumeMl: (weightKg * 0.04).toFixed(2),
+                    syringe: 'Jeringa 1 ml / 3 ml',
+                    route: 'IV / IO / IM',
+                    indication: 'Bradicardia severa por tono vagal',
+                    badge: 'BRADICARDIA SEVERA',
+                    color: 'border-amber-300 bg-amber-50/60 text-amber-950',
+                  },
+                  {
+                    name: 'Diazepam',
+                    doseText: '0.5 mg/kg IV (1.0 mg/kg Rectal)',
+                    concText: '5 mg/ml',
+                    volumeMl: (weightKg * 0.1).toFixed(2),
+                    syringe: 'Jeringa 1 ml / 3 ml',
+                    route: 'IV lento / Rectal',
+                    indication: 'Status epiléptico, convulsiones activas',
+                    badge: 'CONVULSIONES ACTIVAS',
+                    color: 'border-purple-300 bg-purple-50/60 text-purple-950',
+                  },
+                  {
+                    name: 'Midazolam',
+                    doseText: '0.2 - 0.5 mg/kg',
+                    concText: '5 mg/ml',
+                    volumeMl: (weightKg * 0.06).toFixed(2),
+                    syringe: 'Jeringa 1 ml (Tuberculina)',
+                    route: 'IV / IM / Intranasal',
+                    indication: 'Sedación de urgencia, fracturas, convulsión',
+                    badge: 'SEDACIÓN / ANTICONVULSIVANTE',
+                    color: 'border-indigo-300 bg-indigo-50/60 text-indigo-950',
+                  },
+                  {
+                    name: 'Naloxona',
+                    doseText: '0.04 mg/kg',
+                    concText: '0.4 mg/ml',
+                    volumeMl: (weightKg * 0.1).toFixed(2),
+                    syringe: 'Jeringa 1 ml / 3 ml',
+                    route: 'IV / IM / SC',
+                    indication: 'Reversor de opioides / depresión respiratoria',
+                    badge: 'REVERSOR OPIOIDE',
+                    color: 'border-teal-300 bg-teal-50/60 text-teal-950',
+                  },
+                  {
+                    name: 'Lidocaína 2% (sin epi)',
+                    doseText: species === 'Felino' ? '0.25 mg/kg IV lento' : '2.0 mg/kg IV bolo lento',
+                    concText: '20 mg/ml (2%)',
+                    volumeMl: (weightKg * (species === 'Felino' ? 0.0125 : 0.1)).toFixed(2),
+                    syringe: 'Jeringa 1 ml / 3 ml',
+                    route: 'IV lento (monitoreo ECG)',
+                    indication: 'Taquicardia ventricular / CVP frecuentes',
+                    badge: 'ANTIARRÍTMICO VENTRICULAR',
+                    color: 'border-blue-300 bg-blue-50/60 text-blue-950',
+                  },
+                  {
+                    name: 'Dexametasona',
+                    doseText: '0.5 - 1.0 mg/kg',
+                    concText: '2 mg/ml (o 4 mg/ml)',
+                    volumeMl: (weightKg * 0.25).toFixed(2),
+                    syringe: 'Jeringa 1 ml / 3 ml',
+                    route: 'IV / IM',
+                    indication: 'Shock anafiláctico, edema de glotis, trauma',
+                    badge: 'ANTIINFLAMATORIO SHOCK',
+                    color: 'border-amber-300 bg-amber-50/60 text-amber-950',
+                  },
+                  {
+                    name: 'Furosemida',
+                    doseText: '2.0 - 4.0 mg/kg',
+                    concText: '50 mg/ml',
+                    volumeMl: (weightKg * 0.06).toFixed(2),
+                    syringe: 'Jeringa 1 ml (Tuberculina)',
+                    route: 'IV / IM',
+                    indication: 'Edema agudo de pulmón cardiogénico',
+                    badge: 'EMERGENCIA CARDIORESPIRATORIA',
+                    color: 'border-sky-300 bg-sky-50/60 text-sky-950',
+                  },
+                  {
+                    name: 'Dextrosa 50% (Glucosa)',
+                    doseText: '1.0 ml/kg diluido 1:1 con NaCl',
+                    concText: '50% (500 mg/ml)',
+                    volumeMl: (weightKg * 1.0).toFixed(1),
+                    syringe: 'Jeringa 5 ml / 10 ml',
+                    route: 'IV lento diluido',
+                    indication: 'Hipoglucemia severa, coma hipoglucémico',
+                    badge: 'HIPOGLUCEMIA CRÍTICA',
+                    color: 'border-emerald-300 bg-emerald-50/60 text-emerald-950',
+                  },
+                  {
+                    name: 'Gluconato de Calcio 10%',
+                    doseText: '0.5 - 1.0 ml/kg en 10-15 min',
+                    concText: '100 mg/ml (10%)',
+                    volumeMl: (weightKg * 0.75).toFixed(2),
+                    syringe: 'Jeringa 5 ml / 10 ml',
+                    route: 'IV muy lento (monitorear FC)',
+                    indication: 'Cardioprotección hiperpotasemia / Hipocalcemia',
+                    badge: 'OBSTRUCCIÓN URETRAL / ECLAMPSIA',
+                    color: 'border-orange-300 bg-orange-50/60 text-orange-950',
+                  },
+                  {
+                    name: 'Bolo de Shock Cristaloides',
+                    doseText: species === 'Felino' ? '10 - 15 ml/kg en 15 min' : '15 - 20 ml/kg en 15 min',
+                    concText: 'Ringer Lactato / Sol. Fisiológica',
+                    volumeMl: (weightKg * (species === 'Felino' ? 12 : 18)).toFixed(0),
+                    syringe: 'Bolsa 500ml / Guía Macrogotero',
+                    route: 'IV rápida bajo presión',
+                    indication: 'Shock hipovolémico / Trauma / Pérdida masiva',
+                    badge: 'RESUCITACIÓN CON FLUIDOS',
+                    color: 'border-teal-400 bg-teal-50/70 text-teal-950',
+                  },
+                ].map((item, idx) => (
+                  <div
+                    key={idx}
+                    className={`border rounded-2xl p-3.5 shadow-2xs flex flex-col justify-between space-y-2 ${item.color}`}
+                  >
+                    <div>
+                      <div className="flex items-start justify-between gap-1">
+                        <strong className="text-sm font-black tracking-tight">{item.name}</strong>
+                        <span className="text-[9px] font-black uppercase px-1.5 py-0.5 rounded bg-white/80 border border-slate-200">
+                          {item.badge}
+                        </span>
+                      </div>
+                      <p className="text-[11px] font-medium opacity-90">{item.indication}</p>
+                    </div>
+
+                    <div className="bg-white/90 p-2.5 rounded-xl border border-slate-200/80 space-y-1">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] font-bold text-slate-500 uppercase">Volumen Exacto:</span>
+                        <span className="text-base font-black text-rose-700 font-mono">
+                          {item.volumeMl} ml
+                        </span>
+                      </div>
+                      <div className="text-[10px] text-slate-600 font-mono flex justify-between border-t border-slate-100 pt-1">
+                        <span>Dosis: {item.doseText}</span>
+                        <span>Vía: {item.route}</span>
+                      </div>
+                      <div className="text-[10px] text-slate-500 font-sans">
+                        💉 Sugerido: <strong>{item.syringe}</strong> ({item.concText})
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* TAB 1: FARMACOS CON FÓRMULA EXPLÍCITA Y SEGURIDAD */}
           {activeTab === 'FARMACOS' && (
             <div className="space-y-4">
