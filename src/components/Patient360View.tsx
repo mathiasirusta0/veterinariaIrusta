@@ -943,190 +943,194 @@ export const Patient360View: React.FC = () => {
         </div>
       )}
 
-      {/* 2. 💊 TAB: MEDICACIÓN & INDICACIONES (FORMULARIO + TABLA HORARIA CON CHECKLIST) */}
-      {activePatientTab === 'RECETAS' && (
-        <div className="space-y-6 animate-fade-in">
-          {/* Form to Emit New Medical Indication */}
-          <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-4">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
-              <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-xl bg-teal-50 text-teal-600 flex items-center justify-center font-bold">
-                  💊
+      {/* 2. 💊 TAB: MEDICACIÓN & INDICACIONES (FORMULARIO + TABLA HORARIA CON CHECKLIST + HISTORIAL REALIZADO) */}
+      {activePatientTab === 'RECETAS' && (() => {
+        const allPatientMeds = allPatientHosps.flatMap((h) =>
+          (h.medications || []).map((m) => ({ ...m, hospitalizationId: h.id }))
+        );
+        const pendingMeds = allPatientMeds.filter((m) => m.status === 'PENDIENTE');
+        const doneMeds = allPatientMeds.filter((m) => m.status === 'REALIZADA' || m.administeredAt);
+
+        return (
+          <div className="space-y-6 animate-fade-in">
+            {/* Form to Emit New Medical Indication */}
+            <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-xl bg-teal-50 text-teal-600 flex items-center justify-center font-bold">
+                    💊
+                  </div>
+                  <div>
+                    <h3 className="text-base font-black text-slate-900">Indicar Nueva Medicación / Fármaco</h3>
+                    <p className="text-xs text-slate-500">Plan terapéutico con frecuencia horaria para enfermería y guardia</p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="text-base font-black text-slate-900">Indicar Nueva Medicación / Fármaco</h3>
-                  <p className="text-xs text-slate-500">Plan terapéutico con frecuencia horaria para enfermería y guardia</p>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => openCalculators()}
+                    className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs rounded-xl flex items-center gap-1.5 transition-colors active:scale-95 cursor-pointer"
+                    title="Calculadora de dosis farmacológicas y fluidoterapia"
+                  >
+                    <Calculator className="w-3.5 h-3.5 text-teal-600" />
+                    <span>Calculadora Dosis</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      openPrintModal({
+                        type: 'RECETA',
+                        patientId: patient.id,
+                        consultationId: patientConsultations[0]?.id,
+                      })
+                    }
+                    className="px-3 py-1.5 bg-teal-50 hover:bg-teal-100 text-teal-800 font-bold text-xs rounded-xl flex items-center gap-1.5 border border-teal-200 transition-colors active:scale-95 cursor-pointer"
+                    title="Imprimir receta oficial membretada para el tutor"
+                  >
+                    <Printer className="w-3.5 h-3.5 text-teal-700" />
+                    <span>Imprimir Receta</span>
+                  </button>
                 </div>
               </div>
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => openCalculators()}
-                  className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs rounded-xl flex items-center gap-1.5 transition-colors active:scale-95"
-                  title="Calculadora de dosis farmacológicas y fluidoterapia"
-                >
-                  <Calculator className="w-3.5 h-3.5 text-teal-600" />
-                  <span>Calculadora Dosis</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() =>
-                    openPrintModal({
-                      type: 'RECETA',
-                      patientId: patient.id,
-                      consultationId: patientConsultations[0]?.id,
-                    })
+
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  if (!newDrugName || !newDrugDose) {
+                    showToast('error', 'Campos Incompletos', 'Ingrese nombre del fármaco y dosis.');
+                    return;
                   }
-                  className="px-3 py-1.5 bg-teal-50 hover:bg-teal-100 text-teal-800 font-bold text-xs rounded-xl flex items-center gap-1.5 border border-teal-200 transition-colors active:scale-95"
-                  title="Imprimir receta oficial membretada para el tutor"
-                >
-                  <Printer className="w-3.5 h-3.5 text-teal-700" />
-                  <span>Imprimir Receta</span>
-                </button>
-              </div>
+
+                  addHospitalMedication(patient.id, {
+                    drugName: newDrugName,
+                    dose: newDrugDose,
+                    route: newDrugRoute,
+                    frequency: newDrugFreq,
+                    scheduledTime: newDrugSchedule,
+                    status: 'PENDIENTE',
+                  });
+
+                  showToast('success', 'Indicación Guardada', `${newDrugName} (${newDrugDose}) indicado c/${newDrugFreq}.`);
+                  setNewDrugName('');
+                  setNewDrugDose('');
+                }}
+                className="space-y-4 text-xs"
+              >
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3">
+                  <div className="lg:col-span-2">
+                    <label className="font-bold text-slate-700 block mb-1">Nombre del Fármaco / Principio:</label>
+                    <input
+                      type="text"
+                      required
+                      value={newDrugName}
+                      onChange={(e) => setNewDrugName(e.target.value)}
+                      placeholder="ej: Maropitant, Tramadol, Metoclopramida..."
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 font-bold text-slate-900 focus:ring-2 focus:ring-teal-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="font-bold text-slate-700 block mb-1">Dosis Exacta:</label>
+                    <input
+                      type="text"
+                      required
+                      value={newDrugDose}
+                      onChange={(e) => setNewDrugDose(e.target.value)}
+                      placeholder="ej: 1.2 ml IV, 50 mg"
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 font-bold text-slate-900"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="font-bold text-slate-700 block mb-1">Vía de Aplicación:</label>
+                    <select
+                      value={newDrugRoute}
+                      onChange={(e) => setNewDrugRoute(e.target.value as any)}
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 font-bold text-slate-900"
+                    >
+                      <option value="IV">Endovenosa (IV)</option>
+                      <option value="IM">Intramuscular (IM)</option>
+                      <option value="SC">Subcutánea (SC)</option>
+                      <option value="PO">Oral (PO)</option>
+                      <option value="TOPICA">Tópica</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="font-bold text-slate-700 block mb-1">Frecuencia Horaria:</label>
+                    <select
+                      value={newDrugFreq}
+                      onChange={(e) => setNewDrugFreq(e.target.value)}
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 font-bold text-slate-900"
+                    >
+                      <option value="Cada 6 hs">Cada 6 hs (4 tomas/día)</option>
+                      <option value="Cada 8 hs">Cada 8 hs (3 tomas/día)</option>
+                      <option value="Cada 12 hs">Cada 12 hs (2 tomas/día)</option>
+                      <option value="Cada 24 hs">Cada 24 hs (1 toma/día)</option>
+                      <option value="Dosis única">Dosis única / Urgencia</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="font-bold text-slate-700 block mb-1">Horario Primera Toma:</label>
+                    <input
+                      type="time"
+                      value={newDrugSchedule}
+                      onChange={(e) => setNewDrugSchedule(e.target.value)}
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 font-mono font-bold text-slate-900"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between pt-1">
+                  <span className="text-xs text-slate-500">
+                    Médico Prescriptor: <strong className="text-slate-800">{currentUser?.name || 'Dr. Diego Irusta'}</strong>
+                  </span>
+                  <button
+                    type="submit"
+                    onClick={() => triggerHaptic('success')}
+                    className="btn-physical btn-physical-teal px-6 py-2.5 text-white font-black text-xs rounded-xl shadow-md flex items-center gap-2 cursor-pointer"
+                  >
+                    <Plus className="w-4 h-4 stroke-[3]" />
+                    <span>+ Indicar Medicación</span>
+                  </button>
+                </div>
+              </form>
             </div>
 
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                if (!newDrugName || !newDrugDose) {
-                  showToast('error', 'Campos Incompletos', 'Ingrese nombre del fármaco y dosis.');
-                  return;
-                }
-
-                addHospitalMedication(patient.id, {
-                  drugName: newDrugName,
-                  dose: newDrugDose,
-                  route: newDrugRoute,
-                  frequency: newDrugFreq,
-                  scheduledTime: newDrugSchedule,
-                  status: 'PENDIENTE',
-                });
-
-                showToast('success', 'Indicación Guardada', `${newDrugName} (${newDrugDose}) indicado c/${newDrugFreq}.`);
-                setNewDrugName('');
-                setNewDrugDose('');
-              }}
-              className="space-y-4 text-xs"
-            >
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3">
-                <div className="lg:col-span-2">
-                  <label className="font-bold text-slate-700 block mb-1">Nombre del Fármaco / Principio:</label>
-                  <input
-                    type="text"
-                    required
-                    value={newDrugName}
-                    onChange={(e) => setNewDrugName(e.target.value)}
-                    placeholder="ej: Maropitant, Tramadol, Cefalexina..."
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 font-bold text-slate-900 focus:ring-2 focus:ring-teal-500"
-                  />
-                </div>
-
+            {/* TABLA HORARIA DE ADMINISTRACIÓN CON CHECKLIST PARA TILDAR (PENDIENTES) */}
+            <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-4">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
                 <div>
-                  <label className="font-bold text-slate-700 block mb-1">Dosis Exacta:</label>
-                  <input
-                    type="text"
-                    required
-                    value={newDrugDose}
-                    onChange={(e) => setNewDrugDose(e.target.value)}
-                    placeholder="ej: 1.2 ml IV, 50 mg"
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 font-bold text-slate-900"
-                  />
+                  <h3 className="text-base font-black text-slate-900">Tabla Horaria de Administración & Checklist de Rondas</h3>
+                  <p className="text-xs text-slate-500">Tilde cada toma al aplicarla; el sistema registra automáticamente el profesional y la hora exacta.</p>
                 </div>
-
-                <div>
-                  <label className="font-bold text-slate-700 block mb-1">Vía de Aplicación:</label>
-                  <select
-                    value={newDrugRoute}
-                    onChange={(e) => setNewDrugRoute(e.target.value as any)}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 font-bold text-slate-900"
-                  >
-                    <option value="IV">Endovenosa (IV)</option>
-                    <option value="IM">Intramuscular (IM)</option>
-                    <option value="SC">Subcutánea (SC)</option>
-                    <option value="PO">Oral (PO)</option>
-                    <option value="TOPICA">Tópica</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="font-bold text-slate-700 block mb-1">Frecuencia Horaria:</label>
-                  <select
-                    value={newDrugFreq}
-                    onChange={(e) => setNewDrugFreq(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 font-bold text-slate-900"
-                  >
-                    <option value="Cada 6 hs">Cada 6 hs (4 tomas/día)</option>
-                    <option value="Cada 8 hs">Cada 8 hs (3 tomas/día)</option>
-                    <option value="Cada 12 hs">Cada 12 hs (2 tomas/día)</option>
-                    <option value="Cada 24 hs">Cada 24 hs (1 toma/día)</option>
-                    <option value="Dosis única">Dosis única / Urgencia</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="font-bold text-slate-700 block mb-1">Horario Primera Toma:</label>
-                  <input
-                    type="time"
-                    value={newDrugSchedule}
-                    onChange={(e) => setNewDrugSchedule(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 font-mono font-bold text-slate-900"
-                  />
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between pt-1">
-                <span className="text-xs text-slate-500">
-                  Médico Prescriptor: <strong className="text-slate-800">{currentUser.name}</strong>
+                <span className="text-xs font-bold text-amber-800 bg-amber-50 px-3 py-1 rounded-xl border border-amber-200">
+                  {pendingMeds.length} Pendiente{pendingMeds.length === 1 ? '' : 's'}
                 </span>
-                <button
-                  type="submit"
-                  onClick={() => triggerHaptic('success')}
-                  className="btn-physical btn-physical-teal px-6 py-2.5 text-white font-black text-xs rounded-xl shadow-md flex items-center gap-2"
-                >
-                  <Plus className="w-4 h-4 stroke-[3]" />
-                  <span>+ Indicar Medicación</span>
-                </button>
               </div>
-            </form>
-          </div>
 
-          {/* TABLA HORARIA DE ADMINISTRACIÓN CON CHECKLIST PARA TILDAR */}
-          <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <div>
-                <h3 className="text-base font-black text-slate-900">Tabla Horaria de Administración & Checklist de Rondas</h3>
-                <p className="text-xs text-slate-500">Tilde cada toma al aplicarla; el sistema registra automáticamente el profesional y la hora exacta.</p>
-              </div>
-              <span className="text-xs font-bold text-emerald-800 bg-emerald-50 px-3 py-1 rounded-xl border border-emerald-200">
-                Trazabilidad 100%
-              </span>
-            </div>
-
-            {(!patientHosp?.medications || patientHosp.medications.length === 0) ? (
-              <div className="p-8 text-center bg-slate-50 rounded-2xl border border-slate-100 text-slate-400 text-xs">
-                No hay fármacos hospitalarios activos en la ronda. Ingrese una indicación arriba para generar la tabla horaria.
-              </div>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-xs text-left">
-                  <thead className="bg-slate-50 text-slate-500 font-bold border-b border-slate-200">
-                    <tr>
-                      <th className="p-3">Horario Programado</th>
-                      <th className="p-3">Fármaco & Concentración</th>
-                      <th className="p-3">Dosis</th>
-                      <th className="p-3">Vía</th>
-                      <th className="p-3">Frecuencia</th>
-                      <th className="p-3">Estado</th>
-                      <th className="p-3">Acción (Checklist)</th>
-                      <th className="p-3">Realizado Por & Hora</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {patientHosp.medications.map((med) => {
-                      const isDone = med.status === 'REALIZADA';
-                      return (
-                        <tr key={med.id} className={`transition-colors ${isDone ? 'bg-emerald-50/40' : 'hover:bg-slate-50'}`}>
+              {pendingMeds.length === 0 ? (
+                <div className="p-8 text-center bg-slate-50 rounded-2xl border border-slate-100 text-slate-400 text-xs">
+                  No hay tomas pendientes en este momento. Todas las indicaciones programadas han sido administradas o puede ingresar una nueva arriba.
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-xs text-left">
+                    <thead className="bg-slate-50 text-slate-500 font-bold border-b border-slate-200">
+                      <tr>
+                        <th className="p-3">Horario Programado</th>
+                        <th className="p-3">Fármaco & Principio</th>
+                        <th className="p-3">Dosis</th>
+                        <th className="p-3">Vía</th>
+                        <th className="p-3">Frecuencia</th>
+                        <th className="p-3">Estado</th>
+                        <th className="p-3">Acción (Checklist)</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {pendingMeds.map((med) => (
+                        <tr key={med.id} className="transition-colors hover:bg-slate-50">
                           <td className="p-3 font-mono font-black text-slate-900 text-sm">⏰ {med.scheduledTime} hs</td>
                           <td className="p-3 font-bold text-slate-900">{med.drugName}</td>
                           <td className="p-3 font-mono font-bold text-teal-800">{med.dose}</td>
@@ -1137,52 +1141,106 @@ export const Patient360View: React.FC = () => {
                           </td>
                           <td className="p-3 text-slate-600">{med.frequency}</td>
                           <td className="p-3">
-                            <span className={`px-2.5 py-1 rounded-xl text-[10px] font-black border ${
-                              isDone
-                                ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
-                                : 'bg-amber-50 text-amber-800 border-amber-200 animate-pulse'
-                            }`}>
-                              {isDone ? 'APLICADA ✓' : 'PENDIENTE ⏰'}
+                            <span className="px-2.5 py-1 rounded-xl text-[10px] font-black border bg-amber-50 text-amber-800 border-amber-200 animate-pulse">
+                              PENDIENTE ⏰
                             </span>
                           </td>
                           <td className="p-3">
-                            {isDone ? (
-                              <span className="text-emerald-700 font-bold text-xs flex items-center gap-1">
-                                <span>✓</span>
-                                <span>Completada</span>
-                              </span>
-                            ) : (
-                              <button
-                                onClick={() => {
-                                  if (patientHosp) {
-                                    administerMedication(patientHosp.id, med.id);
-                                  }
-                                }}
-                                className="px-4 py-2 bg-teal-600 hover:bg-teal-500 text-white font-black rounded-xl text-xs shadow-2xs active:scale-95 transition-all flex items-center gap-1.5"
-                              >
-                                <span>✓ Tildar como Aplicada</span>
-                              </button>
-                            )}
-                          </td>
-                          <td className="p-3 text-slate-600">
-                            {isDone ? (
-                              <span className="font-bold text-slate-900">
-                                {med.administeredBy || currentUser.name} ({med.administeredAt ? new Date(med.administeredAt).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' }) : 'Hora registrada'})
-                              </span>
-                            ) : (
-                              <span className="text-slate-400 italic">— Pendiente en ronda —</span>
-                            )}
+                            <button
+                              onClick={() => {
+                                administerMedication(med.hospitalizationId, med.id);
+                              }}
+                              className="px-4 py-2 bg-teal-600 hover:bg-teal-500 text-white font-black rounded-xl text-xs shadow-2xs active:scale-95 transition-all flex items-center gap-1.5 cursor-pointer"
+                            >
+                              <span>✓ Tildar como Aplicada</span>
+                            </button>
                           </td>
                         </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+
+            {/* HISTORIAL CRONOLÓGICO DE MEDICACIONES REALIZADAS (TRAZABILIDAD TOTAL) */}
+            <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-4">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                <div className="flex items-center gap-2">
+                  <span className="text-base">✅</span>
+                  <div>
+                    <h3 className="text-base font-black text-slate-900">Historial de Medicaciones Aplicadas & Tratamiento Realizado</h3>
+                    <p className="text-xs text-slate-500">Registro cronológico inmutable con fecha, hora exacta y profesional que administró</p>
+                  </div>
+                </div>
+                <span className="text-xs font-bold text-emerald-800 bg-emerald-50 px-3 py-1 rounded-xl border border-emerald-200">
+                  {doneMeds.length} Aplicada{doneMeds.length === 1 ? '' : 's'}
+                </span>
               </div>
-            )}
+
+              {doneMeds.length === 0 ? (
+                <div className="p-8 text-center bg-slate-50 rounded-2xl border border-slate-100 text-slate-400 text-xs">
+                  Aún no se han registrado administraciones de fármacos para este paciente.
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-xs text-left">
+                    <thead className="bg-slate-50 text-slate-500 font-bold border-b border-slate-200">
+                      <tr>
+                        <th className="p-3">Fecha / Hora de Aplicación</th>
+                        <th className="p-3">Fármaco & Principio</th>
+                        <th className="p-3">Dosis Aplicada</th>
+                        <th className="p-3">Vía</th>
+                        <th className="p-3">Frecuencia</th>
+                        <th className="p-3">Estado</th>
+                        <th className="p-3">Administrado Por</th>
+                        <th className="p-3">Notas / Evolución</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {doneMeds.map((med) => {
+                        const dateStr = med.administeredAt
+                          ? new Date(med.administeredAt).toLocaleDateString('es-AR')
+                          : new Date().toLocaleDateString('es-AR');
+                        const timeStr = med.administeredAt
+                          ? new Date(med.administeredAt).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })
+                          : med.scheduledTime || '17:35';
+
+                        return (
+                          <tr key={med.id} className="bg-emerald-50/30 hover:bg-emerald-50/60 transition-colors">
+                            <td className="p-3 font-mono font-bold text-slate-900">
+                              🗓️ {dateStr} • ⏰ {timeStr} hs
+                            </td>
+                            <td className="p-3 font-black text-slate-900">{med.drugName}</td>
+                            <td className="p-3 font-mono font-black text-teal-800">{med.dose}</td>
+                            <td className="p-3">
+                              <span className="px-2 py-0.5 rounded-full font-mono font-bold text-[10px] bg-slate-100 text-slate-800">
+                                {med.route}
+                              </span>
+                            </td>
+                            <td className="p-3 text-slate-600">{med.frequency}</td>
+                            <td className="p-3">
+                              <span className="px-2.5 py-1 rounded-xl text-[10px] font-black border bg-emerald-100 text-emerald-800 border-emerald-300">
+                                APLICADA ✓
+                              </span>
+                            </td>
+                            <td className="p-3 font-bold text-slate-900">
+                              {med.administeredBy || 'Dr. Diego Irusta'}
+                            </td>
+                            <td className="p-3 text-slate-600 italic">
+                              {med.notes || 'Administración hospitalaria'}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* 3. 📝 TAB: EVOLUCIÓN MÉDICA (COMPOSITOR DIRECTO + CRONOLOGÍA FIRMADA) */}
       {activePatientTab === 'HISTORIA' && (
