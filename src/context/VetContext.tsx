@@ -1030,6 +1030,8 @@ export const VetProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     localStorage.setItem('vetsys_controlled_movements', JSON.stringify(controlledMovements));
     localStorage.setItem('vetsys_pathological_waste', JSON.stringify(pathologicalWaste));
     localStorage.setItem('vetsys_prescriptions', JSON.stringify(prescriptions));
+    localStorage.setItem('vetsys_antimicrobial_records', JSON.stringify(antimicrobialRecords));
+  }, [regulatoryRules, controlledDrugs, controlledMovements, pathologicalWaste, prescriptions, antimicrobialRecords, auditLogs]);
 
   useEffect(() => {
     localStorage.setItem('vetsys_encounters', JSON.stringify(encounters));
@@ -1046,9 +1048,6 @@ export const VetProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   useEffect(() => {
     localStorage.setItem('vetsys_service_prices', JSON.stringify(servicePrices));
   }, [servicePrices]);
-
-    localStorage.setItem('vetsys_antimicrobial_records', JSON.stringify(antimicrobialRecords));
-  }, [regulatoryRules, controlledDrugs, controlledMovements, pathologicalWaste, prescriptions, antimicrobialRecords, auditLogs]);
 
   // Audit Logger helper
 
