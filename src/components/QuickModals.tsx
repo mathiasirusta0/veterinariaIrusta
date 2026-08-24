@@ -50,6 +50,7 @@ export const QuickModals: React.FC = () => {
     setSelectedPatientId,
     setActiveView,
     activeBranch,
+    showToast,
   } = useVet();
 
   // Patient Form State
@@ -64,6 +65,14 @@ export const QuickModals: React.FC = () => {
   const [patMicrochip, setPatMicrochip] = useState('');
   const [patOwnerId, setPatOwnerId] = useState(owners[0]?.id || '');
   const [patAlert, setPatAlert] = useState('');
+
+  // Owner Form State inside Patient Registration (Manual owner creation)
+  const [patOwnerMode, setPatOwnerMode] = useState<'MANUAL' | 'EXISTING'>('MANUAL');
+  const [patOwnerFirstName, setPatOwnerFirstName] = useState('');
+  const [patOwnerLastName, setPatOwnerLastName] = useState('');
+  const [patOwnerPhone, setPatOwnerPhone] = useState('');
+  const [patOwnerDni, setPatOwnerDni] = useState('');
+  const [patOwnerEmail, setPatOwnerEmail] = useState('');
 
   // Owner Form State
   const [ownFirst, setOwnFirst] = useState('');
@@ -197,6 +206,32 @@ export const QuickModals: React.FC = () => {
   // Handlers
   const handleCreatePatient = (e: React.FormEvent) => {
     e.preventDefault();
+    let ownerIdToUse = patOwnerId;
+
+    // Si está en modo manual o si no hay tutores previos registrados
+    if (patOwnerMode === 'MANUAL' || owners.length === 0 || !ownerIdToUse) {
+      if (!patOwnerFirstName.trim() || !patOwnerLastName.trim()) {
+        showToast('error', 'Faltan Datos del Propietario', 'Debe ingresar el nombre y apellido del propietario.');
+        return;
+      }
+      if (!patOwnerPhone.trim()) {
+        showToast('error', 'Falta Teléfono de Contacto', 'Debe ingresar el teléfono para poder comunicarle las novedades y evolución clínica.');
+        return;
+      }
+
+      const createdOwner = addOwner({
+        firstName: patOwnerFirstName.trim(),
+        lastName: patOwnerLastName.trim(),
+        dni: patOwnerDni.trim() || 'S/D',
+        phone: patOwnerPhone.trim(),
+        whatsapp: patOwnerPhone.trim(),
+        email: patOwnerEmail.trim() || `${patOwnerFirstName.toLowerCase().replace(/\s+/g, '')}@veterinariairusta.com`,
+        address: 'Río Cuarto, Córdoba',
+        city: 'Río Cuarto',
+      });
+      ownerIdToUse = createdOwner.id;
+    }
+
     const created = addPatient({
       name: patName,
       species: patSpecies,
@@ -208,13 +243,27 @@ export const QuickModals: React.FC = () => {
       weight: Number(patWeight),
       color: patColor || 'Estándar',
       microchip: patMicrochip || undefined,
-      ownerId: patOwnerId,
+      ownerId: ownerIdToUse,
       status: 'ACTIVO',
       alerts: patAlert ? [{ type: 'ALERGIA' as const, description: patAlert, severity: 'ALTA' as const }] : [],
     });
+
+    // Resetear formulario
+    setPatName('');
+    setPatBreed('');
+    setPatColor('');
+    setPatMicrochip('');
+    setPatAlert('');
+    setPatOwnerFirstName('');
+    setPatOwnerLastName('');
+    setPatOwnerPhone('');
+    setPatOwnerDni('');
+    setPatOwnerEmail('');
+
     setSelectedPatientId(created.id);
     setActiveView('PACIENTES');
     setQuickModal(null);
+    showToast('success', 'Paciente Registrado', `${created.name} y los datos de su propietario fueron guardados con éxito.`);
   };
 
   const handleCreateOwner = (e: React.FormEvent) => {
@@ -650,32 +699,131 @@ export const QuickModals: React.FC = () => {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="text-slate-700 block font-bold mb-1">Tutor / Propietario:</label>
-                <select
-                  value={patOwnerId}
-                  onChange={(e) => setPatOwnerId(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-slate-900 font-semibold"
-                >
-                  {owners.map((o) => (
-                    <option key={o.id} value={o.id}>
-                      {o.firstName} {o.lastName} (DNI {o.dni})
-                    </option>
-                  ))}
-                </select>
+            {/* Sección de Datos del Propietario / Tutor */}
+            <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 space-y-3">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200/80 pb-2">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm">👤</span>
+                  <span className="font-bold text-slate-900 text-xs uppercase tracking-wider">
+                    Datos del Propietario / Tutor Responsable
+                  </span>
+                </div>
+                {owners.length > 0 && (
+                  <div className="flex items-center gap-1 bg-white border border-slate-200 p-0.5 rounded-lg text-[11px] font-bold self-start sm:self-auto">
+                    <button
+                      type="button"
+                      onClick={() => setPatOwnerMode('MANUAL')}
+                      className={`px-2.5 py-1 rounded-md transition-all ${
+                        patOwnerMode === 'MANUAL'
+                          ? 'bg-teal-600 text-white shadow-2xs'
+                          : 'text-slate-600 hover:text-slate-900'
+                      }`}
+                    >
+                      ✍️ Escribir Tutor Manual
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setPatOwnerMode('EXISTING')}
+                      className={`px-2.5 py-1 rounded-md transition-all ${
+                        patOwnerMode === 'EXISTING'
+                          ? 'bg-teal-600 text-white shadow-2xs'
+                          : 'text-slate-600 hover:text-slate-900'
+                      }`}
+                    >
+                      👥 Seleccionar Existente ({owners.length})
+                    </button>
+                  </div>
+                )}
               </div>
 
-              <div>
-                <label className="text-slate-700 block font-bold mb-1">Microchip ISO (Opcional):</label>
-                <input
-                  type="text"
-                  value={patMicrochip}
-                  onChange={(e) => setPatMicrochip(e.target.value)}
-                  placeholder="ej: 981098109283719"
-                  className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-slate-900 font-mono font-semibold"
-                />
-              </div>
+              {patOwnerMode === 'MANUAL' || owners.length === 0 ? (
+                <div className="space-y-2.5">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    <div>
+                      <label className="text-slate-700 block font-bold mb-1">
+                        Nombre del Propietario: <span className="text-rose-500 font-bold">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={patOwnerFirstName}
+                        onChange={(e) => setPatOwnerFirstName(e.target.value)}
+                        placeholder="ej: Carlos"
+                        required={patOwnerMode === 'MANUAL' || owners.length === 0}
+                        className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-slate-900 font-semibold focus:outline-none focus:ring-2 focus:ring-teal-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-slate-700 block font-bold mb-1">
+                        Apellido del Propietario: <span className="text-rose-500 font-bold">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={patOwnerLastName}
+                        onChange={(e) => setPatOwnerLastName(e.target.value)}
+                        placeholder="ej: Rodríguez"
+                        required={patOwnerMode === 'MANUAL' || owners.length === 0}
+                        className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-slate-900 font-semibold focus:outline-none focus:ring-2 focus:ring-teal-500"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    <div>
+                      <label className="text-slate-700 block font-bold mb-1">
+                        Teléfono / WhatsApp de Contacto: <span className="text-rose-500 font-bold">*</span>
+                      </label>
+                      <input
+                        type="tel"
+                        value={patOwnerPhone}
+                        onChange={(e) => setPatOwnerPhone(e.target.value)}
+                        placeholder="ej: +54 9 358 4123456"
+                        required={patOwnerMode === 'MANUAL' || owners.length === 0}
+                        className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-slate-900 font-mono font-bold focus:outline-none focus:ring-2 focus:ring-teal-500"
+                      />
+                      <span className="text-[10px] text-teal-700 font-medium mt-0.5 block">
+                        📱 Para avisarle novedades clínicas, partes médicos y evolución del tratamiento.
+                      </span>
+                    </div>
+
+                    <div>
+                      <label className="text-slate-700 block font-bold mb-1">DNI (Opcional):</label>
+                      <input
+                        type="text"
+                        value={patOwnerDni}
+                        onChange={(e) => setPatOwnerDni(e.target.value)}
+                        placeholder="ej: 38.450.912"
+                        className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-slate-900 font-mono"
+                      />
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div>
+                  <label className="text-slate-700 block font-bold mb-1">Seleccionar Tutor Registrado:</label>
+                  <select
+                    value={patOwnerId}
+                    onChange={(e) => setPatOwnerId(e.target.value)}
+                    className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-slate-900 font-semibold focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  >
+                    {owners.map((o) => (
+                      <option key={o.id} value={o.id}>
+                        {o.firstName} {o.lastName} {o.phone ? `• Tel: ${o.phone}` : ''} {o.dni ? `• DNI: ${o.dni}` : ''}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+            </div>
+
+            <div>
+              <label className="text-slate-700 block font-bold mb-1">Microchip ISO (Opcional):</label>
+              <input
+                type="text"
+                value={patMicrochip}
+                onChange={(e) => setPatMicrochip(e.target.value)}
+                placeholder="ej: 981098109283719"
+                className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-slate-900 font-mono font-semibold"
+              />
             </div>
 
             <div>
