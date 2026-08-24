@@ -79,7 +79,7 @@ export const WhatsAppHubModal: React.FC<WhatsAppHubModalProps> = ({
     switch (type) {
       case 'TURNO':
         return `Hola ${ownerName}! 👋 Le escribimos de *VET SYSTEM Hospital Veterinario*.
-Le recordamos que *${petName}* tiene un turno agendado para el día *${initialData?.details?.date || 'Mañana'}* a las *${initialData?.details?.time || '15:30'} hs* con el/la profesional *${initialData?.details?.vetName || 'Dr. Martín López'}*.
+Le recordamos que *${petName}* tiene un turno agendado para el día *${initialData?.details?.date || 'Mañana'}* a las *${initialData?.details?.time || '15:30'} hs* con el/la profesional *${initialData?.details?.vetName || 'Dr. Diego Irusta'}*.
 
 📍 *Dirección:* Av. Corrientes 4550, CABA
 ⚠️ *Indicaciones previas:* Por favor concurrir con collar y correa o transportadora. Si tiene ayuno indicado, cumplir 8 hs de sólidos.

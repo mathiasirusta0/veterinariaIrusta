@@ -135,7 +135,7 @@ export const CashAndBillingView: React.FC = () => {
         description: 'Honorario ecografista especialista externo por 2 estudios de urgencia',
         amount: 35000,
         paymentMethod: 'TRANSFERENCIA',
-        registeredBy: 'Dr. Martín López',
+        registeredBy: 'Dr. Diego Irusta',
         receiptNumber: 'FAC-0002-0041',
       },
     ];

@@ -20,7 +20,7 @@ describe('Autenticación y Puerta de Enlace (P0-01, P0-02)', () => {
   it('un usuario con sesión activa en localStorage accede directamente al panel principal', () => {
     localStorage.setItem('vetsys_auth_user', JSON.stringify({
       id: 'user-irusta-superadmin',
-      name: 'Dr. Matías Irusta',
+      name: 'Dr. Diego Irusta',
       email: 'irusta@gmail.com',
       role: 'SUPERADMIN',
       branchId: 'branch-1',
@@ -29,6 +29,6 @@ describe('Autenticación y Puerta de Enlace (P0-01, P0-02)', () => {
 
     const { container } = render(<App />);
     expect(container).toBeDefined();
-    expect(screen.getAllByText(/Dr\. Matías Irusta/).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/Dr\. Diego Irusta/).length).toBeGreaterThan(0);
   });
 });

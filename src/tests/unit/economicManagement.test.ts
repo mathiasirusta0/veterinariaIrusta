@@ -14,7 +14,7 @@ describe('Módulo de Gestión Económica & Finanzas del Negocio', () => {
         paymentMethod: 'TRANSFERENCIA',
         status: 'COBRADO',
         createdAt: '2026-08-20T10:00:00Z',
-        createdBy: 'Dr. Matías Irusta',
+        createdBy: 'Dr. Diego Irusta',
       },
       {
         id: '2',
@@ -26,7 +26,7 @@ describe('Módulo de Gestión Económica & Finanzas del Negocio', () => {
         paymentMethod: 'MERCADOPAGO_QR',
         status: 'COBRADO',
         createdAt: '2026-08-21T11:00:00Z',
-        createdBy: 'Dr. Matías Irusta',
+        createdBy: 'Dr. Diego Irusta',
       },
       {
         id: '3',
@@ -71,7 +71,7 @@ describe('Módulo de Gestión Económica & Finanzas del Negocio', () => {
       status: 'PENDIENTE',
       payments: [],
       createdAt: '2026-08-10T10:00:00Z',
-      createdBy: 'Dr. Matías Irusta',
+      createdBy: 'Dr. Diego Irusta',
     };
 
     // Primer pago parcial de $30.000
@@ -146,7 +146,7 @@ describe('Módulo de Gestión Económica & Finanzas del Negocio', () => {
       paymentMethod: 'EFECTIVO',
       status: 'COBRADO',
       createdAt: '2026-08-24T09:00:00Z',
-      createdBy: 'Dr. Matías Irusta',
+      createdBy: 'Dr. Diego Irusta',
     };
 
     // Anulación con motivo

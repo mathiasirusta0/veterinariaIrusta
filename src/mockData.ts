@@ -62,7 +62,7 @@ export const INITIAL_BRANCHES: Branch[] = [
 export const INITIAL_USERS: User[] = [
   {
     id: 'user-irusta-superadmin',
-    name: 'Dr. Matías Irusta',
+    name: 'Dr. Diego Irusta',
     email: 'irusta@gmail.com',
     role: 'SUPERADMIN',
     licenseNumber: 'MP 8412 - Dirección Médica',
@@ -254,7 +254,7 @@ export const INITIAL_REGULATORY_RULES: RegulatoryRule[] = [
     effectiveDate: '2020-01-01',
     version: '1.0',
     lastReviewedAt: '2026-01-01',
-    reviewedBy: 'Dr. Matías Irusta',
+    reviewedBy: 'Dr. Diego Irusta',
     status: 'VIGENTE',
   },
   {
@@ -273,7 +273,7 @@ export const INITIAL_REGULATORY_RULES: RegulatoryRule[] = [
     effectiveDate: '2021-06-01',
     version: '2.1',
     lastReviewedAt: '2026-01-01',
-    reviewedBy: 'Dr. Matías Irusta',
+    reviewedBy: 'Dr. Diego Irusta',
     status: 'VIGENTE',
   },
   {
@@ -292,7 +292,7 @@ export const INITIAL_REGULATORY_RULES: RegulatoryRule[] = [
     effectiveDate: '2018-01-01',
     version: '1.0',
     lastReviewedAt: '2026-01-01',
-    reviewedBy: 'Dr. Matías Irusta',
+    reviewedBy: 'Dr. Diego Irusta',
     status: 'VIGENTE',
   },
   {
@@ -311,7 +311,7 @@ export const INITIAL_REGULATORY_RULES: RegulatoryRule[] = [
     effectiveDate: '2000-10-30',
     version: '1.0',
     lastReviewedAt: '2026-01-01',
-    reviewedBy: 'Dr. Matías Irusta',
+    reviewedBy: 'Dr. Diego Irusta',
     status: 'VIGENTE',
   },
 ];

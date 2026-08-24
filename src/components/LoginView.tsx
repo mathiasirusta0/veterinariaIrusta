@@ -47,7 +47,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ onBackToLanding }) => {
             password,
             options: {
               data: {
-                name: name || 'Dr. Matías Irusta',
+                name: name || 'Dr. Diego Irusta',
                 role: 'SUPERADMIN',
                 license_number: 'MP 8412 - Dirección Médica',
               },
@@ -61,13 +61,13 @@ export const LoginView: React.FC<LoginViewProps> = ({ onBackToLanding }) => {
         // Direct registration login
         setCurrentUser({
           id: 'user-irusta-superadmin',
-          name: name || 'Dr. Matías Irusta',
+          name: name || 'Dr. Diego Irusta',
           email: cleanEmail,
           role: 'SUPERADMIN',
           branchId: activeBranch.id,
           licenseNumber: 'MP 8412 - Dirección Médica',
         });
-        showToast('success', 'Cuenta Creada & Conectada', `Bienvenido Dr. ${name || 'Matías Irusta'}`);
+        showToast('success', 'Cuenta Creada & Conectada', `Bienvenido Dr. ${name || 'Diego Irusta'}`);
       } else {
         // Try real Supabase Auth signIn
         let supabaseSuccess = false;
@@ -82,13 +82,13 @@ export const LoginView: React.FC<LoginViewProps> = ({ onBackToLanding }) => {
             const userMeta = data.user.user_metadata || {};
             setCurrentUser({
               id: data.user.id,
-              name: userMeta.name || (cleanEmail === 'irusta@gmail.com' ? 'Dr. Matías Irusta' : 'Profesional Veterinario'),
+              name: userMeta.name || (cleanEmail === 'irusta@gmail.com' ? 'Dr. Diego Irusta' : 'Profesional Veterinario'),
               email: data.user.email || cleanEmail,
               role: userMeta.role || (cleanEmail === 'irusta@gmail.com' ? 'SUPERADMIN' : 'VETERINARIO'),
               branchId: activeBranch.id,
               licenseNumber: userMeta.license_number || 'MP 8412 - Dirección Médica',
             });
-            showToast('success', 'Sesión Iniciada', `Bienvenido ${userMeta.name || 'Dr. Matías Irusta'}`);
+            showToast('success', 'Sesión Iniciada', `Bienvenido ${userMeta.name || 'Dr. Diego Irusta'}`);
             return;
           }
         } catch (sbErr) {
@@ -104,7 +104,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ onBackToLanding }) => {
               password: password,
               options: {
                 data: {
-                  name: 'Dr. Matías Irusta',
+                  name: 'Dr. Diego Irusta',
                   role: 'SUPERADMIN',
                   license_number: 'MP 8412 - Dirección Médica',
                 },
@@ -114,13 +114,13 @@ export const LoginView: React.FC<LoginViewProps> = ({ onBackToLanding }) => {
 
           setCurrentUser({
             id: 'user-irusta-superadmin',
-            name: 'Dr. Matías Irusta',
+            name: 'Dr. Diego Irusta',
             email: 'irusta@gmail.com',
             role: 'SUPERADMIN',
             branchId: activeBranch.id,
             licenseNumber: 'MP 8412 - Dirección Médica',
           });
-          showToast('success', 'Acceso Autorizado', 'Bienvenido Dr. Matías Irusta — Dirección Médica');
+          showToast('success', 'Acceso Autorizado', 'Bienvenido Dr. Diego Irusta — Dirección Médica');
           return;
         }
 
@@ -159,7 +159,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ onBackToLanding }) => {
               Portal <span className="text-[#5F7359]">Profesional</span>
             </h1>
             <p className="text-sm text-[#4A5D4B] font-medium">
-              Clínica Veterinaria para Grandes y Pequeños Animales • Dirección Dr. Matías Irusta
+              Clínica Veterinaria para Grandes y Pequeños Animales • Dirección Dr. Diego Irusta
             </p>
           </div>
         </div>
@@ -190,7 +190,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ onBackToLanding }) => {
             <span className="w-2.5 h-2.5 rounded-full bg-emerald-600 animate-pulse" />
             <span className="font-bold text-[#1C2B1D]">Autenticación Segura & Cifrado SSL</span>
           </div>
-          <span className="font-mono text-[11px] text-[#6E502B]">Dirección Médica: Dr. Matías Irusta</span>
+          <span className="font-mono text-[11px] text-[#6E502B]">Dirección Médica: Dr. Diego Irusta</span>
         </div>
       </div>
 
@@ -225,7 +225,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ onBackToLanding }) => {
                     required
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    placeholder="Ej: Dr. Matías Irusta"
+                    placeholder="Ej: Dr. Diego Irusta"
                     className="w-full bg-[#FAF8F5] border border-[#DDD7C8] rounded-xl p-3 text-[#1C2B1D] font-bold focus:outline-none focus:ring-2 focus:ring-[#5F7359]"
                   />
                 </div>

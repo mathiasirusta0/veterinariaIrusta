@@ -114,7 +114,7 @@ export const QuickModals: React.FC = () => {
   // Surgery Form State
   const [surgPatId, setSurgPatId] = useState(patients[0]?.id || '');
   const [surgProcName, setSurgProcName] = useState('Osteosíntesis de fémur con placa LCP');
-  const [surgSurgeon, setSurgSurgeon] = useState(users[0]?.name || 'Dr. Matías Rossi');
+  const [surgSurgeon, setSurgSurgeon] = useState(users[0]?.name || 'Dr. Diego Irusta');
   const [surgAnesthetist, setSurgAnesthetist] = useState('Dra. Sofía Albarracín');
   const [surgDate, setSurgDate] = useState(new Date().toISOString().split('T')[0]);
   const [surgStartTime, setSurgStartTime] = useState('11:00');

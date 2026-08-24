@@ -25,14 +25,14 @@ describe('Gestión de Documentos Clínicos & Certificados Legales (Fase 16)', ()
       hc: 'HC-2024-0012',
       ownerName: 'Juan Pérez',
       ownerDni: '38999888',
-      vetName: 'Dr. Matías Irusta',
+      vetName: 'Dr. Diego Irusta',
       vetLicense: 'MP-VET 8812',
     });
 
     expect(sampleText).toContain('Rocky');
     expect(sampleText).toContain('Juan Pérez');
     expect(sampleText).toContain('38999888');
-    expect(sampleText).toContain('Dr. Matías Irusta');
+    expect(sampleText).toContain('Dr. Diego Irusta');
     expect(sampleText).toContain('HC-2024-0012');
   });
 
