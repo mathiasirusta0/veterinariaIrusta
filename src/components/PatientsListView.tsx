@@ -24,7 +24,7 @@ import {
   Filter,
 } from 'lucide-react';
 import { useVet } from '../context/VetContext';
-import { formatWeight, formatOwnerBalance } from '../utils/formatters';
+import { formatWeight, formatOwnerBalance, formatAlertLabel, maskPhoneNumber } from '../utils/formatters';
 import { triggerHaptic } from '../utils/haptics';
 import { PatientMobileCard } from './PatientMobileCard';
 import { PageHeader, StatusBadge, EmptyState, SearchInput } from './ui';
@@ -34,6 +34,8 @@ export const PatientsListView: React.FC = () => {
     patients,
     owners,
     hospitalizations,
+    currentUser,
+    logAudit,
     setSelectedPatientId,
     setActivePatientTab,
     setActiveView,
@@ -587,7 +589,7 @@ export const PatientsListView: React.FC = () => {
                           key={idx}
                           className="text-[10px] font-bold px-2 py-0.5 rounded bg-red-50 text-red-600 border border-red-200 truncate max-w-full"
                         >
-                          ⚠️ {al.type}: {al.description}
+                          ⚠️ {formatAlertLabel(al.type)}: {al.description}
                         </span>
                       ))}
                     </div>
@@ -801,14 +803,14 @@ export const PatientsListView: React.FC = () => {
                           <span className="font-bold text-slate-900 block">
                             {owner ? `${owner.firstName} ${owner.lastName}` : 'N/A'}
                           </span>
-                          <span className="text-[11px] font-mono text-slate-500">{owner?.phone}</span>
+                          <span className="text-[11px] font-mono text-slate-500">{maskPhoneNumber(owner?.phone, currentUser?.role === 'SUPERADMIN' || currentUser?.role === 'VETERINARIO')}</span>
                         </td>
 
                         {/* Alerts */}
                         <td className="p-3.5">
                           {hasCriticalAlerts ? (
                             <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-red-50 text-red-700 border border-red-200 block truncate max-w-[150px]">
-                              ⚠️ {patient.alerts[0].type}
+                              ⚠️ {formatAlertLabel(patient.alerts[0].type)}
                             </span>
                           ) : (
                             <span className="text-[10px] font-bold text-emerald-600">Sin Alergias</span>

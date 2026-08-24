@@ -218,7 +218,6 @@ interface VetContextType {
   logAudit: (action: string, entity: string, entityId: string, details: string, prev?: string, next?: string) => void;
 
   // AI Assistant helper
-  callAiAssistant: (type: string, prompt: string, patientData?: any) => Promise<{ success: boolean; text: string; error?: string }>;
 
   // Quick Open Modals
   quickModal: string | null;
@@ -605,7 +604,6 @@ export const VetProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     else if (activeView === 'INVENTARIO') viewKey = 'INVENTARIO';
     else if (activeView === 'CAJA_FACTURACION' || activeView === 'CAJA_FACTURAS' || activeView === 'CAJA') viewKey = 'CAJA_FACTURACION';
     else if (activeView === 'DOCUMENTOS') viewKey = 'DOCUMENTOS';
-    else if (activeView === 'ASISTENTE_IA') viewKey = 'ASISTENTE_IA';
     else if (activeView === 'CONFIGURACION') viewKey = 'CONFIGURACION';
 
     if (!hasViewPermission(newUser.role, viewKey)) {
@@ -809,7 +807,46 @@ export const VetProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       }
     }
     initCloud();
-    return () => {
+    const addClinicalEvolution = (entry: Omit<ClinicalEvolutionEntry, 'id' | 'createdAt' | 'status'>): ClinicalEvolutionEntry => {
+    const newEntry: ClinicalEvolutionEntry = {
+      ...entry,
+      id: 'evo-' + Date.now() + '-' + Math.random().toString(36).substring(2, 6),
+      createdAt: new Date().toISOString(),
+      status: 'BORRADOR',
+    };
+    setClinicalEvolutions((prev) => [newEntry, ...prev]);
+    logAudit('EVOLUCION_CLINICA_CREAR', 'ClinicalEvolution', newEntry.id, `Evolución ${newEntry.type} creada para paciente ${newEntry.patientId}`);
+    return newEntry;
+  };
+
+  const signClinicalEvolution = (id: string, vetLicense: string) => {
+    setClinicalEvolutions((prev) =>
+      prev.map((e) => (e.id === id ? { ...e, status: 'FIRMADA', vetLicense, signedAt: new Date().toISOString() } : e))
+    );
+    logAudit('EVOLUCION_CLINICA_FIRMAR', 'ClinicalEvolution', id, `Evolución ${id} firmada con matrícula ${vetLicense}`);
+  };
+
+  const addEvolutionAddendum = (evolutionId: string, addendum: { content: string; justificationReason: string; authorName: string }) => {
+    setClinicalEvolutions((prev) =>
+      prev.map((e) => {
+        if (e.id !== evolutionId) return e;
+        const newAddendum = {
+          id: 'add-' + Date.now(),
+          addedAt: new Date().toISOString(),
+          authorName: addendum.authorName,
+          content: addendum.content,
+          justificationReason: addendum.justificationReason,
+        };
+        return {
+          ...e,
+          addenda: [...(e.addenda || []), newAddendum],
+        };
+      })
+    );
+    logAudit('EVOLUCION_CLINICA_ADDENDUM', 'ClinicalEvolution', evolutionId, `Addendum agregado a evolución ${evolutionId}`);
+  };
+
+  return () => {
       isMounted = false;
     };
   }, []);
@@ -1708,157 +1745,43 @@ export const VetProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     );
   };
 
-  // Helper for resilient client-side clinical AI generation if backend is offline
-  const generateClientClinicalAiFallback = (type: string, prompt: string, patientData?: any): string => {
-    const petName = patientData?.name || 'Paciente';
-    const species = patientData?.species || 'Canino';
-    const breed = patientData?.breed || 'Mestizo';
-    const weight = patientData?.weight || 10;
-    const diag = patientData?.diagnosis || 'Evaluación médica general';
-
-    if (type === 'soap' || type === 'soap_draft') {
-      return `### 📋 Borrador SOAP Estructurado para ${petName} (${species} - ${breed} - ${weight} kg)
-
-**S — Subjetivo (Anamnesis):**
-Motivo: ${prompt || 'Control clínico general'}. Tutor refiere cuadro con signos observados. Sin alteraciones de conducta previas relevantes.
-
-**O — Objetivo (Examen Físico):**
-- FC: 110 lpm • FR: 24 rpm • Temp: 38.5 °C.
-- Mucosas rosadas, tiempo de llenado capilar (TLLC) < 2 segundos.
-- Palpación abdominal blanda y depresible. Reflejo tusígeno negativo. Auscultación cardiopulmonar sin soplos ni ruidos sobreagregados.
-
-**A — Evaluación & Diagnósticos Diferenciales:**
-1. ${diag}
-2. Cuadro reactivo / inflamatorio secundario
-3. Descartar procesos infecciosos o indiscreción dietaria
-
-**P — Plan Diagnóstico & Terapéutico:**
-- Indicar plan de hidratación y soporte sintomático según peso (${weight} kg).
-- Solicitar Hemograma completo y Perfil Bioquímico si persiste el cuadro.
-- Pautas de alarma al tutor y reevaluación clínica en 48 horas.`;
-    }
-
-    if (type === 'handover_summary' || type === 'shift_handover') {
-      return `### 🏥 Resumen de Pase de Guardia Médica
-**Paciente:** ${petName} (${species} • ${weight} kg)
-- **Diagnóstico Actual:** ${diag}
-- **Estado Clínico:** Estable bajo monitoreo continuo en internación.
-- **Fluidoterapia & Bombas:** Activa a flujo según requerimiento.
-- **Fármacos Administrados:** Analgesia y gastroprotección según cronograma.
-- **Tareas Pendientes para el Turno Entrante:** Control horario de temperatura y diuresis, administración de medicación reglada y reporte a tutores en el horario de visita.`;
-    }
-
-    if (type === 'owner_summary') {
-      return `Estimada familia de ${petName}:
-
-Hoy hemos evaluado a ${petName} en nuestro centro hospitalario. Queremos transmitirles tranquilidad y detallarles los puntos clave de su atención:
-
-- **Diagnóstico / Situación actual:** ${diag}.
-- **Plan y cuidados en el hogar:**
-  1. Cumplir con la medicación en los horarios exactos indicados en el recetario adjunto.
-  2. Ofrecer agua fresca y alimentación en pequeñas porciones.
-  3. Evitar esfuerzos físicos bruscos durante los próximos días.
-- **Signos de alarma:** Ante vómitos reiterados, decaimiento marcado, dolor agudo o dificultad para respirar, concurran de inmediato a nuestra guardia 24hs.
-
-¡Estamos a su entera disposición para acompañar la pronta recuperación de ${petName}!`;
-    }
-
-    if (type === 'triage_eval' || type === 'triage_assessment') {
-      return `### ⏱️ Sugerencia de Triage Clínico
-- **Clasificación Sugerida:** NIVEL 2 - PRIORITARIO (Amarillo)
-- **Tiempo Máximo de Espera:** < 15 a 30 minutos.
-- **Fundamentación:** Según los signos descriptos ("${prompt}"), se recomienda evaluación médica pronta para descartar descompensación hemodinámica.`;
-    }
-
-    return `Informe Clínico para ${petName}: Paciente de ${weight} kg evaluado satisfactoriamente. Continuar con el plan terapéutico indicado y registrar evolución en la ficha médica.`;
-  };
-
-  // AI Assistant integration with resilient dual-layer fallback
-  const callAiAssistant = async (type: string, prompt: string, patientData?: any) => {
-    try {
-      const response = await fetch('/api/ai/assist', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type, prompt, patientData }),
-      });
-      if (response.ok) {
-        const data = await response.json();
-        if (data.success && data.text) {
-          logAudit('CONSULTA_IA_CLINICA', 'AI_Assistant', type, `Asistente IA ejecutó tarea de tipo: ${type}`);
-          return { success: true, text: data.text };
-        }
-      }
-    } catch (err: any) {
-      console.warn('Backend AI assistance offline, using client fallback:', err);
-    }
-
-    const fallbackText = generateClientClinicalAiFallback(type, prompt, patientData);
-    logAudit('CONSULTA_IA_CLINICA', 'AI_Assistant', type, `Asistente IA generó respuesta clínica (${type})`);
-    return { success: true, text: fallbackText };
-  };
-
-  const addClinicalEvolution = (entryData: Omit<ClinicalEvolutionEntry, 'id' | 'createdAt' | 'status'>): ClinicalEvolutionEntry => {
+  const addClinicalEvolution = (entry: Omit<ClinicalEvolutionEntry, 'id' | 'createdAt' | 'status'>): ClinicalEvolutionEntry => {
     const newEntry: ClinicalEvolutionEntry = {
-      ...entryData,
-      id: `evo-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
+      ...entry,
+      id: 'evo-' + Date.now() + '-' + Math.random().toString(36).substring(2, 6),
       createdAt: new Date().toISOString(),
-      status: 'FIRMADO',
-      signatureHash: `SHA256:evo_${Date.now()}_${currentUser.name.replace(/\s+/g, '_')}`,
+      status: 'BORRADOR',
     };
-
     setClinicalEvolutions((prev) => [newEntry, ...prev]);
-    syncClinicalEvolutionToSupabase(newEntry);
-    showToast('success', 'Evolución Registrada', `Evolución (${newEntry.type}) firmada por ${newEntry.authorName}.`);
-    logAudit('CREAR_EVOLUCION', 'ClinicalEvolution', newEntry.id, `Evolución ${newEntry.type} para paciente ${newEntry.patientId}`);
+    logAudit('EVOLUCION_CLINICA_CREAR', 'ClinicalEvolution', newEntry.id, `Evolución ${newEntry.type} creada para paciente ${newEntry.patientId}`);
     return newEntry;
   };
 
-  const signClinicalEvolution = (id: string) => {
+  const signClinicalEvolution = (id: string, vetLicense: string) => {
     setClinicalEvolutions((prev) =>
-      prev.map((evo) => {
-        if (evo.id === id) {
-          const updated = {
-            ...evo,
-            status: 'FIRMADO' as const,
-            signatureHash: `SHA256:signed_${Date.now()}_${currentUser.name}`,
-          };
-          syncClinicalEvolutionToSupabase(updated);
-          return updated;
-        }
-        return evo;
-      })
+      prev.map((e) => (e.id === id ? { ...e, status: 'FIRMADA', vetLicense, signedAt: new Date().toISOString() } : e))
     );
-    showToast('success', 'Evolución Firmada', 'La nota ha sido firmada digitalmente.');
+    logAudit('EVOLUCION_CLINICA_FIRMAR', 'ClinicalEvolution', id, `Evolución ${id} firmada con matrícula ${vetLicense}`);
   };
 
-  const addEvolutionAddendum = (id: string, addendumContent: string, reason: string) => {
-    const newAddendum = {
-      id: `add-${Date.now()}`,
-      entryId: id,
-      authorName: currentUser.name,
-      authorRole: currentUser.role as any,
-      authorLicense: currentUser.licenseNumber,
-      dateTime: new Date().toISOString(),
-      content: addendumContent,
-      reason,
-    };
-
+  const addEvolutionAddendum = (evolutionId: string, addendum: { content: string; justificationReason: string; authorName: string }) => {
     setClinicalEvolutions((prev) =>
-      prev.map((evo) => {
-        if (evo.id === id) {
-          const updated = {
-            ...evo,
-            status: 'CON_ADDENDUM' as const,
-            addenda: [...(evo.addenda || []), newAddendum],
-          };
-          syncClinicalEvolutionToSupabase(updated);
-          return updated;
-        }
-        return evo;
+      prev.map((e) => {
+        if (e.id !== evolutionId) return e;
+        const newAddendum = {
+          id: 'add-' + Date.now(),
+          addedAt: new Date().toISOString(),
+          authorName: addendum.authorName,
+          content: addendum.content,
+          justificationReason: addendum.justificationReason,
+        };
+        return {
+          ...e,
+          addenda: [...(e.addenda || []), newAddendum],
+        };
       })
     );
-    showToast('success', 'Addendum Registrado', 'Se ha anexado una aclaración formal fechada a la nota médica.');
-    logAudit('ADDENDUM_EVOLUCION', 'ClinicalEvolution', id, `Addendum agregado: ${reason}`);
+    logAudit('EVOLUCION_CLINICA_ADDENDUM', 'ClinicalEvolution', evolutionId, `Addendum agregado a evolución ${evolutionId}`);
   };
 
   return (
@@ -1966,7 +1889,6 @@ Hoy hemos evaluado a ${petName} en nuestro centro hospitalario. Queremos transmi
         signDocument,
 
         logAudit,
-        callAiAssistant,
 
         quickModal,
         setQuickModal,

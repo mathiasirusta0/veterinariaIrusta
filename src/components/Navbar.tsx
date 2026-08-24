@@ -157,7 +157,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleMobileMenu }) => {
           )}
         </button>
 
-        {/* Primary Action Button: + Nueva Acción (Visible on tablets and desktop >= sm) */}
+        {/* Primary Action Button: + Nueva Consulta (Visible on tablets and desktop >= sm) */}
         <button
           onClick={() => {
             triggerHaptic('medium');
@@ -166,7 +166,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleMobileMenu }) => {
           className="hidden sm:flex btn-physical btn-physical-teal items-center gap-1.5 px-3.5 py-2 text-white rounded-xl text-xs font-black shadow-sm flex-shrink-0"
         >
           <Plus className="w-4 h-4 stroke-[3]" />
-          <span className="tracking-wide">+ NUEVA ACCIÓN</span>
+          <span className="tracking-wide">Nueva Consulta</span>
         </button>
       </div>
     </header>

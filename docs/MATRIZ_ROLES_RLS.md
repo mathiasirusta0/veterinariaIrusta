@@ -1,16 +1,14 @@
-# Matriz de Roles y Políticas Row Level Security (RLS)
+# MATRIZ DE ROLES Y POLÍTICAS DE ACCESO (RBAC & RLS)
 
----
+## Roles del Sistema
+1. **SUPERADMIN:** Acceso irrestricto a configuración, auditoría, exportación de censo y administración de sedes.
+2. **VETERINARIO:** Acceso total clínico, prescripción oficial, cirugías, evoluciones, laboratorio y diagnóstico por imágenes.
+3. **ENFERMERIA / TECNICO:** Registro de signos vitales, administración de medicación, controles horarios de internación.
+4. **RECEPCION:** Gestión de turnos, admisión de triage, altas de pacientes/tutores con datos protegidos.
+5. **CAJA:** Cobros, facturación ARCA, emisión de recibos, arqueos de caja chica.
+6. **FARMACIA:** Control de stock, recepción de mercadería, libro de psicotrópicos.
 
-## 1. Políticas RLS en Supabase (PostgreSQL)
-
-| Tabla | Operación | Rol `anon` | Rol `authenticated` | Condición RLS |
-| :--- | :--- | :---: | :---: | :--- |
-| `patients` | SELECT | ✗ | ✓ | `auth.jwt() ->> 'clinic_id' = clinic_id` |
-| `patients` | INSERT/UPDATE | ✗ | ✓ | Rol en (`VETERINARIO`, `ENFERMERIA`, `RECEPCION`, `SUPERADMIN`) |
-| `consultations` | INSERT | ✗ | ✓ | Rol en (`VETERINARIO`, `DIRECTOR_MEDICO`, `SUPERADMIN`) |
-| `consultations` | UPDATE | ✗ | ✓ | Addendum fechado únicamente por el autor original |
-| `vital_signs` | INSERT | ✗ | ✓ | Rol en (`VETERINARIO`, `ENFERMERIA`, `SUPERADMIN`) |
-| `invoices` | SELECT | ✗ | ✓ | Rol en (`CAJA`, `RECEPCION`, `DIRECTOR_MEDICO`, `SUPERADMIN`) |
-| `audit_logs` | INSERT | ✗ | ✓ | Append-only para todas las operaciones mutantes |
-| `audit_logs` | UPDATE/DELETE | ✗ | ✗ | Bloqueado estrictamente por trigger PostgreSQL |
+## Políticas RLS (Row Level Security) en Supabase
+- `SELECT`: Filtrado por `branch_id` de la sede activa del usuario.
+- `INSERT / UPDATE`: Restringido a usuarios autenticados con rol específico.
+- `DELETE`: Prohibido para registros clínicos (consultas, evoluciones, recetas), permitido solo soft-delete en entidades administrativas por superadmin.

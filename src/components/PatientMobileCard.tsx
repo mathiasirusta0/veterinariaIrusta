@@ -11,7 +11,7 @@ import {
   Heart,
 } from 'lucide-react';
 import { Patient, Owner } from '../types';
-import { formatWeight } from '../utils/formatters';
+import { formatWeight, formatAlertLabel } from '../utils/formatters';
 import { triggerHaptic } from '../utils/haptics';
 
 interface PatientMobileCardProps {
@@ -151,7 +151,7 @@ export const PatientMobileCard: React.FC<PatientMobileCardProps> = ({
             >
               <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0 mt-0.5 text-red-600" />
               <span>
-                {al.type}: {al.description}
+                {formatAlertLabel(al.type)}: {al.description}
               </span>
             </div>
           ))}

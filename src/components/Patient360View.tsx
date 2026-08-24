@@ -85,7 +85,6 @@ export const Patient360View: React.FC = () => {
     recordPatientWeight,
     addProblem,
     updateProblemStatus,
-    callAiAssistant,
     clinicalEvolutions,
     addClinicalEvolution,
     addEvolutionAddendum,
@@ -292,20 +291,14 @@ export const Patient360View: React.FC = () => {
     { id: 'TUTOR', label: '5. Propietario / Tutor', icon: User, count: owner ? 1 : 0 },
   ];
 
-  const handleGenerateAiSummary = async () => {
-    setAiGenerating(true);
-    const res = await callAiAssistant('owner_summary', 'Generar resumen clínico para el tutor', {
-      name: patient.name,
-      species: patient.species,
-      breed: patient.breed,
-      age: patient.calculatedAge,
-      weight: patient.weight,
-      diagnosis: patientHosp?.primaryDiagnosis || patientConsultations[0]?.diagnoses?.join(', ') || 'Evaluación general',
-    });
-    setAiGenerating(false);
-    if (res.success) {
-      setAiSummaryResult(res.text);
-    }
+  const handleGenerateAiSummary = () => {
+    const diag = patientHosp?.primaryDiagnosis || patientConsultations[0]?.diagnoses?.join(', ') || 'Evaluación general';
+    const summary = `RESUMEN CLÍNICO - ${patient.name} (${patient.clinicalRecordNumber})\n` +
+      `Especie/Raza: ${patient.species} ${patient.breed} | Peso: ${formatWeight(patient.weight)}\n` +
+      `Tutor: ${owner ? `${owner.firstName} ${owner.lastName}` : 'Sin tutor'} (${owner?.phone || 'S/D'})\n` +
+      `Diagnóstico: ${diag}\n` +
+      `Estado: ${patient.status}`;
+    setAiSummaryResult(summary);
   };
 
 

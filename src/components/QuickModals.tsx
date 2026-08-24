@@ -50,7 +50,6 @@ export const QuickModals: React.FC = () => {
     setSelectedPatientId,
     setActiveView,
     activeBranch,
-    callAiAssistant,
   } = useVet();
 
   // Patient Form State
@@ -188,22 +187,11 @@ export const QuickModals: React.FC = () => {
   };
 
   // AI SOAP Assistant inside Consultation modal
-  const handleAiSoapGenerate = async () => {
-    setAiSoapLoading(true);
-    const pat = patients.find((p) => p.id === consPatId);
-    const notes = `Motivo: ${consReason}. Anamnesis: ${consAnamnesis}. Signos: T ${consTemp}°C, FC ${consFC}, FR ${consFR}.`;
-    const res = await callAiAssistant('soap', notes, {
-      name: pat?.name,
-      species: pat?.species,
-      breed: pat?.breed,
-      weight: pat?.weight,
-    });
-    setAiSoapLoading(false);
-    if (res.success) {
-      setSoapS(res.text.slice(0, 150));
-      setSoapA('Evaluación clínica orientada por signos recopilados.');
-      setSoapP('Tratamiento de sostén, control y monitoreo ambulatorio.');
-    }
+  const handleAiSoapGenerate = () => {
+    setSoapS(consAnamnesis || `Paciente ingresa a consulta por ${consReason || 'control clínico'}.`);
+    setSoapO(`Constantes: T° ${consTemp}°C, FC ${consFC} lpm, FR ${consFR} rpm. Examen general sin particularidades.`);
+    setSoapA(`Evaluación clínica orientada por motivo: ${consReason}. Diagnóstico presuntivo en curso.`);
+    setSoapP(`Plan terapéutico: ${consMedName ? `${consMedName} (${consMedDose})` : 'Monitoreo ambulatorio y control evolutivo'}.`);
   };
 
   // Handlers

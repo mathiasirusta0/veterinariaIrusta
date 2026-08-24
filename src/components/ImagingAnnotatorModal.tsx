@@ -32,7 +32,7 @@ export const ImagingAnnotatorModal: React.FC<ImagingAnnotatorModalProps> = ({
   imageUrl = 'https://images.unsplash.com/photo-1579684385127-1ef15d508118?w=800&auto=format&fit=crop&q=80',
   studyTitle = 'Radiografía Tórax Perfil Lateral Derecha (Estudio Cardiorrespiratorio)',
 }) => {
-  const { patients, showToast, logAudit, callAiAssistant } = useVet();
+  const { patients, showToast, logAudit } = useVet();
   const patient = patients.find((p) => p.id === patientId) || patients[0];
 
   const [zoom, setZoom] = useState(1);
@@ -54,18 +54,11 @@ export const ImagingAnnotatorModal: React.FC<ImagingAnnotatorModalProps> = ({
 
   if (!isOpen || !patient) return null;
 
-  const handleAiInterpretation = async () => {
-    setAiLoading(true);
-    const res = await callAiAssistant(
-      'imaging_analysis',
-      `Interpretar hallazgos de estudio de imagen: ${studyTitle}`,
-      { patientName: patient.name, species: patient.species, breed: patient.breed, studyTitle }
-    );
-    setAiLoading(false);
-    if (res.success) {
-      setAiReport(res.text);
-      showToast('success', 'Interpretación IA Generada', 'Hallazgos radiológicos estructurados.');
-    }
+  const handleAiInterpretation = () => {
+    const annSummary = annotations.length > 0 ? annotations.map(a => a.text).join('; ') : 'Sin hallazgos focales anotados';
+    const report = `INFORME RADIOLÓGICO (${studyTitle})\nPaciente: ${patient.name} (${patient.species} ${patient.breed})\nHallazgos: ${annSummary}\nConclusión: Hallazgos compatibles con evaluación clínica.`;
+    setAiReport(report);
+    showToast('info', 'Informe Estructurado', 'Plantilla de informe radiológico generada.');
   };
 
   const handleSaveStudy = () => {
@@ -98,7 +91,7 @@ export const ImagingAnnotatorModal: React.FC<ImagingAnnotatorModalProps> = ({
               className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-teal-600 hover:bg-teal-500 text-white text-xs font-bold transition-all shadow-xs"
             >
               <Sparkles className="w-3.5 h-3.5 text-teal-200" />
-              <span>{aiLoading ? 'Analizando...' : 'Interpretar con IA'}</span>
+              <span>{aiLoading ? 'Analizando...' : 'Generar Borrador'}</span>
             </button>
 
             <button

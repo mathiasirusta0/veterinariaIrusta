@@ -49,7 +49,6 @@ import { VaccinationView } from './components/VaccinationView';
 import { InventoryView } from './components/InventoryView';
 import { CashAndBillingView } from './components/CashAndBillingView';
 import { DocumentsView } from './components/DocumentsView';
-import { AiAssistantView } from './components/AiAssistantView';
 import { SettingsAndUsersView } from './components/SettingsAndUsersView';
 import { PrescriptionsView } from './components/PrescriptionsView';
 import { SystemQaTestCenterView } from './components/SystemQaTestCenterView';
@@ -118,7 +117,6 @@ const MainLayout: React.FC = () => {
     else if (activeView === 'INVENTARIO' || activeView === 'FARMACIA') viewKey = 'INVENTARIO';
     else if (activeView === 'CAJA_FACTURACION' || activeView === 'CAJA_FACTURAS' || activeView === 'CAJA') viewKey = 'CAJA_FACTURACION';
     else if (activeView === 'DOCUMENTOS') viewKey = 'DOCUMENTOS';
-    else if (activeView === 'ASISTENTE_IA' || activeView === 'IA_CLINICA') viewKey = 'ASISTENTE_IA';
     else if (activeView === 'CONFIGURACION' || activeView === 'AUDITORIA_USUARIOS') viewKey = 'CONFIGURACION';
 
     // Verificación de RBAC
@@ -225,13 +223,6 @@ const MainLayout: React.FC = () => {
         return (
           <ModuleErrorBoundary moduleName="Documentos & Consentimientos">
             <DocumentsView />
-          </ModuleErrorBoundary>
-        );
-      case 'ASISTENTE_IA':
-      case 'IA_CLINICA':
-        return (
-          <ModuleErrorBoundary moduleName="Asistente de IA Clínica">
-            <AiAssistantView />
           </ModuleErrorBoundary>
         );
       case 'RECETAS_OFICIALES':

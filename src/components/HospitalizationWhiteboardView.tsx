@@ -39,7 +39,6 @@ export const HospitalizationWhiteboardView: React.FC = () => {
     administerMedication,
     dischargeHospitalPatient,
     updateHospitalPriority,
-    callAiAssistant,
     openMonitor,
     openCalculators,
     openPrintModal,
@@ -118,18 +117,12 @@ export const HospitalizationWhiteboardView: React.FC = () => {
         };
       });
 
-    const res = await callAiAssistant(
-      'handover_summary',
-      'Generar pase de guardia para el equipo veterinario entrante',
-      {
-        patients: activeList,
-      }
-    );
+    const handoverSummary = activeList
+      .map((p, idx) => `${idx + 1}. ${p.name} (${p.sector}) - Dx: ${p.diagnosis}. Médico: ${p.doctor}. Pendientes: ${p.pendingMeds || 'Sin pendientes inmediatos'}.`)
+      .join('\n\n');
 
+    setHandoverText(`PASE DE GUARDIA HOSPITALARIA (${new Date().toLocaleDateString('es-AR')} ${new Date().getHours()}:${String(new Date().getMinutes()).padStart(2, '0')} hs)\n\nPacientes en Sala:\n${handoverSummary || 'Sin pacientes internados actualmente.'}`);
     setHandoverLoading(false);
-    if (res.success) {
-      setHandoverText(res.text);
-    }
   };
 
   // Fluid balance calculations
