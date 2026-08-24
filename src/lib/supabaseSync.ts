@@ -433,26 +433,12 @@ export async function seedInitialDataToSupabase(data: {
   products?: Product[];
 }) {
   try {
-    if (data.owners && data.owners.length > 0) {
-      for (const o of data.owners) await syncOwnerToSupabase(o);
-    }
-    if (data.patients && data.patients.length > 0) {
-      for (const p of data.patients) await syncPatientToSupabase(p);
-    }
-    if (data.vitals && data.vitals.length > 0) {
-      for (const v of data.vitals) await syncVitalSignsToSupabase(v);
-    }
-    if (data.problems && data.problems.length > 0) {
-      for (const pr of data.problems) await syncProblemToSupabase(pr);
-    }
-    if (data.hospitalizations && data.hospitalizations.length > 0) {
-      for (const h of data.hospitalizations) await syncHospitalizationToSupabase(h);
-    }
+    // Only seed base product catalog if empty, never fake clinical patients
     if (data.products && data.products.length > 0) {
       for (const prod of data.products) await syncProductToSupabase(prod);
     }
   } catch (err) {
-    console.warn('Silent fallback: Supabase seed completed or partially applied.');
+    console.warn('Silent fallback: Product catalog sync.');
   }
 }
 
@@ -885,5 +871,45 @@ export async function syncAuditLogToSupabase(log: AuditLog) {
     if (error) console.error('Error syncing audit log to Supabase:', error);
   } catch (err) {
     console.warn('Offline: audit log cached locally');
+  }
+}
+
+
+/**
+ * Wipe all clinical and transactional demo records from Supabase tables
+ */
+export async function wipeRemoteSupabaseData(): Promise<boolean> {
+  try {
+    const tables = [
+      'debt_payments',
+      'account_debts',
+      'financial_transactions',
+      'invoices',
+      'estimates',
+      'clinical_documents',
+      'laboratory_orders',
+      'imaging_studies',
+      'vaccinations',
+      'surgeries',
+      'hospitalizations',
+      'consultations',
+      'vital_signs',
+      'patient_problems',
+      'appointments',
+      'triage_entries',
+      'patients',
+      'owners',
+    ];
+    for (const table of tables) {
+      try {
+        await supabase.from(table).delete().neq('id', '00000000-0000-0000-0000-000000000000');
+      } catch (err) {
+        console.warn('Wipe table error ' + table, err);
+      }
+    }
+    return true;
+  } catch (err) {
+    console.warn('Supabase wipeRemoteSupabaseData failed:', err);
+    return false;
   }
 }

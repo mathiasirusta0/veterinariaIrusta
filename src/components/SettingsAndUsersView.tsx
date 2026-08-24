@@ -36,9 +36,9 @@ export const SettingsAndUsersView: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'AUDITORIA' | 'PRODUCCION' | 'USUARIOS' | 'SUCURSALES' | 'ROLES'>('PRODUCCION');
   const [showConfirmModal, setShowConfirmModal] = useState(false);
 
-  const handleCleanDatabase = () => {
+  const handleCleanDatabase = async () => {
     triggerHaptic('medium');
-    clearAllDataToCleanProduction();
+    await clearAllDataToCleanProduction();
     setShowConfirmModal(false);
   };
 
