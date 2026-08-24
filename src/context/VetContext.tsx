@@ -379,111 +379,33 @@ export const VetProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return null;
   });
 
-  // Main collections with local storage initialization
-  const [owners, setOwners] = useState<Owner[]>(() => sanitizeCleanArray('vetsys_owners', INITIAL_OWNERS));
-
-  const [patients, setPatients] = useState<Patient[]>(() => sanitizeCleanArray('vetsys_patients', INITIAL_PATIENTS));
-
-  const [problems, setProblems] = useState<PatientProblem[]>(() => {
-    const saved = localStorage.getItem('vetsys_problems');
-    return saved ? JSON.parse(saved) : INITIAL_PROBLEMS;
-  });
-
-  const [vitals, setVitals] = useState<VitalSigns[]>(() => {
-    const saved = localStorage.getItem('vetsys_vitals');
-    return saved ? JSON.parse(saved) : INITIAL_VITALS;
-  });
-
-  const [consultations, setConsultations] = useState<Consultation[]>(() => {
-    const saved = localStorage.getItem('vetsys_consultations');
-    return saved ? JSON.parse(saved) : INITIAL_CONSULTATIONS;
-  });
-
-  const [hospitalizations, setHospitalizations] = useState<Hospitalization[]>(() => {
-    const saved = localStorage.getItem('vetsys_hospitalizations');
-    return saved ? JSON.parse(saved) : INITIAL_HOSPITALIZATIONS;
-  });
-
-  const [surgeries, setSurgeries] = useState<SurgeryRecord[]>(() => {
-    const saved = localStorage.getItem('vetsys_surgeries');
-    return saved ? JSON.parse(saved) : INITIAL_SURGERIES;
-  });
-
-  const [labOrders, setLabOrders] = useState<LaboratoryOrder[]>(() => {
-    const saved = localStorage.getItem('vetsys_labOrders');
-    return saved ? JSON.parse(saved) : INITIAL_LAB_ORDERS;
-  });
-
-  const [imagingStudies, setImagingStudies] = useState<ImagingStudy[]>(() => {
-    const saved = localStorage.getItem('vetsys_imaging');
-    return saved ? JSON.parse(saved) : INITIAL_IMAGING;
-  });
-
-  const [vaccinations, setVaccinations] = useState<VaccinationRecord[]>(() => {
-    const saved = localStorage.getItem('vetsys_vaccinations');
-    return saved ? JSON.parse(saved) : INITIAL_VACCINATIONS;
-  });
-
-  const [products, setProducts] = useState<Product[]>(() => {
-    const saved = localStorage.getItem('vetsys_products');
-    return saved ? JSON.parse(saved) : INITIAL_PRODUCTS;
-  });
-
+  // Main collections - 100% Supabase Single Source of Truth
+  const [owners, setOwners] = useState<Owner[]>(INITIAL_OWNERS);
+  const [patients, setPatients] = useState<Patient[]>(INITIAL_PATIENTS);
+  const [problems, setProblems] = useState<PatientProblem[]>(INITIAL_PROBLEMS);
+  const [vitals, setVitals] = useState<VitalSigns[]>(INITIAL_VITALS);
+  const [consultations, setConsultations] = useState<Consultation[]>(INITIAL_CONSULTATIONS);
+  const [hospitalizations, setHospitalizations] = useState<Hospitalization[]>(INITIAL_HOSPITALIZATIONS);
+  const [surgeries, setSurgeries] = useState<SurgeryRecord[]>(INITIAL_SURGERIES);
+  const [labOrders, setLabOrders] = useState<LaboratoryOrder[]>(INITIAL_LAB_ORDERS);
+  const [imagingStudies, setImagingStudies] = useState<ImagingStudy[]>(INITIAL_IMAGING);
+  const [vaccinations, setVaccinations] = useState<VaccinationRecord[]>(INITIAL_VACCINATIONS);
+  const [products, setProducts] = useState<Product[]>(INITIAL_PRODUCTS);
   const [inventoryMovements, setInventoryMovements] = useState<InventoryMovement[]>([]);
-
-  const [appointments, setAppointments] = useState<Appointment[]>(() => {
-    const saved = localStorage.getItem('vetsys_appointments');
-    return saved ? JSON.parse(saved) : INITIAL_APPOINTMENTS;
-  });
-
-  const [triageList, setTriageList] = useState<TriageEntry[]>(() => {
-    const saved = localStorage.getItem('vetsys_triage');
-    return saved ? JSON.parse(saved) : INITIAL_TRIAGE;
-  });
-
-  const [invoices, setInvoices] = useState<Invoice[]>(() => {
-    const saved = localStorage.getItem('vetsys_invoices');
-    return saved ? JSON.parse(saved) : INITIAL_INVOICES;
-  });
-
-  const [estimates, setEstimates] = useState<Estimate[]>(() => {
-    const saved = localStorage.getItem('vetsys_estimates');
-    return saved ? JSON.parse(saved) : INITIAL_ESTIMATES;
-  });
-
+  const [appointments, setAppointments] = useState<Appointment[]>(INITIAL_APPOINTMENTS);
+  const [triageList, setTriageList] = useState<TriageEntry[]>(INITIAL_TRIAGE);
+  const [invoices, setInvoices] = useState<Invoice[]>(INITIAL_INVOICES);
+  const [estimates, setEstimates] = useState<Estimate[]>(INITIAL_ESTIMATES);
   const [cashSession] = useState<CashRegisterSession>(INITIAL_CASH_SESSION);
-
-  const [encounters, setEncounters] = useState<ClinicalEncounter[]>(() => {
-    const saved = localStorage.getItem('vetsys_encounters');
-    return saved ? JSON.parse(saved) : INITIAL_ENCOUNTERS;
-  });
+  const [encounters, setEncounters] = useState<ClinicalEncounter[]>(INITIAL_ENCOUNTERS);
   const [activeEncounterId, setActiveEncounterId] = useState<string | null>(null);
-
-  const [procedures, setProcedures] = useState<ClinicalProcedure[]>(() => {
-    const saved = localStorage.getItem('vetsys_procedures');
-    return saved ? JSON.parse(saved) : INITIAL_PROCEDURES;
-  });
-
-  const [encounterConsumptions, setEncounterConsumptions] = useState<EncounterConsumptionItem[]>(() => {
-    const saved = localStorage.getItem('vetsys_encounter_consumptions');
-    return saved ? JSON.parse(saved) : INITIAL_ENCOUNTER_CONSUMPTIONS;
-  });
-
-  const [servicePrices, setServicePrices] = useState<ServicePriceItem[]>(() => {
-    const saved = localStorage.getItem('vetsys_service_prices');
-    return saved ? JSON.parse(saved) : INITIAL_SERVICE_PRICES;
-  });
+  const [procedures, setProcedures] = useState<ClinicalProcedure[]>(INITIAL_PROCEDURES);
+  const [encounterConsumptions, setEncounterConsumptions] = useState<EncounterConsumptionItem[]>(INITIAL_ENCOUNTER_CONSUMPTIONS);
+  const [servicePrices, setServicePrices] = useState<ServicePriceItem[]>(INITIAL_SERVICE_PRICES);
 
 
-  const [financialMovements, setFinancialMovements] = useState<FinancialMovement[]>(() => {
-    const saved = localStorage.getItem('vetsys_financial_movements');
-    return saved ? JSON.parse(saved) : INITIAL_FINANCIAL_MOVEMENTS;
-  });
-
-  const [accountDebts, setAccountDebts] = useState<AccountDebt[]>(() => {
-    const saved = localStorage.getItem('vetsys_account_debts');
-    return saved ? JSON.parse(saved) : INITIAL_ACCOUNT_DEBTS;
-  });
+  const [financialMovements, setFinancialMovements] = useState<FinancialMovement[]>(INITIAL_FINANCIAL_MOVEMENTS);
+  const [accountDebts, setAccountDebts] = useState<AccountDebt[]>(INITIAL_ACCOUNT_DEBTS);
 
   const [incomeCategories, setIncomeCategories] = useState<string[]>([
     'Consultas',
@@ -509,59 +431,15 @@ export const VetProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     'Otros Gastos',
   ]);
 
-  // Persist financial states
-  useEffect(() => {
-    localStorage.setItem('vetsys_financial_movements', JSON.stringify(financialMovements));
-  }, [financialMovements]);
-
-  useEffect(() => {
-    localStorage.setItem('vetsys_account_debts', JSON.stringify(accountDebts));
-  }, [accountDebts]);
-
-  const [documents, setDocuments] = useState<ClinicalDocument[]>(() => {
-    const saved = localStorage.getItem('vetsys_documents');
-    return saved ? JSON.parse(saved) : INITIAL_DOCUMENTS;
-  });
-
-  const [auditLogs, setAuditLogs] = useState<AuditLog[]>(() => {
-    const saved = localStorage.getItem('vetsys_auditLogs');
-    return saved ? JSON.parse(saved) : INITIAL_AUDIT_LOGS;
-  });
-
-  const [regulatoryRules, setRegulatoryRules] = useState<RegulatoryRule[]>(() => {
-    const saved = localStorage.getItem('vetsys_regulatory_rules');
-    return saved ? JSON.parse(saved) : INITIAL_REGULATORY_RULES;
-  });
-
-  const [controlledDrugs, setControlledDrugs] = useState<ControlledDrugItem[]>(() => {
-    const saved = localStorage.getItem('vetsys_controlled_drugs');
-    return saved ? JSON.parse(saved) : INITIAL_CONTROLLED_DRUGS;
-  });
-
-  const [controlledMovements, setControlledMovements] = useState<ControlledDrugMovement[]>(() => {
-    const saved = localStorage.getItem('vetsys_controlled_movements');
-    return saved ? JSON.parse(saved) : INITIAL_CONTROLLED_MOVEMENTS;
-  });
-
-  const [pathologicalWaste, setPathologicalWaste] = useState<PathologicalWasteRecord[]>(() => {
-    const saved = localStorage.getItem('vetsys_pathological_waste');
-    return saved ? JSON.parse(saved) : INITIAL_PATHOLOGICAL_WASTE;
-  });
-
-  const [prescriptions, setPrescriptions] = useState<Prescription[]>(() => {
-    const saved = localStorage.getItem('vetsys_prescriptions');
-    return saved ? JSON.parse(saved) : INITIAL_PRESCRIPTIONS;
-  });
-
-  const [antimicrobialRecords, setAntimicrobialRecords] = useState<AntimicrobialRecord[]>(() => {
-    const saved = localStorage.getItem('vetsys_antimicrobial_records');
-    return saved ? JSON.parse(saved) : INITIAL_ANTIMICROBIAL_RECORDS;
-  });
-
-  const [clinicalEvolutions, setClinicalEvolutions] = useState<ClinicalEvolutionEntry[]>(() => {
-    const saved = localStorage.getItem('vetsys_clinical_evolutions');
-    return saved ? JSON.parse(saved) : INITIAL_CLINICAL_EVOLUTIONS;
-  });
+  const [documents, setDocuments] = useState<ClinicalDocument[]>(INITIAL_DOCUMENTS);
+  const [auditLogs, setAuditLogs] = useState<AuditLog[]>(INITIAL_AUDIT_LOGS);
+  const [regulatoryRules, setRegulatoryRules] = useState<RegulatoryRule[]>(INITIAL_REGULATORY_RULES);
+  const [controlledDrugs, setControlledDrugs] = useState<ControlledDrugItem[]>(INITIAL_CONTROLLED_DRUGS);
+  const [controlledMovements, setControlledMovements] = useState<ControlledDrugMovement[]>(INITIAL_CONTROLLED_MOVEMENTS);
+  const [pathologicalWaste, setPathologicalWaste] = useState<PathologicalWasteRecord[]>(INITIAL_PATHOLOGICAL_WASTE);
+  const [prescriptions, setPrescriptions] = useState<Prescription[]>(INITIAL_PRESCRIPTIONS);
+  const [antimicrobialRecords, setAntimicrobialRecords] = useState<AntimicrobialRecord[]>(INITIAL_ANTIMICROBIAL_RECORDS);
+  const [clinicalEvolutions, setClinicalEvolutions] = useState<ClinicalEvolutionEntry[]>(INITIAL_CLINICAL_EVOLUTIONS);
 
   // Regulatory & Controlled Drugs & Waste Handlers
   const addRegulatoryRule = (ruleData: Omit<RegulatoryRule, 'id' | 'lastReviewedAt'>) => {
@@ -961,83 +839,8 @@ export const VetProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     };
   }, []);
 
-  // Sync to local storage
-  useEffect(() => {
-    localStorage.setItem('vetsys_owners', JSON.stringify(owners));
-  }, [owners]);
-  useEffect(() => {
-    localStorage.setItem('vetsys_patients', JSON.stringify(patients));
-  }, [patients]);
-  useEffect(() => {
-    localStorage.setItem('vetsys_problems', JSON.stringify(problems));
-  }, [problems]);
-  useEffect(() => {
-    localStorage.setItem('vetsys_vitals', JSON.stringify(vitals));
-  }, [vitals]);
-  useEffect(() => {
-    localStorage.setItem('vetsys_consultations', JSON.stringify(consultations));
-  }, [consultations]);
-  useEffect(() => {
-    localStorage.setItem('vetsys_hospitalizations', JSON.stringify(hospitalizations));
-  }, [hospitalizations]);
-  useEffect(() => {
-    localStorage.setItem('vetsys_surgeries', JSON.stringify(surgeries));
-  }, [surgeries]);
-  useEffect(() => {
-    localStorage.setItem('vetsys_products', JSON.stringify(products));
-  }, [products]);
-  useEffect(() => {
-    localStorage.setItem('vetsys_appointments', JSON.stringify(appointments));
-  }, [appointments]);
-  useEffect(() => {
-    localStorage.setItem('vetsys_triage', JSON.stringify(triageList));
-  }, [triageList]);
-  useEffect(() => {
-    localStorage.setItem('vetsys_invoices', JSON.stringify(invoices));
-  }, [invoices]);
-  useEffect(() => {
-    localStorage.setItem('vetsys_estimates', JSON.stringify(estimates));
-  }, [estimates]);
-  useEffect(() => {
-    localStorage.setItem('vetsys_documents', JSON.stringify(documents));
-  }, [documents]);
-  useEffect(() => {
-    localStorage.setItem('vetsys_labOrders', JSON.stringify(labOrders));
-  }, [labOrders]);
-  useEffect(() => {
-    localStorage.setItem('vetsys_imaging', JSON.stringify(imagingStudies));
-  }, [imagingStudies]);
-  useEffect(() => {
-    localStorage.setItem('vetsys_vaccinations', JSON.stringify(vaccinations));
-  }, [vaccinations]);
-  useEffect(() => {
-    localStorage.setItem('vetsys_clinical_evolutions', JSON.stringify(clinicalEvolutions));
-  }, [clinicalEvolutions]);
-  useEffect(() => {
-    localStorage.setItem('vetsys_auditLogs', JSON.stringify(auditLogs));
-    localStorage.setItem('vetsys_regulatory_rules', JSON.stringify(regulatoryRules));
-    localStorage.setItem('vetsys_controlled_drugs', JSON.stringify(controlledDrugs));
-    localStorage.setItem('vetsys_controlled_movements', JSON.stringify(controlledMovements));
-    localStorage.setItem('vetsys_pathological_waste', JSON.stringify(pathologicalWaste));
-    localStorage.setItem('vetsys_prescriptions', JSON.stringify(prescriptions));
-    localStorage.setItem('vetsys_antimicrobial_records', JSON.stringify(antimicrobialRecords));
-  }, [regulatoryRules, controlledDrugs, controlledMovements, pathologicalWaste, prescriptions, antimicrobialRecords, auditLogs]);
+  // 100% Cloud-Backed: All data is saved and loaded directly with Supabase
 
-  useEffect(() => {
-    localStorage.setItem('vetsys_encounters', JSON.stringify(encounters));
-  }, [encounters]);
-
-  useEffect(() => {
-    localStorage.setItem('vetsys_procedures', JSON.stringify(procedures));
-  }, [procedures]);
-
-  useEffect(() => {
-    localStorage.setItem('vetsys_encounter_consumptions', JSON.stringify(encounterConsumptions));
-  }, [encounterConsumptions]);
-
-  useEffect(() => {
-    localStorage.setItem('vetsys_service_prices', JSON.stringify(servicePrices));
-  }, [servicePrices]);
 
   // Audit Logger helper
 

@@ -29,10 +29,16 @@ describe('Supabase Live Schema & Connectivity Verification', () => {
       'audit_logs',
     ];
 
-    for (const table of tables) {
-      const { data, error } = await supabase.from(table).select('*').limit(1);
-      expect(error).toBeNull();
-      expect(Array.isArray(data)).toBe(true);
+    const results = await Promise.all(
+      tables.map(async (table) => {
+        const res = await supabase.from(table).select('*').limit(1);
+        return { table, error: res.error, data: res.data };
+      })
+    );
+
+    for (const r of results) {
+      expect(r.error, `Error en tabla ${r.table}`).toBeNull();
+      expect(Array.isArray(r.data)).toBe(true);
     }
-  });
+  }, 15000);
 });

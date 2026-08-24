@@ -349,6 +349,23 @@ const AppContent: React.FC = () => {
   return <MainLayout />;
 };
 
+// Ensure browser local storage has no lingering legacy demo data
+if (typeof window !== 'undefined') {
+  const LEGACY_KEYS = [
+    'vetsys_patients', 'vetsys_owners', 'vetsys_problems', 'vetsys_vitals',
+    'vetsys_consultations', 'vetsys_hospitalizations', 'vetsys_surgeries',
+    'vetsys_labOrders', 'vetsys_imaging', 'vetsys_vaccinations',
+    'vetsys_appointments', 'vetsys_triage', 'vetsys_invoices', 'vetsys_estimates',
+    'vetsys_documents', 'vetsys_encounters', 'vetsys_procedures',
+    'vetsys_encounter_consumptions', 'vetsys_financial_movements',
+    'vetsys_account_debts', 'vetsys_clinical_evolutions', 'vetsys_auditLogs',
+    'vetsys_version_flag', 'vetsys_products', 'vetsys_prescriptions',
+  ];
+  LEGACY_KEYS.forEach((k) => {
+    try { localStorage.removeItem(k); } catch {}
+  });
+}
+
 export default function App() {
   return (
     <VetProvider>
