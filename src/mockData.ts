@@ -56,46 +56,10 @@ export const INITIAL_BRANCHES: Branch[] = [
 export const INITIAL_USERS: User[] = [
   {
     id: 'user-1',
-    name: 'Dr. Martín López',
-    email: 'mlopez@vetsystem.com.ar',
-    role: 'VETERINARIO',
-    licenseNumber: 'MP 8412 - Cirugía & UCI',
-    branchId: 'branch-1',
-  },
-  {
-    id: 'user-2',
-    name: 'Dra. Carolina Silva',
-    email: 'csilva@vetsystem.com.ar',
-    role: 'VETERINARIO',
-    licenseNumber: 'MP 9520 - Clínica Médica & Felinos',
-    branchId: 'branch-1',
-  },
-  {
-    id: 'user-3',
-    name: 'Lic. Gonzalo Rossi',
-    email: 'grossi@vetsystem.com.ar',
-    role: 'ENFERMERIA',
-    branchId: 'branch-1',
-  },
-  {
-    id: 'user-4',
-    name: 'Romina Juárez',
-    email: 'rjuarez@vetsystem.com.ar',
-    role: 'RECEPCION',
-    branchId: 'branch-1',
-  },
-  {
-    id: 'user-5',
-    name: 'Matías Beltrán',
-    email: 'mbeltran@vetsystem.com.ar',
-    role: 'CAJA',
-    branchId: 'branch-1',
-  },
-  {
-    id: 'user-6',
     name: 'Superadmin Sistema',
     email: 'admin@vetsystem.com.ar',
     role: 'SUPERADMIN',
+    licenseNumber: 'MP 8412 - Dirección Médica',
     branchId: 'branch-1',
   },
 ];
@@ -244,7 +208,7 @@ export const INITIAL_PATIENTS: Patient[] = [
     microchip: '981098123456790',
     photoUrl: 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=300',
     ownerId: 'owner-2',
-    primaryVetId: 'user-2',
+    primaryVetId: 'user-1',
     status: 'ACTIVO',
     alerts: [
       {
@@ -300,7 +264,7 @@ export const INITIAL_PATIENTS: Patient[] = [
     microchip: '981098123456792',
     photoUrl: 'https://images.unsplash.com/photo-1573865526739-10659fec78a5?w=300',
     ownerId: 'owner-4',
-    primaryVetId: 'user-2',
+    primaryVetId: 'user-1',
     status: 'INTERNADO',
     alerts: [
       {
@@ -352,7 +316,7 @@ export const INITIAL_PATIENTS: Patient[] = [
     microchip: '981098123456794',
     photoUrl: 'https://images.unsplash.com/photo-1546527868-ccb7ee7dfa6a?w=300',
     ownerId: 'owner-6',
-    primaryVetId: 'user-2',
+    primaryVetId: 'user-1',
     status: 'ACTIVO',
     alerts: [
       {
@@ -378,7 +342,7 @@ export const INITIAL_PATIENTS: Patient[] = [
     microchip: '981098123456795',
     photoUrl: 'https://images.unsplash.com/photo-1585110396000-c9ffd4e4b308?w=300',
     ownerId: 'owner-6',
-    primaryVetId: 'user-2',
+    primaryVetId: 'user-1',
     status: 'ACTIVO',
     alerts: [],
     branchId: 'branch-1',
@@ -595,7 +559,7 @@ export const INITIAL_CONSULTATIONS: Consultation[] = [
   {
     id: 'cons-2',
     patientId: 'pat-2',
-    vetId: 'user-2',
+    vetId: 'user-1',
     vetName: 'Dra. Carolina Silva',
     branchId: 'branch-1',
     dateTime: '2025-02-15T10:30:00Z',
@@ -699,7 +663,7 @@ export const INITIAL_HOSPITALIZATIONS: Hospitalization[] = [
   {
     id: 'hosp-2',
     patientId: 'pat-4',
-    vetInChargeId: 'user-2',
+    vetInChargeId: 'user-1',
     vetInChargeName: 'Dra. Carolina Silva',
     sector: 'FELINOS',
     kennelNumber: 'FEL-03',
@@ -1094,7 +1058,7 @@ export const INITIAL_APPOINTMENTS: Appointment[] = [
     id: 'app-2',
     patientId: 'pat-6',
     ownerId: 'owner-6',
-    vetId: 'user-2',
+    vetId: 'user-1',
     branchId: 'branch-1',
     date: todayIsoDate,
     time: '11:30',
@@ -1107,7 +1071,7 @@ export const INITIAL_APPOINTMENTS: Appointment[] = [
     id: 'app-3',
     patientId: 'pat-7',
     ownerId: 'owner-6',
-    vetId: 'user-2',
+    vetId: 'user-1',
     branchId: 'branch-1',
     date: todayIsoDate,
     time: '15:00',
@@ -1822,7 +1786,7 @@ export const INITIAL_PRESCRIPTIONS: Prescription[] = [
     prescriptionType: 'RECETA_COMUN',
     patientId: 'pat-2',
     ownerId: 'owner-2',
-    vetId: 'user-2',
+    vetId: 'user-1',
     vetName: 'Dra. Carolina Silva',
     vetLicense: 'MP 9520 CMVC',
     vetCuit: '27-35812901-4',
