@@ -21,6 +21,7 @@ export type SystemView =
   | 'VACUNAS'
   | 'INVENTARIO'
   | 'CAJA_FACTURACION'
+  | 'GESTION_ECONOMICA'
   | 'DOCUMENTOS'
   | 'CENTRO_QA'
   | 'CONFIGURACION';
@@ -47,6 +48,7 @@ export const ROLE_PERMISSIONS: Record<UserRole, SystemView[]> = {
     'VACUNAS',
     'INVENTARIO',
     'CAJA_FACTURACION',
+    'GESTION_ECONOMICA',
     'DOCUMENTOS',
     'CENTRO_QA',
     'CONFIGURACION',

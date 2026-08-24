@@ -48,6 +48,7 @@ import { ImagingView } from './components/ImagingView';
 import { VaccinationView } from './components/VaccinationView';
 import { InventoryView } from './components/InventoryView';
 import { CashAndBillingView } from './components/CashAndBillingView';
+import { EconomicManagementView } from './components/EconomicManagementView';
 import { DocumentsView } from './components/DocumentsView';
 import { SettingsAndUsersView } from './components/SettingsAndUsersView';
 import { PrescriptionsView } from './components/PrescriptionsView';
@@ -217,6 +218,14 @@ const MainLayout: React.FC = () => {
         return (
           <ModuleErrorBoundary moduleName="Caja & Facturación AFIP">
             <CashAndBillingView />
+          </ModuleErrorBoundary>
+        );
+      case 'GESTION_ECONOMICA':
+      case 'ECONOMIA':
+      case 'FINANZAS':
+        return (
+          <ModuleErrorBoundary moduleName="Gestión Económica">
+            <EconomicManagementView />
           </ModuleErrorBoundary>
         );
       case 'DOCUMENTOS':

@@ -16,6 +16,7 @@ import {
   Users,
   FileText,
   ShieldCheck,
+  TrendingUp,
   LucideIcon,
 } from 'lucide-react';
 import { UserRole } from '../types';
@@ -145,6 +146,15 @@ export const NAVIGATION_ITEMS: NavItemConfig[] = [
     description: 'Facturación electrónica ARCA/AFIP, cuentas corrientes y arqueo Z',
     icon: Receipt,
     group: 'ADMINISTRACION',
+  },
+  {
+    id: 'GESTION_ECONOMICA',
+    label: 'Gestión Económica',
+    shortLabel: 'Economía',
+    description: 'Control de ingresos, gastos, deudas a cobrar/pagar y balances del negocio',
+    icon: TrendingUp,
+    group: 'ADMINISTRACION',
+    badgeColor: 'bg-emerald-500',
   },
   {
     id: 'PROPIETARIOS',

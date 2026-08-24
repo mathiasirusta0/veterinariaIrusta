@@ -34,6 +34,11 @@ import {
   ClinicalAmendment,
   ClinicalEvolutionEntry,
   MedicationSchedule,
+  FinancialMovement,
+  AccountDebt,
+  FinancialPaymentMethod,
+  FinancialMovementStatus,
+  PaymentInstallment,
 } from '../types';
 import {
   INITIAL_BRANCHES,
@@ -136,6 +141,17 @@ interface VetContextType {
   prescriptions: Prescription[];
   antimicrobialRecords: AntimicrobialRecord[];
   clinicalEvolutions: ClinicalEvolutionEntry[];
+
+  // GESTIÓN ECONÓMICA
+  financialMovements: FinancialMovement[];
+  accountDebts: AccountDebt[];
+  incomeCategories: string[];
+  expenseCategories: string[];
+  addFinancialMovement: (data: Omit<FinancialMovement, 'id' | 'createdAt' | 'createdBy'>) => FinancialMovement;
+  voidFinancialMovement: (id: string, reason: string) => void;
+  addAccountDebt: (data: Omit<AccountDebt, 'id' | 'balance' | 'paidAmount' | 'payments' | 'createdAt' | 'createdBy'>) => AccountDebt;
+  registerDebtPayment: (debtId: string, amount: number, paymentMethod: FinancialPaymentMethod, notes?: string) => void;
+  addCustomCategory: (type: 'INGRESO' | 'GASTO', category: string) => void;
 
   // Clinical Evolution Actions
   addClinicalEvolution: (entry: Omit<ClinicalEvolutionEntry, 'id' | 'createdAt' | 'status'>) => ClinicalEvolutionEntry;
@@ -277,6 +293,195 @@ interface VetContextType {
 
 const VetContext = createContext<VetContextType | undefined>(undefined);
 
+
+const INITIAL_FINANCIAL_MOVEMENTS: FinancialMovement[] = [
+  {
+    id: 'fin-001',
+    date: '2026-08-23',
+    type: 'INGRESO',
+    category: 'Consultas',
+    concept: 'Consulta clínica general y Vacunación Séxtuple',
+    description: 'Atención canino Rocky, control general',
+    amount: 45000,
+    paymentMethod: 'TRANSFERENCIA',
+    status: 'COBRADO',
+    clientName: 'Juan Pérez',
+    createdAt: new Date().toISOString(),
+    createdBy: 'Dr. Matías Irusta',
+  },
+  {
+    id: 'fin-002',
+    date: '2026-08-22',
+    type: 'INGRESO',
+    category: 'Cirugías',
+    concept: 'Cirugía traumatológica osteosíntesis fémur',
+    description: 'Procedimiento quirúrgico con anestesia inhalatoria',
+    amount: 180000,
+    paymentMethod: 'MERCADOPAGO_QR',
+    status: 'COBRADO',
+    clientName: 'María Fernández',
+    createdAt: new Date().toISOString(),
+    createdBy: 'Dr. Matías Irusta',
+  },
+  {
+    id: 'fin-003',
+    date: '2026-08-21',
+    type: 'INGRESO',
+    category: 'Farmacia & Ventas',
+    concept: 'Venta de fármacos y antiparasitarios',
+    description: 'Antibiótico cefalexina + Nexgard Spectra',
+    amount: 28500,
+    paymentMethod: 'EFECTIVO',
+    status: 'COBRADO',
+    clientName: 'Roberto Sánchez',
+    createdAt: new Date().toISOString(),
+    createdBy: 'Secretaría',
+  },
+  {
+    id: 'fin-004',
+    date: '2026-08-20',
+    type: 'GASTO',
+    category: 'Insumos',
+    concept: 'Compra de material descartable y guantes',
+    description: 'Jeringas, guantes estériles y catéteres endovenosos',
+    amount: 65000,
+    paymentMethod: 'TRANSFERENCIA',
+    status: 'PAGADO',
+    supplierName: 'Distribuidora Veterinaria Sur',
+    createdAt: new Date().toISOString(),
+    createdBy: 'Administración',
+  },
+  {
+    id: 'fin-005',
+    date: '2026-08-15',
+    type: 'GASTO',
+    category: 'Alquiler',
+    concept: 'Alquiler mensual clínica hospitalaria y quirófano',
+    description: 'Período Agosto 2026',
+    amount: 250000,
+    paymentMethod: 'TRANSFERENCIA',
+    status: 'PAGADO',
+    supplierName: 'Inmobiliaria Central',
+    createdAt: new Date().toISOString(),
+    createdBy: 'Administración',
+  },
+  {
+    id: 'fin-006',
+    date: '2026-08-10',
+    type: 'GASTO',
+    category: 'Servicios',
+    concept: 'Servicio de electricidad clínica 24hs',
+    description: 'Edenor - Suministro ininterrumpido',
+    amount: 48000,
+    paymentMethod: 'TARJETA_DEBITO',
+    status: 'PAGADO',
+    supplierName: 'Edenor SA',
+    createdAt: new Date().toISOString(),
+    createdBy: 'Administración',
+  },
+];
+
+const INITIAL_ACCOUNT_DEBTS: AccountDebt[] = [
+  {
+    id: 'deb-001',
+    type: 'COBRAR',
+    entityName: 'Juan Pérez',
+    concept: 'Saldo de internación en terapia y cirugía de urgencia',
+    totalAmount: 120000,
+    paidAmount: 50000,
+    balance: 70000,
+    issueDate: '2026-08-15',
+    dueDate: '2026-09-01',
+    status: 'PARCIAL',
+    notes: 'Tutor acordó cancelar el saldo en 2 cuotas quincenales',
+    payments: [
+      {
+        id: 'pay-001',
+        date: '2026-08-15',
+        amount: 50000,
+        paymentMethod: 'TRANSFERENCIA',
+        notes: 'Anticipo al ingreso de internación',
+        registeredBy: 'Secretaría',
+      },
+    ],
+    createdAt: new Date().toISOString(),
+    createdBy: 'Dr. Matías Irusta',
+  },
+  {
+    id: 'deb-002',
+    type: 'COBRAR',
+    entityName: 'Marcela Gómez',
+    concept: 'Estudios de laboratorio y ecografía Doppler',
+    totalAmount: 35000,
+    paidAmount: 0,
+    balance: 35000,
+    issueDate: '2026-08-18',
+    dueDate: '2026-08-30',
+    status: 'PENDIENTE',
+    notes: 'Abonará al retirar los resultados impresos',
+    payments: [],
+    createdAt: new Date().toISOString(),
+    createdBy: 'Secretaría',
+  },
+  {
+    id: 'deb-003',
+    type: 'COBRAR',
+    entityName: 'Lucas Benítez',
+    concept: 'Tratamiento ambulatorio prolongado paciente felino',
+    totalAmount: 20000,
+    paidAmount: 0,
+    balance: 20000,
+    issueDate: '2026-07-20',
+    dueDate: '2026-08-05',
+    status: 'VENCIDA',
+    notes: 'Recordatorio enviado por WhatsApp',
+    payments: [],
+    createdAt: new Date().toISOString(),
+    createdBy: 'Secretaría',
+  },
+  {
+    id: 'deb-004',
+    type: 'PAGAR',
+    entityName: 'Equipamiento Médico Vet SRL',
+    concept: 'Factura compra de transductor para ecógrafo',
+    totalAmount: 350000,
+    paidAmount: 150000,
+    balance: 200000,
+    issueDate: '2026-08-10',
+    dueDate: '2026-09-15',
+    status: 'PARCIAL',
+    notes: 'Plan de pago en 2 cuotas acordado con proveedor',
+    payments: [
+      {
+        id: 'pay-002',
+        date: '2026-08-10',
+        amount: 150000,
+        paymentMethod: 'TRANSFERENCIA',
+        notes: 'Pago 1 de 2 realizado',
+        registeredBy: 'Administración',
+      },
+    ],
+    createdAt: new Date().toISOString(),
+    createdBy: 'Administración',
+  },
+  {
+    id: 'deb-005',
+    type: 'PAGAR',
+    entityName: 'Servicio Técnico Quirúrgico',
+    concept: 'Calibración y service oficial de autoclave',
+    totalAmount: 45000,
+    paidAmount: 0,
+    balance: 45000,
+    issueDate: '2026-08-20',
+    dueDate: '2026-09-05',
+    status: 'PENDIENTE',
+    notes: 'Abonar contra entrega del certificado de calibración',
+    payments: [],
+    createdAt: new Date().toISOString(),
+    createdBy: 'Administración',
+  },
+];
+
 export const VetProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [activeView, setActiveView] = useState<string>('PACIENTES');
   const [selectedPatientId, setSelectedPatientId] = useState<string | null>(null); // Default select Toby
@@ -368,6 +573,49 @@ export const VetProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   });
 
   const [cashSession] = useState<CashRegisterSession>(INITIAL_CASH_SESSION);
+
+  const [financialMovements, setFinancialMovements] = useState<FinancialMovement[]>(() => {
+    const saved = localStorage.getItem('vetsys_financial_movements');
+    return saved ? JSON.parse(saved) : INITIAL_FINANCIAL_MOVEMENTS;
+  });
+
+  const [accountDebts, setAccountDebts] = useState<AccountDebt[]>(() => {
+    const saved = localStorage.getItem('vetsys_account_debts');
+    return saved ? JSON.parse(saved) : INITIAL_ACCOUNT_DEBTS;
+  });
+
+  const [incomeCategories, setIncomeCategories] = useState<string[]>([
+    'Consultas',
+    'Cirugías',
+    'Internación & UCI',
+    'Farmacia & Ventas',
+    'Laboratorio',
+    'Diagnóstico por Imágenes',
+    'Vacunación',
+    'Peluquería & Estética',
+    'Otros Ingresos',
+  ]);
+
+  const [expenseCategories, setExpenseCategories] = useState<string[]>([
+    'Insumos',
+    'Medicamentos & Droguería',
+    'Alquiler',
+    'Servicios',
+    'Sueldos & Honorarios',
+    'Mantenimiento',
+    'Transporte',
+    'Impuestos & Tasas',
+    'Otros Gastos',
+  ]);
+
+  // Persist financial states
+  useEffect(() => {
+    localStorage.setItem('vetsys_financial_movements', JSON.stringify(financialMovements));
+  }, [financialMovements]);
+
+  useEffect(() => {
+    localStorage.setItem('vetsys_account_debts', JSON.stringify(accountDebts));
+  }, [accountDebts]);
 
   const [documents, setDocuments] = useState<ClinicalDocument[]>(() => {
     const saved = localStorage.getItem('vetsys_documents');
@@ -1713,6 +1961,104 @@ export const VetProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return invoice;
   };
 
+  // Financial Actions
+  const addFinancialMovement = (data: Omit<FinancialMovement, 'id' | 'createdAt' | 'createdBy'>): FinancialMovement => {
+    const newMov: FinancialMovement = {
+      ...data,
+      id: 'fin-' + Date.now() + '-' + Math.random().toString(36).substring(2, 6),
+      createdAt: new Date().toISOString(),
+      createdBy: currentUser.name,
+      branchId: activeBranch.id,
+    };
+    setFinancialMovements((prev) => [newMov, ...prev]);
+    logAudit('MOVIMIENTO_FINANCIERO_CREADO', 'FinancialMovement', newMov.id, `${newMov.type}: ${newMov.concept} por ${newMov.amount}`);
+    return newMov;
+  };
+
+  const voidFinancialMovement = (id: string, reason: string) => {
+    setFinancialMovements((prev) =>
+      prev.map((m) =>
+        m.id === id
+          ? {
+              ...m,
+              isVoided: true,
+              voidReason: reason,
+              status: 'ANULADO',
+            }
+          : m
+      )
+    );
+    logAudit('MOVIMIENTO_FINANCIERO_ANULADO', 'FinancialMovement', id, `Movimiento ${id} anulado por motivo: ${reason}`);
+  };
+
+  const addAccountDebt = (data: Omit<AccountDebt, 'id' | 'balance' | 'paidAmount' | 'payments' | 'createdAt' | 'createdBy'>): AccountDebt => {
+    const newDebt: AccountDebt = {
+      ...data,
+      id: 'deb-' + Date.now() + '-' + Math.random().toString(36).substring(2, 6),
+      paidAmount: 0,
+      balance: data.totalAmount,
+      payments: [],
+      createdAt: new Date().toISOString(),
+      createdBy: currentUser.name,
+      branchId: activeBranch.id,
+    };
+    setAccountDebts((prev) => [newDebt, ...prev]);
+    logAudit('CUENTA_DEUDA_CREADA', 'AccountDebt', newDebt.id, `Deuda a ${newDebt.type}: ${newDebt.entityName} por ${newDebt.totalAmount}`);
+    return newDebt;
+  };
+
+  const registerDebtPayment = (debtId: string, amount: number, paymentMethod: FinancialPaymentMethod, notes?: string) => {
+    setAccountDebts((prev) =>
+      prev.map((d) => {
+        if (d.id !== debtId) return d;
+        const payment: PaymentInstallment = {
+          id: 'pay-' + Date.now() + '-' + Math.random().toString(36).substring(2, 6),
+          date: new Date().toISOString().split('T')[0],
+          amount,
+          paymentMethod,
+          notes: notes || 'Pago registrado',
+          registeredBy: currentUser.name,
+        };
+        const newPaid = d.paidAmount + amount;
+        const newBalance = Math.max(0, d.totalAmount - newPaid);
+        const newStatus = newBalance === 0 ? 'PAGADA' : 'PARCIAL';
+
+        // Auto-create financial movement for the payment
+        addFinancialMovement({
+          date: new Date().toISOString().split('T')[0],
+          type: d.type === 'COBRAR' ? 'INGRESO' : 'GASTO',
+          category: d.type === 'COBRAR' ? 'Cobro de Cuentas Pendientes' : 'Pago de Proveedores',
+          concept: `Pago ${d.type === 'COBRAR' ? 'recibido de' : 'realizado a'} ${d.entityName}`,
+          description: `Abono de deuda: ${d.concept}. Saldo restante: ${newBalance}`,
+          amount,
+          paymentMethod,
+          status: d.type === 'COBRAR' ? 'COBRADO' : 'PAGADO',
+          clientName: d.type === 'COBRAR' ? d.entityName : undefined,
+          supplierName: d.type === 'PAGAR' ? d.entityName : undefined,
+          notes,
+        });
+
+        return {
+          ...d,
+          paidAmount: newPaid,
+          balance: newBalance,
+          status: newStatus,
+          payments: [...d.payments, payment],
+        };
+      })
+    );
+  };
+
+  const addCustomCategory = (type: 'INGRESO' | 'GASTO', category: string) => {
+    const trimmed = category.trim();
+    if (!trimmed) return;
+    if (type === 'INGRESO') {
+      setIncomeCategories((prev) => (prev.includes(trimmed) ? prev : [...prev, trimmed]));
+    } else {
+      setExpenseCategories((prev) => (prev.includes(trimmed) ? prev : [...prev, trimmed]));
+    }
+  };
+
   // Documents & Consents
   const addDocument = (data: Omit<ClinicalDocument, 'id' | 'createdAt'>) => {
     const newDoc: ClinicalDocument = {
@@ -1820,6 +2166,15 @@ export const VetProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         invoices,
         estimates,
         cashSession,
+        financialMovements,
+        accountDebts,
+        incomeCategories,
+        expenseCategories,
+        addFinancialMovement,
+        voidFinancialMovement,
+        addAccountDebt,
+        registerDebtPayment,
+        addCustomCategory,
         documents,
         auditLogs,
         regulatoryRules,

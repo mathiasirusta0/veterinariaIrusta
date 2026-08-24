@@ -977,3 +977,56 @@ export interface ClinicalEvolutionEntry {
   signatureHash?: string;
 }
 
+
+// GESTIÓN ECONÓMICA Y FINANZAS
+export type FinancialPaymentMethod = 'EFECTIVO' | 'TRANSFERENCIA' | 'TARJETA_DEBITO' | 'TARJETA_CREDITO' | 'MERCADOPAGO_QR' | 'OTRO';
+export type FinancialMovementStatus = 'COBRADO' | 'PAGADO' | 'PENDIENTE' | 'PARCIAL' | 'ANULADO';
+
+export interface PaymentInstallment {
+  id: string;
+  date: string;
+  amount: number;
+  paymentMethod: FinancialPaymentMethod;
+  notes?: string;
+  registeredBy: string;
+}
+
+export interface FinancialMovement {
+  id: string;
+  date: string;
+  type: 'INGRESO' | 'GASTO';
+  category: string;
+  concept: string;
+  description?: string;
+  amount: number;
+  paymentMethod: FinancialPaymentMethod;
+  status: FinancialMovementStatus;
+  clientId?: string;
+  clientName?: string;
+  supplierName?: string;
+  notes?: string;
+  isVoided?: boolean;
+  voidReason?: string;
+  createdAt: string;
+  createdBy: string;
+  branchId?: string;
+}
+
+export interface AccountDebt {
+  id: string;
+  type: 'COBRAR' | 'PAGAR';
+  entityName: string;
+  entityId?: string;
+  concept: string;
+  totalAmount: number;
+  paidAmount: number;
+  balance: number;
+  issueDate: string;
+  dueDate: string;
+  status: 'PENDIENTE' | 'PARCIAL' | 'PAGADA' | 'VENCIDA';
+  notes?: string;
+  payments: PaymentInstallment[];
+  createdAt: string;
+  createdBy: string;
+  branchId?: string;
+}
