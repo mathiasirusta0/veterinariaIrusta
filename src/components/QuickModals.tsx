@@ -1,3 +1,34 @@
+// Age calculation helper functions
+function computeAgeFromBirthDate(birthDateStr: string): string {
+  if (!birthDateStr) return 'Desconocida';
+  const birth = new Date(birthDateStr);
+  if (isNaN(birth.getTime())) return 'Desconocida';
+  const today = new Date();
+  let years = today.getFullYear() - birth.getFullYear();
+  let months = today.getMonth() - birth.getMonth();
+  if (months < 0 || (months === 0 && today.getDate() < birth.getDate())) {
+    years--;
+    months += 12;
+  }
+  if (years <= 0) {
+    return months <= 1 ? '1 mes' : `${months} meses`;
+  }
+  if (months === 0) {
+    return years === 1 ? '1 año' : `${years} años`;
+  }
+  return years === 1 ? `1 año y ${months} meses` : `${years} años y ${months} meses`;
+}
+
+function computeBirthDateFromAge(val: number, unit: 'AÑOS' | 'MESES'): string {
+  const d = new Date();
+  if (unit === 'AÑOS') {
+    d.setFullYear(d.getFullYear() - (val || 0));
+  } else {
+    d.setMonth(d.getMonth() - (val || 0));
+  }
+  return d.toISOString().split('T')[0];
+}
+
 import React, { useState } from 'react';
 import {
   X,
@@ -55,12 +86,15 @@ export const QuickModals: React.FC = () => {
 
   // Patient Form State
   const [patName, setPatName] = useState('');
-  const [patSpecies, setPatSpecies] = useState<'Canino' | 'Felino' | 'Exótico'>('Canino');
+  const [patSpecies, setPatSpecies] = useState<string>('Canino');
   const [patBreed, setPatBreed] = useState('');
   const [patSex, setPatSex] = useState<'Macho' | 'Hembra'>('Macho');
   const [patRepro, setPatRepro] = useState<'Entero' | 'Castrado'>('Entero');
-  const [patBirth, setPatBirth] = useState('2021-01-01');
-  const [patWeight, setPatWeight] = useState(10);
+  const [patAgeMode, setPatAgeMode] = useState<'EDAD' | 'FECHA'>('EDAD');
+  const [patAgeValue, setPatAgeValue] = useState<string>('2');
+  const [patAgeUnit, setPatAgeUnit] = useState<'AÑOS' | 'MESES'>('AÑOS');
+  const [patBirth, setPatBirth] = useState(() => computeBirthDateFromAge(2, 'AÑOS'));
+  const [patWeight, setPatWeight] = useState<number | string>(10);
   const [patColor, setPatColor] = useState('');
   const [patMicrochip, setPatMicrochip] = useState('');
   const [patOwnerId, setPatOwnerId] = useState(owners[0]?.id || '');
@@ -232,17 +266,25 @@ export const QuickModals: React.FC = () => {
       ownerIdToUse = createdOwner.id;
     }
 
+    const calculatedAgeStr = patAgeMode === 'EDAD'
+      ? `${patAgeValue || '1'} ${patAgeUnit === 'AÑOS' ? (Number(patAgeValue) === 1 ? 'año' : 'años') : (Number(patAgeValue) === 1 ? 'mes' : 'meses')}`
+      : computeAgeFromBirthDate(patBirth);
+
+    const birthDateToSave = patAgeMode === 'EDAD'
+      ? computeBirthDateFromAge(Number(patAgeValue) || 1, patAgeUnit)
+      : (patBirth || new Date().toISOString().split('T')[0]);
+
     const created = addPatient({
-      name: patName,
-      species: patSpecies,
-      breed: patBreed || 'Mestizo',
+      name: patName.trim(),
+      species: patSpecies as any,
+      breed: patBreed.trim() || 'Mestizo',
       sex: patSex,
       reproductiveStatus: patRepro,
-      birthDate: patBirth,
-      calculatedAge: '3 años',
-      weight: Number(patWeight),
-      color: patColor || 'Estándar',
-      microchip: patMicrochip || undefined,
+      birthDate: birthDateToSave,
+      calculatedAge: calculatedAgeStr,
+      weight: Number(patWeight) || 10,
+      color: patColor.trim() || 'Estándar',
+      microchip: patMicrochip.trim() || undefined,
       ownerId: ownerIdToUse,
       status: 'ACTIVO',
       alerts: patAlert ? [{ type: 'ALERGIA' as const, description: patAlert, severity: 'ALTA' as const }] : [],
@@ -263,7 +305,7 @@ export const QuickModals: React.FC = () => {
     setSelectedPatientId(created.id);
     setActiveView('PACIENTES');
     setQuickModal(null);
-    showToast('success', 'Paciente Registrado', `${created.name} y los datos de su propietario fueron guardados con éxito.`);
+    showToast('success', 'Paciente Registrado', `${created.name} y los datos de su propietario fueron guardados con éxito en el sistema.`);
   };
 
   const handleCreateOwner = (e: React.FormEvent) => {
@@ -530,7 +572,7 @@ export const QuickModals: React.FC = () => {
 
   return (
     <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4">
-      <div className="bg-white border border-slate-200 rounded-t-3xl sm:rounded-3xl w-full max-w-2xl p-5 sm:p-6 space-y-4 max-h-[92dvh] sm:max-h-[85vh] overflow-y-auto custom-scrollbar shadow-2xl animate-in slide-in-from-bottom-5 sm:zoom-in-95 duration-150 safe-bottom">
+      <div className="bg-white border border-slate-200 rounded-t-3xl sm:rounded-3xl w-full max-w-2xl sm:max-w-3xl p-5 sm:p-6 space-y-4 max-h-[92dvh] sm:max-h-[88vh] overflow-y-auto custom-scrollbar shadow-2xl animate-in slide-in-from-bottom-5 sm:zoom-in-95 duration-150 safe-bottom">
         <div className="flex items-center justify-between border-b border-slate-100 pb-3 sticky top-0 bg-white z-10">
           <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
             {quickModal === 'QUICK_ACTIONS' && '⚡ Acciones Rápidas del Hospital'}
@@ -599,117 +641,174 @@ export const QuickModals: React.FC = () => {
 
         {/* 2. NUEVO PACIENTE FORM */}
         {quickModal === 'NUEVO_PACIENTE' && (
-          <form onSubmit={handleCreatePatient} className="space-y-3 text-xs">
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="text-slate-700 block font-bold mb-1">Nombre del Paciente:</label>
-                <input
-                  type="text"
-                  value={patName}
-                  onChange={(e) => setPatName(e.target.value)}
-                  placeholder="ej: Rocky"
-                  required
-                  className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-slate-900 focus:outline-none focus:ring-2 focus:ring-teal-500"
-                />
+          <form onSubmit={handleCreatePatient} className="space-y-4 text-xs">
+            {/* BLOQUE 1: IDENTIFICACIÓN DEL PACIENTE */}
+            <div className="p-4 bg-slate-50/80 rounded-2xl border border-slate-200/90 space-y-3 shadow-2xs">
+              <div className="flex items-center gap-2 border-b border-slate-200/80 pb-2">
+                <span className="text-base">🐾</span>
+                <span className="font-extrabold text-slate-900 text-xs uppercase tracking-wider">
+                  1. Ficha del Paciente
+                </span>
               </div>
 
-              <div>
-                <label className="text-slate-700 block font-bold mb-1">Especie:</label>
-                <select
-                  value={patSpecies}
-                  onChange={(e) => setPatSpecies(e.target.value as any)}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-slate-900 font-semibold focus:outline-none focus:ring-2 focus:ring-teal-500"
-                >
-                  <option value="Canino">Canino</option>
-                  <option value="Felino">Felino</option>
-                  <option value="Exótico">Exótico</option>
-                </select>
-              </div>
-            </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="text-slate-700 block font-bold mb-1">
+                    Nombre del Paciente: <span className="text-rose-500 font-bold">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={patName}
+                    onChange={(e) => setPatName(e.target.value)}
+                    placeholder="ej: Rocky, Duque..."
+                    required
+                    className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-slate-900 font-semibold focus:outline-none focus:ring-2 focus:ring-teal-500 shadow-2xs"
+                  />
+                </div>
 
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="text-slate-700 block font-bold mb-1">Raza:</label>
-                <input
-                  type="text"
-                  value={patBreed}
-                  onChange={(e) => setPatBreed(e.target.value)}
-                  placeholder="ej: Bulldog Francés, Mestizo..."
-                  required
-                  className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-slate-900 focus:outline-none focus:ring-2 focus:ring-teal-500"
-                />
-              </div>
-
-              <div>
-                <label className="text-slate-700 block font-bold mb-1">Sexo & Castrado:</label>
-                <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="text-slate-700 block font-bold mb-1">Especie:</label>
                   <select
-                    value={patSex}
-                    onChange={(e) => setPatSex(e.target.value as any)}
-                    className="bg-slate-50 border border-slate-200 rounded-lg px-2 py-2 text-slate-900"
+                    value={patSpecies}
+                    onChange={(e) => setPatSpecies(e.target.value)}
+                    className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-slate-900 font-bold focus:outline-none focus:ring-2 focus:ring-teal-500 shadow-2xs"
                   >
-                    <option value="Macho">Macho</option>
-                    <option value="Hembra">Hembra</option>
+                    <option value="Canino">Canino (Perro)</option>
+                    <option value="Felino">Felino (Gato)</option>
+                    <option value="Equino">Equino (Caballo)</option>
+                    <option value="Bovino">Bovino (Vaca / Toro)</option>
+                    <option value="Ovino">Ovino / Caprino</option>
+                    <option value="Exótico">Exótico / No Convencional</option>
                   </select>
-                  <select
-                    value={patRepro}
-                    onChange={(e) => setPatRepro(e.target.value as any)}
-                    className="bg-slate-50 border border-slate-200 rounded-lg px-2 py-2 text-slate-900"
-                  >
-                    <option value="Entero">Entero</option>
-                    <option value="Castrado">Castrado</option>
-                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="text-slate-700 block font-bold mb-1">
+                    Raza: <span className="text-rose-500 font-bold">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={patBreed}
+                    onChange={(e) => setPatBreed(e.target.value)}
+                    placeholder="ej: American Bully, Criollo, Mestizo..."
+                    required
+                    className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-slate-900 font-medium focus:outline-none focus:ring-2 focus:ring-teal-500 shadow-2xs"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-slate-700 block font-bold mb-1">Sexo & Condición Reproductiva:</label>
+                  <div className="grid grid-cols-2 gap-2">
+                    <select
+                      value={patSex}
+                      onChange={(e) => setPatSex(e.target.value as any)}
+                      className="bg-white border border-slate-300 rounded-xl px-3 py-2 text-slate-900 font-semibold focus:outline-none focus:ring-2 focus:ring-teal-500 shadow-2xs"
+                    >
+                      <option value="Macho">Macho</option>
+                      <option value="Hembra">Hembra</option>
+                    </select>
+                    <select
+                      value={patRepro}
+                      onChange={(e) => setPatRepro(e.target.value as any)}
+                      className="bg-white border border-slate-300 rounded-xl px-3 py-2 text-slate-900 font-semibold focus:outline-none focus:ring-2 focus:ring-teal-500 shadow-2xs"
+                    >
+                      <option value="Entero">Entero</option>
+                      <option value="Castrado">Castrado</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                {/* Peso */}
+                <div>
+                  <label className="text-slate-700 block font-bold mb-1">
+                    Peso (kg): <span className="text-rose-500 font-bold">*</span>
+                  </label>
+                  <input
+                    type="number"
+                    step="0.1"
+                    min="0.1"
+                    max="1000"
+                    value={patWeight}
+                    onChange={(e) => setPatWeight(e.target.value)}
+                    required
+                    className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-slate-900 font-mono font-bold focus:outline-none focus:ring-2 focus:ring-teal-500 shadow-2xs"
+                  />
+                </div>
+
+                {/* Color / Pelaje */}
+                <div>
+                  <label className="text-slate-700 block font-bold mb-1">Color / Pelaje:</label>
+                  <input
+                    type="text"
+                    value={patColor}
+                    onChange={(e) => setPatColor(e.target.value)}
+                    placeholder="ej: Negro, Atigrado, Alazán..."
+                    className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-slate-900 font-medium focus:outline-none focus:ring-2 focus:ring-teal-500 shadow-2xs"
+                  />
+                </div>
+
+                {/* Edad o Fecha de Nacimiento con selector limpio */}
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="text-slate-700 font-bold">Edad / Nacimiento:</label>
+                    <button
+                      type="button"
+                      onClick={() => setPatAgeMode(patAgeMode === 'EDAD' ? 'FECHA' : 'EDAD')}
+                      className="text-[10px] text-teal-700 hover:text-teal-900 font-extrabold underline cursor-pointer"
+                    >
+                      {patAgeMode === 'EDAD' ? '🗓️ Usar Fecha' : '⏳ Usar Edad'}
+                    </button>
+                  </div>
+
+                  {patAgeMode === 'EDAD' ? (
+                    <div className="flex items-center gap-1.5">
+                      <input
+                        type="number"
+                        min="0"
+                        max="40"
+                        step="1"
+                        value={patAgeValue}
+                        onChange={(e) => setPatAgeValue(e.target.value)}
+                        placeholder="ej: 2"
+                        className="w-20 bg-white border border-slate-300 rounded-xl px-3 py-2 text-slate-900 font-mono font-bold focus:outline-none focus:ring-2 focus:ring-teal-500 shadow-2xs text-center"
+                      />
+                      <select
+                        value={patAgeUnit}
+                        onChange={(e) => setPatAgeUnit(e.target.value as any)}
+                        className="flex-1 bg-white border border-slate-300 rounded-xl px-2 py-2 text-slate-900 font-bold focus:outline-none focus:ring-2 focus:ring-teal-500 shadow-2xs"
+                      >
+                        <option value="AÑOS">Años</option>
+                        <option value="MESES">Meses</option>
+                      </select>
+                    </div>
+                  ) : (
+                    <input
+                      type="date"
+                      max={new Date().toISOString().split('T')[0]}
+                      value={patBirth}
+                      onChange={(e) => setPatBirth(e.target.value)}
+                      className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-slate-900 font-mono font-semibold focus:outline-none focus:ring-2 focus:ring-teal-500 shadow-2xs"
+                    />
+                  )}
                 </div>
               </div>
             </div>
 
-            <div className="grid grid-cols-3 gap-3">
-              <div>
-                <label className="text-slate-700 block font-bold mb-1">Fecha Nacimiento:</label>
-                <input
-                  type="date"
-                  max={new Date().toISOString().split('T')[0]}
-                  value={patBirth}
-                  onChange={(e) => setPatBirth(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-slate-900 font-mono"
-                />
-              </div>
-              <div>
-                <label className="text-slate-700 block font-bold mb-1">Peso (kg):</label>
-                <input
-                  type="number"
-                  step="0.1"
-                  min="0.1"
-                  max="150"
-                  value={patWeight}
-                  onChange={(e) => setPatWeight(Number(e.target.value))}
-                  required
-                  className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-slate-900 font-mono font-bold"
-                />
-              </div>
-              <div>
-                <label className="text-slate-700 block font-bold mb-1">Color / Pelaje:</label>
-                <input
-                  type="text"
-                  value={patColor}
-                  onChange={(e) => setPatColor(e.target.value)}
-                  placeholder="ej: Negro y fuego"
-                  className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-slate-900"
-                />
-              </div>
-            </div>
-
-            {/* Sección de Datos del Propietario / Tutor */}
-            <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 space-y-3">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200/80 pb-2">
+            {/* BLOQUE 2: DATOS DEL PROPIETARIO / TUTOR */}
+            <div className="p-4 bg-teal-50/40 rounded-2xl border border-teal-200/80 space-y-3 shadow-2xs">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-teal-200/80 pb-2">
                 <div className="flex items-center gap-2">
-                  <span className="text-sm">👤</span>
-                  <span className="font-bold text-slate-900 text-xs uppercase tracking-wider">
-                    Datos del Propietario / Tutor Responsable
+                  <span className="text-base">👤</span>
+                  <span className="font-extrabold text-teal-950 text-xs uppercase tracking-wider">
+                    2. Datos del Propietario / Tutor Responsable
                   </span>
                 </div>
                 {owners.length > 0 && (
-                  <div className="flex items-center gap-1 bg-white border border-slate-200 p-0.5 rounded-lg text-[11px] font-bold self-start sm:self-auto">
+                  <div className="flex items-center gap-1 bg-white border border-teal-200 p-0.5 rounded-lg text-[11px] font-bold self-start sm:self-auto">
                     <button
                       type="button"
                       onClick={() => setPatOwnerMode('MANUAL')}
@@ -719,7 +818,7 @@ export const QuickModals: React.FC = () => {
                           : 'text-slate-600 hover:text-slate-900'
                       }`}
                     >
-                      ✍️ Escribir Tutor Manual
+                      ✍️ Escribir Tutor
                     </button>
                     <button
                       type="button"
@@ -737,10 +836,10 @@ export const QuickModals: React.FC = () => {
               </div>
 
               {patOwnerMode === 'MANUAL' || owners.length === 0 ? (
-                <div className="space-y-2.5">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                <div className="space-y-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
-                      <label className="text-slate-700 block font-bold mb-1">
+                      <label className="text-slate-800 block font-bold mb-1">
                         Nombre del Propietario: <span className="text-rose-500 font-bold">*</span>
                       </label>
                       <input
@@ -749,11 +848,11 @@ export const QuickModals: React.FC = () => {
                         onChange={(e) => setPatOwnerFirstName(e.target.value)}
                         placeholder="ej: Carlos"
                         required={patOwnerMode === 'MANUAL' || owners.length === 0}
-                        className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-slate-900 font-semibold focus:outline-none focus:ring-2 focus:ring-teal-500"
+                        className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-slate-900 font-semibold focus:outline-none focus:ring-2 focus:ring-teal-500 shadow-2xs"
                       />
                     </div>
                     <div>
-                      <label className="text-slate-700 block font-bold mb-1">
+                      <label className="text-slate-800 block font-bold mb-1">
                         Apellido del Propietario: <span className="text-rose-500 font-bold">*</span>
                       </label>
                       <input
@@ -762,14 +861,14 @@ export const QuickModals: React.FC = () => {
                         onChange={(e) => setPatOwnerLastName(e.target.value)}
                         placeholder="ej: Rodríguez"
                         required={patOwnerMode === 'MANUAL' || owners.length === 0}
-                        className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-slate-900 font-semibold focus:outline-none focus:ring-2 focus:ring-teal-500"
+                        className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-slate-900 font-semibold focus:outline-none focus:ring-2 focus:ring-teal-500 shadow-2xs"
                       />
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
-                      <label className="text-slate-700 block font-bold mb-1">
+                      <label className="text-slate-800 block font-bold mb-1">
                         Teléfono / WhatsApp de Contacto: <span className="text-rose-500 font-bold">*</span>
                       </label>
                       <input
@@ -778,32 +877,32 @@ export const QuickModals: React.FC = () => {
                         onChange={(e) => setPatOwnerPhone(e.target.value)}
                         placeholder="ej: +54 9 358 4123456"
                         required={patOwnerMode === 'MANUAL' || owners.length === 0}
-                        className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-slate-900 font-mono font-bold focus:outline-none focus:ring-2 focus:ring-teal-500"
+                        className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-slate-900 font-mono font-bold focus:outline-none focus:ring-2 focus:ring-teal-500 shadow-2xs"
                       />
-                      <span className="text-[10px] text-teal-700 font-medium mt-0.5 block">
+                      <span className="text-[10px] text-teal-800 font-bold mt-1 block">
                         📱 Para avisarle novedades clínicas, partes médicos y evolución del tratamiento.
                       </span>
                     </div>
 
                     <div>
-                      <label className="text-slate-700 block font-bold mb-1">DNI (Opcional):</label>
+                      <label className="text-slate-800 block font-bold mb-1">DNI / CUIT (Opcional):</label>
                       <input
                         type="text"
                         value={patOwnerDni}
                         onChange={(e) => setPatOwnerDni(e.target.value)}
                         placeholder="ej: 38.450.912"
-                        className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-slate-900 font-mono"
+                        className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-slate-900 font-mono focus:outline-none focus:ring-2 focus:ring-teal-500 shadow-2xs"
                       />
                     </div>
                   </div>
                 </div>
               ) : (
                 <div>
-                  <label className="text-slate-700 block font-bold mb-1">Seleccionar Tutor Registrado:</label>
+                  <label className="text-slate-800 block font-bold mb-1">Seleccionar Tutor de la Base de Datos:</label>
                   <select
                     value={patOwnerId}
                     onChange={(e) => setPatOwnerId(e.target.value)}
-                    className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-slate-900 font-semibold focus:outline-none focus:ring-2 focus:ring-teal-500"
+                    className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2.5 text-slate-900 font-bold focus:outline-none focus:ring-2 focus:ring-teal-500 shadow-2xs"
                   >
                     {owners.map((o) => (
                       <option key={o.id} value={o.id}>
@@ -815,41 +914,53 @@ export const QuickModals: React.FC = () => {
               )}
             </div>
 
-            <div>
-              <label className="text-slate-700 block font-bold mb-1">Microchip ISO (Opcional):</label>
-              <input
-                type="text"
-                value={patMicrochip}
-                onChange={(e) => setPatMicrochip(e.target.value)}
-                placeholder="ej: 981098109283719"
-                className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-slate-900 font-mono font-semibold"
-              />
+            {/* BLOQUE 3: DATOS CLÍNICOS ADICIONALES */}
+            <div className="p-4 bg-slate-50/80 rounded-2xl border border-slate-200/90 space-y-3 shadow-2xs">
+              <div className="flex items-center gap-2 border-b border-slate-200/80 pb-2">
+                <span className="text-base">🛡️</span>
+                <span className="font-extrabold text-slate-900 text-xs uppercase tracking-wider">
+                  3. Datos Clínicos Adicionales
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="text-slate-700 block font-bold mb-1">Microchip ISO (Opcional):</label>
+                  <input
+                    type="text"
+                    value={patMicrochip}
+                    onChange={(e) => setPatMicrochip(e.target.value)}
+                    placeholder="ej: 981098109283719"
+                    className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-slate-900 font-mono font-semibold focus:outline-none focus:ring-2 focus:ring-teal-500 shadow-2xs"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-slate-700 block font-bold mb-1">Alerta Médica Inicial (Opcional):</label>
+                  <input
+                    type="text"
+                    value={patAlert}
+                    onChange={(e) => setPatAlert(e.target.value)}
+                    placeholder="ej: Alérgico a penicilina, Cardiópata, Agresivo..."
+                    className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-rose-700 placeholder-slate-400 font-semibold focus:outline-none focus:ring-2 focus:ring-rose-500 shadow-2xs"
+                  />
+                </div>
+              </div>
             </div>
 
-            <div>
-              <label className="text-slate-700 block font-bold mb-1">Alerta Médica Inicial (Opcional):</label>
-              <input
-                type="text"
-                value={patAlert}
-                onChange={(e) => setPatAlert(e.target.value)}
-                placeholder="ej: Alérgico a penicilina, Cardiópata, Agresivo en manejo..."
-                className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-red-700 placeholder-slate-400 font-semibold"
-              />
-            </div>
-
-            <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
+            <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-200">
               <button
                 type="button"
                 onClick={() => setQuickModal(null)}
-                className="px-3.5 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold"
+                className="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold transition-colors cursor-pointer"
               >
                 Cancelar
               </button>
               <button
                 type="submit"
-                className="px-4 py-2 rounded-lg bg-teal-600 hover:bg-teal-500 text-white font-bold shadow-sm"
+                className="btn-physical btn-physical-teal px-6 py-2.5 rounded-xl text-white font-extrabold shadow-md flex items-center gap-2 cursor-pointer"
               >
-                Registrar Paciente
+                <span>🐾 Registrar Paciente</span>
               </button>
             </div>
           </form>
