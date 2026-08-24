@@ -141,6 +141,7 @@ import {
   syncAccountDebtToSupabase,
 } from '../lib/supabaseSync';
 import { hasViewPermission, getDefaultViewForRole, SystemView } from '../utils/rbac';
+import { computeDoseTimes, computeInitialDoseSlots } from '../utils/medicationScheduleHelper';
 
 interface VetContextType {
   // Navigation & State
@@ -247,6 +248,8 @@ interface VetContextType {
   updateFluidTherapy: (hospitalizationId: string, fluid: Hospitalization['fluidTherapy']) => void;
   addHospitalMedication: (patientId: string, med: Partial<MedicationSchedule>) => void;
   administerMedication: (hospitalizationId: string, medicationScheduleId: string, notes?: string) => { success: boolean; message: string };
+  administerDoseSlot: (hospitalizationId: string, medicationScheduleId: string, slotTime: string, notes?: string) => { success: boolean; message: string };
+  suspendMedication: (hospitalizationId: string, medicationScheduleId: string, reason?: string) => void;
   addHourlySheetEntry: (hospitalizationId: string, entry: Omit<Hospitalization['hourlySheet'][0], 'id' | 'timestamp' | 'staffName'>) => void;
   dischargeHospitalPatient: (hospitalizationId: string, summary: string) => void;
 
@@ -1722,27 +1725,38 @@ export const VetProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const addHospitalMedication = (patientId: string, med: Partial<MedicationSchedule>) => {
-    const targetHosp = hospitalizations.find((h) => (med.hospitalizationId && h.id === med.hospitalizationId) || (h.patientId === patientId && h.status === 'ACTIVA'));
-    
+    let targetHosp = hospitalizations.find(
+      (h) => (med.hospitalizationId && h.id === med.hospitalizationId) || (h.patientId === patientId && h.status === 'ACTIVA')
+    ) || hospitalizations.find((h) => h.patientId === patientId);
+
+    const hospIdToUse = targetHosp?.id || `hosp-care-${patientId}`;
+    const startHour = med.scheduledTime || '08:00';
+    const frequency = med.frequency || 'Cada 8 hs';
+    const calculatedTimes = computeDoseTimes(startHour, frequency);
+    const calculatedSlots = computeInitialDoseSlots(startHour, frequency);
+
     const newMed: MedicationSchedule = {
       id: `med-${Date.now()}`,
       patientId,
-      hospitalizationId: targetHosp?.id || '',
+      hospitalizationId: hospIdToUse,
       drugName: med.drugName || 'Fármaco',
       dose: med.dose || '1 ml',
       route: med.route || 'IV',
-      frequency: med.frequency || 'Cada 8 hs',
-      scheduledTime: med.scheduledTime || '08:00',
+      frequency,
+      scheduledTime: startHour,
       status: 'PENDIENTE',
       notes: med.notes || '',
       productId: med.productId,
+      doseTimes: calculatedTimes,
+      doseSlots: calculatedSlots,
+      administeredDoses: [],
       ...med,
     };
 
     if (targetHosp) {
       setHospitalizations((prev) =>
         prev.map((h) => {
-          if (h.id === targetHosp.id) {
+          if (h.id === targetHosp!.id) {
             const updated = {
               ...h,
               medications: [...(h.medications || []), newMed],
@@ -1754,97 +1768,160 @@ export const VetProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         })
       );
     } else {
-      // Register as ambulatory prescription record
-      const patientObj = patients.find((p) => p.id === patientId);
-      const newRx: Prescription = {
-        id: 'rx-' + Date.now(),
-        prescriptionNumber: 'RX-' + Date.now().toString().slice(-6),
-        prescriptionType: 'RECETA_COMUN',
+      // Auto-create active clinical/hospital care sheet so all indications and checklist are active & persistent
+      const newHosp: Hospitalization = {
+        id: hospIdToUse,
         patientId,
-        ownerId: patientObj?.ownerId || 'owner-general',
-        vetId: currentUser?.id || 'vet-1',
-        vetName: currentUser?.name || 'Dr. Veterinario',
-        vetLicense: currentUser?.licenseNumber || 'MP 8412',
-        date: new Date().toISOString().split('T')[0],
-        items: [
-          {
-            id: 'rx-it-' + Date.now(),
-            medicationName: newMed.drugName || 'Fármaco',
-            presentation: 'Presentación estándar',
-            dose: newMed.dose || '1 dosis',
-            route: (newMed.route as any) || 'ORAL',
-            frequency: newMed.frequency || 'Cada 12 horas',
-            duration: '3 días',
-            instructions: newMed.notes || 'Administrar según indicación profesional',
-          },
-        ],
-        diagnosis: 'Indicación médica ambulatoria',
-        notes: newMed.notes,
-        isDispensed: true,
+        admittedAt: new Date().toISOString(),
+        sector: 'UCI',
+        kennelNumber: 'CANIL-01',
+        primaryDiagnosis: 'Tratamiento Médico Activo',
+        priority: 'ESTABLE',
+        status: 'ACTIVA',
+        vetInChargeId: 'usr-1',
+        vetInChargeName: currentUser?.name || 'Dr. Diego Irusta',
+        fluidTherapy: {
+          isActive: false,
+          solutionType: 'Ringer Lactato',
+          volumeTotalMl: 500,
+          rateMlPerHour: 20,
+          infusionRoute: 'IV',
+          startedAt: new Date().toISOString(),
+          prescribedBy: currentUser?.name || 'Dr. Diego Irusta',
+        },
+        feeding: {
+          dietType: 'ORAL',
+          foodBrand: 'Dieta estándar',
+          amountGramsOrMl: 200,
+          frequency: '2 veces al día',
+          tolerance: 'EXCELENTE',
+        },
+        eliminations: [],
+        intervalHours: 4,
+        medications: [newMed],
+        tasks: [],
+        hourlySheet: [],
+        branchId: 'branch-central',
       };
-      setPrescriptions((prev) => [newRx, ...prev]);
+      setHospitalizations((prev) => [newHosp, ...prev]);
+      syncHospitalizationToSupabase(newHosp);
     }
 
-    logAudit('INDICACION_MEDICACION', 'Medication', patientId, `Indicación de ${newMed.drugName} (${newMed.dose}) por ${currentUser?.name || 'Veterinario'}`);
+    logAudit(
+      'INDICACION_MEDICACION',
+      'Medication',
+      patientId,
+      `Indicación de ${newMed.drugName} (${newMed.dose} ${newMed.route}) c/${frequency} (${calculatedTimes.join(', ')} hs) por ${currentUser?.name || 'Dr. Diego Irusta'}`
+    );
   };
 
-  const administerMedication = (hospitalizationId: string, medicationScheduleId: string, notes?: string) => {
+  const administerDoseSlot = (
+    hospitalizationId: string,
+    medicationScheduleId: string,
+    slotTime: string,
+    notes?: string
+  ): { success: boolean; message: string } => {
     let result = { success: false, message: '' };
 
     setHospitalizations((prev) =>
       prev.map((h) => {
         if (h.id === hospitalizationId) {
-          const med = h.medications.find((m) => m.id === medicationScheduleId);
+          const med = h.medications?.find((m) => m.id === medicationScheduleId);
           if (!med) {
             result = { success: false, message: 'Medicamento no encontrado' };
             return h;
           }
 
-          if (med.status === 'REALIZADA') {
+          // Check if this specific slot is already done
+          const existingSlot = (med.doseSlots || []).find((s) => s.time === slotTime);
+          if (existingSlot && (existingSlot.status === 'REALIZADA' || existingSlot.administeredAt)) {
             result = {
               success: false,
-              message: `⚠️ ADVERTENCIA: Esta medicación ya fue administrada previamente a las ${med.administeredAt?.slice(11, 16)} por ${med.administeredBy}.`,
+              message: `⚠️ ADVERTENCIA: La toma de las ${slotTime} hs ya fue administrada previamente a las ${existingSlot.administeredAt?.slice(11, 16)} por ${existingSlot.administeredBy}.`,
             };
-            showToast('warning', 'Medicación Ya Aplicada', `Ya fue registrada por ${med.administeredBy}`);
+            showToast('warning', 'Toma Horaria Ya Aplicada', `La toma de las ${slotTime} hs ya fue registrada por ${existingSlot.administeredBy}`);
             return h;
           }
 
-          // Mark as done
+          const adminAt = new Date().toISOString();
+          const adminBy = currentUser?.name || 'Dr. Diego Irusta';
+
+          // Update or initialize doseSlots
+          let currentSlots = med.doseSlots && med.doseSlots.length > 0
+            ? med.doseSlots
+            : computeInitialDoseSlots(med.scheduledTime || '08:00', med.frequency);
+
+          let slotFound = false;
+          const updatedSlots = currentSlots.map((s) => {
+            if (s.time === slotTime) {
+              slotFound = true;
+              return {
+                ...s,
+                status: 'REALIZADA' as const,
+                administeredAt: adminAt,
+                administeredBy: adminBy,
+                notes: notes || s.notes,
+              };
+            }
+            return s;
+          });
+
+          if (!slotFound) {
+            updatedSlots.push({
+              time: slotTime,
+              status: 'REALIZADA' as const,
+              administeredAt: adminAt,
+              administeredBy: adminBy,
+              notes,
+            });
+          }
+
+          const allDone = updatedSlots.length > 0 && updatedSlots.every((s) => s.status === 'REALIZADA');
+
+          const newAdminDose = {
+            administeredAt: adminAt,
+            administeredBy: adminBy,
+            notes: notes || `Toma de las ${slotTime} hs`,
+          };
+
           const updatedMeds = h.medications.map((m) => {
             if (m.id === medicationScheduleId) {
               return {
                 ...m,
-                status: 'REALIZADA' as const,
-                administeredAt: new Date().toISOString(),
-                administeredBy: currentUser.name,
-                notes: notes || m.notes,
+                status: allDone ? 'REALIZADA' : 'PENDIENTE',
+                administeredAt: adminAt,
+                administeredBy: adminBy,
+                doseSlots: updatedSlots,
+                administeredDoses: [...(m.administeredDoses || []), newAdminDose],
               };
             }
             return m;
           });
 
-          // Deduct stock if productId linked
+          // Deduct stock if linked
           if (med.productId) {
-            updateProductStock(med.productId, -1, 'USO_INTERNACION', `Uso internación: ${med.drugName} en paciente`);
+            updateProductStock(med.productId, -1, 'USO_INTERNACION', `Uso internación: ${med.drugName} (toma ${slotTime} hs)`);
           }
 
-          // Register billable consumption for pre-invoicing
-          const prod = products.find((p) => p.id === med.productId || p.commercialName.toLowerCase().includes(med.drugName.toLowerCase()));
+          // Register consumption
+          const prod = products.find(
+            (p) => p.id === med.productId || p.commercialName.toLowerCase().includes(med.drugName.toLowerCase())
+          );
           const unitPrice = prod?.salePrice || 4500;
           const consumption: EncounterConsumptionItem = {
-            id: 'cons-' + Date.now() + '-med',
+            id: 'cons-' + Date.now() + '-med-' + slotTime.replace(':', ''),
             encounterId: activeEncounterId || hospitalizationId,
             patientId: h.patientId,
             sourceType: 'MEDICAMENTO',
             sourceId: med.id,
             code: prod?.code || 'MED-APPL',
-            concept: `Aplicación: ${med.drugName} (${med.dose} ${med.route})`,
+            concept: `Aplicación: ${med.drugName} (${med.dose} ${med.route}) - Toma ${slotTime} hs`,
             quantity: 1,
             unitPrice,
             subtotal: unitPrice,
             status: 'CONFIRMADO',
-            performedAt: new Date().toISOString(),
-            performedBy: currentUser.name,
+            performedAt: adminAt,
+            performedBy: adminBy,
             isBilled: false,
           };
           setEncounterConsumptions((cPrev) => [consumption, ...cPrev]);
@@ -1853,12 +1930,16 @@ export const VetProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             'ADMINISTRACION_MEDICACION',
             'Hospitalization',
             hospitalizationId,
-            `Administración de ${med.drugName} (${med.dose} ${med.route}) por ${currentUser.name}`
+            `Administración de ${med.drugName} (${med.dose} ${med.route}) - Toma de las ${slotTime} hs por ${adminBy}`
           );
 
-          result = { success: true, message: `✅ Medicación ${med.drugName} administrada correctamente.` };
-          showToast('success', 'Medicación Administrada', `${med.drugName} (${med.dose}) aplicada y cargada a cuenta.`);
-          const updatedHosp = { ...h, medications: updatedMeds };
+          result = { success: true, message: `✅ Toma de las ${slotTime} hs (${med.drugName}) administrada con éxito.` };
+          showToast('success', 'Toma Administrada', `${med.drugName} (${med.dose}) - Toma ${slotTime} hs registrada por ${adminBy}.`);
+
+          const updatedHosp = {
+            ...h,
+            medications: updatedMeds,
+          };
           syncHospitalizationToSupabase(updatedHosp);
           return updatedHosp;
         }
@@ -1867,6 +1948,39 @@ export const VetProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     );
 
     return result;
+  };
+
+  const administerMedication = (hospitalizationId: string, medicationScheduleId: string, notes?: string) => {
+    // Forward to administer the first pending slot
+    const hosp = hospitalizations.find((h) => h.id === hospitalizationId);
+    const med = hosp?.medications?.find((m) => m.id === medicationScheduleId);
+    const pendingSlot = (med?.doseSlots || []).find((s) => s.status === 'PENDIENTE');
+    const slotToAdmin = pendingSlot?.time || med?.scheduledTime || '08:00';
+    return administerDoseSlot(hospitalizationId, medicationScheduleId, slotToAdmin, notes);
+  };
+
+  const suspendMedication = (hospitalizationId: string, medicationScheduleId: string, reason?: string) => {
+    setHospitalizations((prev) =>
+      prev.map((h) => {
+        if (h.id === hospitalizationId) {
+          const updatedMeds = (h.medications || []).map((m) => {
+            if (m.id === medicationScheduleId) {
+              return {
+                ...m,
+                status: 'SUSPENDIDA' as const,
+                notes: reason ? `${m.notes ? m.notes + ' | ' : ''}Suspendido: ${reason}` : m.notes,
+              };
+            }
+            return m;
+          });
+          const updatedHosp = { ...h, medications: updatedMeds };
+          syncHospitalizationToSupabase(updatedHosp);
+          return updatedHosp;
+        }
+        return h;
+      })
+    );
+    showToast('info', 'Medicación Suspendida', 'El plan farmacológico ha sido finalizado.');
   };
 
   const addHourlySheetEntry = (
@@ -2529,6 +2643,8 @@ export const VetProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         updateFluidTherapy,
         addHospitalMedication,
         administerMedication,
+        administerDoseSlot,
+        suspendMedication,
         addHourlySheetEntry,
         dischargeHospitalPatient,
 

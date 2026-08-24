@@ -334,6 +334,14 @@ export type MedicationAdminStatus =
   | 'REPROGRAMADA'
   | 'SUSPENDIDA';
 
+export interface MedicationDoseSlot {
+  time: string; // ej: "08:00", "16:00", "24:00"
+  status: MedicationAdminStatus;
+  administeredAt?: string;
+  administeredBy?: string;
+  notes?: string;
+}
+
 export interface MedicationSchedule {
   id: string;
   hospitalizationId: string;
@@ -349,6 +357,9 @@ export interface MedicationSchedule {
   administeredBy?: string;
   notes?: string;
   productId?: string; // Vinculación a inventario para descuento automático
+  doseTimes?: string[];
+  doseSlots?: MedicationDoseSlot[];
+  administeredDoses?: { administeredAt: string; administeredBy: string; notes?: string }[];
 }
 
 export interface HospitalizationTask {

@@ -76,18 +76,43 @@ export const PatientMedicalHistoryDownloadModal: React.FC<PatientMedicalHistoryD
 
   patientHosps.forEach((hosp) => {
     (hosp.medications || []).forEach((med) => {
+      // 1. From doseSlots
+      (med.doseSlots || []).forEach((slot, sIdx) => {
+        if (slot.status === 'REALIZADA' || slot.administeredAt) {
+          const dObj = slot.administeredAt ? new Date(slot.administeredAt) : new Date();
+          administeredMedications.push({
+            id: `${med.id}-slot-${slot.time}-${sIdx}`,
+            date: dObj.toISOString().split('T')[0],
+            time: dObj.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' }),
+            drugName: med.drugName,
+            dose: `${med.dose || ''} (${med.route})`.trim(),
+            route: med.route,
+            administeredBy: slot.administeredBy || 'Dr. Diego Irusta',
+            notes: slot.notes || `Toma programada de las ${slot.time} hs`,
+          });
+        }
+      });
+
+      // 2. From administeredDoses (if not duplicated)
       (med.administeredDoses || []).forEach((dose, idx) => {
         const dObj = new Date(dose.administeredAt);
-        administeredMedications.push({
-          id: `${med.id}-${idx}`,
-          date: dObj.toISOString().split('T')[0],
-          time: dObj.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' }),
-          drugName: med.drugName,
-          dose: `${med.dose || ''} ${med.doseUnit || ''}`.trim(),
-          route: med.route,
-          administeredBy: dose.administeredBy || 'Dr. Diego Irusta',
-          notes: dose.notes,
-        });
+        const dateStr = dObj.toISOString().split('T')[0];
+        const timeStr = dObj.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
+        const exists = administeredMedications.some(
+          (m) => m.drugName === med.drugName && m.date === dateStr && m.time === timeStr
+        );
+        if (!exists) {
+          administeredMedications.push({
+            id: `${med.id}-${idx}`,
+            date: dateStr,
+            time: timeStr,
+            drugName: med.drugName,
+            dose: `${med.dose || ''}`.trim(),
+            route: med.route,
+            administeredBy: dose.administeredBy || 'Dr. Diego Irusta',
+            notes: dose.notes,
+          });
+        }
       });
     });
   });

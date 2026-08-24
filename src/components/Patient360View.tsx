@@ -41,6 +41,7 @@ import {
   Check,
 } from 'lucide-react';
 import { useVet } from '../context/VetContext';
+import { computeDoseTimes, computeInitialDoseSlots, getShiftFromTime, formatDoseSlotLabel } from '../utils/medicationScheduleHelper';
 import { ProblemStatus, PatientProblem, Species, Sex, ReproductiveStatus, PatientStatus, PatientAlert, Patient } from '../types';
 import { formatDate, formatDateTime, formatTime, formatWeight, formatOwnerBalance } from '../utils/formatters';
 import { triggerHaptic } from '../utils/haptics';
@@ -92,6 +93,8 @@ export const Patient360View: React.FC = () => {
     addEvolutionAddendum,
     addHospitalMedication,
     administerMedication,
+    administerDoseSlot,
+    suspendMedication,
     updateOwner,
     addVitalSigns,
     addLabOrder,
@@ -154,6 +157,9 @@ export const Patient360View: React.FC = () => {
   const [quickSpO2, setQuickSpO2] = useState<number>(98);
   const [quickGlucose, setQuickGlucose] = useState<number>(105);
   const [quickWeightVal, setQuickWeightVal] = useState<number>(patient?.weight || 25);
+
+  // Medication Shift Filter State
+  const [medShiftFilter, setMedShiftFilter] = useState<'TODOS' | 'MAÑANA' | 'TARDE' | 'NOCHE'>('TODOS');
 
   // New Medication Indication state
   const [newDrugName, setNewDrugName] = useState('');
@@ -943,13 +949,45 @@ export const Patient360View: React.FC = () => {
         </div>
       )}
 
-      {/* 2. 💊 TAB: MEDICACIÓN & INDICACIONES (FORMULARIO + TABLA HORARIA CON CHECKLIST + HISTORIAL REALIZADO) */}
+            {/* 2. 💊 TAB: MEDICACIÓN & INDICACIONES (KARDEX HORARIO MULTI-TOMA + CHECKLIST POR TURNO + HISTORIAL TRAZABLE) */}
       {activePatientTab === 'RECETAS' && (() => {
         const allPatientMeds = allPatientHosps.flatMap((h) =>
-          (h.medications || []).map((m) => ({ ...m, hospitalizationId: h.id }))
+          (h.medications || []).map((m) => {
+            const slots = (m.doseSlots && m.doseSlots.length > 0)
+              ? m.doseSlots
+              : computeInitialDoseSlots(m.scheduledTime || '08:00', m.frequency);
+            return {
+              ...m,
+              hospitalizationId: h.id,
+              effectiveSlots: slots,
+            };
+          })
         );
-        const pendingMeds = allPatientMeds.filter((m) => m.status === 'PENDIENTE');
-        const doneMeds = allPatientMeds.filter((m) => m.status === 'REALIZADA' || m.administeredAt);
+
+        // Filter by shift if active
+        const filterSlotByShift = (slotTime: string) => {
+          if (medShiftFilter === 'TODOS') return true;
+          return getShiftFromTime(slotTime) === medShiftFilter;
+        };
+
+        // Active medications (not suspended)
+        const activeMeds = allPatientMeds.filter((m) => m.status !== 'SUSPENDIDA');
+
+        // Total pending and done slots
+        let totalPendingSlots = 0;
+        let totalDoneSlots = 0;
+        activeMeds.forEach((m) => {
+          m.effectiveSlots.forEach((s) => {
+            if (s.status === 'REALIZADA' || s.administeredAt) {
+              totalDoneSlots++;
+            } else {
+              totalPendingSlots++;
+            }
+          });
+        });
+
+        // Computed live preview times for form
+        const liveCalculatedTimes = computeDoseTimes(newDrugSchedule || '08:00', newDrugFreq);
 
         return (
           <div className="space-y-6 animate-fade-in">
@@ -962,7 +1000,7 @@ export const Patient360View: React.FC = () => {
                   </div>
                   <div>
                     <h3 className="text-base font-black text-slate-900">Indicar Nueva Medicación / Fármaco</h3>
-                    <p className="text-xs text-slate-500">Plan terapéutico con frecuencia horaria para enfermería y guardia</p>
+                    <p className="text-xs text-slate-500">Plan terapéutico con cálculo automático de horarios (c/6h, c/8h, c/12h, c/24h)</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
@@ -1010,7 +1048,11 @@ export const Patient360View: React.FC = () => {
                     status: 'PENDIENTE',
                   });
 
-                  showToast('success', 'Indicación Guardada', `${newDrugName} (${newDrugDose}) indicado c/${newDrugFreq}.`);
+                  showToast(
+                    'success',
+                    'Indicación Guardada',
+                    `${newDrugName} (${newDrugDose}) programado a las: ${liveCalculatedTimes.join(', ')} hs.`
+                  );
                   setNewDrugName('');
                   setNewDrugDose('');
                 }}
@@ -1082,6 +1124,26 @@ export const Patient360View: React.FC = () => {
                   </div>
                 </div>
 
+                {/* Previsualización en vivo de los horarios calculados */}
+                <div className="p-3 bg-teal-50/70 border border-teal-100 rounded-2xl flex flex-wrap items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <span className="text-teal-700 font-bold">⏰ Horarios Calculados de Ronda:</span>
+                    <div className="flex flex-wrap gap-1.5">
+                      {liveCalculatedTimes.map((t, idx) => (
+                        <span
+                          key={idx}
+                          className="px-2.5 py-0.5 bg-white border border-teal-200 text-teal-900 font-mono font-black rounded-lg text-[11px] shadow-2xs"
+                        >
+                          Toma {idx + 1}: {t} hs ({getShiftFromTime(t)})
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                  <span className="text-[11px] text-teal-800 font-semibold">
+                    Total: {liveCalculatedTimes.length} toma{liveCalculatedTimes.length === 1 ? '' : 's'} por ciclo diario
+                  </span>
+                </div>
+
                 <div className="flex items-center justify-between pt-1">
                   <span className="text-xs text-slate-500">
                     Médico Prescriptor: <strong className="text-slate-800">{currentUser?.name || 'Dr. Diego Irusta'}</strong>
@@ -1092,73 +1154,192 @@ export const Patient360View: React.FC = () => {
                     className="btn-physical btn-physical-teal px-6 py-2.5 text-white font-black text-xs rounded-xl shadow-md flex items-center gap-2 cursor-pointer"
                   >
                     <Plus className="w-4 h-4 stroke-[3]" />
-                    <span>+ Indicar Medicación</span>
+                    <span>+ Indicar Plan de Medicación</span>
                   </button>
                 </div>
               </form>
             </div>
 
-            {/* TABLA HORARIA DE ADMINISTRACIÓN CON CHECKLIST PARA TILDAR (PENDIENTES) */}
-            <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-4">
-              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+            {/* SÁBANA DE MEDICACIÓN & KARDEX HORARIO CON CHECKLIST INDIVIDUAL */}
+            <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-5">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
                 <div>
-                  <h3 className="text-base font-black text-slate-900">Tabla Horaria de Administración & Checklist de Rondas</h3>
-                  <p className="text-xs text-slate-500">Tilde cada toma al aplicarla; el sistema registra automáticamente el profesional y la hora exacta.</p>
+                  <h3 className="text-base font-black text-slate-900">Sábana Horaria de Medicación & Checklist de Tomas</h3>
+                  <p className="text-xs text-slate-500">
+                    Tilde individualmente cada horario de toma (ej: 08:00, 16:00 o 24:00). El sistema guarda la hora exacta y el veterinario responsable.
+                  </p>
                 </div>
-                <span className="text-xs font-bold text-amber-800 bg-amber-50 px-3 py-1 rounded-xl border border-amber-200">
-                  {pendingMeds.length} Pendiente{pendingMeds.length === 1 ? '' : 's'}
-                </span>
+
+                {/* Selector de Filtro de Turno */}
+                <div className="flex flex-wrap items-center gap-1.5 bg-slate-100 p-1 rounded-2xl">
+                  <button
+                    type="button"
+                    onClick={() => setMedShiftFilter('TODOS')}
+                    className={`px-3 py-1 text-xs font-bold rounded-xl transition-all cursor-pointer ${
+                      medShiftFilter === 'TODOS' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                  >
+                    📋 Todos ({totalPendingSlots + totalDoneSlots})
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setMedShiftFilter('MAÑANA')}
+                    className={`px-3 py-1 text-xs font-bold rounded-xl transition-all cursor-pointer ${
+                      medShiftFilter === 'MAÑANA' ? 'bg-amber-500 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                  >
+                    🌅 Mañana (06-14h)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setMedShiftFilter('TARDE')}
+                    className={`px-3 py-1 text-xs font-bold rounded-xl transition-all cursor-pointer ${
+                      medShiftFilter === 'TARDE' ? 'bg-blue-600 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                  >
+                    ☀️ Tarde (14-22h)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setMedShiftFilter('NOCHE')}
+                    className={`px-3 py-1 text-xs font-bold rounded-xl transition-all cursor-pointer ${
+                      medShiftFilter === 'NOCHE' ? 'bg-purple-700 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                  >
+                    🌙 Noche (22-06h)
+                  </button>
+                </div>
               </div>
 
-              {pendingMeds.length === 0 ? (
-                <div className="p-8 text-center bg-slate-50 rounded-2xl border border-slate-100 text-slate-400 text-xs">
-                  No hay tomas pendientes en este momento. Todas las indicaciones programadas han sido administradas o puede ingresar una nueva arriba.
+              {activeMeds.length === 0 ? (
+                <div className="p-10 text-center bg-slate-50 rounded-2xl border border-slate-100 text-slate-400 text-xs">
+                  No hay planes de medicación activos para este paciente. Ingrese una indicación en el formulario superior para generar la sábana de tomas.
                 </div>
               ) : (
-                <div className="overflow-x-auto">
-                  <table className="w-full text-xs text-left">
-                    <thead className="bg-slate-50 text-slate-500 font-bold border-b border-slate-200">
-                      <tr>
-                        <th className="p-3">Horario Programado</th>
-                        <th className="p-3">Fármaco & Principio</th>
-                        <th className="p-3">Dosis</th>
-                        <th className="p-3">Vía</th>
-                        <th className="p-3">Frecuencia</th>
-                        <th className="p-3">Estado</th>
-                        <th className="p-3">Acción (Checklist)</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100">
-                      {pendingMeds.map((med) => (
-                        <tr key={med.id} className="transition-colors hover:bg-slate-50">
-                          <td className="p-3 font-mono font-black text-slate-900 text-sm">⏰ {med.scheduledTime} hs</td>
-                          <td className="p-3 font-bold text-slate-900">{med.drugName}</td>
-                          <td className="p-3 font-mono font-bold text-teal-800">{med.dose}</td>
-                          <td className="p-3">
-                            <span className="px-2 py-0.5 rounded-full font-mono font-bold text-[10px] bg-slate-100 text-slate-800">
-                              {med.route}
-                            </span>
-                          </td>
-                          <td className="p-3 text-slate-600">{med.frequency}</td>
-                          <td className="p-3">
-                            <span className="px-2.5 py-1 rounded-xl text-[10px] font-black border bg-amber-50 text-amber-800 border-amber-200 animate-pulse">
-                              PENDIENTE ⏰
-                            </span>
-                          </td>
-                          <td className="p-3">
+                <div className="space-y-4">
+                  {activeMeds.map((med) => {
+                    const displayedSlots = med.effectiveSlots.filter((s) => filterSlotByShift(s.time));
+
+                    return (
+                      <div
+                        key={med.id}
+                        className="p-5 rounded-2xl border border-slate-200 bg-slate-50/50 hover:bg-slate-50 transition-all space-y-3.5"
+                      >
+                        {/* Cabecera del Fármaco */}
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200/70 pb-3">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-xl bg-teal-600 text-white flex items-center justify-center font-black text-sm shadow-xs">
+                              💊
+                            </div>
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <h4 className="text-base font-black text-slate-900">{med.drugName}</h4>
+                                <span className="px-2.5 py-0.5 rounded-full font-mono font-bold text-xs bg-teal-100 text-teal-900">
+                                  {med.dose}
+                                </span>
+                                <span className="px-2 py-0.5 rounded-md font-mono text-[11px] font-bold bg-slate-200 text-slate-700">
+                                  Vía {med.route}
+                                </span>
+                              </div>
+                              <p className="text-xs text-slate-500 mt-0.5">
+                                Frecuencia: <strong className="text-slate-700">{med.frequency}</strong> • Horarios del ciclo: <span className="font-mono font-bold text-slate-800">{med.effectiveSlots.map((s: any) => s.time).join(', ')} hs</span>
+                              </p>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-2">
                             <button
+                              type="button"
                               onClick={() => {
-                                administerMedication(med.hospitalizationId, med.id);
+                                if (confirm(`¿Desea suspender el tratamiento de ${med.drugName}?`)) {
+                                  suspendMedication(med.hospitalizationId, med.id, 'Finalizado por el médico');
+                                }
                               }}
-                              className="px-4 py-2 bg-teal-600 hover:bg-teal-500 text-white font-black rounded-xl text-xs shadow-2xs active:scale-95 transition-all flex items-center gap-1.5 cursor-pointer"
+                              className="px-2.5 py-1 text-[11px] font-bold text-red-700 hover:bg-red-50 rounded-lg border border-red-200 transition-colors cursor-pointer"
+                              title="Finalizar o suspender este tratamiento"
                             >
-                              <span>✓ Tildar como Aplicada</span>
+                              Suspender Plan
                             </button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                          </div>
+                        </div>
+
+                        {/* Fila de Tomas Horarias Individuales (Slots de Ronda) */}
+                        <div>
+                          <div className="text-[11px] font-bold text-slate-600 mb-2 flex items-center justify-between">
+                            <span>Horarios Programados para Administrar:</span>
+                            <span className="text-slate-400 font-normal">Haga clic en el botón de la toma correspondiente para registrar la aplicación</span>
+                          </div>
+
+                          {displayedSlots.length === 0 ? (
+                            <div className="p-3 text-center bg-white rounded-xl border border-slate-100 text-slate-400 text-xs italic">
+                              No hay tomas para este fármaco en el turno {medShiftFilter.toLowerCase()}.
+                            </div>
+                          ) : (
+                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                              {displayedSlots.map((slot: any) => {
+                                const isDone = slot.status === 'REALIZADA' || Boolean(slot.administeredAt);
+                                const shift = getShiftFromTime(slot.time);
+
+                                return (
+                                  <div
+                                    key={slot.time}
+                                    className={`p-3.5 rounded-xl border transition-all flex flex-col justify-between gap-2.5 ${
+                                      isDone
+                                        ? 'bg-emerald-50/80 border-emerald-300 text-emerald-950 shadow-2xs'
+                                        : 'bg-white border-amber-200 shadow-xs hover:border-teal-500'
+                                    }`}
+                                  >
+                                    <div className="flex items-start justify-between gap-1.5">
+                                      <div>
+                                        <span className="font-mono font-black text-sm text-slate-900 flex items-center gap-1">
+                                          ⏰ {slot.time} hs
+                                        </span>
+                                        <span className="text-[10px] font-bold text-slate-500 block">
+                                          Turno {shift === 'MAÑANA' ? '🌅 Mañana' : shift === 'TARDE' ? '☀️ Tarde' : '🌙 Noche'}
+                                        </span>
+                                      </div>
+
+                                      <span
+                                        className={`px-2 py-0.5 rounded-md font-mono text-[10px] font-black border ${
+                                          isDone
+                                            ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
+                                            : 'bg-amber-100 text-amber-900 border-amber-300 animate-pulse'
+                                        }`}
+                                      >
+                                        {isDone ? 'APLICADA ✓' : 'PENDIENTE'}
+                                      </span>
+                                    </div>
+
+                                    {isDone ? (
+                                      <div className="text-[11px] text-emerald-800 bg-white/80 p-2 rounded-lg border border-emerald-200/80">
+                                        <p className="font-bold flex items-center gap-1">
+                                          <span>✓ Realizada</span>
+                                          <span>({slot.administeredAt ? new Date(slot.administeredAt).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' }) : slot.time} hs)</span>
+                                        </p>
+                                        <p className="text-[10px] text-slate-600 truncate mt-0.5">
+                                          Por: <strong>{slot.administeredBy || 'Dr. Diego Irusta'}</strong>
+                                        </p>
+                                      </div>
+                                    ) : (
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          administerDoseSlot(med.hospitalizationId, med.id, slot.time);
+                                        }}
+                                        className="w-full py-2 px-3 bg-teal-600 hover:bg-teal-500 active:scale-95 text-white font-black text-xs rounded-xl shadow-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                                      >
+                                        <span>✓ Tildar Toma de {slot.time} hs</span>
+                                      </button>
+                                    )}
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               )}
             </div>
@@ -1169,69 +1350,73 @@ export const Patient360View: React.FC = () => {
                 <div className="flex items-center gap-2">
                   <span className="text-base">✅</span>
                   <div>
-                    <h3 className="text-base font-black text-slate-900">Historial de Medicaciones Aplicadas & Tratamiento Realizado</h3>
-                    <p className="text-xs text-slate-500">Registro cronológico inmutable con fecha, hora exacta y profesional que administró</p>
+                    <h3 className="text-base font-black text-slate-900">Historial Cronológico de Medicaciones Realizadas</h3>
+                    <p className="text-xs text-slate-500">Registro inmutable con especificación de horario de toma (08:00, 16:00, 24:00), hora real y responsable</p>
                   </div>
                 </div>
                 <span className="text-xs font-bold text-emerald-800 bg-emerald-50 px-3 py-1 rounded-xl border border-emerald-200">
-                  {doneMeds.length} Aplicada{doneMeds.length === 1 ? '' : 's'}
+                  {totalDoneSlots} Toma{totalDoneSlots === 1 ? '' : 's'} Aplicada{totalDoneSlots === 1 ? '' : 's'}
                 </span>
               </div>
 
-              {doneMeds.length === 0 ? (
+              {totalDoneSlots === 0 ? (
                 <div className="p-8 text-center bg-slate-50 rounded-2xl border border-slate-100 text-slate-400 text-xs">
-                  Aún no se han registrado administraciones de fármacos para este paciente.
+                  Aún no se han registrado aplicaciones de fármacos para este paciente.
                 </div>
               ) : (
                 <div className="overflow-x-auto">
                   <table className="w-full text-xs text-left">
                     <thead className="bg-slate-50 text-slate-500 font-bold border-b border-slate-200">
                       <tr>
-                        <th className="p-3">Fecha / Hora de Aplicación</th>
+                        <th className="p-3">Horario de Toma</th>
+                        <th className="p-3">Fecha & Hora Real</th>
                         <th className="p-3">Fármaco & Principio</th>
-                        <th className="p-3">Dosis Aplicada</th>
+                        <th className="p-3">Dosis</th>
                         <th className="p-3">Vía</th>
                         <th className="p-3">Frecuencia</th>
                         <th className="p-3">Estado</th>
                         <th className="p-3">Administrado Por</th>
-                        <th className="p-3">Notas / Evolución</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100">
-                      {doneMeds.map((med) => {
-                        const dateStr = med.administeredAt
-                          ? new Date(med.administeredAt).toLocaleDateString('es-AR')
-                          : new Date().toLocaleDateString('es-AR');
-                        const timeStr = med.administeredAt
-                          ? new Date(med.administeredAt).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })
-                          : med.scheduledTime || '17:35';
+                      {allPatientMeds.flatMap((med) => {
+                        const doneSlots = (med.effectiveSlots || []).filter((s: any) => s.status === 'REALIZADA' || s.administeredAt);
+                        
+                        return doneSlots.map((slot: any) => {
+                          const dateStr = slot.administeredAt
+                            ? new Date(slot.administeredAt).toLocaleDateString('es-AR')
+                            : new Date().toLocaleDateString('es-AR');
+                          const timeStr = slot.administeredAt
+                            ? new Date(slot.administeredAt).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })
+                            : slot.time;
 
-                        return (
-                          <tr key={med.id} className="bg-emerald-50/30 hover:bg-emerald-50/60 transition-colors">
-                            <td className="p-3 font-mono font-bold text-slate-900">
-                              🗓️ {dateStr} • ⏰ {timeStr} hs
-                            </td>
-                            <td className="p-3 font-black text-slate-900">{med.drugName}</td>
-                            <td className="p-3 font-mono font-black text-teal-800">{med.dose}</td>
-                            <td className="p-3">
-                              <span className="px-2 py-0.5 rounded-full font-mono font-bold text-[10px] bg-slate-100 text-slate-800">
-                                {med.route}
-                              </span>
-                            </td>
-                            <td className="p-3 text-slate-600">{med.frequency}</td>
-                            <td className="p-3">
-                              <span className="px-2.5 py-1 rounded-xl text-[10px] font-black border bg-emerald-100 text-emerald-800 border-emerald-300">
-                                APLICADA ✓
-                              </span>
-                            </td>
-                            <td className="p-3 font-bold text-slate-900">
-                              {med.administeredBy || 'Dr. Diego Irusta'}
-                            </td>
-                            <td className="p-3 text-slate-600 italic">
-                              {med.notes || 'Administración hospitalaria'}
-                            </td>
-                          </tr>
-                        );
+                          return (
+                            <tr key={`${med.id}-${slot.time}`} className="bg-emerald-50/30 hover:bg-emerald-50/60 transition-colors">
+                              <td className="p-3 font-mono font-black text-teal-900">
+                                ⏰ Toma {slot.time} hs ({getShiftFromTime(slot.time)})
+                              </td>
+                              <td className="p-3 font-mono font-bold text-slate-900">
+                                🗓️ {dateStr} • ⏰ {timeStr} hs
+                              </td>
+                              <td className="p-3 font-black text-slate-900">{med.drugName}</td>
+                              <td className="p-3 font-mono font-black text-teal-800">{med.dose}</td>
+                              <td className="p-3">
+                                <span className="px-2 py-0.5 rounded-full font-mono font-bold text-[10px] bg-slate-100 text-slate-800">
+                                  {med.route}
+                                </span>
+                              </td>
+                              <td className="p-3 text-slate-600">{med.frequency}</td>
+                              <td className="p-3">
+                                <span className="px-2.5 py-1 rounded-xl text-[10px] font-black border bg-emerald-100 text-emerald-800 border-emerald-300">
+                                  APLICADA ✓
+                                </span>
+                              </td>
+                              <td className="p-3 font-bold text-slate-900">
+                                {slot.administeredBy || 'Dr. Diego Irusta'}
+                              </td>
+                            </tr>
+                          );
+                        });
                       })}
                     </tbody>
                   </table>
@@ -1241,6 +1426,7 @@ export const Patient360View: React.FC = () => {
           </div>
         );
       })()}
+
 
       {/* 3. 📝 TAB: EVOLUCIÓN MÉDICA (COMPOSITOR DIRECTO + CRONOLOGÍA FIRMADA) */}
       {activePatientTab === 'HISTORIA' && (
