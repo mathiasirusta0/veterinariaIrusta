@@ -46,6 +46,8 @@ import { formatDate, formatDateTime, formatTime, formatWeight, formatOwnerBalanc
 import { triggerHaptic } from '../utils/haptics';
 import { EmptyState, StatusBadge, ClinicalAlert, StatCard } from './ui';
 import { PatientFullReportView } from './PatientFullReportView';
+import { PatientDischargeModal } from './PatientDischargeModal';
+import { PatientMedicalHistoryDownloadModal } from './PatientMedicalHistoryDownloadModal';
 
 export const Patient360View: React.FC = () => {
   const {
@@ -95,6 +97,8 @@ export const Patient360View: React.FC = () => {
     addLabOrder,
   } = useVet();
 
+  const [isDischargeModalOpen, setIsDischargeModalOpen] = useState(false);
+  const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
   const patient = patients.find((p) => p.id === selectedPatientId) || patients[0];
   const owner = owners.find((o) => o.id === patient?.ownerId);
 
@@ -498,6 +502,26 @@ export const Patient360View: React.FC = () => {
               <span>Monitor UCI Activo</span>
             </button>
           )}
+
+          <button
+            type="button"
+            onClick={() => setIsDischargeModalOpen(true)}
+            className="flex items-center gap-1.5 px-3.5 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 text-xs font-bold rounded-xl transition-all active:scale-95 cursor-pointer shadow-2xs"
+            title="Gestionar alta médica del paciente o archivar ficha"
+          >
+            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+            <span>Dar de Alta / Archivar</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setIsHistoryModalOpen(true)}
+            className="flex items-center gap-1.5 px-3.5 py-2 bg-[#FAF8F5] hover:bg-[#EFECE3] text-[#1C2B1D] border border-[#DDD7C8] text-xs font-bold rounded-xl transition-all active:scale-95 cursor-pointer shadow-2xs"
+            title="Descargar o imprimir la historia clínica completa con fecha, hora y días internado"
+          >
+            <FileText className="w-3.5 h-3.5 text-[#5F7359]" />
+            <span>Descargar Historia Clínica</span>
+          </button>
 
           <button
             type="button"
@@ -2387,6 +2411,21 @@ export const Patient360View: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Modales de Alta Médica y Descarga de Historia Clínica */}
+      <PatientDischargeModal
+        isOpen={isDischargeModalOpen}
+        onClose={() => setIsDischargeModalOpen(false)}
+        patient={patient}
+        owner={owner}
+      />
+
+      <PatientMedicalHistoryDownloadModal
+        isOpen={isHistoryModalOpen}
+        onClose={() => setIsHistoryModalOpen(false)}
+        patient={patient}
+        owner={owner}
+      />
     </div>
   );
 };

@@ -29,6 +29,8 @@ interface PatientMobileCardProps {
     ownerPhone?: string;
     diagnosis?: string;
   }) => void;
+  onOpenDischarge?: (patient: Patient) => void;
+  onOpenHistory?: (patient: Patient) => void;
 }
 
 export const PatientMobileCard: React.FC<PatientMobileCardProps> = ({
@@ -40,6 +42,8 @@ export const PatientMobileCard: React.FC<PatientMobileCardProps> = ({
   onOpenDentalChart,
   onOpenBodyMap,
   onOpenWhatsApp,
+  onOpenDischarge,
+  onOpenHistory,
 }) => {
   const [copiedChip, setCopiedChip] = React.useState(false);
 
@@ -249,6 +253,34 @@ export const PatientMobileCard: React.FC<PatientMobileCardProps> = ({
           >
             <span>🐾</span>
           </button>
+
+          {onOpenDischarge && (
+            <button
+              type="button"
+              onClick={() => {
+                triggerHaptic('light');
+                onOpenDischarge(patient);
+              }}
+              className="px-2.5 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 font-bold text-xs min-h-[36px] flex items-center gap-1 transition-colors"
+              title="Dar de Alta Médica o Archivar"
+            >
+              <span>🟢 Alta</span>
+            </button>
+          )}
+
+          {onOpenHistory && (
+            <button
+              type="button"
+              onClick={() => {
+                triggerHaptic('light');
+                onOpenHistory(patient);
+              }}
+              className="px-2.5 py-1.5 rounded-xl bg-[#FAF8F5] hover:bg-[#EFECE3] text-[#1C2B1D] border border-[#DDD7C8] font-bold text-xs min-h-[36px] flex items-center gap-1 transition-colors"
+              title="Descargar Historia Clínica"
+            >
+              <span>📄 HC</span>
+            </button>
+          )}
         </div>
 
         <span className="font-bold text-teal-700 hover:text-teal-900 text-xs flex items-center gap-1 group">

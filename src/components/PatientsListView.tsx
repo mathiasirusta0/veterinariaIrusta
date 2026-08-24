@@ -22,11 +22,15 @@ import {
   CheckCircle2,
   Copy,
   Filter,
+  FileText,
 } from 'lucide-react';
 import { useVet } from '../context/VetContext';
+import { Patient } from '../types';
 import { formatWeight, formatOwnerBalance, formatAlertLabel, maskPhoneNumber } from '../utils/formatters';
 import { triggerHaptic } from '../utils/haptics';
 import { PatientMobileCard } from './PatientMobileCard';
+import { PatientDischargeModal } from './PatientDischargeModal';
+import { PatientMedicalHistoryDownloadModal } from './PatientMedicalHistoryDownloadModal';
 import { PageHeader, StatusBadge, EmptyState, SearchInput } from './ui';
 
 export const PatientsListView: React.FC = () => {
@@ -52,6 +56,8 @@ export const PatientsListView: React.FC = () => {
   const [viewMode, setViewMode] = useState<'GRID' | 'TABLE'>('TABLE');
   const [sortBy, setSortBy] = useState<'NAME_ASC' | 'RECENT' | 'WEIGHT_DESC' | 'WEIGHT_ASC' | 'AGE_DESC'>('NAME_ASC');
   const [activeSubTab, setActiveSubTab] = useState<'PACIENTES' | 'TUTORES'>('PACIENTES');
+  const [dischargeModalPatient, setDischargeModalPatient] = useState<Patient | null>(null);
+  const [historyDownloadModalPatient, setHistoryDownloadModalPatient] = useState<Patient | null>(null);
 
   // Filter logic
   const filteredPatients = patients
@@ -77,9 +83,16 @@ export const PatientsListView: React.FC = () => {
       let matchesStatus = true;
       if (statusFilter === 'INTERNADO') {
         matchesStatus = p.status === 'INTERNADO' || hospitalizations.some((h) => h.patientId === p.id && h.status === 'ACTIVA');
+      } else if (statusFilter === 'ALTA_MEDICA') {
+        matchesStatus = p.status === 'ALTA_MEDICA';
+      } else if (statusFilter === 'ARCHIVADO') {
+        matchesStatus = p.status === 'ARCHIVADO';
       } else if (statusFilter === 'ALERGIAS') {
         matchesStatus = !!(p.alerts && p.alerts.length > 0);
-      } else if (statusFilter !== 'TODOS') {
+      } else if (statusFilter === 'TODOS') {
+        // By default don't hide, or only show non-archived unless ARCHIVADO is selected
+        matchesStatus = p.status !== 'ARCHIVADO';
+      } else {
         matchesStatus = p.status === statusFilter;
       }
 
@@ -419,6 +432,29 @@ export const PatientsListView: React.FC = () => {
         </button>
 
         <button
+          onClick={() => { setStatusFilter('ALTA_MEDICA'); setSpeciesFilter('TODOS'); }}
+          className={`flex-shrink-0 snap-start px-3.5 py-1.5 rounded-xl font-bold transition-all flex items-center gap-1.5 active:scale-95 ${
+            statusFilter === 'ALTA_MEDICA'
+              ? 'bg-emerald-700 text-white shadow-xs'
+              : 'bg-white text-emerald-800 border border-emerald-300 hover:bg-emerald-50'
+          }`}
+        >
+          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+          <span>Dados de Alta / Recuperados ({patients.filter((p) => p.status === 'ALTA_MEDICA').length})</span>
+        </button>
+
+        <button
+          onClick={() => { setStatusFilter('ARCHIVADO'); setSpeciesFilter('TODOS'); }}
+          className={`flex-shrink-0 snap-start px-3.5 py-1.5 rounded-xl font-bold transition-all flex items-center gap-1.5 active:scale-95 ${
+            statusFilter === 'ARCHIVADO'
+              ? 'bg-[#8C6B43] text-white shadow-xs'
+              : 'bg-white text-[#6E502B] border border-[#DDD7C8] hover:bg-[#FAF8F5]'
+          }`}
+        >
+          <span>📁 Archivados ({patients.filter((p) => p.status === 'ARCHIVADO').length})</span>
+        </button>
+
+        <button
           onClick={() => { setStatusFilter('ALERGIAS'); setSpeciesFilter('TODOS'); }}
           className={`flex-shrink-0 snap-start px-3.5 py-1.5 rounded-xl font-bold transition-all flex items-center gap-1.5 active:scale-95 ${
             statusFilter === 'ALERGIAS'
@@ -671,6 +707,28 @@ export const PatientsListView: React.FC = () => {
                     >
                       <Activity className="w-3.5 h-3.5 text-teal-600" />
                     </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setDischargeModalPatient(patient);
+                      }}
+                      className="px-2 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-bold text-[10px] transition-colors border border-emerald-300 flex items-center gap-1 shadow-2xs"
+                      title="Dar de Alta Médica o Archivar"
+                    >
+                      <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                      <span>Alta</span>
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setHistoryDownloadModalPatient(patient);
+                      }}
+                      className="px-2 py-1 rounded-lg bg-[#FAF8F5] hover:bg-[#EFECE3] text-[#1C2B1D] font-bold text-[10px] transition-colors border border-[#DDD7C8] flex items-center gap-1 shadow-2xs"
+                      title="Descargar Historia Clínica Completa"
+                    >
+                      <FileText className="w-3 h-3 text-[#5F7359]" />
+                      <span>HC</span>
+                    </button>
                   </div>
 
                   <span className="font-bold text-teal-600 group-hover:text-teal-700 flex items-center gap-1">
@@ -707,6 +765,8 @@ export const PatientsListView: React.FC = () => {
                   onOpenDentalChart={openDentalChart}
                   onOpenBodyMap={openBodyMap}
                   onOpenWhatsApp={openWhatsAppHub}
+                  onOpenDischarge={(p) => setDischargeModalPatient(p)}
+                  onOpenHistory={(p) => setHistoryDownloadModalPatient(p)}
                 />
               );
             })}
@@ -838,10 +898,26 @@ export const PatientsListView: React.FC = () => {
                               </button>
                             )}
                             <button
-                              onClick={() => handleOpenPatient(patient.id)}
-                              className="px-3 py-1.5 bg-slate-100 hover:bg-teal-600 hover:text-white text-slate-700 font-bold rounded-lg text-xs transition-colors"
+                              onClick={() => setDischargeModalPatient(patient)}
+                              className="px-2.5 py-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-bold text-xs border border-emerald-300 transition-colors flex items-center gap-1 shadow-2xs"
+                              title="Dar de Alta Médica o Archivar"
                             >
-                              Ver Ficha →
+                              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                              <span>Alta / Archivar</span>
+                            </button>
+                            <button
+                              onClick={() => setHistoryDownloadModalPatient(patient)}
+                              className="px-2.5 py-1.5 rounded-lg bg-[#FAF8F5] hover:bg-[#EFECE3] text-[#1C2B1D] font-bold text-xs border border-[#DDD7C8] transition-colors flex items-center gap-1 shadow-2xs"
+                              title="Descargar Historia Clínica Completa"
+                            >
+                              <FileText className="w-3.5 h-3.5 text-[#5F7359]" />
+                              <span>Historia Clínica</span>
+                            </button>
+                            <button
+                              onClick={() => handleOpenPatient(patient.id)}
+                              className="px-3 py-1.5 bg-[#5F7359] hover:bg-[#4D5E48] text-white font-bold rounded-lg text-xs transition-colors shadow-2xs"
+                            >
+                              Ficha 360° →
                             </button>
                           </div>
                         </td>
@@ -856,6 +932,21 @@ export const PatientsListView: React.FC = () => {
       )}
       </div>
     )}
+
+    {/* Modales de Alta Médica y Descarga de Historia Clínica */}
+    <PatientDischargeModal
+      isOpen={!!dischargeModalPatient}
+      onClose={() => setDischargeModalPatient(null)}
+      patient={dischargeModalPatient}
+      owner={owners.find((o) => o.id === dischargeModalPatient?.ownerId)}
+    />
+
+    <PatientMedicalHistoryDownloadModal
+      isOpen={!!historyDownloadModalPatient}
+      onClose={() => setHistoryDownloadModalPatient(null)}
+      patient={historyDownloadModalPatient}
+      owner={owners.find((o) => o.id === historyDownloadModalPatient?.ownerId)}
+    />
   </div>
 );
 };

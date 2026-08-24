@@ -208,6 +208,9 @@ interface VetContextType {
   addPatient: (patient: Omit<Patient, 'id' | 'createdAt' | 'clinicalRecordNumber'>) => Patient;
   updatePatient: (id: string, data: Partial<Patient>) => void;
   deletePatient: (id: string) => void;
+  dischargePatient: (patientId: string, options: { condition?: string; dischargeNotes: string; homeMedication?: string; followUpDate?: string }) => void;
+  archivePatient: (patientId: string, reason?: string) => void;
+  unarchivePatient: (patientId: string) => void;
   addPatientAlert: (patientId: string, alert: { type: PatientAlert; description: string }) => void;
   removePatientAlert: (patientId: string, alertIndex: number) => void;
   recordPatientWeight: (patientId: string, newWeight: number, recordedBy?: string) => void;
@@ -928,6 +931,109 @@ export const VetProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (selectedPatientId === id) {
       setSelectedPatientId(patients.find((pat) => pat.id !== id)?.id || null);
     }
+  };
+
+  const dischargePatient = (patientId: string, options: { condition?: string; dischargeNotes: string; homeMedication?: string; followUpDate?: string }) => {
+    const now = new Date().toISOString();
+    const p = patients.find((pat) => pat.id === patientId);
+
+    // 1. Update patient status to 'ALTA_MEDICA'
+    setPatients((prev) =>
+      prev.map((pat) => {
+        if (pat.id === patientId) {
+          const updated: Patient = { ...pat, status: 'ALTA_MEDICA' };
+          syncPatientToSupabase(updated);
+          return updated;
+        }
+        return pat;
+      })
+    );
+
+    // 2. Complete any active hospitalization
+    setHospitalizations((prev) =>
+      prev.map((h) => {
+        if (h.patientId === patientId && h.status === 'ACTIVA') {
+          const updated: Hospitalization = {
+            ...h,
+            status: 'ALTA_MEDICA',
+            dischargedAt: now,
+            dischargeSummary: `${options.condition ? `[Condición: ${options.condition}] ` : ''}${options.dischargeNotes}${options.homeMedication ? ` | Medicación al alta: ${options.homeMedication}` : ''}`,
+          };
+          syncHospitalizationToSupabase(updated);
+          return updated;
+        }
+        return h;
+      })
+    );
+
+    // 3. Complete any active encounter
+    setEncounters((prev) =>
+      prev.map((enc) => {
+        if (enc.patientId === patientId && enc.status === 'EN_CURSO') {
+          const updated: ClinicalEncounter = {
+            ...enc,
+            status: 'COMPLETADA',
+            dischargedAt: now,
+            dischargeNotes: options.dischargeNotes,
+            dischargePrescription: options.homeMedication,
+            followUpDate: options.followUpDate,
+          };
+          syncEncounterToSupabase(updated);
+          return updated;
+        }
+        return enc;
+      })
+    );
+
+    // 4. Save clinical document (Epicrisis de Alta)
+    const newDoc: ClinicalDocument = {
+      id: `doc-alta-${Date.now()}`,
+      patientId,
+      ownerId: p?.ownerId || '',
+      type: 'INFORME_ALTA_MEDICA',
+      title: `Epicrisis de Alta — ${p?.name || 'Paciente'}`,
+      content: `ALTA MÉDICA Y EPICRISIS CLÍNICA\nFecha y Hora: ${new Date(now).toLocaleString('es-AR')}\nProfesional Responsable: ${currentUser?.name || 'Dr. Diego Irusta'} (${currentUser?.licenseNumber || 'MP 8412'})\n\nEstado al Egreso: ${options.condition || 'Recuperado'}\n\nEvolución y Resumen Clínico:\n${options.dischargeNotes}\n\nMedicación y Tratamiento en Hogar:\n${options.homeMedication || 'Sin medicación prescrita'}\n\nPróximo Control / Revisión:\n${options.followUpDate || 'A demanda o según evolución'}`,
+      vetName: currentUser?.name || 'Dr. Diego Irusta',
+      createdAt: now,
+      isSigned: true,
+    };
+    setDocuments((prev) => [newDoc, ...prev]);
+    syncDocumentToSupabase(newDoc);
+
+    logAudit('ALTA_MEDICA', 'Patient', patientId, `Alta médica registrada para ${p?.name || patientId}. Condición: ${options.condition || 'Recuperado'}`);
+    showToast('success', 'Alta Médica Registrada', `Se registró el alta de ${p?.name || 'paciente'}. Su historial permanece guardado.`);
+  };
+
+  const archivePatient = (patientId: string, reason?: string) => {
+    const p = patients.find((pat) => pat.id === patientId);
+    setPatients((prev) =>
+      prev.map((pat) => {
+        if (pat.id === patientId) {
+          const updated: Patient = { ...pat, status: 'ARCHIVADO' };
+          syncPatientToSupabase(updated);
+          return updated;
+        }
+        return pat;
+      })
+    );
+    logAudit('ARCHIVAR_PACIENTE', 'Patient', patientId, `Ficha archivada de ${p?.name || patientId}. Motivo: ${reason || 'Inactividad'}`);
+    showToast('info', 'Ficha Archivada', `La ficha de ${p?.name || 'paciente'} ha sido archivada. Podés desarchivarla cuando regrese.`);
+  };
+
+  const unarchivePatient = (patientId: string) => {
+    const p = patients.find((pat) => pat.id === patientId);
+    setPatients((prev) =>
+      prev.map((pat) => {
+        if (pat.id === patientId) {
+          const updated: Patient = { ...pat, status: 'ACTIVO' };
+          syncPatientToSupabase(updated);
+          return updated;
+        }
+        return pat;
+      })
+    );
+    logAudit('DESARCHIVAR_PACIENTE', 'Patient', patientId, `Ficha de ${p?.name || patientId} restaurada a estado activo.`);
+    showToast('success', 'Ficha Restaurada', `${p?.name || 'El paciente'} vuelve a estar activo en la lista.`);
   };
 
   const addPatientAlert = (patientId: string, alert: { type: PatientAlert; description: string }) => {
@@ -2376,6 +2482,9 @@ export const VetProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         addPatient,
         updatePatient,
         deletePatient,
+        dischargePatient,
+        archivePatient,
+        unarchivePatient,
         addPatientAlert,
         removePatientAlert,
         recordPatientWeight,

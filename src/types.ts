@@ -73,7 +73,7 @@ export interface Owner {
 export type Species = 'CANINO' | 'FELINO' | 'EQUINO' | 'ASNAL' | 'MULAR' | 'BOVINO' | 'OVINO' | 'CAPRINO' | 'PORCINO' | 'AVE' | 'EXOTICO';
 export type Sex = 'MACHO' | 'HEMBRA';
 export type ReproductiveStatus = 'ENTERO' | 'CASTRADO' | 'GESTANTE' | 'LACTANTE';
-export type PatientStatus = 'ACTIVO' | 'INTERNADO' | 'EN_CONSULTA' | 'EN_CIRUGIA' | 'FALLECIDO' | 'DERIVADO';
+export type PatientStatus = 'ACTIVO' | 'INTERNADO' | 'EN_CONSULTA' | 'EN_CIRUGIA' | 'ALTA_MEDICA' | 'ARCHIVADO' | 'FALLECIDO' | 'DERIVADO';
 
 export type PatientAlert =
   | 'ALERGIA'
