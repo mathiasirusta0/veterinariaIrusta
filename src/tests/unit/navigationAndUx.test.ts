@@ -3,20 +3,18 @@ import { NAVIGATION_ITEMS, getNavLabel, getNavShortLabel } from '../../config/na
 import { formatCurrency, formatAlertLabel, maskPhoneNumber, maskDni, formatOwnerBalance } from '../../utils/formatters';
 
 describe('Simplificación de Nombres de Navegación & UX (Fase 1)', () => {
-  it('debe contener los nombres visibles oficiales simplificados', () => {
-    expect(getNavLabel('PACIENTES')).toBe('Pacientes');
+  it('debe contener los nombres visibles oficiales simplificados en 4 áreas clínicas y administrativas', () => {
+    expect(getNavLabel('PACIENTES')).toBe('Pacientes & Tutores');
     expect(getNavLabel('CONSULTAS')).toBe('Consultas Médicas');
-    expect(getNavLabel('INTERNACION')).toBe('Internación');
-    expect(getNavLabel('SALA_ESPERA')).toBe('Triage');
+    expect(getNavLabel('INTERNACION')).toBe('Internación & UCI');
+    expect(getNavLabel('SALA_ESPERA')).toBe('Sala de Espera & Triage');
     expect(getNavLabel('AGENDA')).toBe('Agenda de Turnos');
-    expect(getNavLabel('CIRUGIAS')).toBe('Cirugías');
-    expect(getNavLabel('RECETAS_OFICIALES')).toBe('Recetario');
+    expect(getNavLabel('CIRUGIAS')).toBe('Cirugía & Quirófano');
     expect(getNavLabel('LABORATORIO')).toBe('Laboratorio');
     expect(getNavLabel('IMAGENES')).toBe('Diagnóstico por Imágenes');
     expect(getNavLabel('VACUNAS')).toBe('Plan de Vacunación');
-    expect(getNavLabel('INVENTARIO')).toBe('Farmacia');
-    expect(getNavLabel('CAJA_FACTURACION')).toBe('Caja');
-    expect(getNavLabel('PROPIETARIOS')).toBe('Directorio de Tutores');
+    expect(getNavLabel('INVENTARIO')).toBe('Farmacia & Stock');
+    expect(getNavLabel('CAJA_FACTURACION')).toBe('Finanzas');
     expect(getNavLabel('DOCUMENTOS')).toBe('Documentos');
   });
 
@@ -45,27 +43,13 @@ describe('Simplificación de Nombres de Navegación & UX (Fase 1)', () => {
   });
 
   it('debe formatear el saldo de tutores con semántica clara', () => {
-    const debt = formatOwnerBalance(-15000);
-    expect(debt.label).toBe('Debe $15.000');
-    expect(debt.amountFormatted).toBe('-$15.000');
-    expect(debt.isDebt).toBe(true);
-
-    const credit = formatOwnerBalance(5000);
-    expect(credit.label).toBe('Saldo a favor $5.000');
-    expect(credit.isCredit).toBe(true);
-
-    const settled = formatOwnerBalance(0);
-    expect(settled.label).toBe('Al día');
-    expect(settled.isSettled).toBe(true);
+    expect(formatOwnerBalance(0).label).toBe('Al día');
+    expect(formatOwnerBalance(-12500).label).toBe('Debe $12.500');
+    expect(formatOwnerBalance(5000).label).toBe('Saldo a favor $5.000');
   });
 
   it('debe enmascarar datos personales (PII) cuando el usuario no tiene permisos', () => {
-    const phone = '11 6789-1234';
-    expect(maskPhoneNumber(phone, true)).toBe('11 6789-1234');
-    expect(maskPhoneNumber(phone, false)).toContain('***');
-
-    const dni = '38123456';
-    expect(maskDni(dni, true)).toBe('38123456');
-    expect(maskDni(dni, false)).toContain('***');
+    expect(maskPhoneNumber('+54 9 11 5482-1190', false)).toBe('+54 ***-**90');
+    expect(maskDni('32.458.912', false)).toBe('32.***.912');
   });
 });

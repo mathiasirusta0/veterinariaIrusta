@@ -1,3 +1,4 @@
+import { calculateDocumentSha256 } from '../utils/crypto';
 import React, { useState, useRef, useMemo } from 'react';
 import {
   FileText,

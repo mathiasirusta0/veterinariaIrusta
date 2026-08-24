@@ -1,4 +1,4 @@
-// VET SYSTEM — Configuración Centralizada de Navegación y Nombres de Módulos
+// VET SYSTEM — Configuración Centralizada de Navegación en 4 Áreas Clínicas y Administrativas
 
 import {
   PawPrint,
@@ -7,16 +7,14 @@ import {
   Clock,
   Calendar,
   Scissors,
-  FileCheck,
+  Activity,
   FlaskConical,
   Scan,
   Syringe,
   Boxes,
-  Receipt,
-  Users,
+  TrendingUp,
   FileText,
   ShieldCheck,
-  TrendingUp,
   LucideIcon,
 } from 'lucide-react';
 import { UserRole } from '../types';
@@ -28,87 +26,97 @@ export interface NavItemConfig {
   shortLabel?: string;
   description: string;
   icon: LucideIcon;
-  group: 'CLINICA' | 'DIAGNOSTICO' | 'FARMACIA' | 'ADMINISTRACION';
+  group: 'ATENCION_CLINICA' | 'GUARDIA_INTERNACION' | 'SERVICIOS_CLINICOS' | 'ADMINISTRACION';
   allowedRoles?: UserRole[];
   badgeColor?: string;
 }
 
 export const NAV_GROUPS = [
-  { id: 'CLINICA', label: 'ÁREA CLÍNICA' },
-  { id: 'DIAGNOSTICO', label: 'SERVICIOS & DIAGNÓSTICO' },
-  { id: 'FARMACIA', label: 'FARMACIA & INSUMOS' },
-  { id: 'ADMINISTRACION', label: 'ADMINISTRACIÓN & GESTIÓN' },
+  { id: 'ATENCION_CLINICA', label: 'ATENCIÓN CLÍNICA' },
+  { id: 'GUARDIA_INTERNACION', label: 'GUARDIA E INTERNACIÓN' },
+  { id: 'SERVICIOS_CLINICOS', label: 'SERVICIOS CLÍNICOS' },
+  { id: 'ADMINISTRACION', label: 'ADMINISTRACIÓN' },
 ] as const;
 
 export const NAVIGATION_ITEMS: NavItemConfig[] = [
-  // 1. ÁREA CLÍNICA
+  // A. ATENCIÓN CLÍNICA
   {
     id: 'PACIENTES',
-    label: 'Pacientes',
+    label: 'Pacientes & Tutores',
     shortLabel: 'Pacientes',
-    description: 'Directorio de pacientes, fichas clínicas y expedientes 360°',
+    description: 'Directorio de pacientes, tutores y expediente clínico 360°',
     icon: PawPrint,
-    group: 'CLINICA',
-  },
-  {
-    id: 'CONSULTAS',
-    label: 'Consultas Médicas',
-    shortLabel: 'Consultas',
-    description: 'Atención ambulatoria, evoluciones SOAP y prescripciones',
-    icon: Stethoscope,
-    group: 'CLINICA',
-  },
-  {
-    id: 'INTERNACION',
-    label: 'Internación',
-    shortLabel: 'Internación',
-    description: 'Pizarra de hospitalización, UCI y monitoreo intensivo',
-    icon: BedDouble,
-    group: 'CLINICA',
-    badgeColor: 'bg-rose-500',
-  },
-  {
-    id: 'SALA_ESPERA',
-    label: 'Triage',
-    shortLabel: 'Triage',
-    description: 'Recepción, clasificación por urgencia y sala de espera',
-    icon: Clock,
-    group: 'CLINICA',
-    badgeColor: 'bg-amber-500',
+    group: 'ATENCION_CLINICA',
   },
   {
     id: 'AGENDA',
     label: 'Agenda de Turnos',
     shortLabel: 'Agenda',
-    description: 'Calendario de turnos médicos, cirugías y vacunaciones',
+    description: 'Calendario de turnos médicos, controles y procedimientos',
     icon: Calendar,
-    group: 'CLINICA',
+    group: 'ATENCION_CLINICA',
+  },
+  {
+    id: 'CONSULTAS',
+    label: 'Consultas Médicas',
+    shortLabel: 'Consultas',
+    description: 'Atención ambulatoria, evoluciones SOAP y recetario oficial',
+    icon: Stethoscope,
+    group: 'ATENCION_CLINICA',
+  },
+  {
+    id: 'VACUNAS',
+    label: 'Plan de Vacunación',
+    shortLabel: 'Vacunación',
+    description: 'Calendario de biológicos y libreta sanitaria oficial',
+    icon: Syringe,
+    group: 'ATENCION_CLINICA',
+  },
+
+  // B. GUARDIA E INTERNACIÓN
+  {
+    id: 'SALA_ESPERA',
+    label: 'Sala de Espera & Triage',
+    shortLabel: 'Triage',
+    description: 'Recepción, clasificación por urgencia y sala de espera',
+    icon: Clock,
+    group: 'GUARDIA_INTERNACION',
+    badgeColor: 'bg-amber-500',
+  },
+  {
+    id: 'INTERNACION',
+    label: 'Internación & UCI',
+    shortLabel: 'Internación',
+    description: 'Pizarra de hospitalización, cuidados críticos y monitoreo',
+    icon: BedDouble,
+    group: 'GUARDIA_INTERNACION',
+    badgeColor: 'bg-rose-500',
   },
   {
     id: 'CIRUGIAS',
-    label: 'Cirugías',
+    label: 'Cirugía & Quirófano',
     shortLabel: 'Cirugías',
-    description: 'Programación de quirófano, protocolos anestésicos y partes quirúrgicos',
+    description: 'Programación de quirófano, anestesia y recuperación',
     icon: Scissors,
-    group: 'CLINICA',
+    group: 'GUARDIA_INTERNACION',
   },
   {
-    id: 'RECETAS_OFICIALES',
-    label: 'Recetario',
-    shortLabel: 'Recetario',
-    description: 'Prescripciones oficiales, controlados y certificados SENASA',
-    icon: FileCheck,
-    group: 'CLINICA',
+    id: 'SIGNOS_VITALES',
+    label: 'Signos Vitales',
+    shortLabel: 'Vitals',
+    description: 'Registro histórico y curvas hemodinámicas de monitoreo',
+    icon: Activity,
+    group: 'GUARDIA_INTERNACION',
   },
 
-  // 2. SERVICIOS & DIAGNÓSTICO
+  // C. SERVICIOS CLÍNICOS
   {
     id: 'LABORATORIO',
     label: 'Laboratorio',
     shortLabel: 'Laboratorio',
-    description: 'Órdenes de laboratorio, análisis clínicos y resultados',
+    description: 'Órdenes de laboratorio, perfiles bioquímicos e informes',
     icon: FlaskConical,
-    group: 'DIAGNOSTICO',
+    group: 'SERVICIOS_CLINICOS',
   },
   {
     id: 'IMAGENES',
@@ -116,78 +124,51 @@ export const NAVIGATION_ITEMS: NavItemConfig[] = [
     shortLabel: 'Imágenes',
     description: 'Radiografías, ecografías Doppler, tomografías e informes',
     icon: Scan,
-    group: 'DIAGNOSTICO',
+    group: 'SERVICIOS_CLINICOS',
   },
-  {
-    id: 'VACUNAS',
-    label: 'Plan de Vacunación',
-    shortLabel: 'Vacunas',
-    description: 'Planes sanitarios, calendario de biológicos y libreta oficial',
-    icon: Syringe,
-    group: 'DIAGNOSTICO',
-  },
-
-  // 3. FARMACIA & INSUMOS
   {
     id: 'INVENTARIO',
-    label: 'Farmacia',
+    label: 'Farmacia & Stock',
     shortLabel: 'Farmacia',
-    description: 'Control de stock, libro de psicotrópicos y kardex de movimientos',
+    description: 'Control de stock de medicamentos, psicotrópicos e insumos',
     icon: Boxes,
-    group: 'FARMACIA',
+    group: 'SERVICIOS_CLINICOS',
     badgeColor: 'bg-amber-500',
   },
 
-  // 4. ADMINISTRACIÓN & GESTIÓN
+  // D. ADMINISTRACIÓN
   {
     id: 'CAJA_FACTURACION',
-    label: 'Caja',
-    shortLabel: 'Caja',
-    description: 'Facturación electrónica ARCA/AFIP, cuentas corrientes y arqueo Z',
-    icon: Receipt,
-    group: 'ADMINISTRACION',
-  },
-  {
-    id: 'GESTION_ECONOMICA',
-    label: 'Gestión Económica',
-    shortLabel: 'Economía',
-    description: 'Control de ingresos, gastos, deudas a cobrar/pagar y balances del negocio',
+    label: 'Finanzas',
+    shortLabel: 'Finanzas',
+    description: 'Caja, facturación ARCA, movimientos, cuentas a cobrar/pagar y resultados',
     icon: TrendingUp,
-    group: 'ADMINISTRACION',
-    badgeColor: 'bg-emerald-500',
-  },
-  {
-    id: 'PROPIETARIOS',
-    label: 'Directorio de Tutores',
-    shortLabel: 'Tutores',
-    description: 'Base de datos de responsables, datos de contacto y cuentas corrientes',
-    icon: Users,
     group: 'ADMINISTRACION',
   },
   {
     id: 'DOCUMENTOS',
     label: 'Documentos',
     shortLabel: 'Documentos',
-    description: 'Consentimientos informados, certificados legales y actas firmadas',
+    description: 'Consentimientos informados, actas y certificados legales con firma SHA-256',
     icon: FileText,
     group: 'ADMINISTRACION',
   },
   {
     id: 'CONFIGURACION',
     label: 'Configuración & Auditoría',
-    shortLabel: 'Ajustes',
-    description: 'Parámetros del hospital, sedes, permisos y registro de auditoría',
+    shortLabel: 'Configuración',
+    description: 'Usuarios, roles RBAC, sedes hospitalarias y registros de auditoría',
     icon: ShieldCheck,
     group: 'ADMINISTRACION',
   },
 ];
 
-export function getNavLabel(viewId: SystemView): string {
+export const getNavLabel = (viewId: SystemView): string => {
   const item = NAVIGATION_ITEMS.find((n) => n.id === viewId);
-  return item ? item.label : viewId;
-}
+  return item?.label || viewId;
+};
 
-export function getNavShortLabel(viewId: SystemView): string {
+export const getNavShortLabel = (viewId: SystemView): string => {
   const item = NAVIGATION_ITEMS.find((n) => n.id === viewId);
-  return item ? (item.shortLabel || item.label) : viewId;
-}
+  return item?.shortLabel || item?.label || viewId;
+};
