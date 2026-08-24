@@ -166,7 +166,7 @@ export const PrescriptionsView: React.FC = () => {
   const [selectedPreset, setSelectedPreset] = useState<string>('');
 
   // Form State for New Prescription
-  const [patientId, setPatientId] = useState(patients[0]?.id || 'pat-1');
+  const [patientId, setPatientId] = useState(patients[0]?.id || '');
   const [prescriptionType, setPrescriptionType] = useState<PrescriptionType>('RECETA_COMUN');
   const [diagnosis, setDiagnosis] = useState('Gastroenteritis aguda / Tratamiento sintomático');
   const [items, setItems] = useState<Omit<PrescriptionItem, 'id'>[]>([

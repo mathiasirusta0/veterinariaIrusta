@@ -64,6 +64,7 @@ export const VitalSignsView: React.FC = () => {
     vitals,
     patients,
     owners,
+    currentUser,
     addVitalSigns,
     setSelectedPatientId,
     setActivePatientTab,
@@ -81,7 +82,7 @@ export const VitalSignsView: React.FC = () => {
 
   // Quick Logging Form State
   const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);
-  const [targetPatientId, setTargetPatientId] = useState(patients[0]?.id || 'pat-1');
+  const [targetPatientId, setTargetPatientId] = useState(patients[0]?.id || '');
   const [regTemp, setRegTemp] = useState('38.5');
   const [regHR, setRegHR] = useState('110');
   const [regFR, setRegFR] = useState('22');
@@ -181,11 +182,16 @@ export const VitalSignsView: React.FC = () => {
     e.preventDefault();
     const patient = patients.find((p) => p.id === targetPatientId) || patients[0];
 
+    if (!patient) {
+      showToast('error', 'Sin Paciente', 'Debe registrar al menos un paciente en el sistema antes de cargar signos vitales.');
+      return;
+    }
+
     const newRecord: Omit<VitalSigns, 'id'> = {
-      patientId: targetPatientId,
+      patientId: patient.id,
       recordedAt: new Date().toISOString(),
-      recordedBy: 'Dra. Valentina Rossi',
-      weight: parseFloat(regWeight) || patient.weight,
+      recordedBy: currentUser?.name || 'Dr. Diego Irusta',
+      weight: parseFloat(regWeight) || patient.weight || 10,
       temperature: parseFloat(regTemp) || 38.5,
       heartRate: parseInt(regHR) || 110,
       respiratoryRate: parseInt(regFR) || 22,

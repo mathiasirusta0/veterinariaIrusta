@@ -132,14 +132,16 @@ export const AnatomicalBodyMapModal: React.FC<AnatomicalBodyMapModalProps> = ({
     showToast(
       'success',
       'Mapa Anatómico Guardado',
-      `Se han registrado ${markers.length} marcadores de lesiones en la ficha de ${patient.name}.`
+      `Se han registrado ${markers.length} marcadores de lesiones en la ficha de ${patient?.name || 'Paciente'}.`
     );
-    logAudit(
-      'REGISTRO_MAPA_ANATOMICO',
-      'Patient',
-      patient.id,
-      `Mapa corporal guardado: ${markers.length} lesiones marcadas para ${patient.name}`
-    );
+    if (patient?.id) {
+      logAudit(
+        'REGISTRO_MAPA_ANATOMICO',
+        'Patient',
+        patient.id,
+        `Mapa corporal guardado: ${markers.length} lesiones marcadas para ${patient.name}`
+      );
+    }
     onClose();
   };
 
@@ -157,7 +159,7 @@ export const AnatomicalBodyMapModal: React.FC<AnatomicalBodyMapModalProps> = ({
                 Mapa Anatómico Corporal & Registro de Lesiones
               </h2>
               <p className="text-xs text-slate-400">
-                Paciente: <span className="text-white font-bold">{patient.name}</span> ({patient.species} - {patient.breed}) • HC: {patient.clinicalRecordNumber}
+                Paciente: <span className="text-white font-bold">{patient?.name || 'Modo General'}</span> ({patient?.species || 'Canino'} - {patient?.breed || 'Mestizo'}) • HC: {patient?.clinicalRecordNumber || 'S/N'}
               </p>
             </div>
           </div>

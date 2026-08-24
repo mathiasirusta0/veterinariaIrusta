@@ -113,14 +113,16 @@ export const DentalChartModal: React.FC<DentalChartModalProps> = ({
     showToast(
       'success',
       'Odontograma Guardado',
-      `Ficha odontológica registrada para ${patient.name} (${Object.keys(teethState).length} piezas evaluadas).`
+      `Ficha odontológica registrada para ${patient?.name || 'Paciente'} (${Object.keys(teethState).length} piezas evaluadas).`
     );
-    logAudit(
-      'REGISTRO_ODONTOGRAMA',
-      'Patient',
-      patient.id,
-      `Odontograma Triadan guardado: ${Object.keys(teethState).length} piezas marcadas para ${patient.name}`
-    );
+    if (patient?.id) {
+      logAudit(
+        'REGISTRO_ODONTOGRAMA',
+        'Patient',
+        patient.id,
+        `Odontograma Triadan guardado: ${Object.keys(teethState).length} piezas marcadas para ${patient.name}`
+      );
+    }
     onClose();
   };
 
@@ -161,28 +163,22 @@ export const DentalChartModal: React.FC<DentalChartModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
-      <div className="bg-white border border-slate-200 rounded-3xl w-full max-w-4xl max-h-[92vh] flex flex-col shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
-        {/* Header */}
+      <div className="bg-white border border-slate-200 rounded-3xl w-full max-w-5xl max-h-[92vh] flex flex-col shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+        {/* Modal Header */}
         <div className="px-6 py-4 bg-slate-900 text-white flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-teal-500/20 border border-teal-500/30 flex items-center justify-center text-teal-400 font-bold text-lg">
               🦷
             </div>
             <div>
-              <div className="flex items-center gap-2">
-                <h2 className="text-base font-bold text-white tracking-tight">
-                  Odontograma Veterinario (Sistema Triadan Modificado)
-                </h2>
-                <span className="text-[10px] px-2 py-0.5 rounded-full bg-teal-500/30 text-teal-300 font-mono font-bold uppercase">
-                  {isFeline ? 'Felino (30 Piezas)' : 'Canino (42 Piezas)'}
-                </span>
-              </div>
+              <h2 className="text-base font-bold text-white tracking-tight">
+                Odontograma Clínico Veterinario (Sistema Triadan Modificado)
+              </h2>
               <p className="text-xs text-slate-400">
-                Paciente: <span className="text-white font-bold">{patient.name}</span> ({patient.species} - {patient.breed}) • HC: {patient.clinicalRecordNumber}
+                Paciente: <span className="text-white font-bold">{patient?.name || 'Modo General'}</span> ({patient?.species || 'Canino'} - {patient?.breed || 'Mestizo'}) • HC: {patient?.clinicalRecordNumber || 'S/N'}
               </p>
             </div>
           </div>
-
           <button
             onClick={onClose}
             className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"

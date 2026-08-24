@@ -154,7 +154,7 @@ export const VaccinationView: React.FC = () => {
 
   // New Vaccination Form Modal
   const [isNewModalOpen, setIsNewModalOpen] = useState(false);
-  const [formPatientId, setFormPatientId] = useState(patients[0]?.id || 'pat-1');
+  const [formPatientId, setFormPatientId] = useState(patients[0]?.id || '');
   const [formVaccineName, setFormVaccineName] = useState('Toxoide Tetánico Equino (Tétanos)');
   const [formType, setFormType] = useState('Plan Sanitario Militar Obligatorio');
   const [formManufacturer, setFormManufacturer] = useState('Laboratorio Biológico Equino');

@@ -213,6 +213,7 @@ export const ClinicalCalculatorsModal: React.FC<{ isOpen: boolean; onClose: () =
   const initialPatient = patients.find((p) => p.id === selectedPatientId) || patients[0];
   const [currentPatientId, setCurrentPatientId] = useState(initialPatient?.id || '');
   const activePat = patients.find((p) => p.id === currentPatientId) || initialPatient;
+  const patientName = activePat?.name || 'Paciente';
 
   const [weightKg, setWeightKg] = useState<number>(activePat?.weight || 10);
 
@@ -362,11 +363,15 @@ export const ClinicalCalculatorsModal: React.FC<{ isOpen: boolean; onClose: () =
               onChange={(e) => handlePatientSelect(e.target.value)}
               className="bg-white border border-teal-200 rounded-xl px-3 py-1 text-slate-900 font-bold focus:outline-none focus:ring-2 focus:ring-teal-500 shadow-2xs"
             >
-              {patients.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.name} ({p.species} - {p.breed}) — {p.weight} kg
-                </option>
-              ))}
+              {patients.length === 0 ? (
+                <option value="">Modo Libre (Sin paciente cargado)</option>
+              ) : (
+                patients.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.name} ({p.species} - {p.breed}) — {p.weight} kg
+                  </option>
+                ))
+              )}
             </select>
           </div>
 
@@ -460,7 +465,7 @@ export const ClinicalCalculatorsModal: React.FC<{ isOpen: boolean; onClose: () =
                       </span>
                     </div>
                     <h3 className="text-base sm:text-lg font-black text-white leading-tight mt-0.5">
-                      Cálculo Inmediato de Resucitación & Emergencias para {activePat.name} ({weightKg} kg)
+                      Cálculo Inmediato de Resucitación & Emergencias para {patientName} ({weightKg} kg)
                     </h3>
                     <p className="text-xs text-rose-200/90 font-medium">
                       Volúmenes exactos en ml calculados para administración IV/IO en shock-room
@@ -472,7 +477,7 @@ export const ClinicalCalculatorsModal: React.FC<{ isOpen: boolean; onClose: () =
                   <button
                     onClick={() => {
                       const summary = [
-                        `🚨 PLAN DE URGENCIA / RCP - ${activePat.name} (${weightKg} kg):`,
+                        `🚨 PLAN DE URGENCIA / RCP - ${patientName} (${weightKg} kg):`,
                         `1. Adrenalina 1mg/ml (Dosis baja 0.01 mg/kg): ${(weightKg * 0.01).toFixed(2)} ml IV`,
                         `2. Atropina 1mg/ml (0.04 mg/kg): ${(weightKg * 0.04).toFixed(2)} ml IV`,
                         `3. Diazepam 5mg/ml (0.5 mg/kg): ${(weightKg * 0.1).toFixed(2)} ml IV`,
@@ -659,7 +664,7 @@ export const ClinicalCalculatorsModal: React.FC<{ isOpen: boolean; onClose: () =
                   <div>
                     <h5 className="font-bold text-xs">¡ADVERTENCIA DE SEGURIDAD FARMACOLÓGICA!</h5>
                     <p className="text-[11px] mt-0.5">
-                      El paciente <strong>{activePat.name}</strong> tiene registrada la siguiente alerta:{' '}
+                      El paciente <strong>{patientName}</strong> tiene registrada la siguiente alerta:{' '}
                       <span className="font-bold underline">{patientAllergies.join(', ')}</span>. Verificar contraindicación médica antes de administrar.
                     </p>
                   </div>
@@ -739,7 +744,7 @@ export const ClinicalCalculatorsModal: React.FC<{ isOpen: boolean; onClose: () =
                     <span>Desglose de la Fórmula Matemática (Transparencia Médica)</span>
                   </span>
                   <span className="text-[11px] font-mono text-slate-400">
-                    {activePat.name} • {weightKg} kg
+                    {patientName} • {weightKg} kg
                   </span>
                 </div>
 
@@ -766,7 +771,7 @@ export const ClinicalCalculatorsModal: React.FC<{ isOpen: boolean; onClose: () =
                   <button
                     onClick={() =>
                       copyResult(
-                        `Prescripción para ${activePat.name} (${weightKg} kg): ${currentDrug.name} ${totalMlToAdminister.toFixed(2)} ml (${totalMgNeeded.toFixed(2)} mg) vía ${currentDrug.routes.split(',')[0]} ${currentDrug.frequency}.`
+                        `Prescripción para ${patientName} (${weightKg} kg): ${currentDrug.name} ${totalMlToAdminister.toFixed(2)} ml (${totalMgNeeded.toFixed(2)} mg) vía ${currentDrug.routes.split(',')[0]} ${currentDrug.frequency}.`
                       )
                     }
                     className="px-3 py-1.5 bg-teal-600 hover:bg-teal-500 text-white rounded-xl text-xs font-bold transition-all flex items-center gap-1"
@@ -855,7 +860,7 @@ export const ClinicalCalculatorsModal: React.FC<{ isOpen: boolean; onClose: () =
                 <div className="bg-slate-900 text-white p-5 rounded-2xl shadow-lg space-y-3 flex flex-col justify-between">
                   <div>
                     <span className="text-[10px] uppercase font-bold text-teal-400 tracking-wider">
-                      Plan de Infusión IV para {activePat.name} ({weightKg} kg)
+                      Plan de Infusión IV para {patientName} ({weightKg} kg)
                     </span>
 
                     <div className="space-y-2 mt-3 text-xs font-mono">
@@ -955,7 +960,7 @@ export const ClinicalCalculatorsModal: React.FC<{ isOpen: boolean; onClose: () =
               <div className="bg-slate-900 text-white p-5 rounded-2xl shadow-lg space-y-3 font-mono">
                 <div className="flex items-center justify-between border-b border-slate-800 pb-2">
                   <span className="text-[10px] font-bold text-teal-400 uppercase">
-                    Preparación del Sachet CRI para {activePat.name} ({weightKg} kg)
+                    Preparación del Sachet CRI para {patientName} ({weightKg} kg)
                   </span>
                   <span className="text-xs text-slate-400">Duración: {bagDurationHours.toFixed(1)} hs</span>
                 </div>

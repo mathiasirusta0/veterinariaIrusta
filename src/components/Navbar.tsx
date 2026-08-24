@@ -11,6 +11,7 @@ import {
   Menu,
   Sparkles,
   ChevronDown,
+  LogOut,
 } from 'lucide-react';
 import { useVet } from '../context/VetContext';
 import { triggerHaptic } from '../utils/haptics';
@@ -174,6 +175,20 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleMobileMenu }) => {
         >
           <Plus className="w-4 h-4 stroke-[3]" />
           <span className="tracking-wide">Nueva Consulta</span>
+        </button>
+
+        {/* Logout Button */}
+        <button
+          type="button"
+          onClick={async () => {
+            triggerHaptic('medium');
+            await logout();
+          }}
+          className="p-2 sm:px-3 sm:py-2 rounded-xl text-slate-500 hover:text-rose-600 hover:bg-rose-50 border border-slate-200/80 hover:border-rose-200 transition-all flex items-center gap-1.5 text-xs font-bold flex-shrink-0 cursor-pointer"
+          title="Cerrar sesión del sistema"
+        >
+          <LogOut className="w-4 h-4 text-rose-500" />
+          <span className="hidden md:inline text-rose-700 font-bold">Salir</span>
         </button>
       </div>
     </header>

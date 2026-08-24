@@ -36,7 +36,7 @@ export const ControlledDrugsView: React.FC = () => {
   // Form State for new clinical movement
   const [selectedDrugId, setSelectedDrugId] = useState(controlledDrugs[0]?.id || 'cd-1');
   const [movementType, setMovementType] = useState<'EGRESO_CLINICO' | 'INGRESO_COMPRA'>('EGRESO_CLINICO');
-  const [targetPatientId, setTargetPatientId] = useState(patients[0]?.id || 'pat-1');
+  const [targetPatientId, setTargetPatientId] = useState(patients[0]?.id || '');
   const [formQuantity, setFormQuantity] = useState(1);
   const [formBatch, setFormBatch] = useState('LT-KET-2025-01');
   const [formRecipeFolio, setFormRecipeFolio] = useState('FOLIO-2025-0042');

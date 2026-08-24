@@ -200,7 +200,7 @@ export const MultiparameterMonitorModal: React.FC<{
             <span className="text-xs text-slate-400">|</span>
             <div className="text-xs">
               <span className="text-slate-400">Paciente: </span>
-              <span className="font-bold text-white">{activePatient?.name}</span> ({activePatient?.species} • {activePatient?.weight} kg)
+              <span className="font-bold text-white">{activePatient?.name || 'Modo Simulación'}</span> ({activePatient?.species || 'Canino'} • {activePatient?.weight || 10} kg)
             </div>
           </div>
 

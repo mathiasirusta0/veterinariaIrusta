@@ -139,7 +139,7 @@ export const AnesthesiaChartModal: React.FC<AnesthesiaChartModalProps> = ({
                 </span>
               </div>
               <p className="text-xs text-slate-400">
-                Paciente: <span className="text-white font-bold">{patient.name}</span> ({patient.species} • {patient.weight} kg) • Procedimiento: <span className="text-emerald-300 font-semibold">{surgeryProcedureName}</span>
+                Paciente: <span className="text-white font-bold">{patient?.name || 'Modo General'}</span> ({patient?.species || 'Canino'} • {patient?.weight || 10} kg) • Procedimiento: <span className="text-emerald-300 font-semibold">{surgeryProcedureName}</span>
               </p>
             </div>
           </div>
