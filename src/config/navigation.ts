@@ -56,14 +56,7 @@ export const NAVIGATION_ITEMS: NavItemConfig[] = [
     icon: Calendar,
     group: 'ATENCION_CLINICA',
   },
-  {
-    id: 'CONSULTAS',
-    label: 'Consultas Médicas',
-    shortLabel: 'Consultas',
-    description: 'Atención ambulatoria, evoluciones SOAP y recetario oficial',
-    icon: Stethoscope,
-    group: 'ATENCION_CLINICA',
-  },
+
   {
     id: 'VACUNAS',
     label: 'Plan de Vacunación',

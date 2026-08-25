@@ -167,12 +167,7 @@ const MainLayout: React.FC = () => {
             <AppointmentsView />
           </ModuleErrorBoundary>
         );
-      case 'CONSULTAS':
-        return (
-          <ModuleErrorBoundary moduleName="Consultas Médicas SOAP">
-            <ConsultationsView />
-          </ModuleErrorBoundary>
-        );
+
       case 'SIGNOS_VITALES':
       case 'SIGNOS':
       case 'BIOMETRIA':
