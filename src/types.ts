@@ -981,6 +981,7 @@ export interface ClinicalEvolutionEntry {
     spo2?: number;
     bloodGlucose?: number;
   };
+  evolutionText?: string;
   nextAction?: string;
   nextActionDueDate?: string;
   nextActionAssignee?: string;

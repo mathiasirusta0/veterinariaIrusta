@@ -56,7 +56,7 @@ export const PatientMedicalHistoryDownloadModal: React.FC<PatientMedicalHistoryD
   const patientVitals = vitals.filter((v) => v.patientId === patient.id).sort((a, b) => new Date(b.recordedAt).getTime() - new Date(a.recordedAt).getTime());
   const patientHosps = hospitalizations.filter((h) => h.patientId === patient.id).sort((a, b) => new Date(b.admittedAt).getTime() - new Date(a.admittedAt).getTime());
   const patientConsults = consultations.filter((c) => c.patientId === patient.id).sort((a, b) => new Date(b.dateTime).getTime() - new Date(a.dateTime).getTime());
-  const patientEvolutions = clinicalEvolutions.filter((e) => e.patientId === patient.id).sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+  const patientEvolutions = clinicalEvolutions.filter((e) => e.patientId === patient.id).sort((a, b) => new Date(b.createdAt || b.timestamp || b.dateTime || 0).getTime() - new Date(a.createdAt || a.timestamp || a.dateTime || 0).getTime());
   const patientLabs = labOrders.filter((l) => l.patientId === patient.id).sort((a, b) => new Date(b.requestedAt).getTime() - new Date(a.requestedAt).getTime());
   const patientImaging = imagingStudies.filter((i) => i.patientId === patient.id).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   const patientSurgeries = surgeries.filter((s) => s.patientId === patient.id).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
@@ -393,15 +393,19 @@ ${patientLabs.length === 0 && patientImaging.length === 0 ? 'Sin estudios comple
               <p className="text-[11px] text-gray-500 italic">No hay notas de evolución registradas.</p>
             ) : (
               <div className="space-y-2">
-                {patientEvolutions.map((evo) => (
-                  <div key={evo.id} className="p-2.5 rounded-xl border border-gray-200 bg-[#FAF8F5]/50 space-y-1">
-                    <div className="flex items-center justify-between text-[11px] text-[#6E502B] font-bold">
-                      <span>Evolución Médica — {formatDateTime(evo.timestamp)}</span>
-                      <span>{evo.authorName || 'Dr. Diego Irusta'}</span>
+                {patientEvolutions.map((evo) => {
+                  const fullText = evo.content || (evo as any).assessment || (evo as any).plan || (evo as any).evolutionText || 'Evolución registrada.';
+                  const evoDate = evo.createdAt || evo.timestamp || evo.dateTime || new Date().toISOString();
+                  return (
+                    <div key={evo.id} className="p-2.5 rounded-xl border border-gray-200 bg-[#FAF8F5]/50 space-y-1">
+                      <div className="flex items-center justify-between text-[11px] text-[#6E502B] font-bold">
+                        <span>Evolución Médica — {formatDateTime(evoDate)}</span>
+                        <span>{evo.authorName || 'Dr. Diego Irusta'} (MP 8412)</span>
+                      </div>
+                      <p className="text-[11px] text-[#1C2B1D] whitespace-pre-line leading-relaxed">{fullText}</p>
                     </div>
-                    <p className="text-[11px] text-[#1C2B1D] whitespace-pre-line">{evo.content}</p>
-                  </div>
-                ))}
+                  );
+                })}
                 {patientConsults.map((cons) => (
                   <div key={cons.id} className="p-2.5 rounded-xl border border-gray-200 bg-gray-50 space-y-1">
                     <div className="flex items-center justify-between text-[11px] text-[#6E502B] font-bold">

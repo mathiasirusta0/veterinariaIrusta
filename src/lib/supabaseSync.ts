@@ -857,12 +857,12 @@ export async function syncDocumentToSupabase(doc: ClinicalDocument) {
     const { error } = await supabase.from('clinical_documents').upsert({
       id: doc.id,
       patient_id: doc.patientId,
+      owner_id: doc.ownerId,
       type: doc.type,
       title: doc.title,
       content: doc.content,
+      vet_name: doc.vetName || 'Dr. Diego Irusta',
       created_at: doc.createdAt,
-      signed_by: doc.signedByOwnerName,
-      status: doc.isSigned ? 'FIRMADO' : 'PENDIENTE',
     });
     if (error) console.error('Error syncing document to Supabase:', error);
   } catch (err) {
@@ -879,9 +879,8 @@ export async function syncClinicalEvolutionToSupabase(evo: any) {
       id: evo.id,
       patient_id: evo.patientId,
       type: 'EVOLUCION_CLINICA',
-      title: `Evolución Médica ${evo.type || 'CLINICA'} - ${evo.authorName || 'Profesional'}`,
-      content: JSON.stringify(evo),
-      status: evo.status || 'FIRMADO',
+      title: `Evolución Médica - ${evo.authorName || 'Dr. Diego Irusta'}`,
+      content: typeof evo.content === 'string' ? evo.content : JSON.stringify(evo),
       created_at: evo.createdAt || new Date().toISOString(),
     });
     if (error) console.error('Error syncing clinical evolution to Supabase:', error);

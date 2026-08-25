@@ -108,6 +108,7 @@ export const Patient360View: React.FC = () => {
   // Unified Clinical Evolution State
   const [showNewEvolutionModal, setShowNewEvolutionModal] = useState(false);
   const [evolutionType, setEvolutionType] = useState<'MEDICA' | 'ENFERMERIA' | 'AUXILIAR' | 'PASE_GUARDIA'>('MEDICA');
+  const [unifiedEvoText, setUnifiedEvoText] = useState('');
   const [evoSubjective, setEvoSubjective] = useState('');
   const [evoObjective, setEvoObjective] = useState('');
   const [evoAssessment, setEvoAssessment] = useState('');
@@ -1428,119 +1429,104 @@ export const Patient360View: React.FC = () => {
       })()}
 
 
-      {/* 3. 📝 TAB: EVOLUCIÓN MÉDICA (COMPOSITOR DIRECTO + CRONOLOGÍA FIRMADA) */}
+            {/* 3. 📝 TAB: EVOLUCIÓN MÉDICA (REGISTRO CLÍNICO INTEGRAL UNIFICADO) */}
       {activePatientTab === 'HISTORIA' && (
         <div className="space-y-6 animate-fade-in">
           {/* Direct Evolution Composer Card */}
           <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center font-bold">
+                <div className="w-9 h-9 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center font-black text-base">
                   📝
                 </div>
                 <div>
-                  <h3 className="text-base font-black text-slate-900">Escribir Evolución Médica / Nota de Guardia</h3>
-                  <p className="text-xs text-slate-500">Registro clínico directo con firma digital SHA-256</p>
+                  <h3 className="text-base font-black text-slate-900">Evolución Médica</h3>
+                  <p className="text-xs text-slate-500">
+                    Registro clínico integral: diagnóstico, motivo de atención/internación, evolución del cuadro y plan terapéutico
+                  </p>
                 </div>
               </div>
-              <span className="text-[10px] font-bold text-purple-800 bg-purple-50 px-2.5 py-1 rounded-full border border-purple-200 font-mono">
-                {currentUser.name} ({currentUser.role})
+              <span className="text-[11px] font-bold text-purple-900 bg-purple-50 px-3 py-1 rounded-xl border border-purple-200 font-mono self-start sm:self-auto">
+                {currentUser?.name || 'Dr. Diego Irusta'} (MP 8412 • SUPERADMIN)
               </span>
             </div>
 
             <form
               onSubmit={(e) => {
                 e.preventDefault();
-                if (!evoAssessment || !evoPlan) {
-                  showToast('error', 'Campos Incompletos', 'Ingrese diagnóstico/evaluación y plan terapéutico.');
+                const textToSave = (unifiedEvoText || evoAssessment || '').trim();
+                if (!textToSave) {
+                  showToast('error', 'Evolución Vacía', 'Por favor escriba la evolución médica del paciente.');
                   return;
                 }
 
                 addClinicalEvolution({
                   patientId: patient.id,
-                  authorId: currentUser.id,
-                  authorName: currentUser.name,
-                  authorRole: currentUser.role as any,
-                  authorLicense: 'MP-4120',
-                  sector: evoSector,
+                  authorId: currentUser?.id || 'usr-1',
+                  authorName: currentUser?.name || 'Dr. Diego Irusta',
+                  authorRole: (currentUser?.role as any) || 'SUPERADMIN',
+                  authorLicense: 'MP 8412 - Dirección Médica',
+                  sector: evoSector || 'UCI Canil 01',
                   shift: 'DIURNO',
-                  evolutionType: evolutionType,
-                  assessment: evoAssessment,
-                  plan: evoPlan,
-                  subjective: evoSubjective,
-                  objective: evoObjective,
-                  nextAction: evoNextAction,
+                  evolutionType: 'MEDICA',
+                  assessment: textToSave,
+                  plan: textToSave,
+                  subjective: '',
+                  objective: '',
+                  nextAction: '',
                 });
 
-                showToast('success', 'Evolución Guardada', 'La nota médica fue firmada y archivada en la HC.');
+                showToast('success', 'Evolución Guardada', 'La evolución médica fue firmada y registrada en la historia clínica.');
+                setUnifiedEvoText('');
                 setEvoAssessment('');
                 setEvoPlan('');
-                setEvoSubjective('');
-                setEvoObjective('');
               }}
               className="space-y-4 text-xs"
             >
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <div>
-                  <label className="font-bold text-slate-700 block mb-1">Tipo de Evolución:</label>
-                  <select
-                    value={evolutionType}
-                    onChange={(e) => setEvolutionType(e.target.value as any)}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 font-bold text-slate-900"
-                  >
-                    <option value="MEDICA">Evolución Médica (Veterinario)</option>
-                    <option value="ENFERMERIA">Nota de Enfermería / Cuidados</option>
-                    <option value="PASE_GUARDIA">Pase de Guardia 24hs</option>
-                  </select>
-                </div>
-                <div className="sm:col-span-2">
-                  <label className="font-bold text-slate-700 block mb-1">Diagnóstico / Evaluación Clínica (A):</label>
-                  <input
-                    type="text"
-                    required
-                    value={evoAssessment}
-                    onChange={(e) => setEvoAssessment(e.target.value)}
-                    placeholder="ej: Paciente estable con mejoría en hidratación, sin nuevos episodios de vómito."
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 font-bold text-slate-900"
-                  />
-                </div>
+              <div>
+                <label className="font-black text-slate-800 text-xs block mb-1.5 flex items-center justify-between">
+                  <span>Evolución Médica del Paciente:</span>
+                  <span className="text-slate-400 font-normal">Especifique cuadro clínico, motivo de atención/internación y conducta terapéutica</span>
+                </label>
+                <textarea
+                  rows={5}
+                  required
+                  value={unifiedEvoText}
+                  onChange={(e) => setUnifiedEvoText(e.target.value)}
+                  placeholder="Escriba la evolución médica completa: lo que tiene el paciente, motivo de internación o consulta, su evolución clínica actual y el plan terapéutico a seguir..."
+                  className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-3.5 text-slate-900 font-medium text-xs leading-relaxed focus:ring-2 focus:ring-purple-500 focus:bg-white transition-all"
+                />
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="font-bold text-slate-700 block mb-1">Subjetivo & Observaciones (S):</label>
-                  <textarea
-                    rows={3}
-                    value={evoSubjective}
-                    onChange={(e) => setEvoSubjective(e.target.value)}
-                    placeholder="Comportamiento, apetito, micción, estado de ánimo..."
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-slate-900"
-                  />
+              {/* Mensaje de Ayuda & Enlace a Medicación */}
+              <div className="p-3 bg-purple-50/60 border border-purple-100 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                <div className="flex items-center gap-2 text-purple-900 font-medium text-xs">
+                  <span>💊</span>
+                  <span>
+                    <strong>¿Desea indicar fármacos o dosis horarias?</strong> Las indicaciones específicas con horarios y rondas de toma se gestionan en la pestaña de Medicación.
+                  </span>
                 </div>
-                <div>
-                  <label className="font-bold text-slate-700 block mb-1">Plan Terapéutico & Indicaciones (P):</label>
-                  <textarea
-                    rows={3}
-                    required
-                    value={evoPlan}
-                    onChange={(e) => setEvoPlan(e.target.value)}
-                    placeholder="Continuar fluidoterapia, administrar protector gástrico a las 16hs, evaluar alta..."
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-slate-900 font-medium"
-                  />
-                </div>
+                <button
+                  type="button"
+                  onClick={() => setActivePatientTab('RECETAS')}
+                  className="px-3 py-1.5 bg-white hover:bg-purple-100 text-purple-900 font-bold text-xs rounded-xl border border-purple-200 shadow-2xs transition-colors self-start sm:self-auto cursor-pointer"
+                >
+                  Ir a Medicación & Indicaciones →
+                </button>
               </div>
 
-              <div className="flex items-center justify-between pt-2 border-t border-slate-100">
-                <span className="text-xs text-slate-500">
-                  Firma con Hash SHA-256 inmutable de auditoría
+              <div className="flex items-center justify-between pt-1 border-t border-slate-100">
+                <span className="text-xs text-slate-500 flex items-center gap-1.5">
+                  <span>🛡️</span>
+                  <span>Firma digital inmutable • Dr. Diego Irusta (MP 8412)</span>
                 </span>
                 <button
                   type="submit"
                   onClick={() => triggerHaptic('success')}
-                  className="btn-physical btn-physical-emerald px-6 py-2.5 text-white font-black text-xs rounded-xl shadow-md flex items-center gap-2"
+                  className="btn-physical btn-physical-emerald px-6 py-2.5 text-white font-black text-xs rounded-xl shadow-md flex items-center gap-2 cursor-pointer"
                 >
                   <Check className="w-4 h-4 stroke-[2.5]" />
-                  <span>✓ Guardar y Firmar Evolución</span>
+                  <span>✓ Registrar y Firmar Evolución Médica</span>
                 </button>
               </div>
             </form>
@@ -1550,39 +1536,77 @@ export const Patient360View: React.FC = () => {
           <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-4">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <div>
-                <h3 className="text-base font-black text-slate-900">Historial Cronológico de Evoluciones</h3>
-                <p className="text-xs text-slate-500">Notas de evolución médica y enfermería archivadas</p>
+                <h3 className="text-base font-black text-slate-900">Historial Cronológico de Evolución Médica</h3>
+                <p className="text-xs text-slate-500">Registro inmutable de notas médicas y evoluciones clínicas</p>
               </div>
               <span className="text-xs font-bold text-purple-800 bg-purple-50 px-3 py-1 rounded-xl border border-purple-200">
-                {(clinicalEvolutions?.filter(e => e.patientId === patient.id).length || 0) + patientConsultations.length} Notas Firmadas
+                {(clinicalEvolutions?.filter(e => e.patientId === patient.id).length || 0) + patientConsultations.length} Registros
               </span>
             </div>
 
-            <div className="space-y-3">
-              {clinicalEvolutions?.filter(e => e.patientId === patient.id).map((evo) => (
-                <div key={evo.id} className="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-2 text-xs">
-                  <div className="flex items-center justify-between border-b border-slate-200/60 pb-2">
-                    <span className="font-black text-slate-900 text-sm">
-                      {evo.evolutionType.replace('_', ' ')} • {evo.authorName} ({evo.authorRole})
-                    </span>
-                    <span className="text-[10px] font-mono text-slate-400">
-                      {formatDateTime(evo.createdAt)}
-                    </span>
+            {((clinicalEvolutions?.filter(e => e.patientId === patient.id).length || 0) === 0 && patientConsultations.length === 0) ? (
+              <div className="p-8 text-center bg-slate-50 rounded-2xl border border-slate-100 text-slate-400 text-xs">
+                Aún no hay evoluciones médicas registradas para este paciente. Complete el formulario superior para asentar la primera nota.
+              </div>
+            ) : (
+              <div className="space-y-3.5">
+                {clinicalEvolutions?.filter(e => e.patientId === patient.id).map((evo) => {
+                  const fullText = evo.assessment || evo.plan || (typeof (evo as any).content === 'string' ? (evo as any).content : 'Evolución registrada.');
+                  const dateStr = evo.createdAt ? new Date(evo.createdAt).toLocaleDateString('es-AR') : new Date().toLocaleDateString('es-AR');
+                  const timeStr = evo.createdAt ? new Date(evo.createdAt).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' }) : '20:55';
+
+                  return (
+                    <div key={evo.id} className="p-4 bg-slate-50/80 border border-slate-200 rounded-2xl space-y-2.5 text-xs shadow-2xs hover:bg-slate-50 transition-colors">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 border-b border-slate-200 pb-2">
+                        <div className="flex items-center gap-2">
+                          <span className="px-2 py-0.5 rounded-md font-bold text-[10px] bg-purple-100 text-purple-900 uppercase">
+                            Evolución Médica
+                          </span>
+                          <span className="font-black text-slate-900 text-xs">
+                            👨‍⚕️ {evo.authorName || 'Dr. Diego Irusta'} (MP 8412)
+                          </span>
+                        </div>
+                        <span className="font-mono font-bold text-slate-600 text-[11px]">
+                          🗓️ {dateStr} • ⏰ {timeStr} hs
+                        </span>
+                      </div>
+
+                      <div className="p-3 bg-white rounded-xl border border-slate-100 text-slate-800 text-xs leading-relaxed whitespace-pre-line font-normal">
+                        {fullText}
+                      </div>
+                    </div>
+                  );
+                })}
+
+                {patientConsultations.map((cons) => (
+                  <div key={cons.id} className="p-4 bg-slate-50/80 border border-slate-200 rounded-2xl space-y-2.5 text-xs shadow-2xs">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 border-b border-slate-200 pb-2">
+                      <div className="flex items-center gap-2">
+                        <span className="px-2 py-0.5 rounded-md font-bold text-[10px] bg-teal-100 text-teal-900 uppercase">
+                          Consulta Médica Inicial
+                        </span>
+                        <span className="font-black text-slate-900 text-xs">
+                          👨‍⚕️ {cons.vetName || 'Dr. Diego Irusta'}
+                        </span>
+                      </div>
+                      <span className="font-mono font-bold text-slate-600 text-[11px]">
+                        🗓️ {new Date(cons.dateTime).toLocaleDateString('es-AR')} • ⏰ {new Date(cons.dateTime).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })} hs
+                      </span>
+                    </div>
+
+                    <div className="p-3 bg-white rounded-xl border border-slate-100 space-y-1.5 text-slate-800 text-xs">
+                      <p><strong>Motivo / Diagnóstico:</strong> {cons.reason} {cons.diagnoses?.length ? `(${cons.diagnoses.join(', ')})` : ''}</p>
+                      {cons.anamnesis && <p><strong>Anamnesis:</strong> {cons.anamnesis}</p>}
+                      {cons.soap?.plan && <p><strong>Plan Terapéutico:</strong> {cons.soap.plan}</p>}
+                    </div>
                   </div>
-                  <div>
-                    <strong className="text-slate-800 block">Evaluación / Diagnóstico:</strong>
-                    <p className="text-slate-700">{evo.assessment}</p>
-                  </div>
-                  <div>
-                    <strong className="text-slate-800 block">Plan Terapéutico:</strong>
-                    <p className="text-slate-700">{evo.plan}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       )}
+
 
       {/* 4. 🧪 TAB: ESTUDIOS & LABORATORIO (SOLICITUD + RESULTADOS) */}
       {activePatientTab === 'LABORATORIO' && (
