@@ -201,12 +201,12 @@ export const InventoryView: React.FC = () => {
         ]}
       />
 
-      {/* 2. Top Navigation Tabs */}
-      <div className="flex items-center gap-2 border-b border-slate-200 pb-2">
+      {/* 2. Top Navigation Tabs - Horizontally Scrollable on Mobile */}
+      <div className="flex items-center gap-2 overflow-x-auto no-scrollbar scroll-smooth border-b border-slate-200 pb-2.5 -mx-1 px-1 sm:mx-0 sm:px-0 w-full flex-nowrap">
         <button
           type="button"
           onClick={() => setActiveTab('CATALOGO')}
-          className={'px-4 py-2 rounded-xl font-bold text-xs transition-all flex items-center gap-1.5 ' +
+          className={'px-3.5 sm:px-4 py-2 rounded-xl font-bold text-xs transition-all flex items-center gap-1.5 flex-shrink-0 whitespace-nowrap min-h-[40px] touch-manipulation ' +
             (activeTab === 'CATALOGO'
               ? 'bg-teal-700 text-white shadow-2xs'
               : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50')}
@@ -218,7 +218,7 @@ export const InventoryView: React.FC = () => {
         <button
           type="button"
           onClick={() => setActiveTab('PSICOTROPICOS')}
-          className={'px-4 py-2 rounded-xl font-bold text-xs transition-all flex items-center gap-1.5 ' +
+          className={'px-3.5 sm:px-4 py-2 rounded-xl font-bold text-xs transition-all flex items-center gap-1.5 flex-shrink-0 whitespace-nowrap min-h-[40px] touch-manipulation ' +
             (activeTab === 'PSICOTROPICOS'
               ? 'bg-purple-700 text-white shadow-2xs'
               : 'bg-purple-50 text-purple-800 border border-purple-200 hover:bg-purple-100')}
@@ -230,7 +230,7 @@ export const InventoryView: React.FC = () => {
         <button
           type="button"
           onClick={() => setActiveTab('KARDEX')}
-          className={'px-4 py-2 rounded-xl font-bold text-xs transition-all flex items-center gap-1.5 ' +
+          className={'px-3.5 sm:px-4 py-2 rounded-xl font-bold text-xs transition-all flex items-center gap-1.5 flex-shrink-0 whitespace-nowrap min-h-[40px] touch-manipulation ' +
             (activeTab === 'KARDEX'
               ? 'bg-slate-900 text-white shadow-2xs'
               : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50')}

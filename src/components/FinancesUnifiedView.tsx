@@ -487,7 +487,7 @@ export const FinancesUnifiedView: React.FC = () => {
       </div>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         <StatCard
           label="Total Cobrado Hoy"
           value={formatCurrency(totalToday)}
@@ -519,14 +519,14 @@ export const FinancesUnifiedView: React.FC = () => {
       </div>
 
       {/* Navigation Subtabs: COBROS vs PRESUPUESTOS */}
-      <div className="flex items-center gap-2 border-b border-slate-200 pb-2">
+      <div className="flex items-center gap-2 overflow-x-auto no-scrollbar scroll-smooth border-b border-slate-200 pb-2.5 -mx-1 px-1 sm:mx-0 sm:px-0 w-full flex-nowrap">
         <button
           type="button"
           onClick={() => {
             triggerHaptic('light');
             setMainTab('COBROS');
           }}
-          className={`px-4 py-2 rounded-xl text-xs font-black flex items-center gap-2 transition-all cursor-pointer ${
+          className={`px-3.5 sm:px-4 py-2 rounded-xl text-xs font-black flex items-center gap-2 transition-all cursor-pointer flex-shrink-0 whitespace-nowrap min-h-[40px] touch-manipulation ${
             mainTab === 'COBROS'
               ? 'bg-teal-700 text-white shadow-sm'
               : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
@@ -542,7 +542,7 @@ export const FinancesUnifiedView: React.FC = () => {
             triggerHaptic('light');
             setMainTab('PRESUPUESTOS');
           }}
-          className={`px-4 py-2 rounded-xl text-xs font-black flex items-center gap-2 transition-all cursor-pointer ${
+          className={`px-3.5 sm:px-4 py-2 rounded-xl text-xs font-black flex items-center gap-2 transition-all cursor-pointer flex-shrink-0 whitespace-nowrap min-h-[40px] touch-manipulation ${
             mainTab === 'PRESUPUESTOS'
               ? 'bg-teal-700 text-white shadow-sm'
               : 'bg-slate-100 text-slate-600 hover:bg-slate-200'

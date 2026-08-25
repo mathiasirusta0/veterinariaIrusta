@@ -298,7 +298,7 @@ export const VitalSignsView: React.FC = () => {
         const specRanges = SPECIES_RANGES[activeSpec as keyof typeof SPECIES_RANGES] || SPECIES_RANGES.Canino;
 
         return (
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3.5 text-xs">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-3.5 text-xs w-full">
             {/* 1. Tensión Arterial TAS / TAD */}
             <div className="bg-white border border-slate-200 p-4 rounded-2xl shadow-2xs space-y-1.5 hover:border-teal-500/50 transition-all">
               <div className="flex items-center justify-between">

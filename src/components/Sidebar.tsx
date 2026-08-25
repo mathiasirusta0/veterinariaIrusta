@@ -10,10 +10,20 @@ import { NAVIGATION_ITEMS, NAV_GROUPS } from '../config/navigation';
 
 interface SidebarProps {
   isOpenMobile?: boolean;
+  isMobileMenuOpen?: boolean;
   onCloseMobile?: () => void;
+  onCloseMobileMenu?: () => void;
 }
 
-export const Sidebar: React.FC<SidebarProps> = ({ isOpenMobile, onCloseMobile }) => {
+export const Sidebar: React.FC<SidebarProps> = ({
+  isOpenMobile,
+  isMobileMenuOpen,
+  onCloseMobile,
+  onCloseMobileMenu,
+}) => {
+  const isDrawerOpen = isMobileMenuOpen ?? isOpenMobile ?? false;
+  const handleClose = onCloseMobileMenu ?? onCloseMobile ?? (() => {});
+
   const {
     activeView,
     setActiveView,
@@ -57,15 +67,15 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpenMobile, onCloseMobile })
       setSelectedPatientId(null);
     }
     setActiveView(id);
-    if (onCloseMobile) onCloseMobile();
+    handleClose();
   };
 
   return (
     <>
       {/* Mobile Backdrop Overlay */}
-      {isOpenMobile && (
+      {isDrawerOpen && (
         <div
-          onClick={onCloseMobile}
+          onClick={handleClose}
           className="fixed inset-0 bg-slate-950/70 z-40 md:hidden backdrop-blur-xs transition-opacity"
         />
       )}
@@ -74,9 +84,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpenMobile, onCloseMobile })
       <aside
         className={`
           fixed md:static inset-y-0 left-0 z-50
-          w-72 bg-slate-900 text-slate-100 flex flex-col
+          w-72 max-w-[85vw] bg-slate-900 text-slate-100 flex flex-col
           transition-transform duration-300 ease-in-out border-r border-slate-800
-          ${isOpenMobile ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
+          ${isDrawerOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
           shadow-2xl md:shadow-none select-none
         `}
       >
@@ -97,14 +107,14 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpenMobile, onCloseMobile })
           </div>
 
           {/* Close button on mobile */}
-          {onCloseMobile && (
-            <button
-              onClick={onCloseMobile}
-              className="md:hidden p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
-            >
-              <X className="w-5 h-5" />
-            </button>
-          )}
+          <button
+            type="button"
+            onClick={handleClose}
+            className="md:hidden p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+            title="Cerrar menú lateral"
+          >
+            <X className="w-5 h-5" />
+          </button>
         </div>
 
         {/* Navigation Item Groups */}

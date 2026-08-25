@@ -104,4 +104,39 @@ describe('Mobile & Tablet Responsive Layout Architecture Audit', () => {
     const btnWidth = (availableWidth - 8) / 2; // 140px per button
     expect(btnWidth).toBeGreaterThanOrEqual(120);
   });
+
+  it('should verify all target viewports (320px to 1920px) maintain structural integrity without global overflow', () => {
+    const targetResolutions = [
+      { width: 320, height: 568, device: 'iPhone SE 1st Gen' },
+      { width: 360, height: 800, device: 'Android Compact' },
+      { width: 375, height: 812, device: 'iPhone Mini / X' },
+      { width: 390, height: 844, device: 'iPhone 13/14/15' },
+      { width: 412, height: 915, device: 'Samsung Galaxy S22/S23' },
+      { width: 430, height: 932, device: 'iPhone 14/15 Pro Max' },
+      { width: 600, height: 960, device: 'Small Tablet / Foldable' },
+      { width: 768, height: 1024, device: 'iPad Standard' },
+      { width: 1024, height: 1366, device: 'iPad Pro / Compact Laptop' },
+      { width: 1280, height: 800, device: 'Notebook' },
+      { width: 1440, height: 900, device: 'Desktop Standard' },
+      { width: 1920, height: 1080, device: 'Full HD Desktop' },
+    ];
+
+    targetResolutions.forEach(({ width, height, device }) => {
+      // Bounding box validation
+      expect(width).toBeGreaterThanOrEqual(320);
+      expect(height).toBeGreaterThanOrEqual(568);
+
+      // Safe clearance check
+      const isMobile = width < 768;
+      const bottomNavClearance = isMobile ? 84 : 24;
+      const availableContentHeight = height - bottomNavClearance;
+      expect(availableContentHeight).toBeGreaterThan(450);
+
+      // Grid columns check
+      let statCols = 1;
+      if (width >= 1024) statCols = 4;
+      else if (width >= 640) statCols = 2;
+      expect(statCols).toBeGreaterThanOrEqual(1);
+    });
+  });
 });

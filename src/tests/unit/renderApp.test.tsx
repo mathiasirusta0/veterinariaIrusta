@@ -4,6 +4,8 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import App from '../../App';
 
+import { ToastNotification } from '../../components/ToastNotification';
+
 describe('Autenticación y Puerta de Enlace (P0-01, P0-02)', () => {
   beforeEach(() => {
     localStorage.clear();
@@ -41,7 +43,6 @@ describe('Autenticación y Puerta de Enlace (P0-01, P0-02)', () => {
   });
 
   it('ToastNotification se renderiza sin errores ante diferentes formatos de props y arrays vacíos', () => {
-    const { ToastNotification } = require('../../components/ToastNotification');
     const { container: c1 } = render(<ToastNotification toasts={[]} onDismiss={() => {}} />);
     expect(c1).toBeDefined();
 

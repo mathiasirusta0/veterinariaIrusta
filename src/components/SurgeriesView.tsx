@@ -102,7 +102,7 @@ export const SurgeriesView: React.FC = () => {
 
   const handlePrintProtocol = (surg: SurgeryRecord) => {
     triggerHaptic('light');
-    window.print();
+    showToast('info', 'Protocolo Quirúrgico', `Protocolo de ${surg.procedureName} disponible en el expediente.`);
   };
 
   const asaGradeColors: Record<string, { label: string; bg: string; text: string }> = {

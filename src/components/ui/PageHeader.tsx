@@ -42,22 +42,22 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
         )}
 
         <div className="flex items-center gap-2.5 flex-wrap min-w-0">
-          {Icon && <Icon className="w-6 h-6 text-teal-600 flex-shrink-0" />}
-          <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight break-words whitespace-normal">
+          {Icon && <Icon className="w-5 h-5 sm:w-6 sm:h-6 text-teal-600 flex-shrink-0" />}
+          <h1 className="text-lg sm:text-xl md:text-2xl font-black text-slate-900 tracking-tight break-words whitespace-normal leading-snug">
             {title}
           </h1>
           {badge && <div className="flex-shrink-0">{badge}</div>}
         </div>
 
         {description && (
-          <p className="text-xs text-slate-500 font-medium leading-relaxed max-w-3xl">
+          <p className="text-[11px] sm:text-xs text-slate-500 font-medium leading-relaxed max-w-3xl">
             {description}
           </p>
         )}
       </div>
 
       {(actions.length > 0 || children) && (
-        <div className="flex flex-wrap items-center gap-2 sm:gap-2.5 flex-shrink-0">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-2.5 flex-shrink-0 w-full sm:w-auto">
           {children}
           {actions.map((action, idx) => {
             const ActionIcon = action.icon;
@@ -82,7 +82,7 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
                   action.onClick();
                 }}
                 title={action.title || action.label}
-                className={`min-h-[40px] px-3.5 py-2 rounded-xl text-xs font-bold transition-all active:scale-95 flex items-center justify-center gap-1.5 touch-manipulation disabled:opacity-50 disabled:cursor-not-allowed ${btnClass}`}
+                className={`min-h-[42px] px-3.5 py-2 rounded-xl text-xs font-bold transition-all active:scale-95 flex items-center justify-center gap-1.5 touch-manipulation disabled:opacity-50 disabled:cursor-not-allowed flex-1 sm:flex-initial w-full sm:w-auto ${btnClass}`}
               >
                 {ActionIcon && <ActionIcon className="w-4 h-4 flex-shrink-0" />}
                 <span className="whitespace-nowrap">{action.label}</span>

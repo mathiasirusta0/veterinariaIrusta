@@ -13,6 +13,7 @@
     touch-action: manipulation;
     width: 100%;
     max-width: 100%;
+    overflow-x: hidden;
     margin: 0;
     padding: 0;
     overscroll-behavior-y: none;
@@ -23,6 +24,7 @@
     max-width: 100%;
     min-height: 100%;
     min-height: 100dvh;
+    overflow-x: hidden;
     display: flex;
     flex-direction: column;
   }
@@ -45,7 +47,7 @@
 }
 
 :root {
-  --bottom-nav-height: 66px;
+  --bottom-nav-height: 70px;
 }
 
 /* Safe Area Insets Utilities */
@@ -71,6 +73,17 @@
   background-color: #ffffff !important;
   box-sizing: border-box !important;
   pointer-events: auto !important;
+}
+
+/* Main Content Area Mobile Bottom Clearance */
+.main-content-pad {
+  padding-bottom: calc(84px + env(safe-area-inset-bottom, 0px));
+}
+
+@media (min-width: 768px) {
+  .main-content-pad {
+    padding-bottom: 1.5rem;
+  }
 }
 
 /* Custom scrollbars */

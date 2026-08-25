@@ -268,7 +268,7 @@ const MainLayout: React.FC = () => {
         />
 
         {/* Central Dynamic Content Area */}
-        <main className="flex-1 flex flex-col min-w-0 overflow-y-auto w-full relative bg-[#F8FAFC]">
+        <main className="flex-1 flex flex-col min-w-0 overflow-y-auto w-full relative bg-[#F8FAFC] main-content-pad p-3 sm:p-5 lg:p-6 box-border">
           <Suspense fallback={<ViewLoadingFallback />}>
             {renderActiveView()}
           </Suspense>
@@ -276,7 +276,7 @@ const MainLayout: React.FC = () => {
       </div>
 
       {/* Mobile Bottom Navigation */}
-      <MobileBottomNav />
+      <MobileBottomNav onOpenMobileMenu={() => setIsMobileMenuOpen(true)} />
 
       {/* Global Modals */}
       <GlobalSearchModal />
