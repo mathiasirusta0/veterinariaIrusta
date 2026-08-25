@@ -769,11 +769,13 @@ export type AppointmentStatus =
   | 'AUSENTE';
 
 export type AppointmentType =
+  | 'CONSULTA'
   | 'CONSULTA_GENERAL'
   | 'VACUNACION'
   | 'CONTROL'
   | 'CIRUGIA'
   | 'URGENCIA'
+  | 'ESTUDIO'
   | 'ESTUDIO_COMPLEMENTARIO'
   | 'PELUQUERIA_BANO';
 
@@ -782,6 +784,7 @@ export interface Appointment {
   patientId: string;
   ownerId: string;
   vetId: string;
+  vetName?: string;
   branchId: string;
   consultingRoom?: string; // Consultorio 1, 2, etc.
   date: string; // YYYY-MM-DD

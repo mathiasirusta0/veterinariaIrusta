@@ -84,6 +84,7 @@ export const QuickModals: React.FC = () => {
     setSelectedPatientId,
     setActiveView,
     activeBranch,
+    openWhatsAppHub,
     showToast,
   } = useVet();
 
@@ -120,13 +121,23 @@ export const QuickModals: React.FC = () => {
   const [ownEmail, setOwnEmail] = useState('');
   const [ownAddress, setOwnAddress] = useState('');
 
-  // Appointment Form State
+  // Appointment Form State (Dual Mode: Existing vs New Patient/Owner)
+  const [aptMode, setAptMode] = useState<'EXISTING' | 'NEW'>('EXISTING');
   const [aptPatId, setAptPatId] = useState(patients[0]?.id || '');
+  const [aptNewPetName, setAptNewPetName] = useState('');
+  const [aptNewPetSpecies, setAptNewPetSpecies] = useState('Canino');
+  const [aptNewPetBreed, setAptNewPetBreed] = useState('');
+  const [aptNewOwnerFirstName, setAptNewOwnerFirstName] = useState('');
+  const [aptNewOwnerLastName, setAptNewOwnerLastName] = useState('');
+  const [aptNewOwnerPhone, setAptNewOwnerPhone] = useState('');
+  const [aptNewOwnerDni, setAptNewOwnerDni] = useState('');
   const [aptDate, setAptDate] = useState(new Date().toISOString().split('T')[0]);
   const [aptTime, setAptTime] = useState('10:00');
+  const [aptDuration, setAptDuration] = useState<number>(30);
   const [aptReason, setAptReason] = useState('Consulta clínica general');
   const [aptType, setAptType] = useState<any>('CONSULTA');
-  const [aptVetId, setAptVetId] = useState(users[0]?.id || '');
+  const [aptVetId, setAptVetId] = useState(users.find((u) => u.name?.includes('Irusta'))?.id || users[0]?.id || 'usr-1');
+  const [aptSendWhatsApp, setAptSendWhatsApp] = useState(true);
 
   // Triage Form State
   const [triPatId, setTriPatId] = useState(patients[0]?.id || '');
@@ -331,22 +342,115 @@ export const QuickModals: React.FC = () => {
 
   const handleCreateAppointment = (e: React.FormEvent) => {
     e.preventDefault();
-    const pat = patients.find((p) => p.id === aptPatId);
-    const vet = users.find((u) => u.id === aptVetId);
+    let targetPatientId = aptPatId;
+    let targetOwnerId = '';
+    let petDisplayName = '';
+    let ownerDisplayName = '';
+    let ownerPhone = '';
+
+    if (aptMode === 'NEW') {
+      if (!aptNewPetName.trim()) {
+        showToast('error', 'Falta Nombre del Paciente', 'Por favor ingrese el nombre del paciente a agendar.');
+        return;
+      }
+      if (!aptNewOwnerFirstName.trim()) {
+        showToast('error', 'Falta Nombre del Tutor', 'Por favor ingrese el nombre del tutor responsable.');
+        return;
+      }
+      if (!aptNewOwnerPhone.trim()) {
+        showToast('error', 'Falta Teléfono de Contacto', 'Por favor ingrese el teléfono / WhatsApp del tutor.');
+        return;
+      }
+
+      // 1. Create new Owner
+      const createdOwner = addOwner({
+        firstName: aptNewOwnerFirstName.trim(),
+        lastName: (aptNewOwnerLastName || '').trim(),
+        dni: aptNewOwnerDni.trim() || 'S/D',
+        phone: aptNewOwnerPhone.trim(),
+        whatsapp: aptNewOwnerPhone.trim(),
+        email: `${aptNewOwnerFirstName.toLowerCase().replace(/\s+/g, '')}@veterinariairusta.com`,
+        address: 'Río Cuarto, Córdoba',
+        city: 'Río Cuarto',
+        taxCondition: 'CONSUMIDOR_FINAL',
+        balance: 0,
+        branchId: 'branch-central',
+      });
+      targetOwnerId = createdOwner.id;
+      ownerDisplayName = `${createdOwner.firstName} ${createdOwner.lastName}`.trim();
+      ownerPhone = createdOwner.phone;
+
+      // 2. Create new Patient
+      const createdPatient = addPatient({
+        name: aptNewPetName.trim(),
+        species: aptNewPetSpecies as any,
+        breed: aptNewPetBreed.trim() || 'Mestizo',
+        sex: 'Macho',
+        reproductiveStatus: 'Entero',
+        birthDate: new Date().toISOString().split('T')[0],
+        calculatedAge: '1 año',
+        weight: 10,
+        color: 'Estándar',
+        ownerId: createdOwner.id,
+        status: 'ACTIVO',
+        alerts: [],
+      });
+      targetPatientId = createdPatient.id;
+      petDisplayName = createdPatient.name;
+    } else {
+      const pat = patients.find((p) => p.id === aptPatId) || patients[0];
+      targetPatientId = pat?.id || '';
+      targetOwnerId = pat?.ownerId || owners[0]?.id || '';
+      const own = owners.find((o) => o.id === targetOwnerId);
+      petDisplayName = pat?.name || 'Paciente';
+      ownerDisplayName = own ? `${own.firstName} ${own.lastName}` : 'Tutor';
+      ownerPhone = own?.whatsapp || own?.phone || '';
+    }
+
+    const assignedVet = users.find((u) => u.id === aptVetId) || users[0];
+    const vetName = assignedVet
+      ? (assignedVet.name?.includes('Dr.') ? assignedVet.name : `Dr. ${assignedVet.name}`)
+      : 'Dr. Diego Irusta';
+
     addAppointment({
-      patientId: aptPatId,
-      ownerId: pat?.ownerId || owners[0].id,
-      vetId: aptVetId,
-      vetName: vet?.name || 'Dr. Veterinario',
+      patientId: targetPatientId,
+      ownerId: targetOwnerId,
+      vetId: assignedVet?.id || 'usr-1',
+      vetName: vetName,
       date: aptDate,
       time: aptTime,
-      durationMinutes: 30,
-      reason: aptReason,
+      durationMinutes: Number(aptDuration) || 30,
+      reason: aptReason.trim() || 'Consulta clínica general',
       type: aptType,
       status: 'RESERVADO',
     });
+
+    // Reset fields
+    setAptNewPetName('');
+    setAptNewPetBreed('');
+    setAptNewOwnerFirstName('');
+    setAptNewOwnerLastName('');
+    setAptNewOwnerPhone('');
+    setAptNewOwnerDni('');
+    setAptMode('EXISTING');
+
     setQuickModal(null);
     setActiveView('AGENDA');
+    showToast('success', 'Turno Agendado', `Turno reservado para ${petDisplayName} (${ownerDisplayName}) el ${aptDate} a las ${aptTime} hs con ${vetName}.`);
+
+    if (aptSendWhatsApp && ownerPhone) {
+      openWhatsAppHub({
+        patientId: targetPatientId,
+        ownerId: targetOwnerId,
+        patientName: petDisplayName,
+        ownerName: ownerDisplayName,
+        ownerPhone: ownerPhone,
+        type: 'RECORDATORIO_TURNO',
+        details: {
+          supplyName: `Turno agendado el ${aptDate} a las ${aptTime} hs con ${vetName}`,
+        },
+      });
+    }
   };
 
   const handleCreateTriage = (e: React.FormEvent) => {
@@ -1613,106 +1717,280 @@ export const QuickModals: React.FC = () => {
           </form>
         )}
 
-        {/* 6. NUEVO TURNO FORM */}
+        {/* 6. NUEVO TURNO FORM (REDISEÑO TOTAL CON PACIENTE NUEVO Y REGISTRADO) */}
         {quickModal === 'NUEVO_TURNO' && (
-          <form onSubmit={handleCreateAppointment} className="space-y-3 text-xs">
-            <div>
-              <label className="text-slate-700 block font-bold mb-1">Paciente:</label>
-              <select
-                value={aptPatId}
-                onChange={(e) => setAptPatId(e.target.value)}
-                className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-slate-900 font-semibold"
+          <form onSubmit={handleCreateAppointment} className="space-y-4 text-xs">
+            {/* Mode Switcher */}
+            <div className="p-1 bg-slate-100 rounded-2xl flex items-center gap-1 border border-slate-200">
+              <button
+                type="button"
+                onClick={() => setAptMode('EXISTING')}
+                className={`flex-1 py-2 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition-all ${
+                  aptMode === 'EXISTING'
+                    ? 'bg-teal-700 text-white shadow-sm'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
               >
-                {patients.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.name} ({p.species})
-                  </option>
-                ))}
-              </select>
+                <span>👥 Paciente Registrado</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setAptMode('NEW')}
+                className={`flex-1 py-2 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition-all ${
+                  aptMode === 'NEW'
+                    ? 'bg-teal-700 text-white shadow-sm'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                <span>✍️ + Paciente y Tutor Nuevos</span>
+              </button>
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="text-slate-700 block font-bold mb-1">Fecha:</label>
-                <input
-                  type="date"
-                  min={new Date().toISOString().split('T')[0]}
-                  value={aptDate}
-                  onChange={(e) => setAptDate(e.target.value)}
-                  required
-                  className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-slate-900 font-mono"
-                />
-              </div>
-              <div>
-                <label className="text-slate-700 block font-bold mb-1">Horario:</label>
-                <input
-                  type="time"
-                  value={aptTime}
-                  onChange={(e) => setAptTime(e.target.value)}
-                  required
-                  className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-slate-900 font-mono font-bold"
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="text-slate-700 block font-bold mb-1">Tipo de Cita:</label>
+            {/* SELECCIÓN O CARGA DE PACIENTE */}
+            {aptMode === 'EXISTING' ? (
+              <div className="bg-slate-50/80 p-3.5 rounded-2xl border border-slate-200 space-y-2">
+                <label className="text-slate-800 block font-bold">Seleccionar Paciente de la Clínica *</label>
                 <select
-                  value={aptType}
-                  onChange={(e) => setAptType(e.target.value as any)}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-slate-900 font-semibold"
+                  value={aptPatId}
+                  onChange={(e) => setAptPatId(e.target.value)}
+                  className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2.5 text-slate-900 font-bold focus:outline-none focus:ring-2 focus:ring-teal-500 shadow-2xs"
                 >
-                  <option value="CONSULTA">Consulta Clínica</option>
-                  <option value="VACUNACION">Vacunación</option>
-                  <option value="CIRUGIA">Cirugía</option>
-                  <option value="CONTROL">Control Posoperatorio</option>
-                  <option value="ESTUDIO">Estudio / Análisis</option>
+                  {patients.map((p) => {
+                    const own = owners.find((o) => o.id === p.ownerId);
+                    return (
+                      <option key={p.id} value={p.id}>
+                        {p.name} ({p.species} • {p.breed}) {own ? `— Tutor: ${own.firstName} ${own.lastName} (${own.phone || 'S/D'})` : ''}
+                      </option>
+                    );
+                  })}
                 </select>
               </div>
+            ) : (
+              <div className="space-y-3">
+                {/* Bloque Mascota Nueva */}
+                <div className="bg-teal-50/40 p-3.5 rounded-2xl border border-teal-200/80 space-y-3">
+                  <div className="flex items-center gap-2 border-b border-teal-200/80 pb-1.5">
+                    <span>🐾</span>
+                    <span className="font-extrabold text-teal-950 text-xs uppercase tracking-wider">
+                      1. Datos del Nuevo Paciente (Mascota)
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                    <div>
+                      <label className="font-bold text-slate-700 block mb-1">Nombre de la Mascota *</label>
+                      <input
+                        type="text"
+                        required={aptMode === 'NEW'}
+                        value={aptNewPetName}
+                        onChange={(e) => setAptNewPetName(e.target.value)}
+                        placeholder="ej: Milo, Thor, Luna..."
+                        className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-slate-900 font-bold focus:ring-2 focus:ring-teal-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="font-bold text-slate-700 block mb-1">Especie *</label>
+                      <select
+                        value={aptNewPetSpecies}
+                        onChange={(e) => setAptNewPetSpecies(e.target.value)}
+                        className="w-full bg-white border border-slate-300 rounded-xl px-2.5 py-2 text-slate-900 font-bold focus:ring-2 focus:ring-teal-500"
+                      >
+                        <option value="Canino">🐕 Canino</option>
+                        <option value="Felino">🐈 Felino</option>
+                        <option value="Equino">🐎 Equino</option>
+                        <option value="Bovino">🐄 Bovino</option>
+                        <option value="Ave">🦜 Ave</option>
+                        <option value="Exotico">🦎 Exótico</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="font-bold text-slate-700 block mb-1">Raza (Opcional)</label>
+                      <input
+                        type="text"
+                        value={aptNewPetBreed}
+                        onChange={(e) => setAptNewPetBreed(e.target.value)}
+                        placeholder="ej: Caniche, Mestizo..."
+                        className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-slate-900 focus:ring-2 focus:ring-teal-500"
+                      />
+                    </div>
+                  </div>
+                </div>
 
-              <div>
-                <label className="text-slate-700 block font-bold mb-1">Profesional:</label>
-                <select
-                  value={aptVetId}
-                  onChange={(e) => setAptVetId(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-slate-900 font-semibold"
-                >
-                  {users
-                    .filter((u) => u.role === 'VETERINARIO' || (u.role as string) === 'DIRECTOR_MEDICO')
-                    .map((u) => (
+                {/* Bloque Tutor Nuevo */}
+                <div className="bg-teal-50/40 p-3.5 rounded-2xl border border-teal-200/80 space-y-3">
+                  <div className="flex items-center gap-2 border-b border-teal-200/80 pb-1.5">
+                    <span>👤</span>
+                    <span className="font-extrabold text-teal-950 text-xs uppercase tracking-wider">
+                      2. Datos del Tutor Responsable
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    <div>
+                      <label className="font-bold text-slate-700 block mb-1">Nombre del Tutor *</label>
+                      <input
+                        type="text"
+                        required={aptMode === 'NEW'}
+                        value={aptNewOwnerFirstName}
+                        onChange={(e) => setAptNewOwnerFirstName(e.target.value)}
+                        placeholder="ej: Laura"
+                        className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-slate-900 font-bold focus:ring-2 focus:ring-teal-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="font-bold text-slate-700 block mb-1">Apellido del Tutor *</label>
+                      <input
+                        type="text"
+                        required={aptMode === 'NEW'}
+                        value={aptNewOwnerLastName}
+                        onChange={(e) => setAptNewOwnerLastName(e.target.value)}
+                        placeholder="ej: Gómez"
+                        className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-slate-900 font-bold focus:ring-2 focus:ring-teal-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="font-bold text-slate-700 block mb-1">Teléfono / WhatsApp de Contacto *</label>
+                      <input
+                        type="tel"
+                        required={aptMode === 'NEW'}
+                        value={aptNewOwnerPhone}
+                        onChange={(e) => setAptNewOwnerPhone(e.target.value)}
+                        placeholder="ej: +54 9 358 4123456"
+                        className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-slate-900 font-mono font-bold focus:ring-2 focus:ring-teal-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="font-bold text-slate-700 block mb-1">DNI / CUIT (Opcional)</label>
+                      <input
+                        type="text"
+                        value={aptNewOwnerDni}
+                        onChange={(e) => setAptNewOwnerDni(e.target.value)}
+                        placeholder="ej: 38450912"
+                        className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-slate-900 font-mono focus:ring-2 focus:ring-teal-500"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* DETALLES DE LA CITA MÉDICA */}
+            <div className="bg-slate-50 p-3.5 rounded-2xl border border-slate-200 space-y-3">
+              <div className="flex items-center gap-2 border-b border-slate-200 pb-1.5">
+                <span>🗓️</span>
+                <span className="font-extrabold text-slate-900 text-xs uppercase tracking-wider">
+                  {aptMode === 'NEW' ? '3. Detalles de la Cita Médica' : 'Detalles de la Cita Médica'}
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                <div>
+                  <label className="font-bold text-slate-700 block mb-1">Fecha del Turno *</label>
+                  <input
+                    type="date"
+                    min={new Date().toISOString().split('T')[0]}
+                    value={aptDate}
+                    onChange={(e) => setAptDate(e.target.value)}
+                    required
+                    className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-slate-900 font-mono font-bold focus:ring-2 focus:ring-teal-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="font-bold text-slate-700 block mb-1">Horario *</label>
+                  <input
+                    type="time"
+                    value={aptTime}
+                    onChange={(e) => setAptTime(e.target.value)}
+                    required
+                    className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-slate-900 font-mono font-black focus:ring-2 focus:ring-teal-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="font-bold text-slate-700 block mb-1">Duración Estimada</label>
+                  <select
+                    value={aptDuration}
+                    onChange={(e) => setAptDuration(Number(e.target.value))}
+                    className="w-full bg-white border border-slate-300 rounded-xl px-2.5 py-2 text-slate-900 font-bold focus:ring-2 focus:ring-teal-500"
+                  >
+                    <option value={15}>15 minutos</option>
+                    <option value={30}>30 minutos (Estándar)</option>
+                    <option value={45}>45 minutos</option>
+                    <option value={60}>60 minutos (Extendido / Cirugía)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                <div>
+                  <label className="font-bold text-slate-700 block mb-1">Tipo de Cita *</label>
+                  <select
+                    value={aptType}
+                    onChange={(e) => setAptType(e.target.value as any)}
+                    className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-slate-900 font-bold focus:ring-2 focus:ring-teal-500"
+                  >
+                    <option value="CONSULTA">🩺 Consulta Clínica General</option>
+                    <option value="VACUNACION">💉 Plan Sanitario / Vacunación</option>
+                    <option value="CIRUGIA">✂️ Cirugía / Quirófano</option>
+                    <option value="CONTROL">🔍 Control Posoperatorio</option>
+                    <option value="ESTUDIO">🔬 Estudio / Laboratorio / RX</option>
+                    <option value="URGENCIA">🚨 Guardia / Urgencia</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="font-bold text-slate-700 block mb-1">Profesional Asignado</label>
+                  <select
+                    value={aptVetId}
+                    onChange={(e) => setAptVetId(e.target.value)}
+                    className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-slate-900 font-bold focus:ring-2 focus:ring-teal-500"
+                  >
+                    {users.map((u) => (
                       <option key={u.id} value={u.id}>
-                        {u.name}
+                        👨‍⚕️ {u.name?.includes('Dr.') ? u.name : `Dr. ${u.name}`} (MP 8412)
                       </option>
                     ))}
-                </select>
+                  </select>
+                </div>
               </div>
+
+              <div>
+                <label className="font-bold text-slate-700 block mb-1">Motivo de la Cita / Novedades *</label>
+                <input
+                  type="text"
+                  value={aptReason}
+                  onChange={(e) => setAptReason(e.target.value)}
+                  placeholder="ej: Control general, decaimiento, vacuna antirrábica..."
+                  required
+                  className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-slate-900 font-medium focus:ring-2 focus:ring-teal-500"
+                />
+              </div>
+
+              {/* Checkbox WhatsApp */}
+              <label className="flex items-center gap-2 pt-1 text-slate-700 cursor-pointer font-medium select-none">
+                <input
+                  type="checkbox"
+                  checked={aptSendWhatsApp}
+                  onChange={(e) => setAptSendWhatsApp(e.target.checked)}
+                  className="w-4 h-4 text-teal-600 rounded-md focus:ring-teal-500"
+                />
+                <span>📱 Enviar confirmación y recordatorio automático por WhatsApp al agendar</span>
+              </label>
             </div>
 
-            <div>
-              <label className="text-slate-700 block font-bold mb-1">Motivo:</label>
-              <input
-                type="text"
-                value={aptReason}
-                onChange={(e) => setAptReason(e.target.value)}
-                required
-                className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-slate-900"
-              />
-            </div>
-
+            {/* Action Buttons */}
             <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
               <button
                 type="button"
                 onClick={() => setQuickModal(null)}
-                className="px-3.5 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold"
+                className="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold transition-colors"
               >
                 Cancelar
               </button>
               <button
                 type="submit"
-                className="px-4 py-2 rounded-lg bg-teal-600 hover:bg-teal-500 text-white font-bold shadow-sm"
+                className="px-6 py-2.5 rounded-xl bg-teal-700 hover:bg-teal-600 text-white font-black text-xs shadow-md shadow-teal-700/20 active:scale-95 transition-all flex items-center gap-1.5"
               >
-                Agendar Turno
+                <span>🗓️ Agendar Turno</span>
               </button>
             </div>
           </form>

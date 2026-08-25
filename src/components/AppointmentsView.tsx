@@ -110,25 +110,27 @@ export const AppointmentsView: React.FC = () => {
     if (!own) return;
 
     openWhatsAppHub({
+      patientId: pat?.id,
+      ownerId: own.id,
       patientName: pat?.name || 'su mascota',
-      ownerName: own.firstName + ' ' + own.lastName,
-      ownerPhone: own.phone || own.whatsapp || '',
-      type: 'TURNO_RECORDATORIO',
+      ownerName: `${own.firstName} ${own.lastName}`,
+      ownerPhone: own.whatsapp || own.phone || '',
+      type: 'RECORDATORIO_TURNO',
       details: {
-        appointmentDate: formatDate(apt.date),
-        appointmentTime: apt.time,
-        vetName: (apt as any).vetName || 'Médico Veterinario de Guardia',
+        supplyName: `Recordatorio de turno agendado el ${formatDate(apt.date)} a las ${apt.time} hs con ${(apt as any).vetName || 'Dr. Diego Irusta'}`,
       },
     });
   };
 
   const typeBadges: Record<string, { label: string; bg: string; icon: string }> = {
-    CONSULTA_GENERAL: { label: 'Consulta General', bg: 'bg-teal-50 text-teal-700 border-teal-200', icon: '🩺' },
-    VACUNACION: { label: 'Vacunación', bg: 'bg-emerald-50 text-emerald-700 border-emerald-200', icon: '💉' },
-    CIRUGIA: { label: 'Cirugía', bg: 'bg-purple-50 text-purple-700 border-purple-200', icon: '✂️' },
-    CONTROL: { label: 'Control Post', bg: 'bg-blue-50 text-blue-700 border-blue-200', icon: '🔍' },
-    URGENCIA: { label: 'Urgencia', bg: 'bg-red-50 text-red-700 border-red-200', icon: '🚨' },
-    ESTUDIO_COMPLEMENTARIO: { label: 'Ecografía / Rayos', bg: 'bg-amber-50 text-amber-700 border-amber-200', icon: '🔬' },
+    CONSULTA: { label: 'Consulta Clínica', bg: 'bg-teal-50 text-teal-800 border-teal-200', icon: '🩺' },
+    CONSULTA_GENERAL: { label: 'Consulta General', bg: 'bg-teal-50 text-teal-800 border-teal-200', icon: '🩺' },
+    VACUNACION: { label: 'Vacunación', bg: 'bg-emerald-50 text-emerald-800 border-emerald-200', icon: '💉' },
+    CIRUGIA: { label: 'Cirugía / Quirófano', bg: 'bg-purple-50 text-purple-800 border-purple-200', icon: '✂️' },
+    CONTROL: { label: 'Control Post', bg: 'bg-blue-50 text-blue-800 border-blue-200', icon: '🔍' },
+    ESTUDIO: { label: 'Estudio / Lab / RX', bg: 'bg-amber-50 text-amber-800 border-amber-200', icon: '🔬' },
+    ESTUDIO_COMPLEMENTARIO: { label: 'Ecografía / Rayos', bg: 'bg-amber-50 text-amber-800 border-amber-200', icon: '🔬' },
+    URGENCIA: { label: 'Guardia / Urgencia', bg: 'bg-red-50 text-red-700 border-red-200 font-black animate-pulse', icon: '🚨' },
     PELUQUERIA_BANO: { label: 'Peluquería / Baño', bg: 'bg-pink-50 text-pink-700 border-pink-200', icon: '🛁' },
   };
 
