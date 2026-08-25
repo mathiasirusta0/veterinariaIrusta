@@ -20,7 +20,7 @@ import {
   ExternalLink,
 } from 'lucide-react';
 import { useVet } from '../context/VetContext';
-import { VaccinationRecord, Patient, Species } from '../types';
+import { VaccinationRecord, Patient, Species, Sex } from '../types';
 import { formatDate, formatWeight } from '../utils/formatters';
 import { triggerHaptic } from '../utils/haptics';
 import { PageHeader, EmptyState, SearchInput, FilterBar } from './ui';
@@ -139,6 +139,9 @@ export const VaccinationView: React.FC = () => {
     patients,
     owners,
     addVaccination,
+    addPatient,
+    addOwner,
+    currentUser,
     setSelectedPatientId,
     setActivePatientTab,
     setActiveView,
@@ -152,9 +155,21 @@ export const VaccinationView: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState('TODOS');
   const [selectedCertModal, setSelectedCertModal] = useState<VaccinationRecord | null>(null);
 
-  // New Vaccination Form Modal
+  // New Vaccination Form Modal Dual Mode State
   const [isNewModalOpen, setIsNewModalOpen] = useState(false);
+  const [vacMode, setVacMode] = useState<'EXISTING' | 'NEW'>('EXISTING');
   const [formPatientId, setFormPatientId] = useState(patients[0]?.id || '');
+  
+  // New Patient & Owner direct on-the-fly fields
+  const [newPetName, setNewPetName] = useState('');
+  const [newPetSpecies, setNewPetSpecies] = useState<Species>('CANINO');
+  const [newPetBreed, setNewPetBreed] = useState('');
+  const [newPetSex, setNewPetSex] = useState<Sex>('MACHO');
+  const [newPetWeight, setNewPetWeight] = useState('10');
+  const [newOwnerFirstName, setNewOwnerFirstName] = useState('');
+  const [newOwnerLastName, setNewOwnerLastName] = useState('');
+  const [newOwnerPhone, setNewOwnerPhone] = useState('');
+  const [newOwnerDni, setNewOwnerDni] = useState('');
   const [formVaccineName, setFormVaccineName] = useState('Toxoide Tetánico Equino (Tétanos)');
   const [formType, setFormType] = useState('Plan Sanitario Militar Obligatorio');
   const [formManufacturer, setFormManufacturer] = useState('Laboratorio Biológico Equino');
@@ -223,6 +238,64 @@ export const VaccinationView: React.FC = () => {
     e.preventDefault();
     triggerHaptic('medium');
 
+    let targetPatientId = formPatientId;
+    let registeredPetName = '';
+
+    if (vacMode === 'NEW') {
+      if (!newPetName.trim()) {
+        showToast('error', 'Nombre Requerido', 'Por favor ingrese el nombre del paciente a vacunar.');
+        return;
+      }
+      if (!newOwnerFirstName.trim() || !newOwnerPhone.trim()) {
+        showToast('error', 'Tutor Requerido', 'Por favor ingrese nombre y teléfono del tutor responsable.');
+        return;
+      }
+
+      const newOwnerId = `own-${Date.now()}`;
+      addOwner({
+        id: newOwnerId,
+        firstName: newOwnerFirstName.trim(),
+        lastName: newOwnerLastName.trim() || 'Tutor',
+        dni: newOwnerDni.trim() || undefined,
+        phone: newOwnerPhone.trim(),
+        whatsapp: newOwnerPhone.trim(),
+        email: '',
+        address: 'Río Cuarto, Córdoba',
+        city: 'Río Cuarto',
+        province: 'Córdoba',
+        postalCode: '5800',
+        taxCondition: 'CONSUMIDOR_FINAL',
+        balance: 0,
+        createdAt: new Date().toISOString(),
+      });
+
+      const newHC = `HC-2026-${Math.floor(1000 + Math.random() * 9000)}`;
+      const newPatId = `pat-${Date.now()}`;
+      addPatient({
+        id: newPatId,
+        name: newPetName.trim(),
+        species: newPetSpecies,
+        breed: newPetBreed.trim() || 'Mestizo',
+        sex: newPetSex,
+        reproductiveStatus: 'ENTERO',
+        birthDate: new Date().toISOString(),
+        calculatedAge: 'Adulto',
+        weight: Number(newPetWeight) || 10,
+        status: 'ACTIVO',
+        alerts: [],
+        clinicalRecordNumber: newHC,
+        ownerId: newOwnerId,
+        branchId: 'branch-central',
+        createdAt: new Date().toISOString(),
+      });
+
+      targetPatientId = newPatId;
+      registeredPetName = newPetName.trim();
+    } else {
+      const foundPat = patients.find(p => p.id === formPatientId);
+      registeredPetName = foundPat?.name || 'el paciente';
+    }
+
     const nextDate = new Date();
     nextDate.setMonth(nextDate.getMonth() + Number(formDurationMonths));
 
@@ -230,12 +303,15 @@ export const VaccinationView: React.FC = () => {
     expDate.setFullYear(expDate.getFullYear() + 2);
 
     addVaccination({
-      patientId: formPatientId,
+      patientId: targetPatientId,
       vaccineName: formVaccineName,
       type: formType,
       manufacturer: formManufacturer,
       batchNumber: formBatchNumber,
       expirationDate: expDate.toISOString().split('T')[0],
+      administeredDate: new Date().toISOString().split('T')[0],
+      administeredBy: currentUser?.name || 'Dr. Diego Irusta',
+      vetLicense: 'MP 8412',
       nextDueDate: nextDate.toISOString().split('T')[0],
       certificateGenerated: true,
       regimentUnit: formRegimentUnit,
@@ -243,7 +319,15 @@ export const VaccinationView: React.FC = () => {
     });
 
     setIsNewModalOpen(false);
-    showToast('success', 'Plan Sanitario Registrado', 'Inmunización registrada con vencimiento el ' + formatDate(nextDate.toISOString().split('T')[0]));
+    showToast('success', 'Vacunación Registrada', `Inmunización de ${registeredPetName} registrada con éxito. Refuerzo: ${formatDate(nextDate.toISOString().split('T')[0])}`);
+
+    // Reset fields
+    setNewPetName('');
+    setNewPetBreed('');
+    setNewOwnerFirstName('');
+    setNewOwnerLastName('');
+    setNewOwnerPhone('');
+    setNewOwnerDni('');
   };
 
   const handleSendWhatsApp = (vac: VaccinationRecord) => {
@@ -559,14 +643,19 @@ export const VaccinationView: React.FC = () => {
         )}
       </div>
 
-      {/* 5. Modal Registrar Inmunización */}
+      {/* 5. Modal Registrar Inmunización (Dual Mode: Registrado/Internado vs Nuevo Paciente) */}
       {isNewModalOpen && (
         <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-xl w-full p-6 space-y-4 shadow-2xl border border-slate-200 max-h-[92vh] overflow-y-auto">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+          <div className="bg-white rounded-3xl max-w-2xl w-full p-6 space-y-4 shadow-2xl border border-slate-200 max-h-[92vh] overflow-y-auto custom-scrollbar animate-in zoom-in-95">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3 sticky top-0 bg-white z-10">
               <div className="flex items-center gap-2">
-                <Syringe className="w-5 h-5 text-teal-600" />
-                <h3 className="text-base font-black text-slate-900">Registrar Aplicación de Biológico</h3>
+                <div className="w-9 h-9 rounded-xl bg-teal-50 text-teal-600 flex items-center justify-center font-bold">
+                  <Syringe className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-black text-slate-900">Registrar Aplicación de Biológico</h3>
+                  <p className="text-xs text-slate-500">Plan sanitario para paciente registrado, internado o nuevo ingreso</p>
+                </div>
               </div>
               <button
                 type="button"
@@ -577,21 +666,189 @@ export const VaccinationView: React.FC = () => {
               </button>
             </div>
 
-            <form onSubmit={handleSaveVaccination} className="space-y-3.5 text-xs">
-              <div>
-                <label className="text-slate-700 block font-bold mb-1">Paciente / Animal:</label>
-                <select
-                  value={formPatientId}
-                  onChange={(e) => setFormPatientId(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 font-bold text-slate-900 focus:ring-2 focus:ring-teal-500"
+            <form onSubmit={handleSaveVaccination} className="space-y-4 text-xs">
+              {/* SELECTOR DUAL DE MODO */}
+              <div className="p-1 bg-slate-100 rounded-2xl flex items-center gap-1 border border-slate-200">
+                <button
+                  type="button"
+                  onClick={() => setVacMode('EXISTING')}
+                  className={`flex-1 py-2 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                    vacMode === 'EXISTING'
+                      ? 'bg-teal-700 text-white shadow-sm'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
                 >
-                  {patients.map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {p.name} ({p.species} • {p.breed} • {p.clinicalRecordNumber})
-                    </option>
-                  ))}
-                </select>
+                  <span>👥 Paciente Registrado / Internado</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setVacMode('NEW')}
+                  className={`flex-1 py-2 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                    vacMode === 'NEW'
+                      ? 'bg-teal-700 text-white shadow-sm'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  <span>✍️ + Paciente Nuevo (Solo Vacunación)</span>
+                </button>
               </div>
+
+              {/* SECCIÓN 1: SELECCIÓN O CARGA DE PACIENTE */}
+              {vacMode === 'EXISTING' ? (
+                <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-2">
+                  <label className="text-slate-800 block font-bold">Seleccionar Paciente de la Clínica / Internado *</label>
+                  <select
+                    value={formPatientId}
+                    onChange={(e) => setFormPatientId(e.target.value)}
+                    className="w-full bg-white border border-slate-300 rounded-xl p-3 font-bold text-slate-900 focus:ring-2 focus:ring-teal-500 shadow-2xs text-xs"
+                  >
+                    {patients.map((p) => {
+                      const own = owners.find((o) => o.id === p.ownerId);
+                      const isInterned = p.status === 'INTERNADO';
+                      return (
+                        <option key={p.id} value={p.id}>
+                          {isInterned ? '🏥 [INTERNADO] ' : '🟢 '}
+                          {p.name} ({p.species} • {p.breed}) — Tutor: {own ? `${own.firstName} ${own.lastName}` : 'N/A'} ({p.clinicalRecordNumber})
+                        </option>
+                      );
+                    })}
+                  </select>
+                </div>
+              ) : (
+                <div className="space-y-3 bg-amber-50/40 p-4 rounded-2xl border border-amber-200">
+                  <div className="flex items-center gap-1.5 border-b border-amber-200/60 pb-1.5 text-amber-950 font-black uppercase text-[11px] tracking-wide">
+                    <span>🐾</span>
+                    <span>1. Datos del Nuevo Paciente</span>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="font-bold text-slate-700 block mb-1">
+                        Nombre de la Mascota / Animal: <span className="text-rose-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        required={vacMode === 'NEW'}
+                        value={newPetName}
+                        onChange={(e) => setNewPetName(e.target.value)}
+                        placeholder="ej: Rocky, Luna, Manchita..."
+                        className="w-full bg-white border border-slate-300 rounded-xl p-2.5 font-bold text-slate-900 focus:ring-2 focus:ring-teal-500 shadow-2xs"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="font-bold text-slate-700 block mb-1">Especie:</label>
+                      <select
+                        value={newPetSpecies}
+                        onChange={(e) => setNewPetSpecies(e.target.value as Species)}
+                        className="w-full bg-white border border-slate-300 rounded-xl p-2.5 font-bold text-slate-900 shadow-2xs"
+                      >
+                        <option value="CANINO">🐕 Canino (Perro)</option>
+                        <option value="FELINO">🐈 Felino (Gato)</option>
+                        <option value="EQUINO">🐎 Equino (Caballo / Mula)</option>
+                        <option value="BOVINO">🐄 Bovino (Vaca / Toro)</option>
+                        <option value="EXOTICO">🦜 Exótico / Otro</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div>
+                      <label className="font-bold text-slate-700 block mb-1">Raza:</label>
+                      <input
+                        type="text"
+                        value={newPetBreed}
+                        onChange={(e) => setNewPetBreed(e.target.value)}
+                        placeholder="ej: Mestizo, Caniche, Criollo..."
+                        className="w-full bg-white border border-slate-300 rounded-xl p-2.5 text-slate-900 font-medium shadow-2xs"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="font-bold text-slate-700 block mb-1">Sexo:</label>
+                      <select
+                        value={newPetSex}
+                        onChange={(e) => setNewPetSex(e.target.value as Sex)}
+                        className="w-full bg-white border border-slate-300 rounded-xl p-2.5 font-bold text-slate-900 shadow-2xs"
+                      >
+                        <option value="MACHO">Macho</option>
+                        <option value="HEMBRA">Hembra</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="font-bold text-slate-700 block mb-1">Peso (kg):</label>
+                      <input
+                        type="number"
+                        step="0.1"
+                        value={newPetWeight}
+                        onChange={(e) => setNewPetWeight(e.target.value)}
+                        placeholder="10.5"
+                        className="w-full bg-white border border-slate-300 rounded-xl p-2.5 font-mono font-bold text-slate-900 shadow-2xs"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-1.5 border-b border-amber-200/60 pb-1.5 pt-2 text-amber-950 font-black uppercase text-[11px] tracking-wide">
+                    <span>👤</span>
+                    <span>2. Datos del Tutor Responsable</span>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="font-bold text-slate-700 block mb-1">
+                        Nombre del Tutor: <span className="text-rose-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        required={vacMode === 'NEW'}
+                        value={newOwnerFirstName}
+                        onChange={(e) => setNewOwnerFirstName(e.target.value)}
+                        placeholder="ej: Juan"
+                        className="w-full bg-white border border-slate-300 rounded-xl p-2.5 font-bold text-slate-900 shadow-2xs"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="font-bold text-slate-700 block mb-1">Apellido:</label>
+                      <input
+                        type="text"
+                        value={newOwnerLastName}
+                        onChange={(e) => setNewOwnerLastName(e.target.value)}
+                        placeholder="ej: Pérez"
+                        className="w-full bg-white border border-slate-300 rounded-xl p-2.5 font-bold text-slate-900 shadow-2xs"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="font-bold text-slate-700 block mb-1">
+                        Teléfono / WhatsApp de Contacto: <span className="text-rose-500">*</span>
+                      </label>
+                      <input
+                        type="tel"
+                        required={vacMode === 'NEW'}
+                        value={newOwnerPhone}
+                        onChange={(e) => setNewOwnerPhone(e.target.value)}
+                        placeholder="ej: +54 9 358 4123456"
+                        className="w-full bg-white border border-slate-300 rounded-xl p-2.5 font-mono font-bold text-slate-900 shadow-2xs"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="font-bold text-slate-700 block mb-1">DNI (Opcional):</label>
+                      <input
+                        type="text"
+                        value={newOwnerDni}
+                        onChange={(e) => setNewOwnerDni(e.target.value)}
+                        placeholder="ej: 38.450.912"
+                        className="w-full bg-white border border-slate-300 rounded-xl p-2.5 font-mono text-slate-900 shadow-2xs"
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
 
               <div>
                 <label className="text-slate-700 block font-bold mb-1">Nombre del Biológico / Vacuna:</label>

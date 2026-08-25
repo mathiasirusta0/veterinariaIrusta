@@ -1,3 +1,4 @@
+import { triggerHaptic } from '../utils/haptics';
 // Age calculation helper functions
 function computeAgeFromBirthDate(birthDateStr: string): string {
   if (!birthDateStr) return 'Desconocida';
@@ -55,6 +56,7 @@ import {
 } from 'lucide-react';
 import { useVet } from '../context/VetContext';
 import { hasQuickActionPermission } from '../utils/rbac';
+import { Species, Sex } from '../types';
 
 export const QuickModals: React.FC = () => {
   const {
@@ -196,11 +198,23 @@ export const QuickModals: React.FC = () => {
   const [imgFindings, setImgFindings] = useState('');
 
   // Vaccination State
+  const [vacMode, setVacMode] = useState<'EXISTING' | 'NEW'>('EXISTING');
   const [vacPatId, setVacPatId] = useState(patients[0]?.id || '');
   const [vacName, setVacName] = useState('Séxtuple Canina');
   const [vacBatch, setVacBatch] = useState('LOT-2026-X8');
   const [vacExp, setVacExp] = useState('2027-06-30');
   const [vacNext, setVacNext] = useState('2027-08-18');
+  
+  // New patient and owner for quick vaccine
+  const [vacNewPetName, setVacNewPetName] = useState('');
+  const [vacNewPetSpecies, setVacNewPetSpecies] = useState<Species>('CANINO');
+  const [vacNewPetBreed, setVacNewPetBreed] = useState('');
+  const [vacNewPetSex, setVacNewPetSex] = useState<Sex>('MACHO');
+  const [vacNewPetWeight, setVacNewPetWeight] = useState('10');
+  const [vacNewOwnerFirstName, setVacNewOwnerFirstName] = useState('');
+  const [vacNewOwnerLastName, setVacNewOwnerLastName] = useState('');
+  const [vacNewOwnerPhone, setVacNewOwnerPhone] = useState('');
+  const [vacNewOwnerDni, setVacNewOwnerDni] = useState('');
 
   // Product State
   const [prodName, setProdName] = useState('');
@@ -584,10 +598,70 @@ export const QuickModals: React.FC = () => {
 
   const handleCreateVaccine = (e: React.FormEvent) => {
     e.preventDefault();
+    triggerHaptic('medium');
+
+    let targetPatientId = vacPatId;
+    let registeredPetName = '';
+
+    if (vacMode === 'NEW') {
+      if (!vacNewPetName.trim()) {
+        showToast('error', 'Nombre Requerido', 'Por favor ingrese el nombre del paciente.');
+        return;
+      }
+      if (!vacNewOwnerFirstName.trim() || !vacNewOwnerPhone.trim()) {
+        showToast('error', 'Tutor Requerido', 'Por favor ingrese nombre y teléfono del tutor.');
+        return;
+      }
+
+      const newOwnerId = `own-${Date.now()}`;
+      addOwner({
+        id: newOwnerId,
+        firstName: vacNewOwnerFirstName.trim(),
+        lastName: vacNewOwnerLastName.trim() || 'Tutor',
+        dni: vacNewOwnerDni.trim() || undefined,
+        phone: vacNewOwnerPhone.trim(),
+        whatsapp: vacNewOwnerPhone.trim(),
+        email: '',
+        address: 'Río Cuarto, Córdoba',
+        city: 'Río Cuarto',
+        province: 'Córdoba',
+        postalCode: '5800',
+        taxCondition: 'CONSUMIDOR_FINAL',
+        balance: 0,
+        createdAt: new Date().toISOString(),
+      });
+
+      const newHC = `HC-2026-${Math.floor(1000 + Math.random() * 9000)}`;
+      const newPatId = `pat-${Date.now()}`;
+      addPatient({
+        id: newPatId,
+        name: vacNewPetName.trim(),
+        species: vacNewPetSpecies,
+        breed: vacNewPetBreed.trim() || 'Mestizo',
+        sex: vacNewPetSex,
+        reproductiveStatus: 'ENTERO',
+        birthDate: new Date().toISOString(),
+        calculatedAge: 'Adulto',
+        weight: Number(vacNewPetWeight) || 10,
+        status: 'ACTIVO',
+        alerts: [],
+        clinicalRecordNumber: newHC,
+        ownerId: newOwnerId,
+        branchId: 'branch-central',
+        createdAt: new Date().toISOString(),
+      });
+
+      targetPatientId = newPatId;
+      registeredPetName = vacNewPetName.trim();
+    } else {
+      const foundPat = patients.find(p => p.id === vacPatId);
+      registeredPetName = foundPat?.name || 'el paciente';
+    }
+
     addVaccination({
-      patientId: vacPatId,
+      patientId: targetPatientId,
       vaccineName: vacName,
-      type: 'CANINA',
+      type: 'PLAN_SANITARIO',
       batchNumber: vacBatch,
       manufacturer: 'Zoetis / Boehringer',
       expirationDate: vacExp,
@@ -595,7 +669,10 @@ export const QuickModals: React.FC = () => {
       nextDueDate: vacNext,
       administeredBy: currentUser?.name || 'Dr. Diego Irusta',
       vetLicense: 'MP 8412',
+      certificateGenerated: true,
     });
+
+    showToast('success', 'Vacunación Registrada', `Inmunización de ${registeredPetName} registrada correctamente.`);
     setQuickModal(null);
     setActiveView('VACUNAS');
   };
@@ -2183,25 +2260,194 @@ export const QuickModals: React.FC = () => {
           </form>
         )}
 
-        {/* 10. NUEVA VACUNA */}
+        {/* 10. NUEVA VACUNA (DUAL MODE: REGISTRADO/INTERNADO VS NUEVO PACIENTE) */}
         {quickModal === 'NUEVA_VACUNA' && (
-          <form onSubmit={handleCreateVaccine} className="space-y-3 text-xs">
-            <div>
-              <label className="text-slate-700 block font-bold mb-1">Paciente:</label>
-              <select
-                value={vacPatId}
-                onChange={(e) => setVacPatId(e.target.value)}
-                className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-slate-900 font-semibold"
+          <form onSubmit={handleCreateVaccine} className="space-y-4 text-xs">
+            {/* Mode Switcher */}
+            <div className="p-1 bg-slate-100 rounded-2xl flex items-center gap-1 border border-slate-200">
+              <button
+                type="button"
+                onClick={() => setVacMode('EXISTING')}
+                className={`flex-1 py-2 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                  vacMode === 'EXISTING'
+                    ? 'bg-teal-700 text-white shadow-sm'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
               >
-                {patients.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.name} ({p.species})
-                  </option>
-                ))}
-              </select>
+                <span>👥 Paciente Registrado / Internado</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setVacMode('NEW')}
+                className={`flex-1 py-2 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                  vacMode === 'NEW'
+                    ? 'bg-teal-700 text-white shadow-sm'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                <span>✍️ + Paciente Nuevo (Solo Vacunación)</span>
+              </button>
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
+            {/* SELECCIÓN O CARGA DE PACIENTE */}
+            {vacMode === 'EXISTING' ? (
+              <div className="bg-slate-50 p-3.5 rounded-2xl border border-slate-200 space-y-2">
+                <label className="text-slate-800 block font-bold">Seleccionar Paciente de la Clínica *</label>
+                <select
+                  value={vacPatId}
+                  onChange={(e) => setVacPatId(e.target.value)}
+                  className="w-full bg-white border border-slate-300 rounded-xl p-2.5 font-bold text-slate-900 focus:ring-2 focus:ring-teal-500 shadow-2xs text-xs"
+                >
+                  {patients.map((p) => {
+                    const own = owners.find((o) => o.id === p.ownerId);
+                    const isInterned = p.status === 'INTERNADO';
+                    return (
+                      <option key={p.id} value={p.id}>
+                        {isInterned ? '🏥 [INTERNADO] ' : '🟢 '}
+                        {p.name} ({p.species} • {p.breed}) — Tutor: {own ? `${own.firstName} ${own.lastName}` : 'N/A'} ({p.clinicalRecordNumber})
+                      </option>
+                    );
+                  })}
+                </select>
+              </div>
+            ) : (
+              <div className="space-y-3 bg-amber-50/40 p-4 rounded-2xl border border-amber-200">
+                <div className="flex items-center gap-1.5 border-b border-amber-200/60 pb-1.5 text-amber-950 font-black uppercase text-[11px] tracking-wide">
+                  <span>🐾</span>
+                  <span>1. Datos del Nuevo Paciente</span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="font-bold text-slate-700 block mb-1">
+                      Nombre de la Mascota: <span className="text-rose-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      required={vacMode === 'NEW'}
+                      value={vacNewPetName}
+                      onChange={(e) => setVacNewPetName(e.target.value)}
+                      placeholder="ej: Milo, Rocco..."
+                      className="w-full bg-white border border-slate-300 rounded-xl p-2.5 font-bold text-slate-900 focus:ring-2 focus:ring-teal-500 shadow-2xs"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="font-bold text-slate-700 block mb-1">Especie:</label>
+                    <select
+                      value={vacNewPetSpecies}
+                      onChange={(e) => setVacNewPetSpecies(e.target.value as Species)}
+                      className="w-full bg-white border border-slate-300 rounded-xl p-2.5 font-bold text-slate-900 shadow-2xs"
+                    >
+                      <option value="CANINO">🐕 Canino (Perro)</option>
+                      <option value="FELINO">🐈 Felino (Gato)</option>
+                      <option value="EQUINO">🐎 Equino (Caballo / Mula)</option>
+                      <option value="BOVINO">🐄 Bovino (Vaca / Toro)</option>
+                      <option value="EXOTICO">🦜 Exótico / Otro</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div>
+                    <label className="font-bold text-slate-700 block mb-1">Raza:</label>
+                    <input
+                      type="text"
+                      value={vacNewPetBreed}
+                      onChange={(e) => setVacNewPetBreed(e.target.value)}
+                      placeholder="ej: Caniche, Criollo..."
+                      className="w-full bg-white border border-slate-300 rounded-xl p-2.5 text-slate-900 font-medium shadow-2xs"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="font-bold text-slate-700 block mb-1">Sexo:</label>
+                    <select
+                      value={vacNewPetSex}
+                      onChange={(e) => setVacNewPetSex(e.target.value as Sex)}
+                      className="w-full bg-white border border-slate-300 rounded-xl p-2.5 font-bold text-slate-900 shadow-2xs"
+                    >
+                      <option value="MACHO">Macho</option>
+                      <option value="HEMBRA">Hembra</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="font-bold text-slate-700 block mb-1">Peso (kg):</label>
+                    <input
+                      type="number"
+                      step="0.1"
+                      value={vacNewPetWeight}
+                      onChange={(e) => setVacNewPetWeight(e.target.value)}
+                      placeholder="8.5"
+                      className="w-full bg-white border border-slate-300 rounded-xl p-2.5 font-mono font-bold text-slate-900 shadow-2xs"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-1.5 border-b border-amber-200/60 pb-1.5 pt-2 text-amber-950 font-black uppercase text-[11px] tracking-wide">
+                  <span>👤</span>
+                  <span>2. Datos del Tutor Responsable</span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="font-bold text-slate-700 block mb-1">
+                      Nombre del Tutor: <span className="text-rose-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      required={vacMode === 'NEW'}
+                      value={vacNewOwnerFirstName}
+                      onChange={(e) => setVacNewOwnerFirstName(e.target.value)}
+                      placeholder="ej: Carolina"
+                      className="w-full bg-white border border-slate-300 rounded-xl p-2.5 font-bold text-slate-900 shadow-2xs"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="font-bold text-slate-700 block mb-1">Apellido:</label>
+                    <input
+                      type="text"
+                      value={vacNewOwnerLastName}
+                      onChange={(e) => setVacNewOwnerLastName(e.target.value)}
+                      placeholder="ej: Gómez"
+                      className="w-full bg-white border border-slate-300 rounded-xl p-2.5 font-bold text-slate-900 shadow-2xs"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="font-bold text-slate-700 block mb-1">
+                      Teléfono / WhatsApp: <span className="text-rose-500">*</span>
+                    </label>
+                    <input
+                      type="tel"
+                      required={vacMode === 'NEW'}
+                      value={vacNewOwnerPhone}
+                      onChange={(e) => setVacNewOwnerPhone(e.target.value)}
+                      placeholder="ej: +54 9 358 4123456"
+                      className="w-full bg-white border border-slate-300 rounded-xl p-2.5 font-mono font-bold text-slate-900 shadow-2xs"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="font-bold text-slate-700 block mb-1">DNI (Opcional):</label>
+                    <input
+                      type="text"
+                      value={vacNewOwnerDni}
+                      onChange={(e) => setVacNewOwnerDni(e.target.value)}
+                      placeholder="ej: 34.567.890"
+                      className="w-full bg-white border border-slate-300 rounded-xl p-2.5 font-mono text-slate-900 shadow-2xs"
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* SECCIÓN BIOLÓGICO */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-slate-50 p-3.5 rounded-2xl border border-slate-200">
               <div>
                 <label className="text-slate-700 block font-bold mb-1">Biológico / Vacuna:</label>
                 <input
@@ -2209,7 +2455,8 @@ export const QuickModals: React.FC = () => {
                   value={vacName}
                   onChange={(e) => setVacName(e.target.value)}
                   required
-                  className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-slate-900 font-semibold"
+                  placeholder="ej: Antirrábica, Séxtuple, Triple Felina..."
+                  className="w-full bg-white border border-slate-300 rounded-xl p-2.5 text-slate-900 font-bold shadow-2xs"
                 />
               </div>
 
@@ -2220,12 +2467,11 @@ export const QuickModals: React.FC = () => {
                   value={vacBatch}
                   onChange={(e) => setVacBatch(e.target.value)}
                   required
-                  className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-slate-900 font-mono"
+                  placeholder="ej: LT-AR-2026"
+                  className="w-full bg-white border border-slate-300 rounded-xl p-2.5 text-slate-900 font-mono font-bold shadow-2xs"
                 />
               </div>
-            </div>
 
-            <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="text-slate-700 block font-bold mb-1">Vencimiento del Lote:</label>
                 <input
@@ -2233,18 +2479,18 @@ export const QuickModals: React.FC = () => {
                   value={vacExp}
                   onChange={(e) => setVacExp(e.target.value)}
                   required
-                  className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-slate-900 font-mono"
+                  className="w-full bg-white border border-slate-300 rounded-xl p-2.5 text-slate-900 font-mono shadow-2xs"
                 />
               </div>
 
               <div>
-                <label className="text-slate-700 block font-bold mb-1">Próxima Dosis / Refuerzo:</label>
+                <label className="text-slate-700 block font-bold mb-1">Próximo Refuerzo:</label>
                 <input
                   type="date"
                   value={vacNext}
                   onChange={(e) => setVacNext(e.target.value)}
                   required
-                  className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-slate-900 font-mono font-bold text-amber-700"
+                  className="w-full bg-white border border-slate-300 rounded-xl p-2.5 text-slate-900 font-mono font-bold text-amber-700 shadow-2xs"
                 />
               </div>
             </div>
@@ -2253,13 +2499,13 @@ export const QuickModals: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setQuickModal(null)}
-                className="px-3.5 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold"
+                className="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold cursor-pointer"
               >
                 Cancelar
               </button>
               <button
                 type="submit"
-                className="px-4 py-2 rounded-lg bg-teal-600 hover:bg-teal-500 text-white font-bold shadow-sm"
+                className="px-5 py-2.5 rounded-xl bg-teal-600 hover:bg-teal-500 text-white font-bold shadow-md shadow-teal-600/20 active:scale-95 transition-all cursor-pointer"
               >
                 Registrar en Libreta
               </button>
