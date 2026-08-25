@@ -813,7 +813,7 @@ export const VetProvider: React.FC<{ children: React.ReactNode }> = ({ children 
                       cloudEvolutions.push({
                         id: doc.id,
                         patientId: doc.patientId,
-                        authorName: doc.vetName || 'Dr. Veterinario',
+                        authorName: doc.vetName || 'Dr. Diego Irusta',
                         authorRole: 'VETERINARIO',
                         dateTime: doc.createdAt,
                         createdAt: doc.createdAt,
@@ -1102,7 +1102,7 @@ export const VetProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const recordPatientWeight = (patientId: string, newWeight: number, recordedBy?: string) => {
     const validWeight = Math.max(0.1, Math.min(250, Number(newWeight) || 1));
     const now = new Date().toISOString();
-    const staff = recordedBy || currentUser?.name || 'Dr. Veterinario';
+    const staff = recordedBy || currentUser?.name || 'Dr. Diego Irusta';
 
     // 1. Update patient weight in patient record
     setPatients((prev) =>

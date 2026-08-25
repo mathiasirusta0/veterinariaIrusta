@@ -94,7 +94,7 @@ export const SurgeriesView: React.FC = () => {
   const handlePassToRecovery = (surg: SurgeryRecord) => {
     triggerHaptic('medium');
     setSelectedPatientId(surg.patientId);
-    setQuickModal('NUEVA_INTERNACION');
+    setQuickModal('INGRESO_INTERNACION');
   };
 
   const handlePrintProtocol = (surg: SurgeryRecord) => {

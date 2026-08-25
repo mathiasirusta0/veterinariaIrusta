@@ -523,7 +523,7 @@ export const QuickModals: React.FC = () => {
         rateMlPerHour: Number(hospFluidRate),
         infusionRoute: 'IV',
         startedAt: new Date().toISOString(),
-        prescribedBy: 'Dr. Veterinario',
+        prescribedBy: 'Dr. Diego Irusta',
       },
     });
     setQuickModal(null);
@@ -561,7 +561,7 @@ export const QuickModals: React.FC = () => {
     addLabOrder({
       patientId: labPatId,
       testType: labType,
-      requestedBy: 'Dr. Veterinario',
+      requestedBy: 'Dr. Diego Irusta',
       status: 'PENDIENTE',
     });
     setQuickModal(null);
@@ -593,7 +593,8 @@ export const QuickModals: React.FC = () => {
       expirationDate: vacExp,
       administeredDate: new Date().toISOString().split('T')[0],
       nextDueDate: vacNext,
-      administeredBy: 'Dr. Veterinario',
+      administeredBy: currentUser?.name || 'Dr. Diego Irusta',
+      vetLicense: 'MP 8412',
     });
     setQuickModal(null);
     setActiveView('VACUNAS');

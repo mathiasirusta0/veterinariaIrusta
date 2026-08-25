@@ -378,7 +378,7 @@ export const AppointmentsView: React.FC = () => {
                       )}
                       <span>•</span>
                       <span>
-                        Profesional: <strong className="text-slate-800">{(apt as any).vetName || 'Dr. Veterinario'}</strong>
+                        Profesional: <strong className="text-slate-800">{(apt as any).vetName || 'Dr. Diego Irusta'}</strong>
                       </span>
                       {apt.consultingRoom && (
                         <>

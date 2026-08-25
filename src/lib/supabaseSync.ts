@@ -76,7 +76,7 @@ function normalizeFluidTherapy(ft: any): FluidTherapy {
       rateMlPerHour: 0,
       infusionRoute: 'IV',
       startedAt: new Date().toISOString(),
-      prescribedBy: 'Dr. Veterinario',
+      prescribedBy: 'Dr. Diego Irusta',
     };
   }
   return {
@@ -89,7 +89,7 @@ function normalizeFluidTherapy(ft: any): FluidTherapy {
     startedAt: ft.startedAt || ft.started_at || new Date().toISOString(),
     pumpNumber: ft.pumpNumber || ft.pump_number || 'Bomba 01',
     additives: ft.additives,
-    prescribedBy: ft.prescribedBy || ft.prescribed_by || 'Dr. Veterinario',
+    prescribedBy: ft.prescribedBy || ft.prescribed_by || 'Dr. Diego Irusta',
   };
 }
 
@@ -98,7 +98,7 @@ function normalizeHospitalization(raw: any): Hospitalization {
     id: raw.id,
     patientId: raw.patient_id || raw.patientId || '',
     vetInChargeId: raw.vet_in_charge_id || raw.vetInChargeId || '',
-    vetInChargeName: raw.vet_in_charge_name || raw.vetInChargeName || 'Dr. Veterinario',
+    vetInChargeName: raw.vet_in_charge_name || raw.vetInChargeName || 'Dr. Diego Irusta',
     sector: raw.sector || 'UCI',
     kennelNumber: raw.kennel_number || raw.kennelNumber || '01',
     admittedAt: raw.admitted_at || raw.admittedAt || new Date().toISOString(),
@@ -124,7 +124,7 @@ function normalizeConsultation(raw: any): Consultation {
     id: raw.id,
     patientId: raw.patient_id || raw.patientId || '',
     vetId: raw.vet_id || raw.vetId || '',
-    vetName: raw.vet_name || raw.vetName || 'Dr. Veterinario',
+    vetName: raw.vet_name || raw.vetName || 'Dr. Diego Irusta',
     vetLicense: raw.vet_license || raw.vetLicense,
     branchId: raw.branch_id || raw.branchId || 'branch-1',
     dateTime: raw.date_time || raw.dateTime || new Date().toISOString(),
@@ -149,7 +149,7 @@ function normalizeSurgery(raw: any): SurgeryRecord {
     id: raw.id,
     patientId: raw.patient_id || raw.patientId || '',
     procedureName: raw.procedure_name || raw.procedureName || '',
-    surgeonName: raw.surgeon_name || raw.surgeonName || 'Dr. Veterinario',
+    surgeonName: raw.surgeon_name || raw.surgeonName || 'Dr. Diego Irusta',
     assistantName: raw.assistant_name || raw.assistantName,
     anesthetistName: raw.anesthetist_name || raw.anesthetistName || 'Dr. Anestesista',
     branchId: raw.branch_id || raw.branchId || 'branch-1',
@@ -206,7 +206,7 @@ function normalizeVitalSigns(raw: any): VitalSigns {
     id: raw.id,
     patientId: raw.patient_id || raw.patientId || '',
     recordedAt: raw.recorded_at || raw.recordedAt || new Date().toISOString(),
-    recordedBy: raw.recorded_by || raw.recordedBy || 'Dr. Veterinario',
+    recordedBy: raw.recorded_by || raw.recordedBy || 'Dr. Diego Irusta',
     temperature: typeof raw.temperature === 'number' ? raw.temperature : (raw.temperature ? parseFloat(raw.temperature) : undefined),
     heartRate: typeof raw.heart_rate === 'number' ? raw.heart_rate : (typeof raw.heartRate === 'number' ? raw.heartRate : undefined),
     respiratoryRate: typeof raw.respiratory_rate === 'number' ? raw.respiratory_rate : (typeof raw.respiratoryRate === 'number' ? raw.respiratoryRate : undefined),
@@ -232,7 +232,7 @@ function normalizeProblem(raw: any): PatientProblem {
     status: raw.status || 'ACTIVO',
     onsetDate: raw.onset_date || raw.onsetDate || new Date().toISOString().split('T')[0],
     resolvedDate: raw.resolved_date || raw.resolvedDate,
-    vetName: raw.vet_name || raw.vetName || 'Dr. Veterinario',
+    vetName: raw.vet_name || raw.vetName || 'Dr. Diego Irusta',
   };
 }
 
@@ -242,7 +242,7 @@ function normalizeLabOrder(raw: any): LaboratoryOrder {
     patientId: raw.patient_id || raw.patientId || '',
     orderNumber: raw.order_number || raw.orderNumber || 'LAB-001',
     testType: raw.test_type || raw.testType || 'HEMOGRAMA_COMPLETO',
-    requestedBy: raw.requested_by || raw.requestedBy || 'Dr. Veterinario',
+    requestedBy: raw.requested_by || raw.requestedBy || 'Dr. Diego Irusta',
     requestedAt: raw.requested_at || raw.requestedAt || new Date().toISOString(),
     resultsReadyAt: raw.results_ready_at || raw.resultsReadyAt,
     status: raw.status || 'SOLICITADO',
@@ -259,7 +259,7 @@ function normalizeImaging(raw: any): ImagingStudy {
     studyNumber: raw.study_number || raw.studyNumber || 'IMG-001',
     modality: raw.modality || 'RADIOGRAFIA',
     region: raw.region || '',
-    requestedBy: raw.requested_by || raw.requestedBy || 'Dr. Veterinario',
+    requestedBy: raw.requested_by || raw.requestedBy || 'Dr. Diego Irusta',
     performedBy: raw.reported_by || raw.performedBy || 'Dr. Especialista',
     date: raw.date || new Date().toISOString(),
     report: raw.findings || raw.report || '',
@@ -279,7 +279,7 @@ function normalizeVaccination(raw: any): VaccinationRecord {
     expirationDate: raw.expiration_date || raw.expirationDate || new Date().toISOString().split('T')[0],
     administeredDate: raw.administered_date || raw.administeredDate || new Date().toISOString().split('T')[0],
     nextDueDate: raw.next_due_date || raw.nextDueDate || new Date().toISOString().split('T')[0],
-    administeredBy: raw.administered_by || raw.administeredBy || 'Dr. Veterinario',
+    administeredBy: raw.administered_by || raw.administeredBy || 'Dr. Diego Irusta',
     vetLicense: raw.vet_license || raw.vetLicense || 'MP-VET',
     certificateGenerated: !!raw.certificate_generated || !!raw.certificateGenerated,
   };
@@ -368,7 +368,7 @@ function normalizeDocument(raw: any): ClinicalDocument {
     type: raw.type || 'CONSENTIMIENTO_INTERNACION',
     title: raw.title || 'Documento Clínico',
     content: raw.content || '',
-    vetName: raw.vet_name || raw.vetName || 'Dr. Veterinario',
+    vetName: raw.vet_name || raw.vetName || 'Dr. Diego Irusta',
     createdAt: raw.created_at || raw.createdAt || new Date().toISOString(),
     signedByOwnerName: raw.signed_by || raw.signedByOwnerName,
     isSigned: raw.status === 'FIRMADO' || !!raw.isSigned,
@@ -579,7 +579,7 @@ export async function syncSurgeryToSupabase(surg: SurgeryRecord) {
       id: surg.id,
       patient_id: surg.patientId,
       procedure_name: surg.procedureName,
-      surgeon_name: surg.surgeonName || 'Dr. Veterinario',
+      surgeon_name: surg.surgeonName || 'Dr. Diego Irusta',
       anesthetist_name: surg.anesthetistName,
       date: surg.date,
       start_time: surg.startTime,
@@ -930,7 +930,7 @@ export function normalizeEncounter(raw: any) {
     admittedAt: raw.admitted_at || raw.admittedAt || new Date().toISOString(),
     dischargedAt: raw.discharged_at || raw.dischargedAt,
     vetInChargeId: raw.vet_in_charge_id || raw.vetInChargeId || '',
-    vetInChargeName: raw.vet_in_charge_name || raw.vetInChargeName || 'Dr. Veterinario',
+    vetInChargeName: raw.vet_in_charge_name || raw.vetInChargeName || 'Dr. Diego Irusta',
     reason: raw.reason || '',
     initialDiagnosis: raw.initial_diagnosis || raw.initialDiagnosis || '',
     finalDiagnosis: raw.final_diagnosis || raw.finalDiagnosis,

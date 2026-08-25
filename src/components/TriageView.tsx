@@ -97,7 +97,7 @@ export const TriageView: React.FC = () => {
     triggerHaptic('medium');
     updateTriageStatus(triageId, 'DERIVADO_INTERNACION');
     setSelectedPatientId(patientId);
-    setQuickModal('NUEVA_INTERNACION');
+    setQuickModal('INGRESO_INTERNACION');
   };
 
   const handleCancelTriage = (triageId: string, patientName: string) => {
