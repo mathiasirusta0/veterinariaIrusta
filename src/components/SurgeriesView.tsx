@@ -135,12 +135,6 @@ export const SurgeriesView: React.FC = () => {
             variant: 'secondary',
           },
           {
-            label: 'Hoja Anestésica',
-            icon: Activity,
-            onClick: () => openAnesthesiaChart(),
-            variant: 'secondary',
-          },
-          {
             label: 'Programar Cirugía',
             icon: Plus,
             onClick: () => setQuickModal('NUEVA_CIRUGIA'),
