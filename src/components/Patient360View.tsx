@@ -392,7 +392,7 @@ export const Patient360View: React.FC = () => {
       description: newProblemDesc,
       status: newProblemStatus,
       onsetDate: new Date().toISOString().split('T')[0],
-      vetName: 'Dr. Veterinario',
+      vetName: currentUser?.name || 'Dr. Diego Irusta',
     });
     setNewProblemTitle('');
     setNewProblemDesc('');
