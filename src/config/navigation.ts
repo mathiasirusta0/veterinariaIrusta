@@ -33,7 +33,7 @@ export interface NavItemConfig {
 
 export const NAV_GROUPS = [
   { id: 'ATENCION_CLINICA', label: 'ATENCIÓN CLÍNICA' },
-  { id: 'GUARDIA_INTERNACION', label: 'GUARDIA E INTERNACIÓN' },
+  { id: 'GUARDIA_INTERNACION', label: 'QUIRÓFANO & MONITOREO' },
   { id: 'SERVICIOS_CLINICOS', label: 'SERVICIOS CLÍNICOS' },
   { id: 'ADMINISTRACION', label: 'ADMINISTRACIÓN' },
 ] as const;
@@ -66,16 +66,7 @@ export const NAVIGATION_ITEMS: NavItemConfig[] = [
     group: 'ATENCION_CLINICA',
   },
 
-  // B. GUARDIA E INTERNACIÓN
-  {
-    id: 'INTERNACION',
-    label: 'Internación & Atención',
-    shortLabel: 'Internación',
-    description: 'Centro operativo de atención ambulatoria, internación y monitoreo',
-    icon: BedDouble,
-    group: 'GUARDIA_INTERNACION',
-    badgeColor: 'bg-teal-500',
-  },
+  // B. QUIRÓFANO & MONITOREO
   {
     id: 'CIRUGIAS',
     label: 'Cirugía & Quirófano',

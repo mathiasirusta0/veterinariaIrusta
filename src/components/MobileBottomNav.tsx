@@ -59,29 +59,29 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({ onOpenMobileMe
           </span>
         </button>
 
-        {/* Slot 2: Atención & ARCA */}
+        {/* Slot 2: Finanzas & Caja */}
         <button
           type="button"
           onClick={() => {
             triggerHaptic('light');
-            setActiveView('INTERNACION');
+            setActiveView('CAJA_FACTURACION');
           }}
           className={`flex flex-col items-center justify-center gap-0.5 h-full w-full py-1 rounded-xl transition-all active:scale-95 touch-manipulation min-h-[48px] ${
             isHospitalActive
               ? 'text-teal-700 font-black'
               : 'text-slate-500 hover:text-slate-800'
           }`}
-          aria-label="Ir a Internación y Atención"
+          aria-label="Ir a Finanzas y Caja"
         >
           <div
             className={`p-1 rounded-xl transition-colors ${
               isHospitalActive ? 'bg-teal-50 text-teal-700' : 'text-slate-500'
             }`}
           >
-            <BedDouble className="w-5 h-5 stroke-[2.2]" />
+            <Receipt className="w-5 h-5 stroke-[2.2]" />
           </div>
           <span className="text-[10px] sm:text-xs font-bold tracking-tight truncate max-w-[64px]">
-            Caja
+            Finanzas
           </span>
         </button>
 

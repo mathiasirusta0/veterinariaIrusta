@@ -141,7 +141,7 @@ export const DashboardView: React.FC = () => {
             <span>+ NUEVO TURNO</span>
           </button>
           <button
-            onClick={() => setQuickModal('INGRESO_INTERNACION')}
+            onClick={() => setQuickModal('NUEVO_PACIENTE')}
             className="bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 px-3.5 py-2 rounded-xl text-xs font-bold shadow-2xs transition-all flex items-center gap-1.5"
           >
             <BedDouble className="w-3.5 h-3.5 text-slate-500" />
@@ -154,7 +154,7 @@ export const DashboardView: React.FC = () => {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Card 1: Pacientes Críticos */}
         <div
-          onClick={() => setActiveView('INTERNACION')}
+          onClick={() => setActiveView('PACIENTES')}
           className="group relative bg-white p-5 rounded-2xl shadow-xs border border-slate-200/90 hover:border-rose-300 hover:shadow-md transition-all duration-200 cursor-pointer overflow-hidden"
         >
           <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-rose-500 to-red-600" />
@@ -179,7 +179,7 @@ export const DashboardView: React.FC = () => {
 
         {/* Card 2: Tratamientos Atrasados */}
         <div
-          onClick={() => setActiveView('INTERNACION')}
+          onClick={() => setActiveView('PACIENTES')}
           className="group relative bg-white p-5 rounded-2xl shadow-xs border border-slate-200/90 hover:border-amber-300 hover:shadow-md transition-all duration-200 cursor-pointer overflow-hidden"
         >
           <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-500 to-orange-500" />
@@ -204,7 +204,7 @@ export const DashboardView: React.FC = () => {
 
         {/* Card 3: Internados */}
         <div
-          onClick={() => setActiveView('INTERNACION')}
+          onClick={() => setActiveView('PACIENTES')}
           className="group relative bg-white p-5 rounded-2xl shadow-xs border border-slate-200/90 hover:border-teal-300 hover:shadow-md transition-all duration-200 cursor-pointer overflow-hidden"
         >
           <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-teal-500 to-emerald-500" />
@@ -288,7 +288,7 @@ export const DashboardView: React.FC = () => {
         </button>
 
         <button
-          onClick={() => setActiveView('INTERNACION')}
+          onClick={() => setActiveView('PACIENTES')}
           className="bg-white p-3 rounded-xl border border-slate-200 hover:border-slate-300 flex items-center justify-between text-left transition-colors shadow-xs"
         >
           <div className="flex items-center gap-2.5">
@@ -339,7 +339,7 @@ export const DashboardView: React.FC = () => {
                 {activeHospital.length} {activeHospital.length === 1 ? 'PACIENTE ACTIVO' : 'PACIENTES ACTIVOS'}
               </span>
               <button
-                onClick={() => setActiveView('INTERNACION')}
+                onClick={() => setActiveView('PACIENTES')}
                 className="text-xs text-teal-600 hover:text-teal-700 font-bold flex items-center gap-1 ml-2"
               >
                 <span>Ver Internación</span>
@@ -581,7 +581,7 @@ export const DashboardView: React.FC = () => {
             </div>
           </div>
           <button
-            onClick={() => setActiveView('INTERNACION')}
+            onClick={() => setActiveView('PACIENTES')}
             className="px-4 py-2 bg-amber-600 hover:bg-amber-500 text-white font-bold rounded-xl text-xs transition-all shadow-2xs"
           >
             Iniciar Atención →

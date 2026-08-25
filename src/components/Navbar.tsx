@@ -93,13 +93,13 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleMobileMenu }) => {
           <button
             onClick={() => {
               triggerHaptic('medium');
-              setActiveView('INTERNACION');
+              setActiveView('PACIENTES');
             }}
             className="flex items-center gap-1 p-2 sm:px-3 sm:py-1.5 rounded-xl bg-red-50 hover:bg-red-100 border border-red-200 text-red-700 text-xs font-black transition-all shadow-2xs animate-pulse flex-shrink-0"
-            title={`${criticalCount} paciente(s) en estado crítico`}
+            title={`${criticalCount} paciente(s) con alertas`}
           >
             <AlertTriangle className="w-4 h-4 text-red-600" />
-            <span className="hidden sm:inline">{criticalCount} Crítico{criticalCount > 1 ? 's' : ''}</span>
+            <span className="hidden sm:inline">{criticalCount} Alerta{criticalCount > 1 ? 's' : ''}</span>
             <span className="sm:hidden text-[11px] font-black">{criticalCount}</span>
           </button>
         )}
@@ -154,10 +154,10 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleMobileMenu }) => {
         <button
           onClick={() => {
             triggerHaptic('light');
-            setActiveView('INTERNACION');
+            setActiveView('AGENDA');
           }}
           className="relative p-2 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors flex-shrink-0"
-          title="Sala de espera y notificaciones"
+          title="Agenda y recordatorios"
         >
           <Bell className="w-4 h-4" />
           {criticalCount > 0 && (

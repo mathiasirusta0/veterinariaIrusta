@@ -34,8 +34,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpenMobile, onCloseMobile })
     switch (viewId) {
       case 'PACIENTES':
         return { count: patients.length, color: 'bg-slate-200 text-slate-700' };
-      case 'INTERNACION':
-        return activeHospitalCount > 0 ? { count: activeHospitalCount, color: 'bg-teal-600 text-white' } : null;
       case 'INVENTARIO':
         return lowStockCount > 0 ? { count: lowStockCount, color: 'bg-amber-500 text-white' } : null;
       default:

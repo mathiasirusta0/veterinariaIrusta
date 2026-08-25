@@ -36,7 +36,6 @@ import { DashboardView } from './components/DashboardView';
 import { PatientsListView } from './components/PatientsListView';
 import { Patient360View } from './components/Patient360View';
 import { OwnersView } from './components/OwnersView';
-import { HospitalizationWhiteboardView } from './components/HospitalizationWhiteboardView';
 import { TriageView } from './components/TriageView';
 import { AppointmentsView } from './components/AppointmentsView';
 import { VitalSignsView } from './components/VitalSignsView';
@@ -102,8 +101,7 @@ const MainLayout: React.FC = () => {
     if (activeView === 'OPERACION' || activeView === 'DASHBOARD' || activeView === 'INICIO') viewKey = 'OPERACION';
     if (activeView === 'PACIENTES') viewKey = 'PACIENTES';
     else if (activeView === 'PROPIETARIOS') viewKey = 'PROPIETARIOS';
-    else if (activeView === 'INTERNACION') viewKey = 'INTERNACION';
-    else if (activeView === 'SALA_ESPERA') viewKey = 'INTERNACION';
+    else if (activeView === 'INTERNACION' || activeView === 'SALA_ESPERA') viewKey = 'PACIENTES';
     else if (activeView === 'AGENDA') viewKey = 'AGENDA';
     else if (activeView === 'SIGNOS_VITALES' || activeView === 'SIGNOS' || activeView === 'BIOMETRIA') viewKey = 'SIGNOS_VITALES';
     else if (activeView === 'CIRUGIAS') viewKey = 'CIRUGIAS';
@@ -123,17 +121,15 @@ const MainLayout: React.FC = () => {
     switch (activeView) {
       case 'OPERACION':
       case 'DASHBOARD':
-      case 'INICIO':
-      case 'PACIENTES':
         return (
-          <ModuleErrorBoundary moduleName="Directorio de Pacientes">
-            {selectedPatientId ? <Patient360View /> : <PatientsListView />}
+          <ModuleErrorBoundary moduleName="Panel de Control">
+            <DashboardView />
           </ModuleErrorBoundary>
         );
-      case 'GESTION':
+      case 'PACIENTES':
         return (
-          <ModuleErrorBoundary moduleName="Gestión & Farmacia">
-            <InventoryView />
+          <ModuleErrorBoundary moduleName="Expediente Clínico & Pacientes">
+            {selectedPatientId ? <Patient360View /> : <PatientsListView />}
           </ModuleErrorBoundary>
         );
 
@@ -144,15 +140,10 @@ const MainLayout: React.FC = () => {
           </ModuleErrorBoundary>
         );
       case 'INTERNACION':
-        return (
-          <ModuleErrorBoundary moduleName="Internación & Monitoreo Intensivo">
-            <HospitalizationWhiteboardView />
-          </ModuleErrorBoundary>
-        );
       case 'SALA_ESPERA':
         return (
-          <ModuleErrorBoundary moduleName="Internación & Atención">
-            <HospitalizationWhiteboardView />
+          <ModuleErrorBoundary moduleName="Expediente Clínico & Pacientes">
+            {selectedPatientId ? <Patient360View /> : <PatientsListView />}
           </ModuleErrorBoundary>
         );
       case 'AGENDA':
