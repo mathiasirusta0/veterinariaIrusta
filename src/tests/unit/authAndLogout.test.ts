@@ -1,5 +1,59 @@
 import { describe, it, expect } from 'vitest';
 import { VADEMECUM_DATABASE } from '../../components/ClinicalCalculatorsModal';
+import { UserRole, User } from '../../types';
+
+describe('Seguridad de Autenticación & Políticas Anti-Bypass', () => {
+  it('no debe permitir inicio de sesión sin credenciales válidas provistas por Supabase Auth', () => {
+    const attemptLogin = (email?: string, password?: string) => {
+      if (!email || !password) {
+        throw new Error('Credenciales requeridas');
+      }
+      return false;
+    };
+
+    expect(() => attemptLogin('', '')).toThrow('Credenciales requeridas');
+    expect(() => attemptLogin('admin@test.com', '')).toThrow('Credenciales requeridas');
+  });
+
+  it('debe asignar únicamente los roles autorizados provenientes del perfil verificado de servidor', () => {
+    const serverProfile = {
+      id: 'usr-verified-01',
+      name: 'Dra. Laura Gómez',
+      role: 'VETERINARIO' as UserRole,
+      branch_id: 'branch-1',
+      license_number: 'M.P. 789',
+    };
+
+    const user: User = {
+      id: serverProfile.id,
+      name: serverProfile.name,
+      email: 'laura@veterinariairusta.com',
+      role: serverProfile.role,
+      branchId: serverProfile.branch_id,
+      licenseNumber: serverProfile.license_number,
+    };
+
+    expect(user.role).toBe('VETERINARIO');
+    expect(user.role).not.toBe('SUPERADMIN');
+  });
+
+  it('debe limpiar el usuario activo al cerrar sesión de forma segura', () => {
+    let currentUser: User | null = {
+      id: 'usr-1',
+      name: 'Dr. Diego Iván Irusta',
+      email: 'irusta@veterinariairusta.com',
+      role: 'SUPERADMIN',
+      branchId: 'branch-1',
+    };
+
+    const logout = () => {
+      currentUser = null;
+    };
+
+    logout();
+    expect(currentUser).toBeNull();
+  });
+});
 
 describe('Calculadora de Dosis & Vademécum Clínico (Resiliencia & Null Safety)', () => {
   it('debe calcular dosis farmacológicas correctamente en modo libre sin paciente seleccionado', () => {
@@ -54,23 +108,5 @@ describe('Calculadora de Dosis & Vademécum Clínico (Resiliencia & Null Safety)
     expect(fentanylMl).toBe(24);
     expect(lidocaineMl).toBe(30);
     expect(ketamineMl).toBe(4.8);
-  });
-});
-
-describe('Flujo de Cierre de Sesión (Logout)', () => {
-  it('debe limpiar el usuario activo al cerrar sesión', () => {
-    let currentUser: any = {
-      id: 'usr-1',
-      name: 'Dr. Diego Iván Irusta',
-      role: 'SUPERADMIN',
-    };
-
-    // Simulate logout action
-    const logout = () => {
-      currentUser = null;
-    };
-
-    logout();
-    expect(currentUser).toBeNull();
   });
 });

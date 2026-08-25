@@ -10,10 +10,12 @@ import {
   CheckCircle2,
   Stethoscope,
   HeartPulse,
+  Info,
 } from 'lucide-react';
 import { useVet } from '../context/VetContext';
 import { supabase } from '../lib/supabase';
 import { triggerHaptic } from '../utils/haptics';
+import { UserRole } from '../types';
 
 interface LoginViewProps {
   onBackToLanding?: () => void;
@@ -22,13 +24,11 @@ interface LoginViewProps {
 export const LoginView: React.FC<LoginViewProps> = ({ onBackToLanding }) => {
   const { branches, activeBranch, setActiveBranch, setCurrentUser, showToast } = useVet();
 
-  // Clean, empty inputs for security
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
-  const [isRegisterMode, setIsRegisterMode] = useState(false);
-  const [name, setName] = useState('');
+  const [showAccessHelp, setShowAccessHelp] = useState(false);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,96 +39,57 @@ export const LoginView: React.FC<LoginViewProps> = ({ onBackToLanding }) => {
     const cleanEmail = email.trim().toLowerCase();
 
     try {
-      if (isRegisterMode) {
-        // Supabase Auth SignUp
-        try {
-          const { data, error } = await supabase.auth.signUp({
-            email: cleanEmail,
-            password,
-            options: {
-              data: {
-                name: name || 'Dr. Diego Iván Irusta',
-                role: 'SUPERADMIN',
-                license_number: 'M.P. 502 - Dirección Médica',
-              },
-            },
-          });
-          if (error) console.warn('Supabase signup notice:', error.message);
-        } catch (authErr) {
-          console.warn('Supabase offline signup fallback:', authErr);
-        }
-
-        // Direct registration login
-        setCurrentUser({
-          id: 'user-irusta-superadmin',
-          name: name || 'Dr. Diego Iván Irusta',
-          email: cleanEmail,
-          role: 'SUPERADMIN',
-          branchId: activeBranch.id,
-          licenseNumber: 'M.P. 502 - Dirección Médica',
-        });
-        showToast('success', 'Cuenta Creada & Conectada', `Bienvenido Dr. ${name || 'Diego Iván Irusta'}`);
-      } else {
-        // Try real Supabase Auth signIn
-        let supabaseSuccess = false;
-        try {
-          const { data, error } = await supabase.auth.signInWithPassword({
-            email: cleanEmail,
-            password,
-          });
-
-          if (!error && data?.user) {
-            supabaseSuccess = true;
-            const userMeta = data.user.user_metadata || {};
-            setCurrentUser({
-              id: data.user.id,
-              name: userMeta.name || (cleanEmail === 'irusta@gmail.com' ? 'Dr. Diego Iván Irusta' : 'Profesional Veterinario'),
-              email: data.user.email || cleanEmail,
-              role: userMeta.role || (cleanEmail === 'irusta@gmail.com' ? 'SUPERADMIN' : 'VETERINARIO'),
-              branchId: activeBranch.id,
-              licenseNumber: userMeta.license_number || 'M.P. 502 - Dirección Médica',
-            });
-            showToast('success', 'Sesión Iniciada', `Bienvenido ${userMeta.name || 'Dr. Diego Iván Irusta'}`);
-            return;
-          }
-        } catch (sbErr) {
-          console.warn('Supabase auth network notice:', sbErr);
-        }
-
-        // Secure credential authentication for Dr. Irusta
-        if (cleanEmail === 'irusta@gmail.com' && password === 'admin1998') {
-          // Provision in Supabase Auth if needed
-          try {
-            await supabase.auth.signUp({
-              email: cleanEmail,
-              password: password,
-              options: {
-                data: {
-                  name: 'Dr. Diego Iván Irusta',
-                  role: 'SUPERADMIN',
-                  license_number: 'M.P. 502 - Dirección Médica',
-                },
-              },
-            });
-          } catch {}
-
-          setCurrentUser({
-            id: 'user-irusta-superadmin',
-            name: 'Dr. Diego Iván Irusta',
-            email: 'irusta@gmail.com',
-            role: 'SUPERADMIN',
-            branchId: activeBranch.id,
-            licenseNumber: 'M.P. 502 - Dirección Médica',
-          });
-          showToast('success', 'Acceso Autorizado', 'Bienvenido Dr. Diego Iván Irusta — Dirección Médica');
-          return;
-        }
-
-        throw new Error('Credenciales incorrectas. Verifique su correo electrónico y contraseña.');
+      if (!cleanEmail || !password) {
+        throw new Error('Por favor complete su correo electrónico y contraseña.');
       }
+
+      // Autenticación estricta contra Supabase Auth (Servidor)
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: cleanEmail,
+        password,
+      });
+
+      if (error || !data?.user) {
+        throw new Error(error?.message || 'Credenciales inválidas. Verifique su usuario y contraseña.');
+      }
+
+      // Obtener perfil y rol autorizados desde la base de datos (public.profiles)
+      let role: UserRole = 'VETERINARIO';
+      let userName = data.user.user_metadata?.name || 'Profesional Veterinario';
+      let license = data.user.user_metadata?.license_number || 'M.P. 502';
+
+      try {
+        const { data: profile, error: profileErr } = await supabase
+          .from('profiles')
+          .select('id, name, role, branch_id, license_number')
+          .eq('id', data.user.id)
+          .maybeSingle();
+
+        if (!profileErr && profile) {
+          if (profile.role) role = profile.role as UserRole;
+          if (profile.name) userName = profile.name;
+          if (profile.license_number) license = profile.license_number;
+        } else if (data.user.user_metadata?.role) {
+          role = data.user.user_metadata.role as UserRole;
+        }
+      } catch (err) {
+        console.warn('Profile fetch notice:', err);
+      }
+
+      // Establecer sesión de usuario autenticado
+      setCurrentUser({
+        id: data.user.id,
+        name: userName,
+        email: data.user.email || cleanEmail,
+        role,
+        branchId: activeBranch.id,
+        licenseNumber: license,
+      });
+
+      showToast('success', 'Sesión Iniciada', `Bienvenido ${userName} (${role})`);
     } catch (err: any) {
-      setErrorMsg(err.message || 'Error de autenticación');
-      showToast('error', 'Error al Ingresar', err.message || 'Credenciales inválidas');
+      setErrorMsg(err.message || 'Error al autenticar credenciales en el servidor.');
+      showToast('error', 'Acceso Denegado', err.message || 'Credenciales inválidas');
     } finally {
       setIsLoading(false);
     }
@@ -188,7 +149,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ onBackToLanding }) => {
         <div className="relative z-10 pt-4 border-t border-[#E8E3D9] flex items-center justify-between text-xs text-[#556956]">
           <div className="flex items-center gap-2">
             <span className="w-2.5 h-2.5 rounded-full bg-emerald-600 animate-pulse" />
-            <span className="font-bold text-[#1C2B1D]">Autenticación Segura & Cifrado SSL</span>
+            <span className="font-bold text-[#1C2B1D]">Autenticación Segura & Supabase RLS</span>
           </div>
           <span className="font-mono text-[11px] text-[#6E502B]">Dirección Médica: Dr. Diego Iván Irusta</span>
         </div>
@@ -200,37 +161,21 @@ export const LoginView: React.FC<LoginViewProps> = ({ onBackToLanding }) => {
           <div className="bg-white border border-[#E8E3D9] rounded-3xl p-6 sm:p-8 shadow-xl space-y-5">
             <div className="border-b border-[#F3EFEA] pb-4">
               <h2 className="text-2xl font-black font-serif text-[#162217]">
-                {isRegisterMode ? 'Crear Cuenta Profesional' : 'Ingreso al Sistema'}
+                Ingreso al Sistema
               </h2>
               <p className="text-xs text-[#6E502B] mt-1 font-medium">
-                {isRegisterMode
-                  ? 'Registrá un nuevo usuario en la base de datos de Veterinaria Irusta'
-                  : 'Ingresá tu correo y contraseña para acceder al historial clínico'}
+                Ingresá tus credenciales autorizadas para acceder a la historia clínica y gestión hospitalaria.
               </p>
             </div>
 
             {errorMsg && (
-              <div className="bg-red-50 border border-red-200 text-red-800 p-3 rounded-2xl text-xs flex items-center gap-2">
-                <span>⚠️</span>
+              <div className="bg-rose-50 border border-rose-200 text-rose-800 p-3 rounded-2xl text-xs flex items-center gap-2">
+                <span className="text-sm">⚠️</span>
                 <span>{errorMsg}</span>
               </div>
             )}
 
             <form onSubmit={handleLogin} className="space-y-4 text-xs">
-              {isRegisterMode && (
-                <div>
-                  <label className="text-[#1C2B1D] font-bold block mb-1">Nombre y Apellido:</label>
-                  <input
-                    type="text"
-                    required
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    placeholder="Ej: Dr. Diego Iván Irusta"
-                    className="w-full bg-[#FAF8F5] border border-[#DDD7C8] rounded-xl p-3 text-[#1C2B1D] font-bold focus:outline-none focus:ring-2 focus:ring-[#5F7359]"
-                  />
-                </div>
-              )}
-
               {/* Sede */}
               <div>
                 <label className="text-[#1C2B1D] font-bold block mb-1 flex items-center gap-1.5">
@@ -257,7 +202,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ onBackToLanding }) => {
               <div>
                 <label className="text-[#1C2B1D] font-bold block mb-1 flex items-center gap-1.5">
                   <Mail className="w-3.5 h-3.5 text-[#5F7359]" />
-                  <span>Correo Electrónico:</span>
+                  <span>Correo Electrónico Institucional:</span>
                 </label>
                 <input
                   type="email"
@@ -274,7 +219,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ onBackToLanding }) => {
               <div>
                 <label className="text-[#1C2B1D] font-bold block mb-1 flex items-center gap-1.5">
                   <Lock className="w-3.5 h-3.5 text-[#5F7359]" />
-                  <span>Contraseña:</span>
+                  <span>Contraseña de Acceso:</span>
                 </label>
                 <input
                   type="password"
@@ -294,35 +239,40 @@ export const LoginView: React.FC<LoginViewProps> = ({ onBackToLanding }) => {
                 className="w-full py-3.5 bg-[#5F7359] hover:bg-[#4D5E48] active:scale-98 text-white font-bold text-sm rounded-xl transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 border border-[#4D5E48]"
               >
                 {isLoading ? (
-                  <span>Verificando credenciales...</span>
+                  <span>Verificando credenciales en servidor...</span>
                 ) : (
                   <>
-                    <span>{isRegisterMode ? 'Registrar Usuario' : 'Ingresar al Hospital'}</span>
+                    <span>Ingresar al Hospital</span>
                     <ArrowRight className="w-4 h-4" />
                   </>
                 )}
               </button>
             </form>
 
-            {/* Toggle Mode */}
-            <div className="text-center pt-3 border-t border-[#F3EFEA]">
+            {/* Access Help Information */}
+            <div className="pt-3 border-t border-[#F3EFEA] space-y-2">
               <button
                 type="button"
-                onClick={() => {
-                  setIsRegisterMode(!isRegisterMode);
-                  setErrorMsg('');
-                }}
-                className="text-xs text-[#5F7359] hover:text-[#4D5E48] font-bold underline cursor-pointer"
+                onClick={() => setShowAccessHelp(!showAccessHelp)}
+                className="text-xs text-[#5F7359] hover:text-[#4D5E48] font-bold flex items-center gap-1 cursor-pointer mx-auto"
               >
-                {isRegisterMode
-                  ? '¿Ya tenés cuenta? Iniciar Sesión'
-                  : '¿Necesitás crear un usuario nuevo? Registrate aquí'}
+                <Info className="w-3.5 h-3.5" />
+                <span>¿Necesitas una cuenta profesional o recuperar acceso?</span>
               </button>
+
+              {showAccessHelp && (
+                <div className="p-3 bg-amber-50 rounded-2xl border border-amber-200 text-[11px] text-amber-900 leading-relaxed animate-in fade-in-50">
+                  <p className="font-bold">🔒 Política de Seguridad Institucional:</p>
+                  <p className="mt-1">
+                    El alta de nuevos profesionales, asignación de roles (Dirección Médica, Veterinario, Enfermería, Caja) y reseteo de claves se gestiona exclusivamente por la Dirección Médica o Superadministrador desde el panel administrativo.
+                  </p>
+                </div>
+              )}
             </div>
           </div>
 
           <p className="text-center text-[11px] text-[#6E502B]">
-            Veterinaria Irusta • Gestión Hospitalaria Segura con Cifrado SSL y Supabase RLS
+            Veterinaria Irusta • Gestión Hospitalaria con Seguridad Supabase Auth & RLS
           </p>
         </div>
       </div>

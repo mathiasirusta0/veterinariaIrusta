@@ -124,31 +124,36 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleMobileMenu }) => {
         </div>
 
         {/* User Role Badge / Switcher */}
-        <div className="hidden sm:flex items-center gap-2 bg-slate-50/90 border border-slate-200 px-3 py-1.5 rounded-xl shadow-2xs hover:border-slate-300 transition-all">
-          <div className="w-5 h-5 rounded-full bg-teal-600 text-white font-black text-[10px] flex items-center justify-center">
-            {currentUser.name.charAt(0)}
+        {currentUser && (
+          <div className="hidden sm:flex items-center gap-2 bg-slate-50/90 border border-slate-200 px-3 py-1.5 rounded-xl shadow-2xs hover:border-slate-300 transition-all">
+            <div className="w-5 h-5 rounded-full bg-teal-600 text-white font-black text-[10px] flex items-center justify-center">
+              {currentUser.name ? currentUser.name.charAt(0) : 'U'}
+            </div>
+            {users.length > 1 ? (
+              <select
+                value={currentUser.id}
+                onChange={(e) => {
+                  const u = users.find((usr) => usr.id === e.target.value);
+                  if (u) setCurrentUser(u);
+                }}
+                className="bg-transparent text-xs font-bold text-slate-700 focus:outline-none cursor-pointer"
+              >
+                {users.map((u) => (
+                  <option key={u.id} value={u.id}>
+                    {u.name} ({u.role})
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <span className="text-xs font-bold text-slate-700">
+                {currentUser.name}{' '}
+                <span className="text-[10px] text-teal-600 font-extrabold uppercase">
+                  ({currentUser.role})
+                </span>
+              </span>
+            )}
           </div>
-          {users.length > 1 ? (
-            <select
-              value={currentUser.id}
-              onChange={(e) => {
-                const u = users.find((usr) => usr.id === e.target.value);
-                if (u) setCurrentUser(u);
-              }}
-              className="bg-transparent text-xs font-bold text-slate-700 focus:outline-none cursor-pointer"
-            >
-              {users.map((u) => (
-                <option key={u.id} value={u.id}>
-                  {u.name} ({u.role})
-                </option>
-              ))}
-            </select>
-          ) : (
-            <span className="text-xs font-bold text-slate-700">
-              {currentUser.name} <span className="text-[10px] text-teal-600 font-extrabold uppercase">({currentUser.role})</span>
-            </span>
-          )}
-        </div>
+        )}
 
         {/* Notification Bell */}
         <button

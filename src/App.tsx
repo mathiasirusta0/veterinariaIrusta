@@ -1,16 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, Suspense } from 'react';
 import { VetProvider, useVet } from './context/VetContext';
 import { Navbar } from './components/Navbar';
 import { Sidebar } from './components/Sidebar';
 import { GlobalSearchModal } from './components/GlobalSearchModal';
 import { QuickModals } from './components/QuickModals';
-import { ClinicalCalculatorsModal } from './components/ClinicalCalculatorsModal';
-import { MedicalPrintModal } from './components/MedicalPrintModal';
-import { DentalChartModal } from './components/DentalChartModal';
-import { AnatomicalBodyMapModal } from './components/AnatomicalBodyMapModal';
-import { AnesthesiaChartModal } from './components/AnesthesiaChartModal';
-import { WhatsAppHubModal } from './components/WhatsAppHubModal';
-import { ImagingAnnotatorModal } from './components/ImagingAnnotatorModal';
 import { ToastNotification } from './components/ToastNotification';
 import { AccessDeniedView } from './components/AccessDeniedView';
 import { ModuleErrorBoundary } from './components/ModuleErrorBoundary';
@@ -29,28 +22,48 @@ import {
   Receipt,
   Boxes,
   ShieldCheck,
+  Loader2,
 } from 'lucide-react';
 
-// Views
-import { DashboardView } from './components/DashboardView';
-import { PatientsListView } from './components/PatientsListView';
-import { Patient360View } from './components/Patient360View';
-import { OwnersView } from './components/OwnersView';
-import { TriageView } from './components/TriageView';
-import { AppointmentsView } from './components/AppointmentsView';
-import { VitalSignsView } from './components/VitalSignsView';
-import { SurgeriesView } from './components/SurgeriesView';
-import { LaboratoryView } from './components/LaboratoryView';
-import { ImagingView } from './components/ImagingView';
-import { VaccinationView } from './components/VaccinationView';
-import { InventoryView } from './components/InventoryView';
-import { FinancesUnifiedView } from './components/FinancesUnifiedView';
-import { LoginView } from './components/LoginView';
-import { PublicLandingView } from './components/PublicLandingView';
-import { DocumentsView } from './components/DocumentsView';
-import { SettingsAndUsersView } from './components/SettingsAndUsersView';
-import { PrescriptionsView } from './components/PrescriptionsView';
-import { SystemQaTestCenterView } from './components/SystemQaTestCenterView';
+// Modals Lazy Loaded
+const ClinicalCalculatorsModal = React.lazy(() => import('./components/ClinicalCalculatorsModal').then((m) => ({ default: m.ClinicalCalculatorsModal })));
+const MedicalPrintModal = React.lazy(() => import('./components/MedicalPrintModal').then((m) => ({ default: m.MedicalPrintModal })));
+const DentalChartModal = React.lazy(() => import('./components/DentalChartModal').then((m) => ({ default: m.DentalChartModal })));
+const AnatomicalBodyMapModal = React.lazy(() => import('./components/AnatomicalBodyMapModal').then((m) => ({ default: m.AnatomicalBodyMapModal })));
+const AnesthesiaChartModal = React.lazy(() => import('./components/AnesthesiaChartModal').then((m) => ({ default: m.AnesthesiaChartModal })));
+const WhatsAppHubModal = React.lazy(() => import('./components/WhatsAppHubModal').then((m) => ({ default: m.WhatsAppHubModal })));
+const ImagingAnnotatorModal = React.lazy(() => import('./components/ImagingAnnotatorModal').then((m) => ({ default: m.ImagingAnnotatorModal })));
+
+// Views Lazy Loaded
+const DashboardView = React.lazy(() => import('./components/DashboardView').then((m) => ({ default: m.DashboardView })));
+const PatientsListView = React.lazy(() => import('./components/PatientsListView').then((m) => ({ default: m.PatientsListView })));
+const Patient360View = React.lazy(() => import('./components/Patient360View').then((m) => ({ default: m.Patient360View })));
+const OwnersView = React.lazy(() => import('./components/OwnersView').then((m) => ({ default: m.OwnersView })));
+const AppointmentsView = React.lazy(() => import('./components/AppointmentsView').then((m) => ({ default: m.AppointmentsView })));
+const VitalSignsView = React.lazy(() => import('./components/VitalSignsView').then((m) => ({ default: m.VitalSignsView })));
+const SurgeriesView = React.lazy(() => import('./components/SurgeriesView').then((m) => ({ default: m.SurgeriesView })));
+const LaboratoryView = React.lazy(() => import('./components/LaboratoryView').then((m) => ({ default: m.LaboratoryView })));
+const ImagingView = React.lazy(() => import('./components/ImagingView').then((m) => ({ default: m.ImagingView })));
+const VaccinationView = React.lazy(() => import('./components/VaccinationView').then((m) => ({ default: m.VaccinationView })));
+const InventoryView = React.lazy(() => import('./components/InventoryView').then((m) => ({ default: m.InventoryView })));
+const FinancesUnifiedView = React.lazy(() => import('./components/FinancesUnifiedView').then((m) => ({ default: m.FinancesUnifiedView })));
+const LoginView = React.lazy(() => import('./components/LoginView').then((m) => ({ default: m.LoginView })));
+const PublicLandingView = React.lazy(() => import('./components/PublicLandingView').then((m) => ({ default: m.PublicLandingView })));
+const DocumentsView = React.lazy(() => import('./components/DocumentsView').then((m) => ({ default: m.DocumentsView })));
+const SettingsAndUsersView = React.lazy(() => import('./components/SettingsAndUsersView').then((m) => ({ default: m.SettingsAndUsersView })));
+const PrescriptionsView = React.lazy(() => import('./components/PrescriptionsView').then((m) => ({ default: m.PrescriptionsView })));
+const SystemQaTestCenterView = React.lazy(() => import('./components/SystemQaTestCenterView').then((m) => ({ default: m.SystemQaTestCenterView })));
+
+// Loading Component
+const ViewLoadingFallback: React.FC = () => (
+  <div className="flex-1 flex flex-col items-center justify-center min-h-[400px] p-6 text-slate-500">
+    <div className="w-12 h-12 rounded-2xl bg-teal-50 border border-teal-200 flex items-center justify-center text-teal-600 animate-pulse mb-3 shadow-xs">
+      <Loader2 className="w-6 h-6 animate-spin" />
+    </div>
+    <p className="text-xs font-bold text-slate-700">Cargando módulo hospitalario...</p>
+    <span className="text-[11px] text-slate-400 font-mono mt-0.5">Veterinaria Irusta • M.P. 502</span>
+  </div>
+);
 
 const MainLayout: React.FC = () => {
   const {
@@ -248,77 +261,103 @@ const MainLayout: React.FC = () => {
 
       {/* Main App Container */}
       <div className="flex-1 flex min-h-0 overflow-hidden relative w-full max-w-full">
-        {/* Left Sidebar (Desktop fixed + Mobile sliding drawer) */}
+        {/* Left Sidebar */}
         <Sidebar
-          isOpenMobile={isMobileMenuOpen}
-          onCloseMobile={() => setIsMobileMenuOpen(false)}
+          isMobileMenuOpen={isMobileMenuOpen}
+          onCloseMobileMenu={() => setIsMobileMenuOpen(false)}
         />
 
-        {/* Dynamic Main Content Workspace with safe bottom padding for fixed mobile nav */}
-        <main className="flex-1 overflow-y-auto p-3 sm:p-5 md:p-6 lg:p-8 custom-scrollbar bg-[#F1F5F9] pb-[calc(var(--bottom-nav-height,66px)+env(safe-area-inset-bottom,0px)+10px)] md:pb-8 w-full max-w-full">
-          <div className="max-w-7xl mx-auto w-full">{renderActiveView()}</div>
+        {/* Central Dynamic Content Area */}
+        <main className="flex-1 flex flex-col min-w-0 overflow-y-auto w-full relative bg-[#F8FAFC]">
+          <Suspense fallback={<ViewLoadingFallback />}>
+            {renderActiveView()}
+          </Suspense>
         </main>
       </div>
 
-      {/* Universal Fixed Mobile Bottom Navigation Bar (< md screens) */}
-      <MobileBottomNav onOpenMobileMenu={() => setIsMobileMenuOpen(true)} />
+      {/* Mobile Bottom Navigation */}
+      <MobileBottomNav />
 
-      {/* Overlays & Specialized Clinical Modals */}
+      {/* Global Modals */}
       <GlobalSearchModal />
       <QuickModals />
-      <ClinicalCalculatorsModal
-        isOpen={isCalculatorsOpen}
-        onClose={() => setIsCalculatorsOpen(false)}
-      />
-      <MedicalPrintModal
-        isOpen={isPrintModalOpen}
-        onClose={closePrintModal}
-        printData={printData}
-      />
-      <DentalChartModal
-        isOpen={isDentalChartOpen}
-        onClose={closeDentalChart}
-        patientId={dentalPatientId}
-      />
-      <AnatomicalBodyMapModal
-        isOpen={isBodyMapOpen}
-        onClose={closeBodyMap}
-        patientId={bodyMapPatientId}
-      />
-      <AnesthesiaChartModal
-        isOpen={isAnesthesiaChartOpen}
-        onClose={closeAnesthesiaChart}
-        patientId={anesthesiaPatientId}
-        surgeryProcedureName={anesthesiaSurgeryName}
-      />
-      <WhatsAppHubModal
-        isOpen={isWhatsAppHubOpen}
-        onClose={closeWhatsAppHub}
-        initialData={whatsAppData}
-      />
-      <ImagingAnnotatorModal
-        isOpen={isImagingAnnotatorOpen}
-        onClose={closeImagingAnnotator}
-        patientId={imagingAnnotatorData?.patientId}
-        imageUrl={imagingAnnotatorData?.imageUrl}
-        studyTitle={imagingAnnotatorData?.studyTitle}
-      />
 
-      {/* Global Floating Toast Notifications */}
-      <ToastNotification toasts={toasts} onDismiss={dismissToast} />
+      <Suspense fallback={null}>
+        <ClinicalCalculatorsModal
+          isOpen={isCalculatorsOpen}
+          onClose={() => setIsCalculatorsOpen(false)}
+        />
+
+        <MedicalPrintModal
+          isOpen={isPrintModalOpen}
+          onClose={closePrintModal}
+          data={printData}
+        />
+
+        {/* 🦷 Next-Gen Hospital Modals */}
+        <DentalChartModal
+          isOpen={isDentalChartOpen}
+          patientId={dentalPatientId}
+          onClose={closeDentalChart}
+        />
+
+        <AnatomicalBodyMapModal
+          isOpen={isBodyMapOpen}
+          patientId={bodyMapPatientId}
+          onClose={closeBodyMap}
+        />
+
+        <AnesthesiaChartModal
+          isOpen={isAnesthesiaChartOpen}
+          patientId={anesthesiaPatientId}
+          surgeryName={anesthesiaSurgeryName}
+          onClose={closeAnesthesiaChart}
+        />
+
+        <WhatsAppHubModal
+          isOpen={isWhatsAppHubOpen}
+          data={whatsAppData}
+          onClose={closeWhatsAppHub}
+        />
+
+        <ImagingAnnotatorModal
+          isOpen={isImagingAnnotatorOpen}
+          data={imagingAnnotatorData}
+          onClose={closeImagingAnnotator}
+        />
+      </Suspense>
+
+      {/* Toast Notifications System */}
+      <div className="fixed bottom-4 right-4 z-50 flex flex-col gap-2 pointer-events-none">
+        {toasts.map((toast) => (
+          <ToastNotification
+            key={toast.id}
+            toast={toast}
+            onDismiss={() => dismissToast(toast.id)}
+          />
+        ))}
+      </div>
     </div>
   );
 };
 
-const AppContent: React.FC = () => {
+export const AppContent: React.FC = () => {
   const { currentUser } = useVet();
-  const [showLogin, setShowLogin] = useState(false);
+  const [authViewMode, setAuthViewMode] = useState<'LANDING' | 'LOGIN'>('LANDING');
 
   if (!currentUser) {
-    if (showLogin) {
-      return <LoginView onBackToLanding={() => setShowLogin(false)} />;
+    if (authViewMode === 'LOGIN') {
+      return (
+        <Suspense fallback={<ViewLoadingFallback />}>
+          <LoginView onBackToLanding={() => setAuthViewMode('LANDING')} />
+        </Suspense>
+      );
     }
-    return <PublicLandingView onOpenLogin={() => setShowLogin(true)} />;
+    return (
+      <Suspense fallback={<ViewLoadingFallback />}>
+        <PublicLandingView onGoToLogin={() => setAuthViewMode('LOGIN')} />
+      </Suspense>
+    );
   }
 
   return <MainLayout />;

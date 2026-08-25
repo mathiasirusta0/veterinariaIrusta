@@ -23,6 +23,97 @@ import {
 
 export { checkSupabaseConnection };
 
+// =========================================================================
+// DURABLE OFFLINE SYNC QUEUE & STATUS TRACKER
+// =========================================================================
+export interface QueuedSyncItem {
+  id: string;
+  table: string;
+  payload: any;
+  queuedAt: string;
+  retryCount: number;
+  lastError?: string;
+}
+
+const SYNC_QUEUE_KEY = 'vet_offline_sync_queue_v1';
+
+export function getSyncQueue(): QueuedSyncItem[] {
+  try {
+    const raw = localStorage.getItem(SYNC_QUEUE_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
+
+export function addToSyncQueue(table: string, payload: any, errorMsg?: string) {
+  try {
+    const queue = getSyncQueue();
+    const existingIdx = queue.findIndex((q) => q.table === table && q.payload?.id === payload?.id);
+    const item: QueuedSyncItem = {
+      id: `sync-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+      table,
+      payload,
+      queuedAt: new Date().toISOString(),
+      retryCount: existingIdx >= 0 ? queue[existingIdx].retryCount + 1 : 0,
+      lastError: errorMsg,
+    };
+    if (existingIdx >= 0) {
+      queue[existingIdx] = item;
+    } else {
+      queue.push(item);
+    }
+    localStorage.setItem(SYNC_QUEUE_KEY, JSON.stringify(queue));
+    notifySyncStatus();
+  } catch (err) {
+    console.error('Failed to write to sync queue:', err);
+  }
+}
+
+export function clearFromSyncQueue(table: string, id: string) {
+  try {
+    const queue = getSyncQueue().filter((q) => !(q.table === table && q.payload?.id === id));
+    localStorage.setItem(SYNC_QUEUE_KEY, JSON.stringify(queue));
+    notifySyncStatus();
+  } catch {}
+}
+
+export function notifySyncStatus() {
+  if (typeof window !== 'undefined') {
+    const count = getSyncQueue().length;
+    window.dispatchEvent(new CustomEvent('vet:sync_status_changed', { detail: { pendingCount: count } }));
+  }
+}
+
+export async function processSyncQueue(): Promise<{ processed: number; failed: number }> {
+  const queue = getSyncQueue();
+  if (queue.length === 0) return { processed: 0, failed: 0 };
+
+  let processed = 0;
+  let failed = 0;
+  const remaining: QueuedSyncItem[] = [];
+
+  for (const item of queue) {
+    try {
+      const { error } = await supabase.from(item.table).upsert(item.payload);
+      if (!error) {
+        processed++;
+      } else {
+        failed++;
+        remaining.push({ ...item, retryCount: item.retryCount + 1, lastError: error.message });
+      }
+    } catch (err: any) {
+      failed++;
+      remaining.push({ ...item, retryCount: item.retryCount + 1, lastError: err?.message || 'Network error' });
+    }
+  }
+
+  localStorage.setItem(SYNC_QUEUE_KEY, JSON.stringify(remaining));
+  notifySyncStatus();
+  return { processed, failed };
+}
+
+
 // Normalizer helpers to map snake_case to camelCase safely
 function normalizeOwner(raw: any): Owner {
   return {
@@ -506,7 +597,7 @@ export async function syncPatientToSupabase(patient: Patient) {
     });
     if (error) console.error('Error syncing patient to Supabase:', error);
   } catch (err) {
-    console.warn('Offline: patient cached locally');
+    addToSyncQueue('patient', arguments[0], 'Conexión offline o fallo de red temporal');
   }
 }
 
@@ -532,7 +623,7 @@ export async function syncConsultationToSupabase(cons: Consultation) {
     });
     if (error) console.error('Error syncing consultation to Supabase:', error);
   } catch (err) {
-    console.warn('Offline: consultation cached locally');
+    addToSyncQueue('consultation', arguments[0], 'Conexión offline o fallo de red temporal');
   }
 }
 
@@ -566,7 +657,7 @@ export async function syncHospitalizationToSupabase(hosp: Hospitalization) {
     });
     if (error) console.error('Error syncing hospitalization to Supabase:', error);
   } catch (err) {
-    console.warn('Offline: hospitalization cached locally');
+    addToSyncQueue('hospitalization', arguments[0], 'Conexión offline o fallo de red temporal');
   }
 }
 
@@ -592,7 +683,7 @@ export async function syncSurgeryToSupabase(surg: SurgeryRecord) {
     });
     if (error) console.error('Error syncing surgery to Supabase:', error);
   } catch (err) {
-    console.warn('Offline: surgery cached locally');
+    addToSyncQueue('surgery', arguments[0], 'Conexión offline o fallo de red temporal');
   }
 }
 
@@ -622,7 +713,7 @@ export async function syncInvoiceToSupabase(inv: Invoice) {
     });
     if (error) console.error('Error syncing invoice to Supabase:', error);
   } catch (err) {
-    console.warn('Offline: invoice cached locally');
+    addToSyncQueue('invoice', arguments[0], 'Conexión offline o fallo de red temporal');
   }
 }
 
@@ -678,7 +769,7 @@ export async function syncOwnerToSupabase(owner: Owner) {
     });
     if (error) console.error('Error syncing owner to Supabase:', error);
   } catch (err) {
-    console.warn('Offline: owner cached locally');
+    addToSyncQueue('owner', arguments[0], 'Conexión offline o fallo de red temporal');
   }
 }
 
@@ -700,7 +791,7 @@ export async function syncProblemToSupabase(problem: PatientProblem) {
     });
     if (error) console.error('Error syncing problem to Supabase:', error);
   } catch (err) {
-    console.warn('Offline: problem cached locally');
+    addToSyncQueue('problem', arguments[0], 'Conexión offline o fallo de red temporal');
   }
 }
 
@@ -772,7 +863,7 @@ export async function syncVaccinationToSupabase(vac: VaccinationRecord) {
     });
     if (error) console.error('Error syncing vaccination to Supabase:', error);
   } catch (err) {
-    console.warn('Offline: vaccination cached locally');
+    addToSyncQueue('vaccination', arguments[0], 'Conexión offline o fallo de red temporal');
   }
 }
 
@@ -800,7 +891,7 @@ export async function syncProductToSupabase(prod: Product) {
     });
     if (error) console.error('Error syncing product to Supabase:', error);
   } catch (err) {
-    console.warn('Offline: product cached locally');
+    addToSyncQueue('product', arguments[0], 'Conexión offline o fallo de red temporal');
   }
 }
 
@@ -824,7 +915,7 @@ export async function syncAppointmentToSupabase(apt: Appointment) {
     });
     if (error) console.error('Error syncing appointment to Supabase:', error);
   } catch (err) {
-    console.warn('Offline: appointment cached locally');
+    addToSyncQueue('appointment', arguments[0], 'Conexión offline o fallo de red temporal');
   }
 }
 
@@ -845,7 +936,7 @@ export async function syncTriageToSupabase(triage: TriageEntry) {
     });
     if (error) console.error('Error syncing triage to Supabase:', error);
   } catch (err) {
-    console.warn('Offline: triage cached locally');
+    addToSyncQueue('triage', arguments[0], 'Conexión offline o fallo de red temporal');
   }
 }
 
@@ -866,7 +957,7 @@ export async function syncDocumentToSupabase(doc: ClinicalDocument) {
     });
     if (error) console.error('Error syncing document to Supabase:', error);
   } catch (err) {
-    console.warn('Offline: document cached locally');
+    addToSyncQueue('document', arguments[0], 'Conexión offline o fallo de red temporal');
   }
 }
 
@@ -975,7 +1066,7 @@ export async function syncEncounterToSupabase(enc: any) {
     });
     if (error) console.warn('Supabase encounters table sync:', error.message);
   } catch (err) {
-    console.warn('Offline: encounter cached locally');
+    addToSyncQueue('encounter', arguments[0], 'Conexión offline o fallo de red temporal');
   }
 }
 
@@ -1014,7 +1105,7 @@ export async function syncProcedureToSupabase(proc: any) {
     });
     if (error) console.warn('Supabase procedures table sync:', error.message);
   } catch (err) {
-    console.warn('Offline: procedure cached locally');
+    addToSyncQueue('procedure', arguments[0], 'Conexión offline o fallo de red temporal');
   }
 }
 
