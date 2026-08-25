@@ -221,13 +221,12 @@ export const PatientMobileCard: React.FC<PatientMobileCardProps> = ({
             type="button"
             onClick={() => {
               triggerHaptic('medium');
-              onOpenSOAP(patient.id);
+              onOpenPatient(patient.id);
             }}
             className="btn-physical btn-physical-teal px-3 py-1.5 text-white font-black text-xs flex items-center gap-1 rounded-xl min-h-[36px]"
-            title="Abrir nueva consulta SOAP"
+            title="Abrir Evolución Médica"
           >
-            <Stethoscope className="w-3.5 h-3.5" />
-            <span>+ SOAP</span>
+            <span>Evolución</span>
           </button>
 
           <button

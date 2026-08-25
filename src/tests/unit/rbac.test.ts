@@ -47,7 +47,6 @@ describe('RBAC Permissions Matrix Unit Tests', () => {
     expect(hasQuickActionPermission('CAJA', 'NUEVA_CIRUGIA')).toBe(false);
 
     // Veterinarian has full clinical quick action access
-    expect(hasQuickActionPermission('VETERINARIO', 'NUEVA_CONSULTA')).toBe(true);
     expect(hasQuickActionPermission('VETERINARIO', 'NUEVA_CIRUGIA')).toBe(true);
     expect(hasQuickActionPermission('VETERINARIO', 'NUEVO_LAB')).toBe(true);
   });

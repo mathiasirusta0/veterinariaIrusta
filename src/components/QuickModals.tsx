@@ -690,8 +690,7 @@ export const QuickModals: React.FC = () => {
             {quickModal === 'NUEVO_PROPIETARIO' && '👤 Alta de Propietario / Tutor'}
             {quickModal === 'NUEVO_TURNO' && '📅 Agendar Nuevo Turno'}
             {quickModal === 'NUEVO_TRIAGE' && '⏱️ Ingresar Paciente a Triage / Sala de Espera'}
-            {quickModal === 'NUEVA_CONSULTA' && '🩺 Nueva Consulta Médica & Formulario SOAP'}
-            {quickModal === 'INGRESO_INTERNACION' && '🏥 Ingreso Directo a Internación (Caniles/UCI)'}
+                        {quickModal === 'INGRESO_INTERNACION' && '🏥 Ingreso Directo a Internación (Caniles/UCI)'}
             {quickModal === 'NUEVA_CIRUGIA' && '✂️ Programar Cirugía & Protocolo Anestésico'}
             {quickModal === 'NUEVO_LAB' && '🧪 Solicitar Análisis de Laboratorio'}
             {quickModal === 'NUEVA_IMAGEN' && '🔍 Solicitar Estudio de Imagen'}
@@ -713,7 +712,6 @@ export const QuickModals: React.FC = () => {
         {quickModal === 'QUICK_ACTIONS' && (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
             {[
-              { id: 'NUEVA_CONSULTA', label: 'Consulta SOAP', icon: Stethoscope, color: 'bg-teal-600' },
               { id: 'NUEVO_PACIENTE', label: 'Nuevo Paciente', icon: PawPrint, color: 'bg-teal-700' },
               { id: 'NUEVO_PROPIETARIO', label: 'Nuevo Propietario', icon: Users, color: 'bg-slate-700' },
               { id: 'NUEVO_TURNO', label: 'Nuevo Turno', icon: Calendar, color: 'bg-teal-800' },

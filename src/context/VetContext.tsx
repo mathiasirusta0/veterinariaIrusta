@@ -658,7 +658,6 @@ export const VetProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     else if (activeView === 'INTERNACION') viewKey = 'INTERNACION';
     else if (activeView === 'SALA_ESPERA') viewKey = 'INTERNACION';
     else if (activeView === 'AGENDA') viewKey = 'AGENDA';
-    else if (activeView === 'CONSULTAS') viewKey = 'CONSULTAS';
     else if (activeView === 'SIGNOS_VITALES') viewKey = 'SIGNOS_VITALES';
     else if (activeView === 'CIRUGIAS') viewKey = 'CIRUGIAS';
     else if (activeView === 'LABORATORIO') viewKey = 'LABORATORIO';

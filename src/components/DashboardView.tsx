@@ -143,11 +143,11 @@ export const DashboardView: React.FC = () => {
             <span>Telemetría UCI</span>
           </button>
           <button
-            onClick={() => setQuickModal('NUEVA_CONSULTA')}
+            onClick={() => setQuickModal('NUEVO_TURNO')}
             className="bg-teal-600 hover:bg-teal-500 text-white px-4 py-2 rounded-xl text-xs font-black shadow-sm shadow-teal-600/25 transition-all active:scale-95 flex items-center gap-1.5"
           >
             <Plus className="w-4 h-4 stroke-[3]" />
-            <span>+ NUEVA CONSULTA</span>
+            <span>+ NUEVO TURNO</span>
           </button>
           <button
             onClick={() => setQuickModal('INGRESO_INTERNACION')}

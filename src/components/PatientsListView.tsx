@@ -669,13 +669,12 @@ export const PatientsListView: React.FC = () => {
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
-                        setSelectedPatientId(patient.id);
-                        setQuickModal('NUEVA_CONSULTA');
+                        handleOpenPatient(patient.id, 'HISTORIA');
                       }}
                       className="px-2 py-1 rounded-lg bg-teal-50 hover:bg-teal-100 text-teal-700 font-bold text-[10px] transition-colors border border-teal-200"
-                      title="Iniciar Nueva Consulta SOAP"
+                      title="Ver Evolución Médica"
                     >
-                      + SOAP
+                      Evolución
                     </button>
                     <button
                       onClick={(e) => {
@@ -759,8 +758,7 @@ export const PatientsListView: React.FC = () => {
                   isInterned={isInterned}
                   onOpenPatient={handleOpenPatient}
                   onOpenSOAP={(id) => {
-                    setSelectedPatientId(id);
-                    setQuickModal('NUEVA_CONSULTA');
+                    handleOpenPatient(id, 'HISTORIA');
                   }}
                   onOpenDentalChart={openDentalChart}
                   onOpenBodyMap={openBodyMap}

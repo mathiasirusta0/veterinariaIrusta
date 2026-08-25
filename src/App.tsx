@@ -40,7 +40,6 @@ import { OwnersView } from './components/OwnersView';
 import { HospitalizationWhiteboardView } from './components/HospitalizationWhiteboardView';
 import { TriageView } from './components/TriageView';
 import { AppointmentsView } from './components/AppointmentsView';
-import { ConsultationsView } from './components/ConsultationsView';
 import { VitalSignsView } from './components/VitalSignsView';
 import { SurgeriesView } from './components/SurgeriesView';
 import { LaboratoryView } from './components/LaboratoryView';
@@ -110,7 +109,6 @@ const MainLayout: React.FC = () => {
     else if (activeView === 'INTERNACION') viewKey = 'INTERNACION';
     else if (activeView === 'SALA_ESPERA') viewKey = 'INTERNACION';
     else if (activeView === 'AGENDA') viewKey = 'AGENDA';
-    else if (activeView === 'CONSULTAS') viewKey = 'CONSULTAS';
     else if (activeView === 'SIGNOS_VITALES' || activeView === 'SIGNOS' || activeView === 'BIOMETRIA') viewKey = 'SIGNOS_VITALES';
     else if (activeView === 'CIRUGIAS') viewKey = 'CIRUGIAS';
     else if (activeView === 'LABORATORIO') viewKey = 'LABORATORIO';
