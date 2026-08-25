@@ -31,7 +31,7 @@ export interface VademecumDrug {
   name: string;
   brandNames: string;
   category: string;
-  species: 'Canino y Felino' | 'Canino' | 'Felino' | 'Exóticos';
+  species: 'Canino y Felino' | 'Canino' | 'Felino' | 'Equino' | 'Bovino' | 'Equino y Bovino' | 'Exóticos';
   doseRangeCanine: string;
   doseRangeFeline: string;
   defaultDoseMgKg: number;
@@ -46,6 +46,51 @@ export interface VademecumDrug {
 }
 
 export const VADEMECUM_DATABASE: VademecumDrug[] = [
+  {
+    name: 'Flunixin Meglumina',
+    brandNames: 'Banamine, Flunimax, Finadyne, Megluvet',
+    category: 'AINE Antiendotóxico / Analgésico Visceral',
+    species: 'Equino y Bovino',
+    doseRangeCanine: 'Equino: 1.1 mg/kg IV/IM cada 24h. Bovino: 1.1 - 2.2 mg/kg IV cada 24h',
+    doseRangeFeline: '1.1 mg/kg IV cada 24h',
+    defaultDoseMgKg: 1.1,
+    concentrationMgMl: 50,
+    routes: 'IV lento (preferente en equino), IM',
+    frequency: 'Cada 24 horas (máx 5 días consecutivos)',
+    indications: 'Cólico equino, dolor visceral agudo, endotoxemia, miositis, afecciones inflamatorias agudas musculoesqueléticas.',
+    contraindications: 'Insuficiencia renal, deshidratación grave, úlcera gástrica, inyección intraarterial.',
+    warnings: 'En cólico equino aplicar siempre IV lenta. Evitar inyección IM por riesgo de miositis por clostridios.',
+  },
+  {
+    name: 'Fenilbutazona',
+    brandNames: 'Butazolidina, Butasol, Fenilvet 20%',
+    category: 'AINE Músculo-esquelético Equino',
+    species: 'Equino',
+    doseRangeCanine: 'Inicio: 4.4 mg/kg IV lento Día 1. Mant: 2.2 mg/kg IV/Oral cada 12-24h',
+    doseRangeFeline: '2.2 mg/kg IV lento',
+    defaultDoseMgKg: 4.4,
+    concentrationMgMl: 200,
+    routes: 'IV lento estricto, Oral',
+    frequency: 'Cada 12 a 24 horas con alimento',
+    indications: 'Laminitis aguda y crónica, artritis, osteoartritis, tendinitis, dolor musculoesquelético equino severo.',
+    contraindications: 'PROHIBIDA vía IM o SC (necrosis tisular grave). No administrar en equinos destinados a consumo humano.',
+    warnings: 'Inyección estrictamente endovenosa con verificación previa de flujo venoso por aguja.',
+  },
+  {
+    name: 'Xilacina 10% (Grandes Animales)',
+    brandNames: 'Rompun 10%, Sedazine 10%, Xila-100',
+    category: 'Sedante / Analgésico Agonista Alfa-2 Adrenérgico',
+    species: 'Equino y Bovino',
+    doseRangeCanine: 'Equino: 0.5 - 1.1 mg/kg IV / 1.0 - 2.0 mg/kg IM. Bovino: 0.05 - 0.1 mg/kg IV/IM',
+    doseRangeFeline: '0.5 - 1.1 mg/kg IV',
+    defaultDoseMgKg: 1.0,
+    concentrationMgMl: 100,
+    routes: 'IV lenta, IM',
+    frequency: 'Dosis única para sedación, premedicación quirúrgica o manejo de cólico',
+    indications: 'Sedación profunda, relajación muscular y analgesia en procedimientos clínicos, cólicos y premedicación anestésica.',
+    contraindications: 'Cardiopatías descompensadas, tercer trimestre de gestación en bovinos (efecto oxitócico / aborto).',
+    warnings: 'Los bovinos son 10 veces más sensibles que los equinos (usar 1/10 de la dosis equina). Reversible con Yohimbina / Atipamezol.',
+  },
   {
     name: 'Maropitant',
     brandNames: 'Cerenia, Vomend, Vetemetic',

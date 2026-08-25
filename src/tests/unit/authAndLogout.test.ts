@@ -58,7 +58,8 @@ describe('Seguridad de Autenticación & Políticas Anti-Bypass', () => {
 describe('Calculadora de Dosis & Vademécum Clínico (Resiliencia & Null Safety)', () => {
   it('debe calcular dosis farmacológicas correctamente en modo libre sin paciente seleccionado', () => {
     const weightKg = 10;
-    const drug = VADEMECUM_DATABASE[0]; // Maropitant
+    const drug = VADEMECUM_DATABASE.find((d) => d.name === 'Maropitant')!;
+    expect(drug).toBeDefined();
     expect(drug.defaultDoseMgKg).toBe(1.0);
     expect(drug.concentrationMgMl).toBe(10);
 
