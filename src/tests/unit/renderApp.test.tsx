@@ -102,7 +102,7 @@ describe('Autenticación y Puerta de Enlace (P0-01, P0-02)', () => {
     expect(backTriggered).toBe(true);
   });
 
-  it('LoginView permite el acceso rápido de Dirección Médica (Dr. Diego Iván Irusta • M.P. 502)', async () => {
+  it('LoginView no contiene botones de acceso rápido y exige autenticación por correo y contraseña', async () => {
     const { LoginView } = await import('../../components/LoginView');
     const { VetProvider } = await import('../../context/VetContext');
 
@@ -113,15 +113,15 @@ describe('Autenticación y Puerta de Enlace (P0-01, P0-02)', () => {
     );
 
     const buttons = container.querySelectorAll('button');
-    const quickAccessBtn = Array.from(buttons).find((b) => b.textContent?.includes('Dirección Médica'));
-    expect(quickAccessBtn).toBeDefined();
+    const quickAccessBtn = Array.from(buttons).find((b) => b.textContent?.includes('Acceso Rápido'));
+    expect(quickAccessBtn).toBeUndefined(); // Sin botones de bypass
 
-    fireEvent.click(quickAccessBtn!);
+    const submitBtn = Array.from(buttons).find((b) => b.textContent?.includes('Ingresar al Hospital'));
+    expect(submitBtn).toBeDefined();
 
-    // Verificar que el usuario queda guardado en localStorage
-    const savedUser = JSON.parse(localStorage.getItem('vetsys_auth_user') || '{}');
-    expect(savedUser.name).toBe('Dr. Diego Iván Irusta');
-    expect(savedUser.role).toBe('SUPERADMIN');
-    expect(savedUser.licenseNumber).toContain('M.P. 502');
+    const emailInput = container.querySelector('input[type="email"]');
+    const passInput = container.querySelector('input[type="password"]');
+    expect(emailInput).toBeDefined();
+    expect(passInput).toBeDefined();
   });
 });

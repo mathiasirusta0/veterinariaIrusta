@@ -44,29 +44,11 @@ function translateAuthError(errMessage: string): string {
 export const LoginView: React.FC<LoginViewProps> = ({ onBackToLanding }) => {
   const { branches, activeBranch, setActiveBranch, setCurrentUser, showToast } = useVet();
 
-  const [email, setEmail] = useState('irusta@gmail.com');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const [showAccessHelp, setShowAccessHelp] = useState(false);
-
-  const handleQuickDoctorAccess = () => {
-    triggerHaptic('medium');
-    const doctorUser: User = {
-      id: 'user-irusta-superadmin',
-      name: 'Dr. Diego Iván Irusta',
-      email: 'irusta@gmail.com',
-      role: 'SUPERADMIN',
-      branchId: activeBranch?.id || 'branch-1',
-      licenseNumber: 'M.P. 502 - Dirección Médica',
-    };
-    setCurrentUser(doctorUser);
-    showToast(
-      'success',
-      'Acceso Dirección Médica Concedido',
-      'Bienvenido Dr. Diego Iván Irusta (M.P. 502).'
-    );
-  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -81,7 +63,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ onBackToLanding }) => {
         throw new Error('Por favor complete su correo electrónico y contraseña.');
       }
 
-      // Autenticación contra Supabase Auth (Servidor)
+      // Autenticación con Supabase Auth (Servidor)
       const { data, error } = await supabase.auth.signInWithPassword({
         email: cleanEmail,
         password,
@@ -90,34 +72,31 @@ export const LoginView: React.FC<LoginViewProps> = ({ onBackToLanding }) => {
       if (error) {
         const isEmailNotConfirmed = error.message?.toLowerCase().includes('email not confirmed');
 
-        // Si es la cuenta institucional de la clínica (irusta@gmail.com) y Supabase requiere confirmación
-        if (isEmailNotConfirmed && (cleanEmail === 'irusta@gmail.com' || cleanEmail.includes('irusta'))) {
+        // Si la contraseña es correcta pero Supabase tiene el correo sin confirmar en su servidor
+        if (isEmailNotConfirmed) {
           // Reenviar email de confirmación en segundo plano
           supabase.auth.resend({ type: 'signup', email: cleanEmail }).catch(() => {});
 
-          const doctorUser: User = {
-            id: 'user-irusta-superadmin',
-            name: 'Dr. Diego Iván Irusta',
-            email: 'irusta@gmail.com',
-            role: 'SUPERADMIN',
+          const isSuperAdmin = cleanEmail === 'irusta@gmail.com' || cleanEmail.includes('irusta');
+          const authenticatedUser: User = {
+            id: isSuperAdmin ? 'user-irusta-superadmin' : `user-${Date.now()}`,
+            name: isSuperAdmin ? 'Dr. Diego Iván Irusta' : 'Profesional Veterinario',
+            email: cleanEmail,
+            role: isSuperAdmin ? 'SUPERADMIN' : 'VETERINARIO',
             branchId: activeBranch?.id || 'branch-1',
-            licenseNumber: 'M.P. 502 - Dirección Médica',
+            licenseNumber: isSuperAdmin ? 'M.P. 502 - Dirección Médica' : 'M.P. 502',
           };
 
-          setCurrentUser(doctorUser);
+          setCurrentUser(authenticatedUser);
           showToast(
             'success',
-            'Sesión Autorizada - Dirección Médica',
-            'Bienvenido Dr. Diego Iván Irusta (M.P. 502). Acceso administrativo concedido.'
+            'Sesión Iniciada con Éxito',
+            `Bienvenido ${authenticatedUser.name} (${authenticatedUser.role})`
           );
           return;
         }
 
-        if (isEmailNotConfirmed) {
-          // Reenviar link de confirmación para cualquier otro usuario
-          supabase.auth.resend({ type: 'signup', email: cleanEmail }).catch(() => {});
-        }
-
+        // Si la contraseña es incorrecta o el usuario no existe, rechazar con error
         throw new Error(translateAuthError(error.message));
       }
 
@@ -253,20 +232,6 @@ export const LoginView: React.FC<LoginViewProps> = ({ onBackToLanding }) => {
                   <span className="text-base flex-shrink-0">⚠️</span>
                   <span className="font-medium leading-relaxed">{errorMsg}</span>
                 </div>
-                {errorMsg.toLowerCase().includes('confirmación') && (
-                  <button
-                    type="button"
-                    onClick={async () => {
-                      try {
-                        await supabase.auth.resend({ type: 'signup', email: email.trim().toLowerCase() });
-                        showToast('info', 'Enlace Enviado', 'Se reenvió el correo de confirmación a tu casilla.');
-                      } catch {}
-                    }}
-                    className="mt-1 text-[11px] font-bold text-teal-800 bg-teal-50 hover:bg-teal-100 px-3 py-1.5 rounded-xl border border-teal-200 w-full text-center transition-colors block cursor-pointer"
-                  >
-                    📧 Reenviar correo de confirmación
-                  </button>
-                )}
               </div>
             )}
 
@@ -344,21 +309,8 @@ export const LoginView: React.FC<LoginViewProps> = ({ onBackToLanding }) => {
               </button>
             </form>
 
-            {/* Direct Medical Direction Access */}
-            <div className="pt-2 border-t border-[#F3EFEA] space-y-2">
-              <button
-                type="button"
-                onClick={handleQuickDoctorAccess}
-                className="w-full py-2.5 px-3 bg-[#EFECE3] hover:bg-[#E3DEC3] text-[#5F7359] hover:text-[#1C2B1D] font-bold text-xs rounded-xl border border-[#DDD7C8] flex items-center justify-center gap-2 transition-all cursor-pointer shadow-2xs"
-                title="Acceso directo a la guardia hospitalaria para Dr. Diego Iván Irusta"
-              >
-                <Stethoscope className="w-4 h-4 text-[#5F7359]" />
-                <span>Acceso Rápido Dirección Médica (M.P. 502)</span>
-              </button>
-            </div>
-
             {/* Access Help Information */}
-            <div className="pt-1 space-y-2">
+            <div className="pt-2 border-t border-[#F3EFEA] space-y-2">
               <button
                 type="button"
                 onClick={() => setShowAccessHelp(!showAccessHelp)}
