@@ -34,15 +34,15 @@ describe('Plan de Vacunación — Modal Dual (Paciente Registrado/Internado vs P
       batchNumber: 'LT-SEX-2026',
       expirationDate: '2028-08-24',
       administeredDate: '2026-08-24',
-      administeredBy: 'Dr. Diego Irusta',
-      vetLicense: 'MP 8412',
+      administeredBy: 'Dr. Diego Iván Irusta',
+      vetLicense: 'M.P. 502',
       nextDueDate: nextDate.toISOString().split('T')[0],
       certificateGenerated: true,
     };
 
     expect(vacRecord.patientId).toBe('pat-duque-1');
-    expect(vacRecord.administeredBy).toBe('Dr. Diego Irusta');
-    expect(vacRecord.vetLicense).toBe('MP 8412');
+    expect(vacRecord.administeredBy).toBe('Dr. Diego Iván Irusta');
+    expect(vacRecord.vetLicense).toBe('M.P. 502');
     expect(vacRecord.certificateGenerated).toBe(true);
   });
 
@@ -92,16 +92,16 @@ describe('Plan de Vacunación — Modal Dual (Paciente Registrado/Internado vs P
       batchNumber: 'LT-AR-2026-B',
       expirationDate: '2028-01-01',
       administeredDate: new Date().toISOString().split('T')[0],
-      administeredBy: 'Dr. Diego Irusta',
-      vetLicense: 'MP 8412',
+      administeredBy: 'Dr. Diego Iván Irusta',
+      vetLicense: 'M.P. 502',
       nextDueDate: '2027-08-24',
       certificateGenerated: true,
     };
 
     expect(newPatient.ownerId).toBe(newOwner.id);
     expect(vacRecord.patientId).toBe(newPatient.id);
-    expect(vacRecord.administeredBy).toBe('Dr. Diego Irusta');
-    expect(vacRecord.vetLicense).toBe('MP 8412');
+    expect(vacRecord.administeredBy).toBe('Dr. Diego Iván Irusta');
+    expect(vacRecord.vetLicense).toBe('M.P. 502');
     expect(newOwner.phone).toContain('358');
   });
 });

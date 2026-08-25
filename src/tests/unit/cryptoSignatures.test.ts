@@ -24,7 +24,7 @@ describe('Real SHA-256 Cryptographic Digital Signatures', () => {
       documentId: 'doc-102',
       title: 'Certificado Oficial de Vacunación Antirrábica',
       content: 'Certifico la aplicación de vacuna antirrábica.',
-      signerName: 'Dr. Diego Irusta',
+      signerName: 'Dr. Diego Iván Irusta',
       signerDni: '28.912.450',
       timestamp: '2026-08-24T12:00:00Z',
     };

@@ -12,16 +12,16 @@ describe('Unified Evolución Médica Module', () => {
       status: 'FIRMADO',
       dateTime: new Date().toISOString(),
       createdAt: new Date().toISOString(),
-      authorName: 'Dr. Diego Irusta',
+      authorName: 'Dr. Diego Iván Irusta',
       authorRole: 'DIRECTOR_MEDICO',
-      authorLicense: 'MP 8412 - Dirección Médica',
+      authorLicense: 'M.P. 502 - Dirección Médica',
       sector: 'UCI Canil 01',
       assessment: evoText,
       plan: evoText,
       evolutionText: evoText,
     };
 
-    expect(evo.authorName).toBe('Dr. Diego Irusta');
+    expect(evo.authorName).toBe('Dr. Diego Iván Irusta');
     expect(evo.type).toBe('MEDICA');
     expect(evo.assessment).toContain('Duque');
     expect(evo.plan).toContain('antiemético');
@@ -36,7 +36,7 @@ describe('Unified Evolución Médica Module', () => {
       status: 'FIRMADO',
       dateTime: '2026-08-24T10:00:00.000Z',
       createdAt: '2026-08-24T10:00:00.000Z',
-      authorName: 'Dr. Diego Irusta',
+      authorName: 'Dr. Diego Iván Irusta',
       authorRole: 'DIRECTOR_MEDICO',
       assessment: 'Primera nota',
       plan: 'Primera nota',
@@ -49,7 +49,7 @@ describe('Unified Evolución Médica Module', () => {
       status: 'FIRMADO',
       dateTime: '2026-08-24T18:00:00.000Z',
       createdAt: '2026-08-24T18:00:00.000Z',
-      authorName: 'Dr. Diego Irusta',
+      authorName: 'Dr. Diego Iván Irusta',
       authorRole: 'DIRECTOR_MEDICO',
       assessment: 'Segunda nota',
       plan: 'Segunda nota',

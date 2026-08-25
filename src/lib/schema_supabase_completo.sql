@@ -1,6 +1,6 @@
 -- =========================================================================
 -- VET SYSTEM 2026 — ESQUEMA COMPLETO Y POLÍTICAS DE SEGURIDAD (SUPABASE)
--- Veterinaria Irusta • Dirección Médica: Dr. Diego Irusta
+-- Veterinaria Irusta • Dirección Médica: Dr. Diego Iván Irusta
 -- =========================================================================
 -- Instrucciones:
 -- 1. Ingresá a tu consola de Supabase (https://app.supabase.com).
@@ -18,7 +18,7 @@ CREATE TABLE IF NOT EXISTS public.profiles (
   name TEXT NOT NULL,
   role TEXT NOT NULL DEFAULT 'SUPERADMIN',
   branch_id TEXT NOT NULL DEFAULT 'branch-1',
-  license_number TEXT DEFAULT 'MP 8412 - Dirección Médica',
+  license_number TEXT DEFAULT 'M.P. 502 - Dirección Médica',
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -79,7 +79,7 @@ CREATE TABLE IF NOT EXISTS public.vital_signs (
   oxygen_saturation NUMERIC,
   glucose_mg_dl NUMERIC,
   pain_scale_score NUMERIC,
-  recorded_by TEXT DEFAULT 'Dr. Diego Irusta',
+  recorded_by TEXT DEFAULT 'Dr. Diego Iván Irusta',
   recorded_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -104,7 +104,7 @@ CREATE TABLE IF NOT EXISTS public.encounters (
   admitted_at TIMESTAMPTZ DEFAULT NOW(),
   discharged_at TIMESTAMPTZ,
   vet_in_charge_id TEXT DEFAULT 'user-irusta',
-  vet_in_charge_name TEXT DEFAULT 'Dr. Diego Irusta',
+  vet_in_charge_name TEXT DEFAULT 'Dr. Diego Iván Irusta',
   reason TEXT,
   initial_diagnosis TEXT,
   final_diagnosis TEXT,
@@ -127,7 +127,7 @@ CREATE TABLE IF NOT EXISTS public.procedures (
   category TEXT DEFAULT 'TERAPEUTICO',
   is_performed BOOLEAN DEFAULT FALSE,
   performed_at TIMESTAMPTZ,
-  performed_by TEXT DEFAULT 'Dr. Diego Irusta',
+  performed_by TEXT DEFAULT 'Dr. Diego Iván Irusta',
   price NUMERIC DEFAULT 0,
   is_billable BOOLEAN DEFAULT TRUE,
   notes TEXT,
@@ -148,7 +148,7 @@ CREATE TABLE IF NOT EXISTS public.encounter_consumptions (
   subtotal NUMERIC DEFAULT 0,
   status TEXT DEFAULT 'CONFIRMADO',
   performed_at TIMESTAMPTZ DEFAULT NOW(),
-  performed_by TEXT DEFAULT 'Dr. Diego Irusta',
+  performed_by TEXT DEFAULT 'Dr. Diego Iván Irusta',
   is_billed BOOLEAN DEFAULT FALSE,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -157,7 +157,7 @@ CREATE TABLE IF NOT EXISTS public.encounter_consumptions (
 CREATE TABLE IF NOT EXISTS public.consultations (
   id TEXT PRIMARY KEY,
   patient_id TEXT REFERENCES public.patients(id) ON DELETE CASCADE,
-  vet_name TEXT DEFAULT 'Dr. Diego Irusta',
+  vet_name TEXT DEFAULT 'Dr. Diego Iván Irusta',
   date TIMESTAMPTZ DEFAULT NOW(),
   reason TEXT,
   symptoms TEXT,
@@ -173,7 +173,7 @@ CREATE TABLE IF NOT EXISTS public.consultations (
 CREATE TABLE IF NOT EXISTS public.hospitalizations (
   id TEXT PRIMARY KEY,
   patient_id TEXT REFERENCES public.patients(id) ON DELETE CASCADE,
-  vet_in_charge_name TEXT DEFAULT 'Dr. Diego Irusta',
+  vet_in_charge_name TEXT DEFAULT 'Dr. Diego Iván Irusta',
   sector TEXT DEFAULT 'CANIL',
   kennel_number TEXT DEFAULT '01',
   admitted_at TIMESTAMPTZ DEFAULT NOW(),
@@ -193,8 +193,8 @@ CREATE TABLE IF NOT EXISTS public.surgeries (
   id TEXT PRIMARY KEY,
   patient_id TEXT REFERENCES public.patients(id) ON DELETE CASCADE,
   surgery_name TEXT NOT NULL,
-  surgeon_name TEXT DEFAULT 'Dr. Diego Irusta',
-  anesthesiologist_name TEXT DEFAULT 'Dr. Diego Irusta',
+  surgeon_name TEXT DEFAULT 'Dr. Diego Iván Irusta',
+  anesthesiologist_name TEXT DEFAULT 'Dr. Diego Iván Irusta',
   scheduled_at TIMESTAMPTZ DEFAULT NOW(),
   status TEXT DEFAULT 'PROGRAMADA',
   pre_op_notes TEXT,
@@ -270,8 +270,8 @@ CREATE TABLE IF NOT EXISTS public.prescriptions (
   patient_id TEXT REFERENCES public.patients(id) ON DELETE CASCADE,
   owner_id TEXT,
   vet_id TEXT,
-  vet_name TEXT DEFAULT 'Dr. Diego Irusta',
-  vet_license TEXT DEFAULT 'MP 8412',
+  vet_name TEXT DEFAULT 'Dr. Diego Iván Irusta',
+  vet_license TEXT DEFAULT 'M.P. 502',
   date DATE NOT NULL DEFAULT CURRENT_DATE,
   diagnosis TEXT,
   items JSONB NOT NULL DEFAULT '[]'::jsonb,
@@ -307,7 +307,7 @@ CREATE TABLE IF NOT EXISTS public.clinical_documents (
   type TEXT NOT NULL,
   title TEXT NOT NULL,
   content TEXT NOT NULL,
-  vet_name TEXT DEFAULT 'Dr. Diego Irusta',
+  vet_name TEXT DEFAULT 'Dr. Diego Iván Irusta',
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -315,7 +315,7 @@ CREATE TABLE IF NOT EXISTS public.clinical_documents (
 CREATE TABLE IF NOT EXISTS public.audit_logs (
   id TEXT PRIMARY KEY,
   timestamp TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  user_name TEXT NOT NULL DEFAULT 'Dr. Diego Irusta',
+  user_name TEXT NOT NULL DEFAULT 'Dr. Diego Iván Irusta',
   user_role TEXT NOT NULL DEFAULT 'SUPERADMIN',
   action TEXT NOT NULL,
   entity TEXT NOT NULL,

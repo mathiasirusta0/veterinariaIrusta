@@ -189,7 +189,7 @@ export const VitalSignsView: React.FC = () => {
     const newRecord: Omit<VitalSigns, 'id'> = {
       patientId: patient.id,
       recordedAt: new Date().toISOString(),
-      recordedBy: currentUser?.name || 'Dr. Diego Irusta',
+      recordedBy: currentUser?.name || 'Dr. Diego Iván Irusta',
       weight: parseFloat(regWeight) || patient.weight || 10,
       temperature: parseFloat(regTemp) || 38.5,
       heartRate: parseInt(regHR) || 110,

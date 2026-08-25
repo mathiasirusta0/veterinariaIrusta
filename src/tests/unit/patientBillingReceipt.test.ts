@@ -73,7 +73,7 @@ describe('Finanzas — Liquidación Manual de Prestaciones & Comprobantes de Pag
       branchId: 'branch-central',
       isVoided: false,
       createdAt: new Date().toISOString(),
-      createdBy: 'Dr. Diego Irusta',
+      createdBy: 'Dr. Diego Iván Irusta',
     };
 
     expect(movement.type).toBe('INGRESO');

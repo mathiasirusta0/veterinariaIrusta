@@ -261,7 +261,7 @@ export const PrescriptionsView: React.FC = () => {
       ownerId: ow?.id || 'owner-1',
       vetId: vet.id,
       vetName: vet.name,
-      vetLicense: vet.licenseNumber || 'MP 8412 CMVC',
+      vetLicense: vet.licenseNumber || 'M.P. 502',
       vetCuit: '20-32458912-8',
       establishmentName: 'Hospital Veterinario Central 24hs',
       establishmentAddress: 'Av. Corrientes 4550, CABA',

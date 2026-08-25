@@ -45,7 +45,7 @@ describe('Agenda & Appointment Scheduling with New vs Existing Patients', () => 
       patientId: newPatient.id,
       ownerId: newOwner.id,
       vetId: 'usr-1',
-      vetName: 'Dr. Diego Irusta',
+      vetName: 'Dr. Diego Iván Irusta',
       branchId: 'branch-central',
       date: '2026-08-25',
       time: '11:00',
@@ -57,7 +57,7 @@ describe('Agenda & Appointment Scheduling with New vs Existing Patients', () => 
 
     expect(newAppointment.patientId).toBe('pat-new-101');
     expect(newAppointment.ownerId).toBe('own-new-101');
-    expect(newAppointment.vetName).toBe('Dr. Diego Irusta');
+    expect(newAppointment.vetName).toBe('Dr. Diego Iván Irusta');
     expect(newAppointment.status).toBe('RESERVADO');
     expect(newPatient.name).toBe('Milo');
     expect(newOwner.phone).toBe('+5493584123456');

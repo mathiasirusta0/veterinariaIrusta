@@ -25,7 +25,7 @@ describe('Flujo Hospitalario E2E de Seguridad Clínica & Facturación', () => {
     expect(consultation).toBeDefined();
     expect(consultation?.soap.subjective).toBeTruthy();
     expect(consultation?.soap.assessment).toContain('Gastroenteritis');
-    expect(consultation?.vetName).toBe('Dr. Diego Irusta');
+    expect(consultation?.vetName).toBe('Dr. Diego Iván Irusta');
 
     // 4. Verificar Internación UCI vinculada
     const hosp = TEST_HOSPITALIZATIONS.find((h) => h.patientId === patient?.id);

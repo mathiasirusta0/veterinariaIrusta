@@ -94,7 +94,7 @@ export const ControlledDrugsView: React.FC = () => {
       ownerAddress: movementType === 'EGRESO_CLINICO' ? owner?.address : undefined,
       vetId: vet.id,
       vetName: vet.name,
-      vetLicense: vet.licenseNumber || 'MP 8412 CMVC',
+      vetLicense: vet.licenseNumber || 'M.P. 502',
       officialRecipeFolio: formRecipeFolio,
       supplierName: movementType === 'INGRESO_COMPRA' ? formSupplier : undefined,
       invoiceNumber: movementType === 'INGRESO_COMPRA' ? formInvoice : undefined,

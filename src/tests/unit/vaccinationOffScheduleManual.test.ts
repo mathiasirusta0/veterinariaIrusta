@@ -14,8 +14,8 @@ describe('Plan de Vacunación — Carga 100% Manual y Esquemas Fuera de Calendar
       route: 'Subcutánea (SC)',
       expirationDate: '2026-12-31',
       administeredDate: '2026-08-20', // Aplicada hace 4 días
-      administeredBy: 'Dr. Diego Irusta',
-      vetLicense: 'MP 8412',
+      administeredBy: 'Dr. Diego Iván Irusta',
+      vetLicense: 'M.P. 502',
       nextDueDate: '2026-09-10', // Refuerzo en 21 días exactos
       certificateGenerated: true,
       notes: 'Protocolo desensibilizante fuera de calendario por recidiva papilomatosa oral.',
@@ -64,12 +64,12 @@ describe('Plan de Vacunación — Carga 100% Manual y Esquemas Fuera de Calendar
       batchNumber: 'LT-991',
       expirationDate: '2027-08-24',
       administeredDate: '2026-08-24',
-      administeredBy: 'Dr. Diego Irusta',
-      vetLicense: 'MP 8412 CMVC',
+      administeredBy: 'Dr. Diego Iván Irusta',
+      vetLicense: 'M.P. 502',
       nextDueDate: '2027-08-24',
     };
 
-    expect(record.administeredBy).toBe('Dr. Diego Irusta');
-    expect(record.vetLicense).toBe('MP 8412 CMVC');
+    expect(record.administeredBy).toBe('Dr. Diego Iván Irusta');
+    expect(record.vetLicense).toBe('M.P. 502');
   });
 });

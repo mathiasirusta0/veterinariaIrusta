@@ -334,8 +334,8 @@ export const VaccinationView: React.FC = () => {
   
   const [formDoseVolume, setFormDoseVolume] = useState('1 ml (1 dosis)');
   const [formRoute, setFormRoute] = useState('Subcutánea (SC)');
-  const [formVetName, setFormVetName] = useState(currentUser?.name || 'Dr. Diego Irusta');
-  const [formVetLicense, setFormVetLicense] = useState('MP 8412');
+  const [formVetName, setFormVetName] = useState(currentUser?.name || 'Dr. Diego Iván Irusta');
+  const [formVetLicense, setFormVetLicense] = useState('M.P. 502');
   const [formNotes, setFormNotes] = useState('Paciente examinado clínicamente apto para inmunización. Normotérmico y sin signos de enfermedad infecciosa.');
 
   // New Patient & Owner on-the-fly fields
@@ -523,8 +523,8 @@ export const VaccinationView: React.FC = () => {
       batchNumber: formBatchNumber.trim(),
       expirationDate: formExpDate || new Date().toISOString().split('T')[0],
       administeredDate: formAdminDate || new Date().toISOString().split('T')[0],
-      administeredBy: formVetName.trim() || 'Dr. Diego Irusta',
-      vetLicense: formVetLicense.trim() || 'MP 8412',
+      administeredBy: formVetName.trim() || 'Dr. Diego Iván Irusta',
+      vetLicense: formVetLicense.trim() || 'M.P. 502',
       nextDueDate: formNextDueDate || formAdminDate || new Date().toISOString().split('T')[0],
       doseVolume: formDoseVolume.trim(),
       route: formRoute.trim(),
@@ -564,7 +564,7 @@ export const VaccinationView: React.FC = () => {
       details: {
         vaccineName: vac.vaccineName,
         dueDate: formatDate(vac.nextDueDate),
-        vetName: vac.administeredBy || 'Dr. Diego Irusta',
+        vetName: vac.administeredBy || 'Dr. Diego Iván Irusta',
       },
     });
   };
@@ -825,7 +825,7 @@ export const VaccinationView: React.FC = () => {
                     </div>
 
                     <div className="text-[11px] text-slate-600 flex items-center justify-between px-1">
-                      <span>Prof: <strong>{vac.administeredBy || 'Dr. Diego Irusta'}</strong> ({vac.vetLicense || 'MP 8412'})</span>
+                      <span>Prof: <strong>{vac.administeredBy || 'Dr. Diego Iván Irusta'}</strong> ({vac.vetLicense || 'M.P. 502'})</span>
                     </div>
                   </div>
 
@@ -1281,7 +1281,7 @@ export const VaccinationView: React.FC = () => {
                       type="text"
                       value={formVetName}
                       onChange={(e) => setFormVetName(e.target.value)}
-                      placeholder="Dr. Diego Irusta"
+                      placeholder="Dr. Diego Iván Irusta"
                       className="w-full bg-white border border-slate-300 rounded-xl p-2.5 font-bold text-slate-900 shadow-2xs"
                     />
                   </div>
@@ -1292,7 +1292,7 @@ export const VaccinationView: React.FC = () => {
                       type="text"
                       value={formVetLicense}
                       onChange={(e) => setFormVetLicense(e.target.value)}
-                      placeholder="MP 8412"
+                      placeholder="M.P. 502"
                       className="w-full bg-white border border-slate-300 rounded-xl p-2.5 font-mono font-bold text-slate-900 shadow-2xs"
                     />
                   </div>
@@ -1416,8 +1416,8 @@ export const VaccinationView: React.FC = () => {
                     )}
 
                     <div className="pt-2 text-center text-[11px] text-slate-600 border-t border-slate-200">
-                      <p className="font-black text-slate-900">{selectedCertModal.administeredBy || 'Dr. Diego Irusta'}</p>
-                      <p className="font-mono text-slate-500">Médico Veterinario • Matrícula: {selectedCertModal.vetLicense || 'MP 8412'}</p>
+                      <p className="font-black text-slate-900">{selectedCertModal.administeredBy || 'Dr. Diego Iván Irusta'}</p>
+                      <p className="font-mono text-slate-500">Médico Veterinario • Matrícula: {selectedCertModal.vetLicense || 'M.P. 502'}</p>
                     </div>
                   </div>
                 );

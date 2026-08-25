@@ -87,7 +87,7 @@ export const PatientMedicalHistoryDownloadModal: React.FC<PatientMedicalHistoryD
             drugName: med.drugName,
             dose: `${med.dose || ''} (${med.route})`.trim(),
             route: med.route,
-            administeredBy: slot.administeredBy || 'Dr. Diego Irusta',
+            administeredBy: slot.administeredBy || 'Dr. Diego Iván Irusta',
             notes: slot.notes || `Toma programada de las ${slot.time} hs`,
           });
         }
@@ -109,7 +109,7 @@ export const PatientMedicalHistoryDownloadModal: React.FC<PatientMedicalHistoryD
             drugName: med.drugName,
             dose: `${med.dose || ''}`.trim(),
             route: med.route,
-            administeredBy: dose.administeredBy || 'Dr. Diego Irusta',
+            administeredBy: dose.administeredBy || 'Dr. Diego Iván Irusta',
             notes: dose.notes,
           });
         }
@@ -128,7 +128,7 @@ export const PatientMedicalHistoryDownloadModal: React.FC<PatientMedicalHistoryD
   const handleCopyText = () => {
     triggerHaptic('light');
     const text = `HISTORIA CLÍNICA COMPLETA — VETERINARIA IRUSTA
-Dirección Médica: Dr. Diego Irusta (MP 8412)
+Dirección Médica: Dr. Diego Iván Irusta (M.P. 502)
 Fecha de Emisión: ${new Date().toLocaleDateString('es-AR')} ${new Date().toLocaleTimeString('es-AR')}
 
 DATOS DEL PACIENTE:
@@ -147,7 +147,7 @@ ${patientHosps.length === 0 ? 'Sin registros de internación.' : patientHosps.ma
 }).join('\n')}
 
 SIGNOS VITALES:
-${patientVitals.length === 0 ? 'Sin registros de signos vitales.' : patientVitals.map((v) => `• ${formatDateTime(v.recordedAt)}: T° ${v.temperature || '-'}°C | FC ${v.heartRate || '-'} lpm | FR ${v.respiratoryRate || '-'} rpm | PA ${v.systolicBp || '-'}/${v.diastolicBp || '-'} mmHg | Gluc: ${v.glucoseMgDl || '-'} mg/dL | Por: ${v.recordedBy || 'Dr. Diego Irusta'}`).join('\n')}
+${patientVitals.length === 0 ? 'Sin registros de signos vitales.' : patientVitals.map((v) => `• ${formatDateTime(v.recordedAt)}: T° ${v.temperature || '-'}°C | FC ${v.heartRate || '-'} lpm | FR ${v.respiratoryRate || '-'} rpm | PA ${v.systolicBp || '-'}/${v.diastolicBp || '-'} mmHg | Gluc: ${v.glucoseMgDl || '-'} mg/dL | Por: ${v.recordedBy || 'Dr. Diego Iván Irusta'}`).join('\n')}
 
 EVOLUCIONES MÉDICAS:
 ${patientEvolutions.length === 0 ? 'Sin evoluciones registradas.' : patientEvolutions.map((e) => `• [${formatDateTime(e.timestamp)}] ${e.authorName}: ${e.content}`).join('\n')}
@@ -176,7 +176,7 @@ ${patientLabs.length === 0 && patientImaging.length === 0 ? 'Sin estudios comple
       ownerName: `${owner.firstName} ${owner.lastName}`,
       date: new Date().toLocaleDateString('es-AR'),
       time: new Date().toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' }),
-      vetName: 'Dr. Diego Irusta',
+      vetName: 'Dr. Diego Iván Irusta',
       details: {
         summary: 'Se adjunta el reporte oficial de historia clínica completa.',
       },
@@ -258,7 +258,7 @@ ${patientLabs.length === 0 && patientImaging.length === 0 ? 'Sin estudios comple
                 Grandes y Pequeños Animales • Cuidados Críticos & Cirugía
               </p>
               <p className="text-[11px] text-[#6E502B] font-medium">
-                Dirección Médica: <strong>Dr. Diego Irusta</strong> — Matrícula Profesional: <strong>MP 8412</strong>
+                Dirección Médica: <strong>Dr. Diego Iván Irusta</strong> — Matrícula Profesional: <strong>M.P. 502</strong>
               </p>
             </div>
             <div className="text-left sm:text-right text-[11px] text-gray-600 font-mono">
@@ -290,7 +290,7 @@ ${patientLabs.length === 0 && patientImaging.length === 0 ? 'Sin estudios comple
               <p className="text-xs"><strong>Teléfono / WhatsApp:</strong> {owner?.phone || 'No registrado'}</p>
               <p className="text-xs"><strong>Dirección:</strong> {owner?.address || 'Río Cuarto, Córdoba'}</p>
               <p className="text-xs"><strong>DNI / CUIT:</strong> {owner?.dni || owner?.cuit || 'No registrado'}</p>
-              <p className="text-xs"><strong>Veterinario a Cargo:</strong> Dr. Diego Irusta (MP 8412)</p>
+              <p className="text-xs"><strong>Veterinario a Cargo:</strong> Dr. Diego Iván Irusta (M.P. 502)</p>
             </div>
           </div>
 
@@ -373,7 +373,7 @@ ${patientLabs.length === 0 && patientImaging.length === 0 ? 'Sin estudios comple
                         <td className="p-1.5">{v.systolicBp ? `${v.systolicBp}/${v.diastolicBp || '-'}` : '-'}</td>
                         <td className="p-1.5">{v.oxygenSaturation ? `${v.oxygenSaturation}%` : ''} {v.glucoseMgDl ? `(${v.glucoseMgDl} mg/dL)` : '-'}</td>
                         <td className="p-1.5">{v.painScaleScore !== undefined ? `${v.painScaleScore}/10` : '-'}</td>
-                        <td className="p-1.5 text-gray-700">{v.recordedBy || 'Dr. Diego Irusta'}</td>
+                        <td className="p-1.5 text-gray-700">{v.recordedBy || 'Dr. Diego Iván Irusta'}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -400,7 +400,7 @@ ${patientLabs.length === 0 && patientImaging.length === 0 ? 'Sin estudios comple
                     <div key={evo.id} className="p-2.5 rounded-xl border border-gray-200 bg-[#FAF8F5]/50 space-y-1">
                       <div className="flex items-center justify-between text-[11px] text-[#6E502B] font-bold">
                         <span>Evolución Médica — {formatDateTime(evoDate)}</span>
-                        <span>{evo.authorName || 'Dr. Diego Irusta'} (MP 8412)</span>
+                        <span>{evo.authorName || 'Dr. Diego Iván Irusta'} (M.P. 502)</span>
                       </div>
                       <p className="text-[11px] text-[#1C2B1D] whitespace-pre-line leading-relaxed">{fullText}</p>
                     </div>
@@ -410,7 +410,7 @@ ${patientLabs.length === 0 && patientImaging.length === 0 ? 'Sin estudios comple
                   <div key={cons.id} className="p-2.5 rounded-xl border border-gray-200 bg-gray-50 space-y-1">
                     <div className="flex items-center justify-between text-[11px] text-[#6E502B] font-bold">
                       <span>Consulta Médica — {formatDateTime(cons.dateTime)}</span>
-                      <span>{cons.vetName || 'Dr. Diego Irusta'}</span>
+                      <span>{cons.vetName || 'Dr. Diego Iván Irusta'}</span>
                     </div>
                     <p className="text-[11px]"><strong>Motivo:</strong> {cons.reason}</p>
                     {cons.anamnesis && <p className="text-[11px]"><strong>Anamnesis:</strong> {cons.anamnesis}</p>}
@@ -499,8 +499,8 @@ ${patientLabs.length === 0 && patientImaging.length === 0 ? 'Sin estudios comple
             </div>
             <div className="text-center sm:text-right border-t sm:border-t-0 pt-3 sm:pt-0">
               <div className="w-48 border-b border-gray-400 mb-1 mx-auto sm:ml-auto"></div>
-              <p className="font-bold text-xs text-[#162217]">Dr. Diego Irusta</p>
-              <p className="text-[10px] text-[#6E502B]">Dirección Médica • MP 8412</p>
+              <p className="font-bold text-xs text-[#162217]">Dr. Diego Iván Irusta</p>
+              <p className="text-[10px] text-[#6E502B]">Dirección Médica • M.P. 502</p>
             </div>
           </div>
         </div>

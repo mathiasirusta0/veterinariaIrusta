@@ -304,12 +304,12 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onOpenLogi
             <div className="rounded-3xl overflow-hidden shadow-xl border-4 border-white">
               <img
                 src="https://images.unsplash.com/photo-1628009368231-7bb7cfcb0def?auto=format&fit=crop&w=600&q=80"
-                alt="Dr. Diego Irusta - Dirección Médica"
+                alt="Dr. Diego Iván Irusta - Dirección Médica"
                 className="w-full h-72 object-cover"
               />
               <div className="p-4 bg-white">
-                <h4 className="text-base font-serif font-bold text-[#162217]">Dr. Diego Irusta</h4>
-                <p className="text-xs text-[#8C6B43] font-bold">Director Médico • MP 8412</p>
+                <h4 className="text-base font-serif font-bold text-[#162217]">Dr. Diego Iván Irusta</h4>
+                <p className="text-xs text-[#8C6B43] font-bold">Director Médico • M.P. 502</p>
               </div>
             </div>
           </div>

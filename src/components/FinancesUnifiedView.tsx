@@ -216,8 +216,8 @@ export const FinancesUnifiedView: React.FC = () => {
         ],
         total: numAmount,
         paymentMethod: chargePaymentMethod,
-        vetInCharge: currentUser?.name || 'Dr. Diego Irusta',
-        vetLicense: 'MP 8412',
+        vetInCharge: currentUser?.name || 'Dr. Diego Iván Irusta',
+        vetLicense: 'M.P. 502',
         notes: chargeNotes.trim(),
         type: 'COMPROBANTE',
       };
@@ -273,8 +273,8 @@ export const FinancesUnifiedView: React.FC = () => {
         ],
         total: numAmount,
         paymentMethod: chargePaymentMethod,
-        vetInCharge: currentUser?.name || 'Dr. Diego Irusta',
-        vetLicense: 'MP 8412',
+        vetInCharge: currentUser?.name || 'Dr. Diego Iván Irusta',
+        vetLicense: 'M.P. 502',
         notes: chargeNotes.trim(),
         type: 'PRESUPUESTO',
         validityDays: estimateValidityDays,
@@ -336,8 +336,8 @@ export const FinancesUnifiedView: React.FC = () => {
       })),
       total: est.totalAmount,
       paymentMethod: 'TRANSFERENCIA',
-      vetInCharge: currentUser?.name || 'Dr. Diego Irusta',
-      vetLicense: 'MP 8412',
+      vetInCharge: currentUser?.name || 'Dr. Diego Iván Irusta',
+      vetLicense: 'M.P. 502',
       notes: est.notes,
       type: 'COMPROBANTE',
     };
@@ -700,7 +700,7 @@ export const FinancesUnifiedView: React.FC = () => {
                   onChange={(e) => setChargePaymentMethod(e.target.value as any)}
                   className="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 font-bold text-slate-900 shadow-2xs"
                 >
-                  <option value="TRANSFERENCIA">🏦 Transferencia Bancaria (Alias Dr. Diego Irusta)</option>
+                  <option value="TRANSFERENCIA">🏦 Transferencia Bancaria (Alias Dr. Diego Iván Irusta)</option>
                   <option value="EFECTIVO">💵 Efectivo en Caja</option>
                   <option value="MERCADOPAGO_QR">📱 Mercado Pago / QR</option>
                   <option value="TARJETA_DEBITO">💳 Tarjeta de Débito</option>
@@ -807,8 +807,8 @@ export const FinancesUnifiedView: React.FC = () => {
                     reason: mov.concept,
                     total: mov.amount,
                     paymentMethod: mov.paymentMethod,
-                    vetInCharge: 'Dr. Diego Irusta',
-                    vetLicense: 'MP 8412',
+                    vetInCharge: 'Dr. Diego Iván Irusta',
+                    vetLicense: 'M.P. 502',
                     notes: mov.notes,
                     type: 'COMPROBANTE',
                   };
@@ -923,8 +923,8 @@ export const FinancesUnifiedView: React.FC = () => {
                   })),
                   total: est.totalAmount,
                   paymentMethod: 'PRESUPUESTO',
-                  vetInCharge: 'Dr. Diego Irusta',
-                  vetLicense: 'MP 8412',
+                  vetInCharge: 'Dr. Diego Iván Irusta',
+                  vetLicense: 'M.P. 502',
                   notes: est.notes,
                   type: 'PRESUPUESTO',
                 };
@@ -1051,7 +1051,7 @@ export const FinancesUnifiedView: React.FC = () => {
                   {currentDocument.type === 'PRESUPUESTO' ? 'PRESUPUESTO CLÍNICO' : 'COMPROBANTE DE PAGO & RECIBO'}
                 </h4>
                 <p className="text-[10px] text-slate-500 font-medium">
-                  Río Cuarto, Córdoba • Tel/WhatsApp: +54 9 2942 47-7136 • Dirección Médica: Dr. Diego Irusta (MP 8412)
+                  Río Cuarto, Córdoba • Tel/WhatsApp: +54 9 2942 47-7136 • Dirección Médica: Dr. Diego Iván Irusta (M.P. 502)
                 </p>
                 <div className="mt-2 inline-block px-3 py-1 bg-teal-100/80 text-teal-900 font-mono font-black text-xs rounded-full border border-teal-300">
                   Nº {currentDocument.receiptNumber} • {currentDocument.date} {currentDocument.time}

@@ -181,7 +181,7 @@ export const QuickModals: React.FC = () => {
   // Surgery Form State
   const [surgPatId, setSurgPatId] = useState(patients[0]?.id || '');
   const [surgProcName, setSurgProcName] = useState('Osteosíntesis de fémur con placa LCP');
-  const [surgSurgeon, setSurgSurgeon] = useState(users[0]?.name || 'Dr. Diego Irusta');
+  const [surgSurgeon, setSurgSurgeon] = useState(users[0]?.name || 'Dr. Diego Iván Irusta');
   const [surgAnesthetist, setSurgAnesthetist] = useState('Dra. Sofía Albarracín');
   const [surgDate, setSurgDate] = useState(new Date().toISOString().split('T')[0]);
   const [surgStartTime, setSurgStartTime] = useState('11:00');
@@ -463,7 +463,7 @@ export const QuickModals: React.FC = () => {
     const assignedVet = users.find((u) => u.id === aptVetId) || users[0];
     const vetName = assignedVet
       ? (assignedVet.name?.includes('Dr.') ? assignedVet.name : `Dr. ${assignedVet.name}`)
-      : 'Dr. Diego Irusta';
+      : 'Dr. Diego Iván Irusta';
 
     addAppointment({
       patientId: targetPatientId,
@@ -576,7 +576,7 @@ export const QuickModals: React.FC = () => {
         rateMlPerHour: Number(hospFluidRate),
         infusionRoute: 'IV',
         startedAt: new Date().toISOString(),
-        prescribedBy: 'Dr. Diego Irusta',
+        prescribedBy: 'Dr. Diego Iván Irusta',
       },
     });
     setQuickModal(null);
@@ -614,7 +614,7 @@ export const QuickModals: React.FC = () => {
     addLabOrder({
       patientId: labPatId,
       testType: labType,
-      requestedBy: 'Dr. Diego Irusta',
+      requestedBy: 'Dr. Diego Iván Irusta',
       status: 'PENDIENTE',
     });
     setQuickModal(null);
@@ -706,8 +706,8 @@ export const QuickModals: React.FC = () => {
       expirationDate: vacExp,
       administeredDate: new Date().toISOString().split('T')[0],
       nextDueDate: vacNext,
-      administeredBy: currentUser?.name || 'Dr. Diego Irusta',
-      vetLicense: 'MP 8412',
+      administeredBy: currentUser?.name || 'Dr. Diego Iván Irusta',
+      vetLicense: 'M.P. 502',
       certificateGenerated: true,
     });
 
@@ -2143,7 +2143,7 @@ export const QuickModals: React.FC = () => {
                   >
                     {users.map((u) => (
                       <option key={u.id} value={u.id}>
-                        👨‍⚕️ {u.name?.includes('Dr.') ? u.name : `Dr. ${u.name}`} (MP 8412)
+                        👨‍⚕️ {u.name?.includes('Dr.') ? u.name : `Dr. ${u.name}`} (M.P. 502)
                       </option>
                     ))}
                   </select>

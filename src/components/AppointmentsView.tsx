@@ -117,7 +117,7 @@ export const AppointmentsView: React.FC = () => {
       ownerPhone: own.whatsapp || own.phone || '',
       type: 'RECORDATORIO_TURNO',
       details: {
-        supplyName: `Recordatorio de turno agendado el ${formatDate(apt.date)} a las ${apt.time} hs con ${(apt as any).vetName || 'Dr. Diego Irusta'}`,
+        supplyName: `Recordatorio de turno agendado el ${formatDate(apt.date)} a las ${apt.time} hs con ${(apt as any).vetName || 'Dr. Diego Iván Irusta'}`,
       },
     });
   };
@@ -378,7 +378,7 @@ export const AppointmentsView: React.FC = () => {
                       )}
                       <span>•</span>
                       <span>
-                        Profesional: <strong className="text-slate-800">{(apt as any).vetName || 'Dr. Diego Irusta'}</strong>
+                        Profesional: <strong className="text-slate-800">{(apt as any).vetName || 'Dr. Diego Iván Irusta'}</strong>
                       </span>
                       {apt.consultingRoom && (
                         <>

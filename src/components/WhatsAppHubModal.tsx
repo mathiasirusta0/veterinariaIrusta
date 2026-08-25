@@ -93,7 +93,7 @@ export const WhatsAppHubModal: React.FC<WhatsAppHubModalProps> = ({
   ): string => {
     const ownerName = owner ? `${owner.firstName} ${owner.lastName || ''}`.trim() : 'Tutor';
     const petName = patient ? patient.name : 'su mascota';
-    const vetInCharge = currentUser?.name || 'Dr. Diego Irusta';
+    const vetInCharge = currentUser?.name || 'Dr. Diego Iván Irusta';
 
     // Fetch latest clinical data for this patient
     const patientHosp = hospitalizations.find((h) => h.patientId === patient?.id && h.status === 'ACTIVA');
@@ -122,13 +122,13 @@ ${latestEvoText}
 💊 *Tratamiento & Medicaciones:*
 ${activeMeds || '• Medicación y plan terapéutico reglado según indicación.'}
 
-🩺 *Monitoreo:* Cuidados intensivos y control de constantes bajo supervisión del *${vetInCharge}* (MP 8412).
+🩺 *Monitoreo:* Cuidados intensivos y control de constantes bajo supervisión del *${vetInCharge}* (M.P. 502).
 ⏰ *Horario de Visitas de Internación:* Hoy de 16:00 a 18:00 hs.
 📱 *WhatsApp de Guardia:* +54 9 2942 47-7136. ¡Cuidamos de ${petName} con el mayor compromiso! 🐾❤️`;
 
       case 'TURNO':
         return `Hola ${ownerName}! 👋 Le recordamos desde *Veterinaria Irusta*.
-*${petName}* tiene una consulta / turno programado para el día *${initialData?.details?.date || 'Mañana'}* a las *${initialData?.details?.time || '15:30'} hs* con el/la profesional *${initialData?.details?.vetName || vetInCharge}* (MP 8412).
+*${petName}* tiene una consulta / turno programado para el día *${initialData?.details?.date || 'Mañana'}* a las *${initialData?.details?.time || '15:30'} hs* con el/la profesional *${initialData?.details?.vetName || vetInCharge}* (M.P. 502).
 
 📍 *Sede:* Veterinaria Irusta
 ⚠️ *Indicaciones:* Concurrir con collar y correa o transportadora. Cumplir ayuno si fue indicado previamente.
@@ -149,7 +149,7 @@ ${initialData?.details?.prescriptionText || activeMeds || '1. Protector gástric
 🧾 *Detalle de Prestaciones / Insumos:* ${initialData?.details?.supplyName || 'Tratamiento médico de guardia, descartables y medicación aplicada'}
 💵 *Total a Abonar:* $${(initialData?.details?.supplyAmount || 18500).toLocaleString('es-AR')}
 🏦 *Alias de Pago / Transferencia:* ` + (initialData?.details?.bankAlias || 'VET.IRUSTA.PAGOS') + `
-Titular: Dr. Diego Irusta
+Titular: Dr. Diego Iván Irusta
 
 Agradecemos enviar el comprobante por este medio para asentar en la cuenta de ${petName}. ¡Muchas gracias! 🐾`;
 
@@ -183,7 +183,7 @@ Mantener su plan sanitario al día es fundamental para proteger su salud.
 
 🧾 *Total Estimado:* $${(initialData?.details?.estimateTotal || 45000).toLocaleString('es-AR')}
 Incluye honorarios médicos, monitoreo y medicación correspondiente.
-👨‍⚕️ *Dirección Médica:* Dr. Diego Irusta (MP 8412)
+👨‍⚕️ *Dirección Médica:* Dr. Diego Iván Irusta (M.P. 502)
 
 Este presupuesto tiene validez por 15 días. Quedamos a su disposición para coordinar. 🐾`;
 

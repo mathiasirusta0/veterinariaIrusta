@@ -392,7 +392,7 @@ export const Patient360View: React.FC = () => {
       description: newProblemDesc,
       status: newProblemStatus,
       onsetDate: new Date().toISOString().split('T')[0],
-      vetName: currentUser?.name || 'Dr. Diego Irusta',
+      vetName: currentUser?.name || 'Dr. Diego Iván Irusta',
     });
     setNewProblemTitle('');
     setNewProblemDesc('');
@@ -1235,7 +1235,7 @@ export const Patient360View: React.FC = () => {
 
                 <div className="flex items-center justify-between pt-1">
                   <span className="text-xs text-slate-500">
-                    Médico Prescriptor: <strong className="text-slate-800">{currentUser?.name || 'Dr. Diego Irusta'}</strong>
+                    Médico Prescriptor: <strong className="text-slate-800">{currentUser?.name || 'Dr. Diego Iván Irusta'}</strong>
                   </span>
                   <button
                     type="submit"
@@ -1406,7 +1406,7 @@ export const Patient360View: React.FC = () => {
                                           <span>({slot.administeredAt ? new Date(slot.administeredAt).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' }) : slot.time} hs)</span>
                                         </p>
                                         <p className="text-[10px] text-slate-600 truncate mt-0.5">
-                                          Por: <strong>{slot.administeredBy || 'Dr. Diego Irusta'}</strong>
+                                          Por: <strong>{slot.administeredBy || 'Dr. Diego Iván Irusta'}</strong>
                                         </p>
                                       </div>
                                     ) : (
@@ -1501,7 +1501,7 @@ export const Patient360View: React.FC = () => {
                                 </span>
                               </td>
                               <td className="p-3 font-bold text-slate-900">
-                                {slot.administeredBy || 'Dr. Diego Irusta'}
+                                {slot.administeredBy || 'Dr. Diego Iván Irusta'}
                               </td>
                             </tr>
                           );
@@ -1535,7 +1535,7 @@ export const Patient360View: React.FC = () => {
                 </div>
               </div>
               <span className="text-[11px] font-bold text-purple-900 bg-purple-50 px-3 py-1 rounded-xl border border-purple-200 font-mono self-start sm:self-auto">
-                {currentUser?.name || 'Dr. Diego Irusta'} (MP 8412 • SUPERADMIN)
+                {currentUser?.name || 'Dr. Diego Iván Irusta'} (M.P. 502 • SUPERADMIN)
               </span>
             </div>
 
@@ -1551,9 +1551,9 @@ export const Patient360View: React.FC = () => {
                 addClinicalEvolution({
                   patientId: patient.id,
                   authorId: currentUser?.id || 'usr-1',
-                  authorName: currentUser?.name || 'Dr. Diego Irusta',
+                  authorName: currentUser?.name || 'Dr. Diego Iván Irusta',
                   authorRole: (currentUser?.role as any) || 'SUPERADMIN',
-                  authorLicense: 'MP 8412 - Dirección Médica',
+                  authorLicense: 'M.P. 502 - Dirección Médica',
                   sector: evoSector || 'UCI Canil 01',
                   shift: 'DIURNO',
                   evolutionType: 'MEDICA',
@@ -1606,7 +1606,7 @@ export const Patient360View: React.FC = () => {
               <div className="flex items-center justify-between pt-1 border-t border-slate-100">
                 <span className="text-xs text-slate-500 flex items-center gap-1.5">
                   <span>🛡️</span>
-                  <span>Firma digital inmutable • Dr. Diego Irusta (MP 8412)</span>
+                  <span>Firma digital inmutable • Dr. Diego Iván Irusta (M.P. 502)</span>
                 </span>
                 <button
                   type="submit"
@@ -1651,7 +1651,7 @@ export const Patient360View: React.FC = () => {
                             Evolución Médica
                           </span>
                           <span className="font-black text-slate-900 text-xs">
-                            👨‍⚕️ {evo.authorName || 'Dr. Diego Irusta'} (MP 8412)
+                            👨‍⚕️ {evo.authorName || 'Dr. Diego Iván Irusta'} (M.P. 502)
                           </span>
                         </div>
                         <span className="font-mono font-bold text-slate-600 text-[11px]">
@@ -1674,7 +1674,7 @@ export const Patient360View: React.FC = () => {
                           Consulta Médica Inicial
                         </span>
                         <span className="font-black text-slate-900 text-xs">
-                          👨‍⚕️ {cons.vetName || 'Dr. Diego Irusta'}
+                          👨‍⚕️ {cons.vetName || 'Dr. Diego Iván Irusta'}
                         </span>
                       </div>
                       <span className="font-mono font-bold text-slate-600 text-[11px]">

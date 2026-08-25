@@ -20,15 +20,15 @@ describe('Autenticación y Puerta de Enlace (P0-01, P0-02)', () => {
   it('un usuario con sesión activa en localStorage accede directamente al panel principal', () => {
     localStorage.setItem('vetsys_auth_user', JSON.stringify({
       id: 'user-irusta-superadmin',
-      name: 'Dr. Diego Irusta',
+      name: 'Dr. Diego Iván Irusta',
       email: 'irusta@gmail.com',
       role: 'SUPERADMIN',
       branchId: 'branch-1',
-      licenseNumber: 'MP 8412 - Dirección Médica',
+      licenseNumber: 'M.P. 502 - Dirección Médica',
     }));
 
     const { container } = render(<App />);
     expect(container).toBeDefined();
-    expect(screen.getAllByText(/Dr\. Diego Irusta/).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/Dr\. Diego Iván Irusta/).length).toBeGreaterThan(0);
   });
 });

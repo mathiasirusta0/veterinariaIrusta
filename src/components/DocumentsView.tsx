@@ -181,8 +181,8 @@ export const DocumentsView: React.FC = () => {
       hc: pat?.clinicalRecordNumber || 'HC-0001',
       ownerName: own ? `${own.firstName} ${own.lastName}` : 'Tutor Responsable',
       ownerDni: own?.dni || 'S/D',
-      vetName: currentUser?.name || 'Dr. Diego Irusta',
-      vetLicense: currentUser?.licenseNumber || 'MP 8412',
+      vetName: currentUser?.name || 'Dr. Diego Iván Irusta',
+      vetLicense: currentUser?.licenseNumber || 'M.P. 502',
     });
 
     setCustomTitle(tmpl.title);
@@ -203,8 +203,8 @@ export const DocumentsView: React.FC = () => {
       hc: pat?.clinicalRecordNumber || 'HC-0001',
       ownerName: own ? `${own.firstName} ${own.lastName}` : 'Tutor Responsable',
       ownerDni: own?.dni || 'S/D',
-      vetName: currentUser?.name || 'Dr. Diego Irusta',
-      vetLicense: currentUser?.licenseNumber || 'MP 8412',
+      vetName: currentUser?.name || 'Dr. Diego Iván Irusta',
+      vetLicense: currentUser?.licenseNumber || 'M.P. 502',
     });
 
     setCustomContent(contentText);
@@ -222,7 +222,7 @@ export const DocumentsView: React.FC = () => {
       title: customTitle.trim() || tmpl.title,
       patientId: pat.id,
       ownerId: pat.ownerId,
-      vetName: currentUser?.name || 'Dr. Diego Irusta',
+      vetName: currentUser?.name || 'Dr. Diego Iván Irusta',
       content: customContent.trim(),
       isSigned: false,
     });
@@ -332,7 +332,7 @@ export const DocumentsView: React.FC = () => {
 
     let cleanText = doc.content;
     if (parsed.isJson && parsed.data) {
-      cleanText = `EVOLUCIÓN MÉDICA INTEGRAL\nSector: ${parsed.data.sector || 'UCI / Guardia'}\nTurno: ${parsed.data.shift || 'General'}\nProfesional: ${parsed.data.authorName || doc.vetName || 'Dr. Diego Irusta'} (${parsed.data.authorLicense || 'MP 8412'})\n\nEVALUACIÓN MÉDICA:\n${parsed.data.assessment || 'Sin evaluación registrada'}\n\nPLAN TERAPÉUTICO & INDICACIONES:\n${parsed.data.plan || 'Mantener indicaciones previas'}${parsed.data.notes ? `\n\nOBSERVACIONES:\n${parsed.data.notes}` : ''}`;
+      cleanText = `EVOLUCIÓN MÉDICA INTEGRAL\nSector: ${parsed.data.sector || 'UCI / Guardia'}\nTurno: ${parsed.data.shift || 'General'}\nProfesional: ${parsed.data.authorName || doc.vetName || 'Dr. Diego Iván Irusta'} (${parsed.data.authorLicense || 'M.P. 502'})\n\nEVALUACIÓN MÉDICA:\n${parsed.data.assessment || 'Sin evaluación registrada'}\n\nPLAN TERAPÉUTICO & INDICACIONES:\n${parsed.data.plan || 'Mantener indicaciones previas'}${parsed.data.notes ? `\n\nOBSERVACIONES:\n${parsed.data.notes}` : ''}`;
     }
 
     return {
@@ -348,8 +348,8 @@ export const DocumentsView: React.FC = () => {
       date: formatDate(doc.createdAt),
       time: new Date(doc.createdAt).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' }),
       content: cleanText,
-      vetName: doc.vetName || 'Dr. Diego Irusta',
-      vetLicense: 'MP 8412',
+      vetName: doc.vetName || 'Dr. Diego Iván Irusta',
+      vetLicense: 'M.P. 502',
       isSigned: doc.isSigned,
       signedByOwnerName: doc.signedByOwnerName,
       signedByOwnerDni: doc.signedByOwnerDni,
@@ -574,8 +574,8 @@ export const DocumentsView: React.FC = () => {
                       <div className="flex items-center justify-between text-[11px] font-bold text-slate-600 border-b border-slate-200/60 pb-1.5">
                         <span className="flex items-center gap-1 text-teal-800 font-black">
                           <Stethoscope className="w-3.5 h-3.5" />
-                          <span>{parsed.data.authorName || doc.vetName || 'Dr. Diego Irusta'}</span>
-                          <span className="font-normal opacity-80">({parsed.data.authorLicense || 'MP 8412'})</span>
+                          <span>{parsed.data.authorName || doc.vetName || 'Dr. Diego Iván Irusta'}</span>
+                          <span className="font-normal opacity-80">({parsed.data.authorLicense || 'M.P. 502'})</span>
                         </span>
                         <span className="text-[10px] font-mono bg-white px-2 py-0.5 rounded border border-slate-200">
                           {parsed.data.sector || 'UCI / Guardia'} · {parsed.data.shift || 'DIURNO'}
@@ -728,7 +728,7 @@ export const DocumentsView: React.FC = () => {
                   <div className="text-lg font-black text-teal-800">VETERINARIA IRUSTA</div>
                   <div className="text-[11px] text-slate-600 font-bold">Centro Hospitalario Veterinario • Guardia 24 Horas</div>
                   <div className="text-[10px] text-slate-500">Río Cuarto, Córdoba • Tel/WhatsApp: +54 9 2942 47-7136</div>
-                  <div className="text-[10px] text-slate-500 font-medium">Dirección Médica: Dr. Diego Irusta • MP 8412</div>
+                  <div className="text-[10px] text-slate-500 font-medium">Dirección Médica: Dr. Diego Iván Irusta • M.P. 502</div>
                 </div>
                 <div className="bg-teal-50 border border-teal-200 px-3 py-1.5 rounded-xl text-right">
                   <span className="text-[10px] font-black text-teal-800 uppercase block">{previewDoc.type.replace(/_/g, ' ')}</span>
@@ -772,7 +772,7 @@ export const DocumentsView: React.FC = () => {
                     return (
                       <div className="space-y-3">
                         <div className="bg-teal-50/50 p-2.5 rounded-lg border border-teal-100 font-mono text-[11px] text-teal-950 flex justify-between">
-                          <span>Médico: <strong>{parsed.data.authorName || previewDoc.vetName || 'Dr. Diego Irusta'}</strong> ({parsed.data.authorLicense || 'MP 8412'})</span>
+                          <span>Médico: <strong>{parsed.data.authorName || previewDoc.vetName || 'Dr. Diego Iván Irusta'}</strong> ({parsed.data.authorLicense || 'M.P. 502'})</span>
                           <span>{parsed.data.sector || 'UCI'} · {parsed.data.shift || 'DIURNO'}</span>
                         </div>
                         {parsed.data.assessment && (
@@ -812,11 +812,11 @@ export const DocumentsView: React.FC = () => {
 
                 <div className="space-y-1">
                   <div className="h-10 flex items-center justify-center text-[11px] font-bold text-teal-800">
-                    {previewDoc.vetName || 'Dr. Diego Irusta'}
+                    {previewDoc.vetName || 'Dr. Diego Iván Irusta'}
                   </div>
                   <div className="border-t border-slate-400 w-3/4 mx-auto pt-1">
-                    <strong className="block text-[11px]">{previewDoc.vetName || 'Dr. Diego Irusta'}</strong>
-                    <span className="text-[10px] text-slate-500">Médico Veterinario • MP 8412</span>
+                    <strong className="block text-[11px]">{previewDoc.vetName || 'Dr. Diego Iván Irusta'}</strong>
+                    <span className="text-[10px] text-slate-500">Médico Veterinario • M.P. 502</span>
                   </div>
                 </div>
               </div>

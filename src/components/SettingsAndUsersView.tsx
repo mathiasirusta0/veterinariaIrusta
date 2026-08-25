@@ -97,7 +97,7 @@ export const SettingsAndUsersView: React.FC = () => {
             <span>Configuración, Producción & Auditoría</span>
           </h2>
           <p className="text-xs text-slate-500 mt-1">
-            Gestión de base de datos Supabase, auditoría inmutable, sucursales y control de acceso del Dr. Diego Irusta.
+            Gestión de base de datos Supabase, auditoría inmutable, sucursales y control de acceso del Dr. Diego Iván Irusta.
           </p>
         </div>
 

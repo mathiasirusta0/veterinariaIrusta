@@ -28,8 +28,8 @@ describe('Receipts, Thermal Tickets, and Estimates System', () => {
     ],
     total: 15000,
     paymentMethod: 'TRANSFERENCIA',
-    vetInCharge: 'Dr. Diego Irusta',
-    vetLicense: 'MP 8412',
+    vetInCharge: 'Dr. Diego Iván Irusta',
+    vetLicense: 'M.P. 502',
     notes: 'Comprobante oficial no fiscal',
     type: 'COMPROBANTE',
   };
@@ -55,8 +55,8 @@ describe('Receipts, Thermal Tickets, and Estimates System', () => {
     ],
     total: 45000,
     paymentMethod: 'PRESUPUESTO',
-    vetInCharge: 'Dr. Diego Irusta',
-    vetLicense: 'MP 8412',
+    vetInCharge: 'Dr. Diego Iván Irusta',
+    vetLicense: 'M.P. 502',
     validityDays: 15,
     type: 'PRESUPUESTO',
   };
@@ -65,8 +65,8 @@ describe('Receipts, Thermal Tickets, and Estimates System', () => {
     expect(sampleReceipt.receiptNumber).toBe('REC-2026-8812');
     expect(sampleReceipt.total).toBe(15000);
     expect(sampleReceipt.items?.[0].subtotal).toBe(15000);
-    expect(sampleReceipt.vetInCharge).toContain('Dr. Diego Irusta');
-    expect(sampleReceipt.vetLicense).toBe('MP 8412');
+    expect(sampleReceipt.vetInCharge).toContain('Dr. Diego Iván Irusta');
+    expect(sampleReceipt.vetLicense).toBe('M.P. 502');
   });
 
   it('validates clinical estimate data and validity days', () => {

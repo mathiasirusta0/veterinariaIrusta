@@ -61,7 +61,7 @@ describe('Flujo de Cierre de Sesión (Logout)', () => {
   it('debe limpiar el usuario activo al cerrar sesión', () => {
     let currentUser: any = {
       id: 'usr-1',
-      name: 'Dr. Diego Irusta',
+      name: 'Dr. Diego Iván Irusta',
       role: 'SUPERADMIN',
     };
 

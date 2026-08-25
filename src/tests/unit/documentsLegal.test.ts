@@ -25,14 +25,14 @@ describe('Gestión de Documentos Clínicos & Certificados Legales', () => {
       hc: 'HC-2024-0012',
       ownerName: 'Juan Pérez',
       ownerDni: '38999888',
-      vetName: 'Dr. Diego Irusta',
-      vetLicense: 'MP 8412',
+      vetName: 'Dr. Diego Iván Irusta',
+      vetLicense: 'M.P. 502',
     });
 
     expect(sampleText).toContain('Rocky');
     expect(sampleText).toContain('Juan Pérez');
     expect(sampleText).toContain('38999888');
-    expect(sampleText).toContain('Dr. Diego Irusta');
+    expect(sampleText).toContain('Dr. Diego Iván Irusta');
     expect(sampleText).toContain('HC-2024-0012');
   });
 
@@ -45,8 +45,8 @@ describe('Gestión de Documentos Clínicos & Certificados Legales', () => {
   it('debe parsear y limpiar contenido JSON de evolución médica sin mostrar JSON crudo', () => {
     const rawJsonContent = JSON.stringify({
       id: 'doc-evo-1787616319475',
-      authorName: 'Dr. Diego Irusta',
-      authorLicense: 'MP 8412 - Dirección Médica',
+      authorName: 'Dr. Diego Iván Irusta',
+      authorLicense: 'M.P. 502 - Dirección Médica',
       sector: 'UCI Canil 01',
       shift: 'DIURNO',
       assessment: 'Paciente canino ingresa a control y tratamiento en guardia. Normotérmico.',
@@ -54,7 +54,7 @@ describe('Gestión de Documentos Clínicos & Certificados Legales', () => {
     });
 
     const parsed = JSON.parse(rawJsonContent);
-    expect(parsed.authorName).toBe('Dr. Diego Irusta');
+    expect(parsed.authorName).toBe('Dr. Diego Iván Irusta');
     expect(parsed.assessment).toContain('Paciente canino ingresa a control');
     expect(parsed.plan).toContain('Mantener plan');
   });

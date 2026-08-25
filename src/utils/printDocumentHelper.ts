@@ -115,7 +115,7 @@ export function printThermalTicket(data: PrintableReceiptData) {
           <div class="title">VETERINARIA IRUSTA</div>
           <div class="subtitle">Centro Hospitalario Veterinario</div>
           <div class="subtitle">Río Cuarto, Córdoba • Tel: +54 9 2942 47-7136</div>
-          <div class="subtitle">Dr. Diego Irusta • MP 8412</div>
+          <div class="subtitle">Dr. Diego Iván Irusta • M.P. 502</div>
           <div class="divider"></div>
           <div class="bold" style="font-size: 12px;">${title}</div>
           <div style="font-size: 9px;">${subTitle}</div>
@@ -367,7 +367,7 @@ export function printA4Document(data: PrintableReceiptData) {
             <div class="clinic-name">VETERINARIA IRUSTA</div>
             <div class="clinic-sub">Centro Hospitalario Veterinario • Guardia 24 Horas</div>
             <div class="clinic-sub">Río Cuarto, Córdoba • Tel/WhatsApp: +54 9 2942 47-7136</div>
-            <div class="clinic-sub">Dirección Médica: Dr. Diego Irusta • Matrícula Profesional 8412</div>
+            <div class="clinic-sub">Dirección Médica: Dr. Diego Iván Irusta • Matrícula Profesional 502</div>
           </div>
           <div class="doc-badge">
             <div style="font-size: 10px; font-weight: 800; color: #0f766e;">${title}</div>
@@ -642,7 +642,7 @@ export function printA4ClinicalDocument(data: PrintableClinicalDocumentData) {
             <div class="clinic-name">VETERINARIA IRUSTA</div>
             <div class="clinic-sub">Centro Hospitalario Veterinario • Guardia 24 Horas</div>
             <div class="clinic-sub">Río Cuarto, Córdoba • Tel/WhatsApp: +54 9 2942 47-7136</div>
-            <div class="clinic-sub">Dirección Médica: Dr. Diego Irusta • Matrícula Profesional 8412</div>
+            <div class="clinic-sub">Dirección Médica: Dr. Diego Iván Irusta • Matrícula Profesional 502</div>
           </div>
           <div class="doc-badge">
             <div class="doc-title">${data.title}</div>
@@ -683,8 +683,8 @@ export function printA4ClinicalDocument(data: PrintableClinicalDocumentData) {
           <div class="sig-box">
             <div style="height: 40px;"></div>
             <div class="sig-line"></div>
-            <div style="font-weight: 800; font-size: 11px;">${data.vetName || 'Dr. Diego Irusta'}</div>
-            <div style="font-size: 10px; color: #64748b;">Médico Veterinario Actuante · ${data.vetLicense || 'MP 8412'}</div>
+            <div style="font-weight: 800; font-size: 11px;">${data.vetName || 'Dr. Diego Iván Irusta'}</div>
+            <div style="font-size: 10px; color: #64748b;">Médico Veterinario Actuante · ${data.vetLicense || 'M.P. 502'}</div>
             <div style="font-size: 9px; color: #0f766e; font-weight: bold; margin-top: 2px;">Dirección Médica • Veterinaria Irusta</div>
           </div>
         </div>

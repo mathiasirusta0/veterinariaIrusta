@@ -400,10 +400,10 @@ export const VetProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             (u.name && u.name.toLowerCase().includes('mat')) ||
             (u.name && u.name.toLowerCase().includes('irusta'))
           ) {
-            u.name = 'Dr. Diego Irusta';
+            u.name = 'Dr. Diego Iván Irusta';
             u.email = 'irusta@gmail.com';
             u.role = 'SUPERADMIN';
-            u.licenseNumber = 'MP 8412 - Dirección Médica';
+            u.licenseNumber = 'M.P. 502 - Dirección Médica';
             try {
               localStorage.setItem('vetsys_auth_user', JSON.stringify(u));
             } catch {}
@@ -813,7 +813,7 @@ export const VetProvider: React.FC<{ children: React.ReactNode }> = ({ children 
                       cloudEvolutions.push({
                         id: doc.id,
                         patientId: doc.patientId,
-                        authorName: doc.vetName || 'Dr. Diego Irusta',
+                        authorName: doc.vetName || 'Dr. Diego Iván Irusta',
                         authorRole: 'VETERINARIO',
                         dateTime: doc.createdAt,
                         createdAt: doc.createdAt,
@@ -1024,8 +1024,8 @@ export const VetProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       ownerId: p?.ownerId || '',
       type: 'INFORME_ALTA_MEDICA',
       title: `Epicrisis de Alta — ${p?.name || 'Paciente'}`,
-      content: `ALTA MÉDICA Y EPICRISIS CLÍNICA\nFecha y Hora: ${new Date(now).toLocaleString('es-AR')}\nProfesional Responsable: ${currentUser?.name || 'Dr. Diego Irusta'} (${currentUser?.licenseNumber || 'MP 8412'})\n\nEstado al Egreso: ${options.condition || 'Recuperado'}\n\nEvolución y Resumen Clínico:\n${options.dischargeNotes}\n\nMedicación y Tratamiento en Hogar:\n${options.homeMedication || 'Sin medicación prescrita'}\n\nPróximo Control / Revisión:\n${options.followUpDate || 'A demanda o según evolución'}`,
-      vetName: currentUser?.name || 'Dr. Diego Irusta',
+      content: `ALTA MÉDICA Y EPICRISIS CLÍNICA\nFecha y Hora: ${new Date(now).toLocaleString('es-AR')}\nProfesional Responsable: ${currentUser?.name || 'Dr. Diego Iván Irusta'} (${currentUser?.licenseNumber || 'M.P. 502'})\n\nEstado al Egreso: ${options.condition || 'Recuperado'}\n\nEvolución y Resumen Clínico:\n${options.dischargeNotes}\n\nMedicación y Tratamiento en Hogar:\n${options.homeMedication || 'Sin medicación prescrita'}\n\nPróximo Control / Revisión:\n${options.followUpDate || 'A demanda o según evolución'}`,
+      vetName: currentUser?.name || 'Dr. Diego Iván Irusta',
       createdAt: now,
       isSigned: true,
     };
@@ -1102,7 +1102,7 @@ export const VetProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const recordPatientWeight = (patientId: string, newWeight: number, recordedBy?: string) => {
     const validWeight = Math.max(0.1, Math.min(250, Number(newWeight) || 1));
     const now = new Date().toISOString();
-    const staff = recordedBy || currentUser?.name || 'Dr. Diego Irusta';
+    const staff = recordedBy || currentUser?.name || 'Dr. Diego Iván Irusta';
 
     // 1. Update patient weight in patient record
     setPatients((prev) =>
@@ -1778,7 +1778,7 @@ export const VetProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         priority: 'ESTABLE',
         status: 'ACTIVA',
         vetInChargeId: 'usr-1',
-        vetInChargeName: currentUser?.name || 'Dr. Diego Irusta',
+        vetInChargeName: currentUser?.name || 'Dr. Diego Iván Irusta',
         fluidTherapy: {
           isActive: false,
           solutionType: 'Ringer Lactato',
@@ -1786,7 +1786,7 @@ export const VetProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           rateMlPerHour: 20,
           infusionRoute: 'IV',
           startedAt: new Date().toISOString(),
-          prescribedBy: currentUser?.name || 'Dr. Diego Irusta',
+          prescribedBy: currentUser?.name || 'Dr. Diego Iván Irusta',
         },
         feeding: {
           dietType: 'ORAL',
@@ -1810,7 +1810,7 @@ export const VetProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       'INDICACION_MEDICACION',
       'Medication',
       patientId,
-      `Indicación de ${newMed.drugName} (${newMed.dose} ${newMed.route}) c/${frequency} (${calculatedTimes.join(', ')} hs) por ${currentUser?.name || 'Dr. Diego Irusta'}`
+      `Indicación de ${newMed.drugName} (${newMed.dose} ${newMed.route}) c/${frequency} (${calculatedTimes.join(', ')} hs) por ${currentUser?.name || 'Dr. Diego Iván Irusta'}`
     );
   };
 
@@ -1843,7 +1843,7 @@ export const VetProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           }
 
           const adminAt = new Date().toISOString();
-          const adminBy = currentUser?.name || 'Dr. Diego Irusta';
+          const adminBy = currentUser?.name || 'Dr. Diego Iván Irusta';
 
           // Update or initialize doseSlots
           let currentSlots = med.doseSlots && med.doseSlots.length > 0
@@ -2541,7 +2541,7 @@ export const VetProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           email: session.user.email || '',
           role: userMeta.role || 'VETERINARIO',
           branchId: activeBranch.id,
-          licenseNumber: userMeta.license_number || 'MP 8412',
+          licenseNumber: userMeta.license_number || 'M.P. 502',
         };
         setCurrentUser(userObj);
       } else if (event === 'SIGNED_OUT') {

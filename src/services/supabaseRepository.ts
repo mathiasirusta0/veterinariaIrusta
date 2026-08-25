@@ -137,7 +137,7 @@ export function mapVitalSignsFromDB(raw: any): VitalSigns {
     bloodGlucose: raw.glycemia ?? raw.bloodGlucose,
     spo2: raw.oxygen_saturation ?? raw.spo2,
     painScale: raw.pain_score_glasgow ?? raw.painScale,
-    recordedBy: raw.recorded_by || raw.recordedBy || 'Dr. Diego Irusta',
+    recordedBy: raw.recorded_by || raw.recordedBy || 'Dr. Diego Iván Irusta',
     notes: raw.notes,
   };
 }
@@ -420,7 +420,7 @@ export const documentRepository = {
 };
 
 export const auditRepository = {
-  async log(action: string, entity: string, entityId: string, details: string, user = 'Dr. Diego Irusta', role = 'SUPERADMIN'): Promise<void> {
+  async log(action: string, entity: string, entityId: string, details: string, user = 'Dr. Diego Iván Irusta', role = 'SUPERADMIN'): Promise<void> {
     try {
       await supabase.from('audit_logs').insert({
         id: `audit-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
@@ -572,7 +572,7 @@ export async function executeDemoCleanupRPC(dryRun: boolean, confirmationPhrase:
     await supabase.from('audit_logs').insert({
       id: `audit-cleanup-${Date.now()}`,
       timestamp: new Date().toISOString(),
-      user_name: 'Dr. Diego Irusta',
+      user_name: 'Dr. Diego Iván Irusta',
       user_role: 'SUPERADMIN',
       action: 'LIMPIEZA_DATOS_DEMO',
       entity: 'Database',

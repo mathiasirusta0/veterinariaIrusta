@@ -25,7 +25,7 @@ describe('Finanzas — Módulo Simplificado de Cobro Rápido y Emisión de Compr
       notes: 'Comprobante REC-2026-8812.',
       branchId: 'branch-central',
       createdAt: new Date().toISOString(),
-      createdBy: 'Dr. Diego Irusta',
+      createdBy: 'Dr. Diego Iván Irusta',
     };
 
     expect(movement.type).toBe('INGRESO');

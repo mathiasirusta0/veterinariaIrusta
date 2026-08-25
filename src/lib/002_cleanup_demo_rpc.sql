@@ -138,7 +138,7 @@ BEGIN
     ) VALUES (
       'audit-cleanup-' || TO_CHAR(NOW(), 'YYYYMMDD-HH24MISS'),
       NOW()::TEXT,
-      'Dr. Diego Irusta',
+      'Dr. Diego Iván Irusta',
       'SUPERADMIN',
       'LIMPIEZA_DATOS_DEMO',
       'Database',

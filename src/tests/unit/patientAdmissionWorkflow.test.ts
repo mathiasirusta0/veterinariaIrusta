@@ -43,7 +43,7 @@ describe('Workflow de Admisión Inmediata al Registrar Paciente', () => {
       id: 'hosp-101',
       patientId: patient.id,
       vetInChargeId: 'usr-1',
-      vetInChargeName: 'Dr. Diego Irusta',
+      vetInChargeName: 'Dr. Diego Iván Irusta',
       sector: 'UCI',
       kennelNumber: 'CANIL-UCI-01',
       admittedAt: new Date().toISOString(),
@@ -56,7 +56,7 @@ describe('Workflow de Admisión Inmediata al Registrar Paciente', () => {
         rateMlPerHour: 15,
         infusionRoute: 'IV',
         startedAt: new Date().toISOString(),
-        prescribedBy: 'Dr. Diego Irusta',
+        prescribedBy: 'Dr. Diego Iván Irusta',
       },
       feeding: {
         dietType: 'NPO_AYUNO',

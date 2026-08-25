@@ -14,7 +14,7 @@ describe('Unified Finances & Accounting Principles Unit Tests', () => {
         paymentMethod: 'EFECTIVO',
         status: 'COBRADO',
         createdAt: '2026-08-24T10:00:00Z',
-        createdBy: 'Dr. Diego Irusta',
+        createdBy: 'Dr. Diego Iván Irusta',
       },
       {
         id: 'mov-2',
@@ -26,7 +26,7 @@ describe('Unified Finances & Accounting Principles Unit Tests', () => {
         paymentMethod: 'TRANSFERENCIA',
         status: 'COBRADO',
         createdAt: '2026-08-24T11:00:00Z',
-        createdBy: 'Dr. Diego Irusta',
+        createdBy: 'Dr. Diego Iván Irusta',
       },
       {
         id: 'mov-3',
@@ -38,7 +38,7 @@ describe('Unified Finances & Accounting Principles Unit Tests', () => {
         paymentMethod: 'TRANSFERENCIA',
         status: 'PAGADO',
         createdAt: '2026-08-24T12:00:00Z',
-        createdBy: 'Dr. Diego Irusta',
+        createdBy: 'Dr. Diego Iván Irusta',
       },
     ];
 
@@ -164,7 +164,7 @@ describe('Unified Finances & Accounting Principles Unit Tests', () => {
         paymentMethod: 'EFECTIVO',
         status: 'COBRADO',
         createdAt: '2026-08-24T10:00:00Z',
-        createdBy: 'Dr. Diego Irusta',
+        createdBy: 'Dr. Diego Iván Irusta',
       },
     ];
 

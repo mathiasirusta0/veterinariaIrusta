@@ -107,7 +107,7 @@ describe('Reestructuración Funcional & Flujo Clínico Operativo Unificado', () 
         dateTime: '2026-08-24T08:30:00Z',
         authorName: 'Dra. Valentina Ríos',
         authorRole: 'VETERINARIO',
-        authorLicense: 'MP 8412',
+        authorLicense: 'M.P. 502',
         type: 'MEDICA',
         objectiveSummary: 'Paciente decaído con dolor abdominal a la palpación',
         assessment: 'Probable translocación bacteriana',
@@ -119,7 +119,7 @@ describe('Reestructuración Funcional & Flujo Clínico Operativo Unificado', () 
         id: 'evo-2',
         patientId: 'pat-thor',
         dateTime: '2026-08-24T14:00:00Z',
-        authorName: 'Dr. Diego Irusta',
+        authorName: 'Dr. Diego Iván Irusta',
         authorRole: 'VETERINARIO',
         type: 'MEDICA',
         objectiveSummary: 'Mejor actitud, afebril, ingiere agua tolerando sin vómitos',
@@ -132,7 +132,7 @@ describe('Reestructuración Funcional & Flujo Clínico Operativo Unificado', () 
 
     expect(evolutions.length).toBe(2);
     expect(evolutions[0].authorName).toBe('Dra. Valentina Ríos');
-    expect(evolutions[1].authorName).toBe('Dr. Diego Irusta');
+    expect(evolutions[1].authorName).toBe('Dr. Diego Iván Irusta');
   });
 
   it('REGLA FUNDAMENTAL DE FACTURACIÓN: Lo meramente SOLICITADO/INDICADO no genera consumo ni cobro', () => {

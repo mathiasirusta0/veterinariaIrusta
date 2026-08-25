@@ -22,7 +22,7 @@ export interface User {
   role: UserRole;
   dni?: string;
   cuit?: string;
-  licenseNumber?: string; // Matrícula profesional (ej: MP 8412 CMVC)
+  licenseNumber?: string; // Matrícula profesional (ej: M.P. 502)
   licenseJurisdiction?: string; // ej: Colegio Médico Veterinario de Córdoba (CMVC)
   licenseCategory?: string; // ej: Clínica & Cirugía Menores, Especialista
   licenseValidUntil?: string; // ISO date
