@@ -2484,14 +2484,95 @@ export const QuickModals: React.FC = () => {
               </div>
 
               <div>
-                <label className="text-slate-700 block font-bold mb-1">Próximo Refuerzo:</label>
+                <label className="text-slate-700 block font-bold mb-1">📅 Próximo Refuerzo (Fecha Exacta):</label>
                 <input
                   type="date"
                   value={vacNext}
                   onChange={(e) => setVacNext(e.target.value)}
                   required
-                  className="w-full bg-white border border-slate-300 rounded-xl p-2.5 text-slate-900 font-mono font-bold text-amber-700 shadow-2xs"
+                  className="w-full bg-white border-2 border-teal-400 rounded-xl p-2.5 text-teal-950 font-mono font-black shadow-2xs"
                 />
+              </div>
+            </div>
+
+            {/* Quick Booster Chips */}
+            <div className="bg-teal-50/70 p-3 rounded-2xl border border-teal-200 space-y-1.5">
+              <span className="text-[10px] text-teal-900 font-bold uppercase tracking-wider block">
+                Calculador Rápido de Refuerzo / Revacunación:
+              </span>
+              <div className="flex flex-wrap gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => {
+                    triggerHaptic('light');
+                    const d = new Date();
+                    d.setDate(d.getDate() + 15);
+                    setVacNext(d.toISOString().split('T')[0]);
+                  }}
+                  className="px-2 py-0.5 bg-white hover:bg-teal-100 border border-teal-300 text-teal-900 rounded-lg font-bold text-[10px] cursor-pointer"
+                >
+                  +15 Días
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    triggerHaptic('light');
+                    const d = new Date();
+                    d.setDate(d.getDate() + 21);
+                    setVacNext(d.toISOString().split('T')[0]);
+                  }}
+                  className="px-2 py-0.5 bg-white hover:bg-teal-100 border border-teal-300 text-teal-900 rounded-lg font-bold text-[10px] cursor-pointer"
+                >
+                  +21 Días (Cachorro)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    triggerHaptic('light');
+                    const d = new Date();
+                    d.setMonth(d.getMonth() + 1);
+                    setVacNext(d.toISOString().split('T')[0]);
+                  }}
+                  className="px-2 py-0.5 bg-white hover:bg-teal-100 border border-teal-300 text-teal-900 rounded-lg font-bold text-[10px] cursor-pointer"
+                >
+                  +1 Mes
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    triggerHaptic('light');
+                    const d = new Date();
+                    d.setMonth(d.getMonth() + 3);
+                    setVacNext(d.toISOString().split('T')[0]);
+                  }}
+                  className="px-2 py-0.5 bg-white hover:bg-teal-100 border border-teal-300 text-teal-900 rounded-lg font-bold text-[10px] cursor-pointer"
+                >
+                  +3 Meses
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    triggerHaptic('light');
+                    const d = new Date();
+                    d.setMonth(d.getMonth() + 6);
+                    setVacNext(d.toISOString().split('T')[0]);
+                  }}
+                  className="px-2 py-0.5 bg-white hover:bg-teal-100 border border-teal-300 text-teal-900 rounded-lg font-bold text-[10px] cursor-pointer"
+                >
+                  +6 Meses
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    triggerHaptic('light');
+                    const d = new Date();
+                    d.setFullYear(d.getFullYear() + 1);
+                    setVacNext(d.toISOString().split('T')[0]);
+                  }}
+                  className="px-2 py-0.5 bg-white hover:bg-teal-100 border border-teal-300 text-teal-900 rounded-lg font-bold text-[10px] cursor-pointer"
+                >
+                  +1 Año
+                </button>
               </div>
             </div>
 

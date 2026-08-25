@@ -26,6 +26,7 @@ import {
   Heart,
   Droplet,
   Info,
+  Edit3,
 } from 'lucide-react';
 import { useVet } from '../context/VetContext';
 import { VaccinationRecord, Patient, Species, Sex } from '../types';
@@ -42,6 +43,7 @@ interface VaccinePreset {
   manufacturer: string;
   durationMonths: number;
   route: string;
+  doseVolume: string;
   notes: string;
   badgeColor: string;
 }
@@ -57,6 +59,7 @@ export const VACCINE_PRESETS: VaccinePreset[] = [
     manufacturer: 'Zoetis Vanguard / Nobivac',
     durationMonths: 12,
     route: 'Subcutánea (SC)',
+    doseVolume: '1 ml (1 dosis)',
     notes: 'Inmunización contra Parvovirus, Moquillo, Hepatitis, Adenovirus, Parainfluenza y Leptospira.',
     badgeColor: 'bg-teal-50 text-teal-800 border-teal-200',
   },
@@ -69,6 +72,7 @@ export const VACCINE_PRESETS: VaccinePreset[] = [
     manufacturer: 'Nobivac Rabies / BioCan',
     durationMonths: 12,
     route: 'Subcutánea (SC)',
+    doseVolume: '1 ml (1 dosis)',
     notes: 'Inmunización obligatoria anual a partir de los 3 meses de edad. Emisión de certificado oficial.',
     badgeColor: 'bg-rose-50 text-rose-800 border-rose-200',
   },
@@ -81,6 +85,7 @@ export const VACCINE_PRESETS: VaccinePreset[] = [
     manufacturer: 'Nobivac KC / Bronchicine',
     durationMonths: 12,
     route: 'Intranasal (IN) / SC',
+    doseVolume: '0.4 ml / 1 ml',
     notes: 'Protección contra Bordetella bronchiseptica y Parainfluenza. Ideal para guarderías y paseos.',
     badgeColor: 'bg-blue-50 text-blue-800 border-blue-200',
   },
@@ -93,6 +98,7 @@ export const VACCINE_PRESETS: VaccinePreset[] = [
     manufacturer: 'Nobivac Puppy DP / Vanguard',
     durationMonths: 1,
     route: 'Subcutánea (SC)',
+    doseVolume: '1 ml (1 dosis)',
     notes: 'Primera dosis de alta concentración antigénica para cachorros destetados.',
     badgeColor: 'bg-amber-50 text-amber-800 border-amber-200',
   },
@@ -105,6 +111,7 @@ export const VACCINE_PRESETS: VaccinePreset[] = [
     manufacturer: 'Zoetis GiardiaVax',
     durationMonths: 12,
     route: 'Subcutánea (SC)',
+    doseVolume: '1 ml (1 dosis)',
     notes: 'Reduce la excreción de quistes y la severidad de cuadros entéricos por Giardia lamblia.',
     badgeColor: 'bg-indigo-50 text-indigo-800 border-indigo-200',
   },
@@ -117,6 +124,7 @@ export const VACCINE_PRESETS: VaccinePreset[] = [
     manufacturer: 'Drontal Plus / Total F / Basken',
     durationMonths: 3,
     route: 'Oral',
+    doseVolume: '1 comp c/10kg',
     notes: 'Praziquantel + Febantel + Pirantel. Control de nemátodes y céstodes.',
     badgeColor: 'bg-emerald-50 text-emerald-800 border-emerald-200',
   },
@@ -131,6 +139,7 @@ export const VACCINE_PRESETS: VaccinePreset[] = [
     manufacturer: 'Felocell 3 / Purevax RCP',
     durationMonths: 12,
     route: 'Subcutánea (SC)',
+    doseVolume: '1 ml (1 dosis)',
     notes: 'Inmunización contra Rinotraqueítis, Calicivirus y Panleucopenia felina.',
     badgeColor: 'bg-purple-50 text-purple-800 border-purple-200',
   },
@@ -143,6 +152,7 @@ export const VACCINE_PRESETS: VaccinePreset[] = [
     manufacturer: 'Purevax FeLV / Leukocell',
     durationMonths: 12,
     route: 'Subcutánea (SC)',
+    doseVolume: '1 ml (1 dosis)',
     notes: 'Recomendada en gatos con salida al exterior tras test serológico previo no reactivo.',
     badgeColor: 'bg-pink-50 text-pink-800 border-pink-200',
   },
@@ -155,6 +165,7 @@ export const VACCINE_PRESETS: VaccinePreset[] = [
     manufacturer: 'Nobivac Rabies / Rabisin',
     durationMonths: 12,
     route: 'Subcutánea (SC)',
+    doseVolume: '1 ml (1 dosis)',
     notes: 'Inmunización antirrábica obligatoria anual para gatos.',
     badgeColor: 'bg-rose-50 text-rose-800 border-rose-200',
   },
@@ -167,6 +178,7 @@ export const VACCINE_PRESETS: VaccinePreset[] = [
     manufacturer: 'Profender / Revolution Plus / Advocate',
     durationMonths: 3,
     route: 'Tópica (Spot-on)',
+    doseVolume: '1 pipeta según peso',
     notes: 'Control combinado de parásitos internos y externos (pulgas, ácaros, tenias y nematodos).',
     badgeColor: 'bg-emerald-50 text-emerald-800 border-emerald-200',
   },
@@ -181,6 +193,7 @@ export const VACCINE_PRESETS: VaccinePreset[] = [
     manufacturer: 'Biológico Equino / Biogénesis Bagó',
     durationMonths: 12,
     route: 'Intramuscular (IM)',
+    doseVolume: '2 ml',
     notes: 'Inmunización contra Clostridium tetani. Vital en equinos de trabajo, deporte y reproducción.',
     badgeColor: 'bg-amber-50 text-amber-800 border-amber-200',
   },
@@ -193,6 +206,7 @@ export const VACCINE_PRESETS: VaccinePreset[] = [
     manufacturer: 'BioEquus / Boehringer',
     durationMonths: 6,
     route: 'Intramuscular (IM)',
+    doseVolume: '2 ml',
     notes: 'Cepa A/Equi 1 y 2. Refuerzo semestral obligatorio para equinos en actividad deportiva y traslado.',
     badgeColor: 'bg-blue-50 text-blue-800 border-blue-200',
   },
@@ -205,6 +219,7 @@ export const VACCINE_PRESETS: VaccinePreset[] = [
     manufacturer: 'Laboratorio Rosenbusch',
     durationMonths: 12,
     route: 'Intramuscular (IM)',
+    doseVolume: '2 ml',
     notes: 'Obligatoria para movimiento y tránsito interprovincial de equinos.',
     badgeColor: 'bg-teal-50 text-teal-800 border-teal-200',
   },
@@ -217,6 +232,7 @@ export const VACCINE_PRESETS: VaccinePreset[] = [
     manufacturer: 'Biogénesis Bagó',
     durationMonths: 12,
     route: 'Intramuscular (IM)',
+    doseVolume: '2 ml',
     notes: 'Prevención de papera equina y afecciones respiratorias en potrillos y adultos.',
     badgeColor: 'bg-purple-50 text-purple-800 border-purple-200',
   },
@@ -229,6 +245,7 @@ export const VACCINE_PRESETS: VaccinePreset[] = [
     manufacturer: 'Equimax / Bimectin / Zoetis',
     durationMonths: 4,
     route: 'Oral (Pasta)',
+    doseVolume: '1 jeringa dosificadora',
     notes: 'Control de grandes y pequeños estróngilos, gasterófilos y tenias.',
     badgeColor: 'bg-emerald-50 text-emerald-800 border-emerald-200',
   },
@@ -241,34 +258,37 @@ export const VACCINE_PRESETS: VaccinePreset[] = [
     manufacturer: 'Laboratorio de Red Oficial SENASA',
     durationMonths: 6,
     route: 'Diagnóstico Serológico',
+    doseVolume: 'Muestra de suero',
     notes: 'Validez legal para tránsito y eventos deportivos según resolución SENASA.',
     badgeColor: 'bg-slate-100 text-slate-800 border-slate-300',
   },
 
-  // 🐄 BOVINOS / GRANDES ANIMALES
+  // 💉 VACUNAS ESPECIALES / FUERA DE CALENDARIO
   {
-    id: 'bov-mancha',
-    name: 'Vacuna Polivalente Mancha y Gangrena',
-    species: 'BOVINO',
-    categoryLabel: '🐄 Bovinos',
-    type: 'Control Clostridial en Rodeo',
-    manufacturer: 'Biogénesis Bagó',
-    durationMonths: 12,
+    id: 'esp-autovacuna',
+    name: 'Autovacuna Personalizada / Inmunoterapia',
+    species: 'CANINO',
+    categoryLabel: '🔬 Especial / Magistral',
+    type: 'Inmunoterapia Específica / Fuera de Calendario',
+    manufacturer: 'Laboratorio de Biológicos Especiales',
+    durationMonths: 1,
     route: 'Subcutánea (SC)',
-    notes: 'Inmunización contra Clostridium chauvoei, septicum y novyi.',
-    badgeColor: 'bg-amber-50 text-amber-800 border-amber-200',
+    doseVolume: '2 ml',
+    notes: 'Protocolo desensibilizante o autovacuna de papilomatosis / piodermias crónicas según esquema indicado.',
+    badgeColor: 'bg-fuchsia-50 text-fuchsia-800 border-fuchsia-200',
   },
   {
-    id: 'bov-carbuncio',
-    name: 'Carbuncio Bacteridiano (Bacillus anthracis)',
-    species: 'BOVINO',
-    categoryLabel: '🐄 Bovinos (SENASA)',
-    type: 'Vacunación Obligatoria de Primavera',
-    manufacturer: 'Rosenbusch / Biogénesis',
-    durationMonths: 12,
-    route: 'Subcutánea (SC)',
-    notes: 'Cepa Sterne viva avirulenta. Obligatoria anual para ganado bovino.',
-    badgeColor: 'bg-rose-50 text-rose-800 border-rose-200',
+    id: 'esp-antiofidico',
+    name: 'Suero Antiofídico Polivalente / Antídoto',
+    species: 'CANINO',
+    categoryLabel: '🚨 Emergencia / Suero',
+    type: 'Dosis Única de Emergencia',
+    manufacturer: 'Instituto Malbrán / Biológico Oficial',
+    durationMonths: 0,
+    route: 'Endovenosa lenta (IV)',
+    doseVolume: '1 a 2 viales según emponzoñamiento',
+    notes: 'Neutralización de veneno de Bothrops / Crotalus. Aplicación única de urgencia sin revacunación.',
+    badgeColor: 'bg-red-50 text-red-800 border-red-200',
   },
 ];
 
@@ -299,14 +319,23 @@ export const VaccinationView: React.FC = () => {
   const [vacMode, setVacMode] = useState<'EXISTING' | 'NEW'>('EXISTING');
   const [formPatientId, setFormPatientId] = useState(patients[0]?.id || '');
   
-  // Biological fields
+  // 100% MANUAL EDITABLE BIOLOGICAL FIELDS
   const [formVaccineName, setFormVaccineName] = useState('Séxtuple Canina (DHPPI-L)');
   const [formType, setFormType] = useState('Plan Sanitario Anual');
   const [formManufacturer, setFormManufacturer] = useState('Zoetis Vanguard / Nobivac');
   const [formBatchNumber, setFormBatchNumber] = useState('LT-VAC-' + Math.floor(1000 + Math.random() * 9000));
-  const [formDurationMonths, setFormDurationMonths] = useState(12);
+  const [formAdminDate, setFormAdminDate] = useState(new Date().toISOString().split('T')[0]);
+  const [formExpDate, setFormExpDate] = useState(new Date(Date.now() + 730 * 24 * 3600 * 1000).toISOString().split('T')[0]);
+  
+  // NEXT BOOSTER DATE: Exact Date Input + Assistant Helpers
+  const [formNextDueDate, setFormNextDueDate] = useState(
+    new Date(Date.now() + 365 * 24 * 3600 * 1000).toISOString().split('T')[0]
+  );
+  
+  const [formDoseVolume, setFormDoseVolume] = useState('1 ml (1 dosis)');
   const [formRoute, setFormRoute] = useState('Subcutánea (SC)');
-  const [formDestination, setFormDestination] = useState('');
+  const [formVetName, setFormVetName] = useState(currentUser?.name || 'Dr. Diego Irusta');
+  const [formVetLicense, setFormVetLicense] = useState('MP 8412');
   const [formNotes, setFormNotes] = useState('Paciente examinado clínicamente apto para inmunización. Normotérmico y sin signos de enfermedad infecciosa.');
 
   // New Patient & Owner on-the-fly fields
@@ -321,6 +350,19 @@ export const VaccinationView: React.FC = () => {
   const [newOwnerDni, setNewOwnerDni] = useState('');
 
   const today = new Date();
+
+  // Helper to adjust formNextDueDate using quick offset days/months from formAdminDate
+  const setQuickBooster = (daysOffset: number, monthsOffset: number = 0) => {
+    triggerHaptic('light');
+    const base = new Date(formAdminDate || new Date());
+    if (monthsOffset > 0) {
+      base.setMonth(base.getMonth() + monthsOffset);
+    }
+    if (daysOffset > 0) {
+      base.setDate(base.getDate() + daysOffset);
+    }
+    setFormNextDueDate(base.toISOString().split('T')[0]);
+  };
 
   // Metrics Calculation
   const totalCount = vaccinations.length;
@@ -393,10 +435,21 @@ export const VaccinationView: React.FC = () => {
     setFormVaccineName(preset.name);
     setFormType(preset.type);
     setFormManufacturer(preset.manufacturer);
-    setFormDurationMonths(preset.durationMonths);
     setFormRoute(preset.route);
+    setFormDoseVolume(preset.doseVolume);
     setFormNotes(preset.notes);
-    showToast('info', 'Plantilla Seleccionada', `Biológico: ${preset.name}`);
+
+    // Calculate next due date
+    if (preset.durationMonths > 0) {
+      const base = new Date(formAdminDate || new Date());
+      base.setMonth(base.getMonth() + preset.durationMonths);
+      setFormNextDueDate(base.toISOString().split('T')[0]);
+    } else {
+      // Dosis única sin refuerzo
+      setFormNextDueDate(formAdminDate || new Date().toISOString().split('T')[0]);
+    }
+
+    showToast('info', 'Plantilla Aplicada', `Biológico: ${preset.name}`);
   };
 
   const handleSaveVaccination = (e: React.FormEvent) => {
@@ -462,35 +515,31 @@ export const VaccinationView: React.FC = () => {
       registeredPetName = foundPat?.name || 'el paciente';
     }
 
-    const nextDate = new Date();
-    nextDate.setMonth(nextDate.getMonth() + Number(formDurationMonths));
-
-    const expDate = new Date();
-    expDate.setFullYear(expDate.getFullYear() + 2);
-
     addVaccination({
       patientId: targetPatientId,
-      vaccineName: formVaccineName,
-      type: formType,
-      manufacturer: formManufacturer,
-      batchNumber: formBatchNumber,
-      expirationDate: expDate.toISOString().split('T')[0],
-      administeredDate: new Date().toISOString().split('T')[0],
-      administeredBy: currentUser?.name || 'Dr. Diego Irusta',
-      vetLicense: 'MP 8412',
-      nextDueDate: nextDate.toISOString().split('T')[0],
+      vaccineName: formVaccineName.trim(),
+      type: formType.trim() || 'Plan Sanitario / Vacunación',
+      manufacturer: formManufacturer.trim(),
+      batchNumber: formBatchNumber.trim(),
+      expirationDate: formExpDate || new Date().toISOString().split('T')[0],
+      administeredDate: formAdminDate || new Date().toISOString().split('T')[0],
+      administeredBy: formVetName.trim() || 'Dr. Diego Irusta',
+      vetLicense: formVetLicense.trim() || 'MP 8412',
+      nextDueDate: formNextDueDate || formAdminDate || new Date().toISOString().split('T')[0],
+      doseVolume: formDoseVolume.trim(),
+      route: formRoute.trim(),
       certificateGenerated: true,
-      notes: `${formNotes} [Vía: ${formRoute}]${formDestination ? ` [Destino: ${formDestination}]` : ''}`,
+      notes: formNotes.trim(),
     });
 
     setIsNewModalOpen(false);
     showToast(
       'success',
       'Inmunización Registrada',
-      `Vacunación de ${registeredPetName} asentada con éxito. Próximo refuerzo: ${formatDate(nextDate.toISOString().split('T')[0])}`
+      `Vacunación de ${registeredPetName} registrada correctamente. Refuerzo: ${formatDate(formNextDueDate)}`
     );
 
-    // Reset fields
+    // Reset new patient fields
     setNewPetName('');
     setNewPetBreed('');
     setNewOwnerFirstName('');
@@ -525,8 +574,8 @@ export const VaccinationView: React.FC = () => {
       {/* Header */}
       <PageHeader
         category="Sanidad, Inmunizaciones & Prevención"
-        title="Plan de Vacunación & Libreta Sanitaria"
-        description="Gestión integral de biológicos, calendarios de revacunación, certificados oficiales y recordatorios automáticos por WhatsApp"
+        title="Plan de Vacunación & Inmunizaciones"
+        description="Registro integral de vacunas de calendario, autovacunas, inmunoterapias y esquemas fuera de fecha con emisión de libretas oficiales"
         icon={Syringe}
         actions={[
           {
@@ -579,16 +628,16 @@ export const VaccinationView: React.FC = () => {
           <div className="flex items-center gap-2">
             <Sparkles className="w-4 h-4 text-teal-600" />
             <h3 className="text-xs font-black text-slate-900 uppercase tracking-wider">
-              Plantillas Rápidas de Inmunización por Especie (1-Click)
+              Plantillas Rápidas & Esquemas de Inmunización (1-Click)
             </h3>
           </div>
           <span className="text-[11px] text-slate-400 font-semibold hidden sm:inline">
-            Click para pre-cargar datos y registrar
+            Selecciona una plantilla o escribe cualquier biológico a mano
           </span>
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2">
-          {VACCINE_PRESETS.slice(0, 12).map((preset) => (
+          {VACCINE_PRESETS.map((preset) => (
             <button
               key={preset.id}
               type="button"
@@ -607,7 +656,7 @@ export const VaccinationView: React.FC = () => {
                 </p>
               </div>
               <div className="mt-2 pt-1 border-t border-slate-200/60 flex items-center justify-between text-[10px] text-slate-500 font-mono">
-                <span>Refuerzo: {preset.durationMonths}m</span>
+                <span>{preset.durationMonths > 0 ? `Ref: ${preset.durationMonths}m` : 'Dosis única'}</span>
                 <span className="text-teal-600 font-bold group-hover:translate-x-0.5 transition-transform">+</span>
               </div>
             </button>
@@ -622,7 +671,7 @@ export const VaccinationView: React.FC = () => {
             <SearchInput
               value={search}
               onChange={setSearch}
-              placeholder="Buscar por paciente, HC, tutor, vacuna, lote o chip..."
+              placeholder="Buscar por paciente, HC, tutor, biológico, lote o chip..."
             />
           </div>
 
@@ -630,7 +679,7 @@ export const VaccinationView: React.FC = () => {
             <select
               value={speciesFilter}
               onChange={(e) => setSpeciesFilter(e.target.value)}
-              className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-teal-500"
+              className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-teal-500 shadow-2xs"
             >
               <option value="TODAS">🐾 Todas las Especies</option>
               <option value="CANINO">🐕 Caninos</option>
@@ -643,7 +692,7 @@ export const VaccinationView: React.FC = () => {
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value as any)}
-              className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-teal-500"
+              className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-teal-500 shadow-2xs"
             >
               <option value="TODOS">📋 Todos los Estados</option>
               <option value="VIGENTE">🟢 Vigentes (&gt; 30d)</option>
@@ -756,6 +805,11 @@ export const VaccinationView: React.FC = () => {
                       <p className="text-[11px] text-slate-500">
                         Fab: <strong>{vac.manufacturer}</strong> • {vac.type || 'Plan Sanitario'}
                       </p>
+                      {vac.doseVolume && (
+                        <p className="text-[11px] text-slate-600 font-medium">
+                          Dosis: <strong className="text-slate-800">{vac.doseVolume}</strong> {vac.route ? `• Vía: ${vac.route}` : ''}
+                        </p>
+                      )}
                     </div>
 
                     {/* Dates & Vet in Charge */}
@@ -806,7 +860,7 @@ export const VaccinationView: React.FC = () => {
         )}
       </div>
 
-      {/* 5. Modal Registrar Inmunización (Dual Mode: Registrado/Internado vs Nuevo Paciente) */}
+      {/* 5. Modal Registrar Inmunización (100% Manual Editable + Modo Dual + Asistente de Refuerzo) */}
       {isNewModalOpen && (
         <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl max-w-2xl w-full p-6 space-y-4 shadow-2xl border border-slate-200 max-h-[92vh] overflow-y-auto custom-scrollbar animate-in zoom-in-95">
@@ -817,7 +871,7 @@ export const VaccinationView: React.FC = () => {
                 </div>
                 <div>
                   <h3 className="text-base font-black text-slate-900">Registrar Aplicación de Biológico</h3>
-                  <p className="text-xs text-slate-500">Plan sanitario para paciente registrado, internado o nuevo ingreso</p>
+                  <p className="text-xs text-slate-500">Plan sanitario, autovacuna, suero o biológico fuera de calendario</p>
                 </div>
               </div>
               <button
@@ -1019,33 +1073,40 @@ export const VaccinationView: React.FC = () => {
                 </div>
               )}
 
-              {/* SECCIÓN BIOLÓGICO */}
-              <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-3">
-                <div className="flex items-center gap-1.5 border-b border-slate-200 pb-1.5 text-slate-900 font-black uppercase text-[11px] tracking-wide">
-                  <span>💉</span>
-                  <span>Datos del Biológico / Vacuna</span>
+              {/* SECCIÓN 2: DATOS DEL BIOLÓGICO / VACUNA (100% MANUAL EDITABLE) */}
+              <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-3.5">
+                <div className="flex items-center justify-between border-b border-slate-200 pb-1.5">
+                  <div className="flex items-center gap-1.5 text-slate-900 font-black uppercase text-[11px] tracking-wide">
+                    <span>💉</span>
+                    <span>Datos del Biológico, Vacuna o Inmunoterapia</span>
+                  </div>
+                  <span className="text-[10px] text-teal-800 font-bold bg-teal-50 px-2 py-0.5 rounded-full border border-teal-200">
+                    ✍️ Todos los campos editables a mano
+                  </span>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
-                    <label className="text-slate-700 block font-bold mb-1">Nombre del Biológico / Vacuna: *</label>
+                    <label className="text-slate-700 block font-bold mb-1">
+                      Nombre del Biológico / Vacuna: <span className="text-rose-500">*</span>
+                    </label>
                     <input
                       type="text"
                       value={formVaccineName}
                       onChange={(e) => setFormVaccineName(e.target.value)}
                       required
-                      placeholder="Ej: Séxtuple Canina, Antirrábica, Tétanos..."
+                      placeholder="Ej: Séxtuple Canina, Autovacuna Papilomatosis, Suero..."
                       className="w-full bg-white border border-slate-300 rounded-xl p-2.5 font-bold text-slate-900 focus:ring-2 focus:ring-teal-500 shadow-2xs"
                     />
                   </div>
 
                   <div>
-                    <label className="text-slate-700 block font-bold mb-1">Tipo de Plan Sanitario:</label>
+                    <label className="text-slate-700 block font-bold mb-1">Tipo de Plan / Categoría Sanitaria:</label>
                     <input
                       type="text"
                       value={formType}
                       onChange={(e) => setFormType(e.target.value)}
-                      placeholder="Ej: Plan Anual, Cachorro, Campaña Oficial..."
+                      placeholder="Ej: Plan Anual, Fuera de Calendario, Inmunoterapia..."
                       className="w-full bg-white border border-slate-300 rounded-xl p-2.5 font-medium text-slate-900 shadow-2xs"
                     />
                   </div>
@@ -1053,19 +1114,23 @@ export const VaccinationView: React.FC = () => {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
-                    <label className="text-slate-700 block font-bold mb-1">Laboratorio Fabricante: *</label>
+                    <label className="text-slate-700 block font-bold mb-1">
+                      Laboratorio Fabricante: <span className="text-rose-500">*</span>
+                    </label>
                     <input
                       type="text"
                       value={formManufacturer}
                       onChange={(e) => setFormManufacturer(e.target.value)}
                       required
-                      placeholder="Ej: Zoetis, Nobivac, Biogénesis Bagó..."
+                      placeholder="Ej: Zoetis, Nobivac, Biogénesis Bagó, Magistral..."
                       className="w-full bg-white border border-slate-300 rounded-xl p-2.5 font-medium text-slate-900 shadow-2xs"
                     />
                   </div>
 
                   <div>
-                    <label className="text-slate-700 block font-bold mb-1">Número de Lote: *</label>
+                    <label className="text-slate-700 block font-bold mb-1">
+                      Número de Lote: <span className="text-rose-500">*</span>
+                    </label>
                     <input
                       type="text"
                       value={formBatchNumber}
@@ -1077,46 +1142,171 @@ export const VaccinationView: React.FC = () => {
                   </div>
                 </div>
 
+                {/* Dosis, Vía y Fechas de Aplicación / Vencimiento de Lote */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
-                    <label className="text-slate-700 block font-bold mb-1">Vía de Aplicación:</label>
-                    <select
-                      value={formRoute}
-                      onChange={(e) => setFormRoute(e.target.value)}
+                    <label className="text-slate-700 block font-bold mb-1">Dosis / Volumen Administrado:</label>
+                    <input
+                      type="text"
+                      value={formDoseVolume}
+                      onChange={(e) => setFormDoseVolume(e.target.value)}
+                      placeholder="Ej: 1 ml, 0.5 ml, 2 ml, 1 dosis, 1 comp..."
                       className="w-full bg-white border border-slate-300 rounded-xl p-2.5 font-bold text-slate-900 shadow-2xs"
-                    >
-                      <option value="Subcutánea (SC)">Subcutánea (SC)</option>
-                      <option value="Intramuscular (IM)">Intramuscular (IM)</option>
-                      <option value="Intranasal (IN)">Intranasal (IN)</option>
-                      <option value="Oral">Oral (Pastas / Comprimidos)</option>
-                      <option value="Tópica (Spot-on)">Tópica (Spot-on / Pipeta)</option>
-                    </select>
+                    />
                   </div>
 
                   <div>
-                    <label className="text-slate-700 block font-bold mb-1">Período de Refuerzo (Meses):</label>
-                    <select
-                      value={formDurationMonths}
-                      onChange={(e) => setFormDurationMonths(Number(e.target.value))}
-                      className="w-full bg-white border border-slate-300 rounded-xl p-2.5 font-bold text-teal-900 shadow-2xs"
-                    >
-                      <option value={1}>1 Mes (Refuerzo Cachorro / Primovacunación)</option>
-                      <option value={3}>3 Meses (Desparasitación Trimestral)</option>
-                      <option value={4}>4 Meses (Desparasitación Équidos)</option>
-                      <option value={6}>6 Meses (Influenza Equina / AIE Coggins)</option>
-                      <option value={12}>12 Meses / 1 Año (Séxtuple, Antirrábica, Tétanos)</option>
-                      <option value={24}>24 Meses / 2 Años</option>
-                    </select>
+                    <label className="text-slate-700 block font-bold mb-1">Vía de Aplicación (Libre / Editable):</label>
+                    <input
+                      type="text"
+                      value={formRoute}
+                      onChange={(e) => setFormRoute(e.target.value)}
+                      placeholder="Ej: Subcutánea (SC), Intramuscular (IM), Oral..."
+                      className="w-full bg-white border border-slate-300 rounded-xl p-2.5 font-bold text-slate-900 shadow-2xs"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-slate-700 block font-bold mb-1">
+                      Fecha de Aplicación (Modificable): <span className="text-rose-500">*</span>
+                    </label>
+                    <input
+                      type="date"
+                      value={formAdminDate}
+                      onChange={(e) => setFormAdminDate(e.target.value)}
+                      required
+                      className="w-full bg-white border border-slate-300 rounded-xl p-2.5 font-mono font-bold text-slate-900 shadow-2xs"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-slate-700 block font-bold mb-1">Vencimiento del Frasco / Lote:</label>
+                    <input
+                      type="date"
+                      value={formExpDate}
+                      onChange={(e) => setFormExpDate(e.target.value)}
+                      required
+                      className="w-full bg-white border border-slate-300 rounded-xl p-2.5 font-mono text-slate-900 shadow-2xs"
+                    />
+                  </div>
+                </div>
+
+                {/* ASISTENTE & ENTRADA MANUAL DE PRÓXIMO REFUERZO */}
+                <div className="bg-teal-50/60 p-3.5 rounded-2xl border border-teal-200/90 space-y-2.5">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+                    <label className="text-teal-950 block font-black text-xs">
+                      📅 Próximo Refuerzo / Revacunación (Fecha Exacta Manual): *
+                    </label>
+                    <span className="text-[10px] text-teal-800 font-semibold">
+                      Tipee el día exacto o use los botones de cálculo rápido
+                    </span>
+                  </div>
+
+                  <input
+                    type="date"
+                    value={formNextDueDate}
+                    onChange={(e) => setFormNextDueDate(e.target.value)}
+                    required
+                    className="w-full bg-white border-2 border-teal-400 rounded-xl p-2.5 font-mono font-black text-teal-950 text-sm shadow-2xs focus:ring-2 focus:ring-teal-600"
+                  />
+
+                  <div className="space-y-1">
+                    <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">
+                      Calculadores Rápidos de Refuerzo:
+                    </span>
+                    <div className="flex flex-wrap gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => setQuickBooster(15, 0)}
+                        className="px-2.5 py-1 bg-white hover:bg-teal-100/80 border border-teal-300 text-teal-900 rounded-lg font-bold text-[11px] transition-all cursor-pointer"
+                      >
+                        +15 Días
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setQuickBooster(21, 0)}
+                        className="px-2.5 py-1 bg-white hover:bg-teal-100/80 border border-teal-300 text-teal-900 rounded-lg font-bold text-[11px] transition-all cursor-pointer"
+                      >
+                        +21 Días (Cachorro)
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setQuickBooster(0, 1)}
+                        className="px-2.5 py-1 bg-white hover:bg-teal-100/80 border border-teal-300 text-teal-900 rounded-lg font-bold text-[11px] transition-all cursor-pointer"
+                      >
+                        +1 Mes
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setQuickBooster(0, 3)}
+                        className="px-2.5 py-1 bg-white hover:bg-teal-100/80 border border-teal-300 text-teal-900 rounded-lg font-bold text-[11px] transition-all cursor-pointer"
+                      >
+                        +3 Meses
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setQuickBooster(0, 6)}
+                        className="px-2.5 py-1 bg-white hover:bg-teal-100/80 border border-teal-300 text-teal-900 rounded-lg font-bold text-[11px] transition-all cursor-pointer"
+                      >
+                        +6 Meses
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setQuickBooster(0, 12)}
+                        className="px-2.5 py-1 bg-white hover:bg-teal-100/80 border border-teal-300 text-teal-900 rounded-lg font-bold text-[11px] transition-all cursor-pointer"
+                      >
+                        +1 Año (Anual)
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          triggerHaptic('light');
+                          setFormNextDueDate(formAdminDate);
+                        }}
+                        className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 border border-slate-300 text-slate-700 rounded-lg font-bold text-[11px] transition-all cursor-pointer"
+                      >
+                        Dosis Única (Sin Refuerzo)
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Profesional y Matrícula Editables */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                  <div>
+                    <label className="text-slate-700 block font-bold mb-1">Médico Veterinario Actuante:</label>
+                    <input
+                      type="text"
+                      value={formVetName}
+                      onChange={(e) => setFormVetName(e.target.value)}
+                      placeholder="Dr. Diego Irusta"
+                      className="w-full bg-white border border-slate-300 rounded-xl p-2.5 font-bold text-slate-900 shadow-2xs"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-slate-700 block font-bold mb-1">Matrícula Profesional (MP):</label>
+                    <input
+                      type="text"
+                      value={formVetLicense}
+                      onChange={(e) => setFormVetLicense(e.target.value)}
+                      placeholder="MP 8412"
+                      className="w-full bg-white border border-slate-300 rounded-xl p-2.5 font-mono font-bold text-slate-900 shadow-2xs"
+                    />
                   </div>
                 </div>
 
                 <div>
-                  <label className="text-slate-700 block font-bold mb-1">Observaciones Clínicas / Tolerancia:</label>
+                  <label className="text-slate-700 block font-bold mb-1">
+                    Observaciones Clínicas / Justificación Fuera de Calendario / Tolerancia:
+                  </label>
                   <textarea
                     rows={2}
                     value={formNotes}
                     onChange={(e) => setFormNotes(e.target.value)}
-                    placeholder="Observaciones de la aplicación..."
+                    placeholder="Escriba cualquier detalle de la aplicación, reacción o protocolo especial..."
                     className="w-full bg-white border border-slate-300 rounded-xl p-2.5 text-slate-900 shadow-2xs"
                   />
                 </div>
@@ -1207,6 +1397,11 @@ export const VaccinationView: React.FC = () => {
                       <p className="text-[11px] text-teal-800">
                         Lote: <strong>{selectedCertModal.batchNumber}</strong> • Fab: {selectedCertModal.manufacturer}
                       </p>
+                      {selectedCertModal.doseVolume && (
+                        <p className="text-[11px] text-teal-900 font-medium">
+                          Dosis: <strong>{selectedCertModal.doseVolume}</strong> {selectedCertModal.route ? `• Vía: ${selectedCertModal.route}` : ''}
+                        </p>
+                      )}
                       <div className="flex justify-between pt-1.5 border-t border-teal-200/80 text-[11px]">
                         <span>Aplicación: <strong>{formatDate(selectedCertModal.administeredDate)}</strong></span>
                         <span className="text-teal-900">Próximo Refuerzo: <strong>{formatDate(selectedCertModal.nextDueDate)}</strong></span>

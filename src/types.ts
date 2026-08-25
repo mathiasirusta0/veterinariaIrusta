@@ -537,8 +537,10 @@ export interface VaccinationRecord {
   administeredBy: string;
   vetLicense: string;
   nextDueDate: string;
+  doseVolume?: string; // ej: '1 ml', '0.5 ml', '1 dosis', '1 comprimido'
+  route?: string; // ej: 'Subcutánea (SC)', 'Intramuscular (IM)', 'Intranasal (IN)', 'Oral', 'Tópica'
   certificateGenerated?: boolean;
-  regimentUnit?: string; // Unidad / Regimiento / Escuadrón / Sección K9
+  regimentUnit?: string;
   notes?: string;
 }
 
