@@ -2278,3 +2278,285 @@ export function printA4ImagingReport(data: PrintableImagingReportData) {
     }, 2000);
   }, 300);
 }
+
+export interface PrintableVaccineCertificateData {
+  certificateNumber: string;
+  vaccineName: string;
+  type?: string;
+  manufacturer: string;
+  batchNumber: string;
+  expirationDate: string;
+  administeredDate: string;
+  nextDueDate: string;
+  doseVolume?: string;
+  route?: string;
+  notes?: string;
+  doctor: {
+    name: string;
+    license: string;
+  };
+  branch: {
+    name: string;
+    address: string;
+    phone: string;
+  };
+  patient: {
+    name: string;
+    species: string;
+    breed: string;
+    weight: string;
+    age: string;
+    hc: string;
+    sex?: string;
+    microchip?: string;
+  };
+  owner: {
+    name: string;
+    dni: string;
+    phone: string;
+    address: string;
+  };
+}
+
+export function printA4VaccineCertificate(data: PrintableVaccineCertificateData) {
+  const iframe = document.createElement('iframe');
+  iframe.style.position = 'fixed';
+  iframe.style.right = '0';
+  iframe.style.bottom = '0';
+  iframe.style.width = '0';
+  iframe.style.height = '0';
+  iframe.style.border = 'none';
+  document.body.appendChild(iframe);
+
+  const doc = iframe.contentWindow?.document;
+  if (!doc) return;
+
+  const html = `
+    <!DOCTYPE html>
+    <html lang="es">
+      <head>
+        <meta charset="utf-8">
+        <title>Certificado de Vacunación — ${data.patient.name}</title>
+        <style>
+          @page {
+            size: A4 portrait;
+            margin: 15mm 12mm;
+          }
+          * {
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+            color: #0f172a;
+          }
+          body {
+            margin: 0;
+            padding: 10px;
+            font-size: 11px;
+            line-height: 1.4;
+          }
+          .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            border-bottom: 2.5px solid #0f766e;
+            padding-bottom: 12px;
+            margin-bottom: 15px;
+          }
+          .clinic-name {
+            font-size: 18px;
+            font-weight: 900;
+            color: #0f766e;
+            letter-spacing: -0.5px;
+          }
+          .clinic-sub {
+            font-size: 10px;
+            color: #475569;
+            font-weight: 600;
+          }
+          .cert-badge {
+            background: #f0fdfa;
+            border: 1.5px solid #0f766e;
+            padding: 6px 12px;
+            border-radius: 8px;
+            text-align: right;
+          }
+          .cert-num {
+            font-size: 13px;
+            font-weight: 900;
+            color: #0f766e;
+            font-family: monospace;
+          }
+          .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 15px;
+          }
+          .info-card {
+            background: #f8fafc;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            padding: 8px 12px;
+          }
+          .card-title {
+            font-size: 9.5px;
+            font-weight: 800;
+            color: #0f766e;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+            border-bottom: 1px solid #e2e8f0;
+            padding-bottom: 2px;
+          }
+          .vaccine-main-box {
+            background: #ffffff;
+            border: 2px solid #0f766e;
+            border-radius: 8px;
+            padding: 14px 18px;
+            margin-top: 15px;
+            margin-bottom: 15px;
+          }
+          .vaccine-title {
+            font-size: 15px;
+            font-weight: 900;
+            color: #0f766e;
+          }
+          .vaccine-detail-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-top: 12px;
+            font-size: 10.5px;
+          }
+          .detail-label {
+            font-size: 9px;
+            font-weight: 800;
+            color: #64748b;
+            text-transform: uppercase;
+          }
+          .detail-value {
+            font-weight: 700;
+            color: #0f172a;
+            margin-top: 2px;
+          }
+          .signatures {
+            margin-top: 50px;
+            display: flex;
+            justify-content: flex-end;
+          }
+          .sig-box {
+            width: 240px;
+            text-align: center;
+          }
+          .sig-line {
+            border-top: 1.5px solid #0f172a;
+            margin-bottom: 4px;
+          }
+          .footer-note {
+            margin-top: 30px;
+            border-top: 1px solid #e2e8f0;
+            padding-top: 6px;
+            font-size: 8.5px;
+            color: #94a3b8;
+            text-align: center;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <div>
+            <div class="clinic-name">CLÍNICA VETERINARIA IRUSTA</div>
+            <div class="clinic-sub">Dirección Médica: ${data.doctor.name} · ${data.doctor.license}</div>
+            <div class="clinic-sub">${data.branch.name} · ${data.branch.address} · Tel: ${data.branch.phone} · Río Cuarto, Córdoba</div>
+          </div>
+          <div class="cert-badge">
+            <div style="font-size: 8.5px; font-weight: bold; color: #64748b; text-transform: uppercase;">Certificado de Vacunación</div>
+            <div class="cert-num">${data.certificateNumber}</div>
+            <div style="font-size: 9px; color: #475569; margin-top: 2px;">Fecha: ${data.administeredDate}</div>
+          </div>
+        </div>
+
+        <div class="info-grid">
+          <div class="info-card">
+            <div class="card-title">Datos del Paciente Inmunizado</div>
+            <div><b>Nombre:</b> ${data.patient.name} · <b>Especie:</b> ${data.patient.species}</div>
+            <div><b>Raza:</b> ${data.patient.breed} · <b>Peso:</b> ${data.patient.weight}</div>
+            <div><b>HC:</b> ${data.patient.hc} · <b>Edad:</b> ${data.patient.age}</div>
+            ${data.patient.microchip ? `<div><b>Microchip / Identificación:</b> ${data.patient.microchip}</div>` : ''}
+          </div>
+          <div class="info-card">
+            <div class="card-title">Datos del Tutor Responsable</div>
+            <div><b>Tutor:</b> ${data.owner.name}</div>
+            <div><b>DNI:</b> ${data.owner.dni} · <b>Tel:</b> ${data.owner.phone}</div>
+            <div><b>Domicilio:</b> ${data.owner.address}</div>
+          </div>
+        </div>
+
+        <div class="vaccine-main-box">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div class="vaccine-title">💉 ${data.vaccineName}</div>
+            <div style="background: #f0fdfa; border: 1px solid #0f766e; color: #0f766e; font-weight: 800; font-size: 9.5px; padding: 3px 8px; border-radius: 4px;">
+              ${data.type || 'Inmunización Oficial'}
+            </div>
+          </div>
+
+          <div class="vaccine-detail-grid">
+            <div>
+              <div class="detail-label">Laboratorio / Fabricante</div>
+              <div class="detail-value">${data.manufacturer}</div>
+            </div>
+            <div>
+              <div class="detail-label">Número de Lote</div>
+              <div class="detail-value" style="font-family: monospace;">${data.batchNumber}</div>
+            </div>
+            <div>
+              <div class="detail-label">Vencimiento del Biológico</div>
+              <div class="detail-value">${data.expirationDate}</div>
+            </div>
+            <div>
+              <div class="detail-label">Fecha de Aplicación</div>
+              <div class="detail-value" style="color: #0f766e; font-weight: 800;">${data.administeredDate}</div>
+            </div>
+            <div>
+              <div class="detail-label">Próximo Refuerzo Sugerido</div>
+              <div class="detail-value" style="color: #b45309; font-weight: 800;">${data.nextDueDate}</div>
+            </div>
+            <div>
+              <div class="detail-label">Vía / Dosis</div>
+              <div class="detail-value">${data.route || 'Subcutánea (SC)'} · ${data.doseVolume || '1 dosis'}</div>
+            </div>
+          </div>
+
+          ${data.notes ? `
+            <div style="margin-top: 10px; padding-top: 8px; border-top: 1px dashed #cbd5e1; font-size: 9.5px; color: #475569;">
+              <b>Observaciones:</b> ${data.notes}
+            </div>
+          ` : ''}
+        </div>
+
+        <div class="signatures">
+          <div class="sig-box">
+            <div class="sig-line"></div>
+            <div style="font-weight: 800; font-size: 11px;">${data.doctor.name}</div>
+            <div style="font-size: 9.5px; color: #475569;">Médico Veterinario · ${data.doctor.license}</div>
+            <div style="font-size: 8.5px; color: #0f766e; font-weight: bold; margin-top: 2px;">Dirección Médica • Veterinaria Irusta</div>
+          </div>
+        </div>
+
+        <div class="footer-note">
+          Certificado oficial de vacunación e inmunización animal expedido conforme a normas higiénico-sanitarias vigentes y registrado en el sistema hospitalario.
+        </div>
+      </body>
+    </html>
+  `;
+
+  doc.open();
+  doc.write(html);
+  doc.close();
+
+  setTimeout(() => {
+    iframe.contentWindow?.focus();
+    iframe.contentWindow?.print();
+    setTimeout(() => {
+      document.body.removeChild(iframe);
+    }, 2000);
+  }, 300);
+}
