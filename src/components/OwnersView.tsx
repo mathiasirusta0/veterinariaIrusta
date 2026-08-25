@@ -12,6 +12,9 @@ import {
   MessageCircle,
   LayoutGrid,
   List,
+  Edit3,
+  X,
+  Check,
 } from 'lucide-react';
 import { useVet } from '../context/VetContext';
 import { triggerHaptic } from '../utils/haptics';
@@ -26,7 +29,10 @@ export const OwnersView: React.FC = () => {
     setActiveView,
     setQuickModal,
     openWhatsAppHub,
+    updateOwner,
+    showToast,
   } = useVet();
+  const [editingOwner, setEditingOwner] = useState<any | null>(null);
 
   const [search, setSearch] = useState('');
   const [viewMode, setViewMode] = useState<'CARDS' | 'TABLE'>('CARDS');
@@ -212,6 +218,19 @@ export const OwnersView: React.FC = () => {
 
                 {/* Footer buttons */}
                 <div className="pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      triggerHaptic('light');
+                      setEditingOwner({ ...owner });
+                    }}
+                    className="px-3 py-2 bg-teal-50 hover:bg-teal-100 text-teal-800 text-xs font-bold rounded-xl border border-teal-200 transition-all active:scale-95 flex items-center gap-1"
+                    title="Editar datos del tutor"
+                  >
+                    <Edit3 className="w-3.5 h-3.5" />
+                    <span>Editar</span>
+                  </button>
+
                   {owner.phone && (
                     <>
                       <button
@@ -220,7 +239,7 @@ export const OwnersView: React.FC = () => {
                           triggerHaptic('light');
                           openWhatsAppHub({
                             ownerName: `${owner.firstName} ${owner.lastName}`,
-                            ownerPhone: owner.phone || owner.whatsapp || '',
+                            ownerPhone: owner.whatsapp || owner.phone || '',
                             type: 'CONTROL_GENERAL',
                           });
                         }}
@@ -316,6 +335,17 @@ export const OwnersView: React.FC = () => {
 
                       <td className="p-3.5 text-right">
                         <div className="flex items-center justify-end gap-1.5">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              triggerHaptic('light');
+                              setEditingOwner({ ...owner });
+                            }}
+                            className="p-1.5 bg-teal-50 hover:bg-teal-100 text-teal-700 rounded-lg border border-teal-200 transition-colors"
+                            title="Editar datos del tutor"
+                          >
+                            <Edit3 className="w-3.5 h-3.5" />
+                          </button>
                           {owner.phone && (
                             <button
                               type="button"
@@ -323,7 +353,7 @@ export const OwnersView: React.FC = () => {
                                 triggerHaptic('light');
                                 openWhatsAppHub({
                                   ownerName: `${owner.firstName} ${owner.lastName}`,
-                                  ownerPhone: owner.phone,
+                                  ownerPhone: owner.whatsapp || owner.phone,
                                   type: 'CONTROL_GENERAL',
                                 });
                               }}
@@ -343,6 +373,147 @@ export const OwnersView: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* ✏️ MODAL EDITAR TUTOR / PROPIETARIO DIRECTO */}
+      {editingOwner && (
+        <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-white border border-slate-200 rounded-3xl w-full max-w-lg shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+            <div className="px-6 py-4 bg-teal-700 text-white flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center font-bold">
+                  <Edit3 className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-black text-white">Editar Datos del Tutor</h3>
+                  <p className="text-xs text-teal-100">Modifique nombre, teléfono, WhatsApp, DNI o dirección</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setEditingOwner(null)}
+                className="p-1.5 rounded-lg text-teal-100 hover:text-white hover:bg-teal-800 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                updateOwner(editingOwner.id, {
+                  firstName: editingOwner.firstName?.trim(),
+                  lastName: editingOwner.lastName?.trim(),
+                  phone: editingOwner.phone?.trim(),
+                  whatsapp: (editingOwner.whatsapp || editingOwner.phone)?.trim(),
+                  dni: editingOwner.dni?.trim(),
+                  email: editingOwner.email?.trim(),
+                  address: editingOwner.address?.trim(),
+                  city: editingOwner.city?.trim() || 'Río Cuarto',
+                  taxCondition: editingOwner.taxCondition || 'CONSUMIDOR_FINAL',
+                });
+                showToast('success', 'Tutor Actualizado', `Datos de ${editingOwner.firstName} ${editingOwner.lastName || ''} guardados correctamente.`);
+                setEditingOwner(null);
+              }}
+              className="p-6 space-y-4 text-xs"
+            >
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="font-bold text-slate-700 block mb-1">Nombre *</label>
+                  <input
+                    type="text"
+                    required
+                    value={editingOwner.firstName ?? ''}
+                    onChange={(e) => setEditingOwner({ ...editingOwner, firstName: e.target.value })}
+                    className="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 font-bold text-slate-900 focus:ring-2 focus:ring-teal-500"
+                  />
+                </div>
+                <div>
+                  <label className="font-bold text-slate-700 block mb-1">Apellido</label>
+                  <input
+                    type="text"
+                    value={editingOwner.lastName ?? ''}
+                    onChange={(e) => setEditingOwner({ ...editingOwner, lastName: e.target.value })}
+                    className="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 font-bold text-slate-900 focus:ring-2 focus:ring-teal-500"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="font-bold text-slate-700 block mb-1">Teléfono / WhatsApp *</label>
+                  <input
+                    type="text"
+                    required
+                    value={editingOwner.phone ?? ''}
+                    onChange={(e) => setEditingOwner({ ...editingOwner, phone: e.target.value, whatsapp: e.target.value })}
+                    placeholder="+5493584302024"
+                    className="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 font-mono font-bold text-slate-900 focus:ring-2 focus:ring-teal-500"
+                  />
+                </div>
+                <div>
+                  <label className="font-bold text-slate-700 block mb-1">DNI / CUIT</label>
+                  <input
+                    type="text"
+                    value={editingOwner.dni ?? ''}
+                    onChange={(e) => setEditingOwner({ ...editingOwner, dni: e.target.value })}
+                    placeholder="37108100"
+                    className="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 font-mono font-bold text-slate-900 focus:ring-2 focus:ring-teal-500"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="font-bold text-slate-700 block mb-1">Email</label>
+                  <input
+                    type="email"
+                    value={editingOwner.email ?? ''}
+                    onChange={(e) => setEditingOwner({ ...editingOwner, email: e.target.value })}
+                    className="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-slate-900 focus:ring-2 focus:ring-teal-500"
+                  />
+                </div>
+                <div>
+                  <label className="font-bold text-slate-700 block mb-1">Ciudad</label>
+                  <input
+                    type="text"
+                    value={editingOwner.city ?? 'Río Cuarto'}
+                    onChange={(e) => setEditingOwner({ ...editingOwner, city: e.target.value })}
+                    className="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-slate-900 focus:ring-2 focus:ring-teal-500"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="font-bold text-slate-700 block mb-1">Dirección / Domicilio</label>
+                <input
+                  type="text"
+                  value={editingOwner.address ?? ''}
+                  onChange={(e) => setEditingOwner({ ...editingOwner, address: e.target.value })}
+                  placeholder="Calle y número..."
+                  className="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-slate-900 focus:ring-2 focus:ring-teal-500"
+                />
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setEditingOwner(null)}
+                  className="px-4 py-2 text-slate-600 hover:text-slate-900 text-xs font-semibold rounded-xl"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  className="px-6 py-2.5 bg-teal-600 hover:bg-teal-500 text-white font-black text-xs rounded-xl shadow-md transition-all active:scale-95"
+                >
+                  Guardar Cambios
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
+

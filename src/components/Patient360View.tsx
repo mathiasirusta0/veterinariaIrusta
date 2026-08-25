@@ -96,6 +96,7 @@ export const Patient360View: React.FC = () => {
     administerDoseSlot,
     suspendMedication,
     updateOwner,
+    addOwner,
     addVitalSigns,
     addLabOrder,
   } = useVet();
@@ -142,7 +143,15 @@ export const Patient360View: React.FC = () => {
   // Edit Patient Modal State
   const [showEditPatientModal, setShowEditPatientModal] = useState(false);
   const [isSavingPatientEdit, setIsSavingPatientEdit] = useState(false);
-  const [editFormData, setEditFormData] = useState<Partial<Patient>>({});
+  interface EditPatientFormData extends Partial<Patient> {
+    ownerFirstName?: string;
+    ownerLastName?: string;
+    ownerPhone?: string;
+    ownerDni?: string;
+    ownerAddress?: string;
+    ownerEmail?: string;
+  }
+  const [editFormData, setEditFormData] = useState<EditPatientFormData>({});
 
   // Manage Alerts Modal State
   const [showAlertsModal, setShowAlertsModal] = useState(false);
@@ -400,6 +409,7 @@ export const Patient360View: React.FC = () => {
       e.stopPropagation();
     }
     triggerHaptic('light');
+    const currOwner = owners.find((o) => o.id === patient.ownerId);
     setEditFormData({
       name: patient.name,
       species: patient.species,
@@ -416,6 +426,12 @@ export const Patient360View: React.FC = () => {
       photoUrl: patient.photoUrl || '',
       status: patient.status,
       ownerId: patient.ownerId,
+      ownerFirstName: currOwner?.firstName || '',
+      ownerLastName: currOwner?.lastName || '',
+      ownerPhone: currOwner?.whatsapp || currOwner?.phone || '',
+      ownerDni: currOwner?.dni || '',
+      ownerAddress: currOwner?.address || '',
+      ownerEmail: currOwner?.email || '',
     });
     setShowEditPatientModal(true);
   };
@@ -428,9 +444,54 @@ export const Patient360View: React.FC = () => {
     }
     setIsSavingPatientEdit(true);
     try {
-      updatePatient(patient.id, editFormData);
+      const {
+        ownerFirstName,
+        ownerLastName,
+        ownerPhone,
+        ownerDni,
+        ownerAddress,
+        ownerEmail,
+        ...patientUpdates
+      } = editFormData;
+
+      // Update patient in state and Supabase
+      updatePatient(patient.id, patientUpdates);
+
+      // Update or create owner in state and Supabase
+      const targetOwnerId = editFormData.ownerId || patient.ownerId;
+      if (targetOwnerId) {
+        const existingOwner = owners.find((o) => o.id === targetOwnerId);
+        if (existingOwner) {
+          updateOwner(targetOwnerId, {
+            firstName: (ownerFirstName ?? existingOwner.firstName).trim(),
+            lastName: (ownerLastName ?? existingOwner.lastName).trim(),
+            phone: (ownerPhone ?? existingOwner.phone).trim(),
+            whatsapp: (ownerPhone ?? existingOwner.whatsapp).trim(),
+            dni: (ownerDni ?? existingOwner.dni).trim(),
+            address: (ownerAddress ?? existingOwner.address).trim(),
+            email: (ownerEmail ?? existingOwner.email).trim(),
+          });
+        }
+      } else if (ownerFirstName?.trim()) {
+        const newOwn = addOwner({
+          firstName: ownerFirstName.trim(),
+          lastName: (ownerLastName || '').trim(),
+          dni: ownerDni || '',
+          phone: ownerPhone || '',
+          whatsapp: ownerPhone || '',
+          email: ownerEmail || '',
+          address: ownerAddress || '',
+          city: 'Río Cuarto',
+          taxCondition: 'CONSUMIDOR_FINAL',
+          balance: 0,
+          notes: 'Creado desde edición de ficha médica',
+          branchId: 'branch-central',
+        });
+        updatePatient(patient.id, { ownerId: newOwn.id });
+      }
+
       setShowEditPatientModal(false);
-      showToast('success', 'Ficha Actualizada', `Ficha médica de ${editFormData.name || patient.name} actualizada correctamente.`);
+      showToast('success', 'Ficha Actualizada', `Ficha médica de ${editFormData.name || patient.name} y datos del tutor actualizados correctamente.`);
     } catch (err) {
       showToast('error', 'Error al Guardar', 'No se pudieron guardar los cambios en la ficha.');
     } finally {
@@ -2424,10 +2485,77 @@ export const Patient360View: React.FC = () => {
                 </div>
               </div>
 
-              {/* Sección 3: Identificación & Tutor */}
+              {/* Sección 3: Datos y Contacto del Tutor */}
               <div className="space-y-3 pt-2 border-t border-slate-100">
-                <span className="text-[10px] font-black uppercase tracking-wider text-teal-800 bg-teal-50 px-2 py-0.5 rounded-md border border-teal-200 block w-fit">
-                  3. Identificación Oficial, Tutor & Estado
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-black uppercase tracking-wider text-teal-800 bg-teal-50 px-2.5 py-0.5 rounded-md border border-teal-200 block w-fit">
+                    3. Datos del Tutor Responsable (100% Editables)
+                  </span>
+                  <span className="text-[11px] text-slate-500 font-medium">Modifique nombre, teléfono, WhatsApp o DNI directamente</span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-slate-50/70 p-3.5 rounded-2xl border border-slate-200">
+                  <div>
+                    <label className="font-bold text-slate-700 block mb-1">Nombre del Tutor *</label>
+                    <input
+                      type="text"
+                      value={editFormData.ownerFirstName ?? ''}
+                      onChange={(e) => setEditFormData({ ...editFormData, ownerFirstName: e.target.value })}
+                      placeholder="Ej: Enzo"
+                      className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-teal-500 font-bold"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="font-bold text-slate-700 block mb-1">Apellido del Tutor</label>
+                    <input
+                      type="text"
+                      value={editFormData.ownerLastName ?? ''}
+                      onChange={(e) => setEditFormData({ ...editFormData, ownerLastName: e.target.value })}
+                      placeholder="Ej: Girardi"
+                      className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-teal-500 font-bold"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="font-bold text-slate-700 block mb-1">Teléfono / WhatsApp de Contacto *</label>
+                    <input
+                      type="text"
+                      value={editFormData.ownerPhone ?? ''}
+                      onChange={(e) => setEditFormData({ ...editFormData, ownerPhone: e.target.value })}
+                      placeholder="Ej: +5493584302024"
+                      className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-teal-500 font-mono font-bold"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="font-bold text-slate-700 block mb-1">DNI / CUIT del Tutor</label>
+                    <input
+                      type="text"
+                      value={editFormData.ownerDni ?? ''}
+                      onChange={(e) => setEditFormData({ ...editFormData, ownerDni: e.target.value })}
+                      placeholder="Ej: 37108100"
+                      className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-teal-500 font-mono font-bold"
+                    />
+                  </div>
+
+                  <div className="sm:col-span-2">
+                    <label className="font-bold text-slate-700 block mb-1">Dirección / Domicilio</label>
+                    <input
+                      type="text"
+                      value={editFormData.ownerAddress ?? ''}
+                      onChange={(e) => setEditFormData({ ...editFormData, ownerAddress: e.target.value })}
+                      placeholder="Ej: San Martín 450, Río Cuarto"
+                      className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Sección 4: Identificación Oficial & Estado Clínico */}
+              <div className="space-y-3 pt-2 border-t border-slate-100">
+                <span className="text-[10px] font-black uppercase tracking-wider text-teal-800 bg-teal-50 px-2.5 py-0.5 rounded-md border border-teal-200 block w-fit">
+                  4. Identificación Oficial & Estado Clínico
                 </span>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
@@ -2440,21 +2568,6 @@ export const Patient360View: React.FC = () => {
                       placeholder="Ej: 981098109123456"
                       className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-teal-500 font-mono"
                     />
-                  </div>
-
-                  <div>
-                    <label className="font-bold text-slate-700 block mb-1">Tutor / Responsable Legal</label>
-                    <select
-                      value={editFormData.ownerId ?? patient.ownerId}
-                      onChange={(e) => setEditFormData({ ...editFormData, ownerId: e.target.value })}
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-teal-500 font-medium"
-                    >
-                      {owners.map((o) => (
-                        <option key={o.id} value={o.id}>
-                          {o.firstName} {o.lastName} (DNI: {o.dni || 'S/D'})
-                        </option>
-                      ))}
-                    </select>
                   </div>
 
                   <div>
@@ -2473,7 +2586,7 @@ export const Patient360View: React.FC = () => {
                     </select>
                   </div>
 
-                  <div>
+                  <div className="sm:col-span-2">
                     <label className="font-bold text-slate-700 block mb-1">URL Foto del Paciente</label>
                     <input
                       type="text"
