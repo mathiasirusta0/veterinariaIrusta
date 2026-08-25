@@ -1,6 +1,11 @@
 import React, { useState, useMemo } from 'react';
 import {
   TrendingUp,
+  MessageCircle,
+  BedDouble,
+  Stethoscope,
+  Sparkles,
+  FileCheck,
   Receipt,
   Plus,
   DollarSign,
@@ -58,6 +63,8 @@ export const FinancesUnifiedView: React.FC = () => {
     activeBranch,
     owners,
     patients,
+    hospitalizations,
+    openWhatsAppHub,
     addFinancialMovement,
     voidFinancialMovement,
     addAccountDebt,
@@ -121,11 +128,311 @@ export const FinancesUnifiedView: React.FC = () => {
   // Void Reason
   const [voidReason, setVoidReason] = useState('');
 
+  // 100% MANUAL LIQUIDATION & PAYMENT RECEIPT STATE
+  const [showPatientLiquidationModal, setShowPatientLiquidationModal] = useState(false);
+  const [liqPatientId, setLiqPatientId] = useState(patients[0]?.id || '');
+  const [liqItems, setLiqItems] = useState<
+    Array<{
+      id: string;
+      category: string;
+      description: string;
+      quantity: number;
+      unitPrice: number;
+    }>
+  >([
+    {
+      id: 'item-1',
+      category: 'INTERNACION',
+      description: 'Día de Internación / Canil con Monitoreo Clínico',
+      quantity: 1,
+      unitPrice: 25000,
+    },
+    {
+      id: 'item-2',
+      category: 'MEDICACION',
+      description: 'Plan de Fluidoterapia + Protector Gástrico + Antibioticoterapia',
+      quantity: 1,
+      unitPrice: 18000,
+    },
+  ]);
+  const [liqDiscount, setLiqDiscount] = useState<number | ''>('');
+  const [liqPaymentMethod, setLiqPaymentMethod] = useState<FinancialPaymentMethod>('TRANSFERENCIA');
+  const [liqNotes, setLiqNotes] = useState('');
+
+  // Official Receipt Modal State (Non-fiscal Recibo X of Veterinaria Irusta)
+  const [showReceiptModal, setShowReceiptModal] = useState(false);
+  const [currentReceipt, setCurrentReceipt] = useState<{
+    receiptNumber: string;
+    date: string;
+    time: string;
+    patientName: string;
+    species: string;
+    breed: string;
+    hc: string;
+    weight?: number;
+    ownerName: string;
+    ownerPhone: string;
+    ownerDni?: string;
+    items: Array<{ description: string; category: string; quantity: number; unitPrice: number; subtotal: number }>;
+    subtotal: number;
+    discount: number;
+    total: number;
+    paymentMethod: FinancialPaymentMethod;
+    vetInCharge: string;
+    vetLicense: string;
+    notes?: string;
+  } | null>(null);
+
   // Expanded Debt Rows for payment history
   const [expandedDebtIds, setExpandedDebtIds] = useState<Record<string, boolean>>({});
 
   const toggleExpandDebt = (id: string) => {
     setExpandedDebtIds((prev) => ({ ...prev, [id]: !prev[id] }));
+  };
+
+  // Helper to add a new manual line item to liquidation
+  const handleAddLiqItem = () => {
+    triggerHaptic('light');
+    setLiqItems((prev) => [
+      ...prev,
+      {
+        id: `item-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+        category: 'HONORARIOS',
+        description: '',
+        quantity: 1,
+        unitPrice: 0,
+      },
+    ]);
+  };
+
+  const handleRemoveLiqItem = (id: string) => {
+    triggerHaptic('light');
+    setLiqItems((prev) => prev.filter((i) => i.id !== id));
+  };
+
+  const handleUpdateLiqItem = (id: string, field: string, value: any) => {
+    setLiqItems((prev) =>
+      prev.map((item) => (item.id === id ? { ...item, [field]: value } : item))
+    );
+  };
+
+  // Helper to import inpatient charges automatically
+  const handleImportInpatientCharges = (patId: string) => {
+    triggerHaptic('medium');
+    const hosp =
+      hospitalizations.find((h) => h.patientId === patId && h.status === 'ACTIVA') ||
+      hospitalizations.find((h) => h.patientId === patId);
+
+    if (!hosp) {
+      showToast(
+        'info',
+        'Sin Internación Activa',
+        'No se encontró registro de internación activa para este paciente. Puede cargar los conceptos manualmente.'
+      );
+      return;
+    }
+
+    const admRaw = (hosp as any).admittedAt || (hosp as any).admissionDate || new Date().toISOString();
+    const admDate = new Date(admRaw);
+    const now = new Date();
+    const days = Math.max(1, Math.ceil((now.getTime() - admDate.getTime()) / (1000 * 60 * 60 * 24)));
+
+    const imported: Array<{ id: string; category: string; description: string; quantity: number; unitPrice: number }> = [];
+
+    // 1. Kennel / Hospitalization
+    const isUCI = hosp.sector === 'UCI' || (hosp.sector as any) === 'UCI_CRITICOS';
+    imported.push({
+      id: `imp-${Date.now()}-1`,
+      category: 'INTERNACION',
+      description: `Internación en ${isUCI ? 'Terapia Intensiva / UCI' : 'Caniles Generales'} (${hosp.kennelNumber}) - ${days} día${days > 1 ? 's' : ''}`,
+      quantity: days,
+      unitPrice: isUCI ? 35000 : 25000,
+    });
+
+    // 2. Fluidotherapy
+    const fluidSol = (hosp as any).fluidTherapy?.solutionType || (hosp as any).fluidType;
+    const fluidRate = (hosp as any).fluidTherapy?.rateMlPerHour || (hosp as any).fluidRateMlH;
+    if (fluidSol) {
+      imported.push({
+        id: `imp-${Date.now()}-2`,
+        category: 'FLUIDOTERAPIA',
+        description: `Plan de Fluidoterapia (${fluidSol}${fluidRate ? ` a ${fluidRate} ml/h` : ''})`,
+        quantity: days,
+        unitPrice: 12000,
+      });
+    }
+
+    // 3. Medications administered
+    if (hosp.medications && hosp.medications.length > 0) {
+      hosp.medications.forEach((med: any, idx: number) => {
+        const mName = med.name || med.medicationName || 'Fármaco';
+        const mDose = med.dose || '';
+        const mRoute = med.route || '';
+        imported.push({
+          id: `imp-${Date.now()}-med-${idx}`,
+          category: 'MEDICACION',
+          description: `Fármaco: ${mName} ${mDose ? `(${mDose} ${mRoute})` : ''}`.trim(),
+          quantity: 1,
+          unitPrice: 8500,
+        });
+      });
+    }
+
+    // 4. Hourly sheet tasks if any
+    const sheets = (hosp as any).hourlySheet || (hosp as any).hourlySheets || [];
+    if (sheets.length > 0) {
+      const distinctMeds = new Set<string>();
+      sheets.forEach((s: any) => {
+        if (s.medicationAdministered) distinctMeds.add(s.medicationAdministered);
+      });
+      distinctMeds.forEach((m, idx) => {
+        if (!imported.some((i) => i.description.includes(m))) {
+          imported.push({
+            id: `imp-${Date.now()}-sheet-${idx}`,
+            category: 'MEDICACION',
+            description: `Medicación horaria aplicada: ${m}`,
+            quantity: 1,
+            unitPrice: 6500,
+          });
+        }
+      });
+    }
+
+    setLiqItems(imported);
+    showToast(
+      'success',
+      'Consumos Importados',
+      `Se cargaron ${imported.length} conceptos de la internación activa para revisar y facturar.`
+    );
+  };
+
+  // Emit official payment receipt
+  const handleEmitReceipt = (e: React.FormEvent) => {
+    e.preventDefault();
+    triggerHaptic('medium');
+
+    const patient = patients.find((p) => p.id === liqPatientId);
+    const owner = patient ? owners.find((o) => o.id === patient.ownerId) : owners[0];
+
+    const subtotal = liqItems.reduce(
+      (acc, item) => acc + (Number(item.quantity) || 1) * (Number(item.unitPrice) || 0),
+      0
+    );
+    const discountVal = Number(liqDiscount) || 0;
+    const total = Math.max(0, subtotal - discountVal);
+
+    if (total <= 0) {
+      showToast('error', 'Monto Inválido', 'El total a liquidar debe ser superior a $0.');
+      return;
+    }
+
+    const receiptNum = `REC-2026-${Math.floor(1000 + Math.random() * 9000)}`;
+    const now = new Date();
+    const dateStr = now.toISOString().split('T')[0];
+    const timeStr = now.toTimeString().slice(0, 5);
+
+    // 1. Add financial movement (Income)
+    addFinancialMovement({
+      type: 'INGRESO',
+      category: 'Internación & Prestaciones Médicas',
+      concept: `Liquidación de prestaciones - ${patient?.name || 'Paciente'} (${patient?.clinicalRecordNumber || 'HC'})`,
+      amount: total,
+      date: dateStr,
+      paymentMethod: liqPaymentMethod,
+      clientName: owner ? `${owner.firstName} ${owner.lastName}` : 'Tutor Responsable',
+      status: 'COBRADO',
+      notes: `Comprobante Nº ${receiptNum}. Detalle: ${liqItems.length} ítems liquidados. ${liqNotes}`,
+      branchId: activeBranch?.id || 'branch-central',
+    });
+
+    // 2. Add Invoice / Recibo X to state
+    createInvoice({
+      patientId: patient?.id,
+      customerId: owner?.id || 'own-gen',
+      customerName: owner ? `${owner.firstName} ${owner.lastName}` : 'Consumidor Final',
+      customerDni: owner?.dni,
+      customerAddress: owner?.address || 'Río Cuarto, Córdoba',
+      customerTaxCondition: owner?.taxCondition || 'CONSUMIDOR_FINAL',
+      type: 'X',
+      pointOfSale: 1,
+      invoiceNumber: Math.floor(1000 + Math.random() * 9000),
+      date: dateStr,
+      items: liqItems.map((item) => ({
+        description: item.description || 'Prestación veterinaria',
+        quantity: item.quantity,
+        unitPrice: item.unitPrice,
+        subtotal: item.quantity * item.unitPrice,
+      })),
+      subtotal,
+      vatAmount: 0,
+      totalAmount: total,
+      paymentMethod: liqPaymentMethod,
+      isPaid: true,
+      branchId: activeBranch?.id || 'branch-central',
+    });
+
+    // 3. Set Receipt object for instant preview / print / PDF / WhatsApp
+    const receiptData = {
+      receiptNumber: receiptNum,
+      date: formatDate(dateStr),
+      time: timeStr,
+      patientName: patient?.name || 'Paciente',
+      species: patient?.species || 'Canino',
+      breed: patient?.breed || 'Mestizo',
+      hc: patient?.clinicalRecordNumber || 'HC-2026-0001',
+      weight: patient?.weight,
+      ownerName: owner ? `${owner.firstName} ${owner.lastName}` : 'Tutor Responsable',
+      ownerPhone: owner?.phone || owner?.whatsapp || '',
+      ownerDni: owner?.dni,
+      items: liqItems.map((item) => ({
+        description: item.description || 'Prestación veterinaria',
+        category: item.category,
+        quantity: item.quantity,
+        unitPrice: item.unitPrice,
+        subtotal: item.quantity * item.unitPrice,
+      })),
+      subtotal,
+      discount: discountVal,
+      total,
+      paymentMethod: liqPaymentMethod,
+      vetInCharge: 'Dr. Diego Irusta',
+      vetLicense: 'MP 8412',
+      notes: liqNotes,
+    };
+
+    setCurrentReceipt(receiptData);
+    setShowPatientLiquidationModal(false);
+    setShowReceiptModal(true);
+
+    showToast(
+      'success',
+      'Comprobante de Pago Emitido',
+      `Comprobante ${receiptNum} generado por ${formatCurrency(total)}.`
+    );
+  };
+
+  const handleSendReceiptWhatsApp = (rec: typeof currentReceipt) => {
+    if (!rec) return;
+    triggerHaptic('light');
+
+    const patient = patients.find((p) => p.clinicalRecordNumber === rec.hc || p.name === rec.patientName);
+    const owner = patient ? owners.find((o) => o.id === patient.ownerId) : null;
+
+    openWhatsAppHub({
+      patientId: patient?.id,
+      ownerId: owner?.id,
+      patientName: rec.patientName,
+      ownerName: rec.ownerName,
+      ownerPhone: rec.ownerPhone,
+      type: 'FACTURA',
+      details: {
+        invoiceNumber: rec.receiptNumber,
+        total: formatCurrency(rec.total),
+        paymentMethod: rec.paymentMethod,
+        date: rec.date,
+        itemsCount: rec.items.length,
+      },
+    });
   };
 
   // Date range filter calculations for movements & KPIs
@@ -738,41 +1045,129 @@ export const FinancesUnifiedView: React.FC = () => {
             </div>
           )}
 
-          {/* Subtab: Comprobantes */}
+          {/* Subtab: Comprobantes & Recibos de Pago */}
           {cajaSubTab === 'COMPROBANTES' && (
-            <div className="bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-xs">
-              <table className="w-full text-left text-xs">
-                <thead className="bg-slate-50 border-b border-slate-200 text-[10px] uppercase font-black tracking-wider text-slate-500">
-                  <tr>
-                    <th className="p-3.5">Nº Comprobante</th>
-                    <th className="p-3.5">Fecha</th>
-                    <th className="p-3.5">Cliente / Tutor</th>
-                    <th className="p-3.5">Medio de Pago</th>
-                    <th className="p-3.5">Estado Fiscal</th>
-                    <th className="p-3.5 text-right">Importe Total</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100 font-medium">
-                  {invoices.map((inv) => (
-                    <tr key={inv.id} className="hover:bg-slate-50/50">
-                      <td className="p-3.5 font-mono font-bold text-slate-900">
-                        {formatInvoiceNumber(inv.type, inv.pointOfSale, inv.invoiceNumber)}
-                      </td>
-                      <td className="p-3.5 text-slate-500">{inv.date}</td>
-                      <td className="p-3.5 text-slate-800 font-bold">{inv.customerName}</td>
-                      <td className="p-3.5 text-slate-600 font-mono">{inv.paymentMethod}</td>
-                      <td className="p-3.5">
-                        <span className="text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 rounded-full font-mono">
-                          CAE: {inv.caeNumber ? inv.caeNumber.slice(0, 8) : 'HOMOLOGADO'}...
-                        </span>
-                      </td>
-                      <td className="p-3.5 text-right font-mono font-black text-sm text-emerald-700">
-                        {formatCurrency(inv.totalAmount)}
-                      </td>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs">
+                <div>
+                  <h4 className="text-xs font-black text-slate-900 uppercase tracking-wider">
+                    Comprobantes de Pago & Recibos Emitidos ({invoices.length})
+                  </h4>
+                  <p className="text-[11px] text-slate-500 font-medium">
+                    Recibos oficiales no fiscales de Veterinaria Irusta emitidos a tutores
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    triggerHaptic('medium');
+                    setShowPatientLiquidationModal(true);
+                  }}
+                  className="px-3.5 py-2 bg-teal-600 hover:bg-teal-500 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-2xs cursor-pointer"
+                >
+                  <Receipt className="w-3.5 h-3.5" />
+                  <span>+ Liquidar y Emitir Comprobante</span>
+                </button>
+              </div>
+
+              <div className="bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-xs">
+                <table className="w-full text-left text-xs">
+                  <thead className="bg-slate-50 border-b border-slate-200 text-[10px] uppercase font-black tracking-wider text-slate-500">
+                    <tr>
+                      <th className="p-3.5">Nº Comprobante</th>
+                      <th className="p-3.5">Fecha</th>
+                      <th className="p-3.5">Cliente / Tutor</th>
+                      <th className="p-3.5">Medio de Pago</th>
+                      <th className="p-3.5">Tipo de Comprobante</th>
+                      <th className="p-3.5 text-right">Importe Total</th>
+                      <th className="p-3.5 text-right">Acciones</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 font-medium">
+                    {invoices.length === 0 ? (
+                      <tr>
+                        <td colSpan={7} className="p-6 text-center text-slate-400">
+                          No hay comprobantes emitidos. Utilice el botón superior para liquidar una atención.
+                        </td>
+                      </tr>
+                    ) : (
+                      invoices.map((inv) => {
+                        const pat = patients.find((p) => p.id === inv.patientId);
+                        return (
+                          <tr key={inv.id} className="hover:bg-slate-50/50">
+                            <td className="p-3.5 font-mono font-bold text-slate-900">
+                              {inv.type === 'X'
+                                ? `REC-2026-${String(inv.invoiceNumber).padStart(4, '0')}`
+                                : formatInvoiceNumber(inv.type, inv.pointOfSale, inv.invoiceNumber)}
+                            </td>
+                            <td className="p-3.5 text-slate-500">{inv.date}</td>
+                            <td className="p-3.5">
+                              <strong className="text-slate-800 block">{inv.customerName}</strong>
+                              {pat && (
+                                <span className="text-[10px] text-teal-700 font-medium">
+                                  🐾 {pat.name} ({pat.clinicalRecordNumber})
+                                </span>
+                              )}
+                            </td>
+                            <td className="p-3.5 text-slate-600 font-mono">{inv.paymentMethod}</td>
+                            <td className="p-3.5">
+                              <span className="text-[10px] font-bold bg-teal-50 text-teal-800 border border-teal-200 px-2 py-0.5 rounded-full font-mono">
+                                🧾 Recibo X Oficial
+                              </span>
+                            </td>
+                            <td className="p-3.5 text-right font-mono font-black text-sm text-emerald-700">
+                              {formatCurrency(inv.totalAmount)}
+                            </td>
+                            <td className="p-3.5 text-right">
+                              <div className="flex items-center justify-end gap-1.5">
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    triggerHaptic('light');
+                                    setCurrentReceipt({
+                                      receiptNumber: `REC-2026-${String(inv.invoiceNumber).padStart(4, '0')}`,
+                                      date: formatDate(inv.date),
+                                      time: '12:00',
+                                      patientName: pat?.name || 'Paciente',
+                                      species: pat?.species || 'Canino',
+                                      breed: pat?.breed || 'Mestizo',
+                                      hc: pat?.clinicalRecordNumber || 'HC-2026',
+                                      weight: pat?.weight,
+                                      ownerName: inv.customerName,
+                                      ownerPhone: '+54 9 2942 47-7136',
+                                      ownerDni: inv.customerDni,
+                                      items: (inv.items || []).map((it) => ({
+                                        description: it.description,
+                                        category: 'PRESTACION',
+                                        quantity: it.quantity,
+                                        unitPrice: it.unitPrice,
+                                        subtotal: it.subtotal,
+                                      })),
+                                      subtotal: inv.subtotal || inv.totalAmount,
+                                      discount: 0,
+                                      total: inv.totalAmount,
+                                      paymentMethod: inv.paymentMethod as any,
+                                      vetInCharge: 'Dr. Diego Irusta',
+                                      vetLicense: 'MP 8412',
+                                      notes: 'Comprobante emitido por Veterinaria Irusta.',
+                                    });
+                                    setShowReceiptModal(true);
+                                  }}
+                                  className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-bold flex items-center gap-1 cursor-pointer"
+                                  title="Ver e Imprimir Comprobante"
+                                >
+                                  <Printer className="w-3 h-3" />
+                                  <span>Ver / Imprimir</span>
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })
+                    )}
+                  </tbody>
+                </table>
+              </div>
             </div>
           )}
         </div>
@@ -1524,6 +1919,431 @@ export const FinancesUnifiedView: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* 15. MODAL: LIQUIDACIÓN MANUAL DE ATENCIÓN / INTERNACIÓN */}
+      {showPatientLiquidationModal && (
+        <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl max-w-3xl w-full p-6 space-y-4 shadow-2xl border border-slate-200 max-h-[92vh] overflow-y-auto custom-scrollbar animate-in zoom-in-95">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3 sticky top-0 bg-white z-10">
+              <div className="flex items-center gap-2.5">
+                <div className="w-10 h-10 rounded-2xl bg-teal-50 border border-teal-200 text-teal-600 flex items-center justify-center font-bold">
+                  <Receipt className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-black text-slate-900">
+                    Liquidar Prestaciones de Paciente & Emitir Recibo de Pago
+                  </h3>
+                  <p className="text-xs text-slate-500 font-medium">
+                    Carga manual de internación, medicación, descartables y honorarios con emisión inmediata de PDF
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowPatientLiquidationModal(false)}
+                className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold flex items-center justify-center cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleEmitReceipt} className="space-y-4 text-xs">
+              {/* SELECCIÓN DE PACIENTE Y TUTOR */}
+              <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-3">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <label className="text-slate-800 font-black uppercase text-[11px] tracking-wider block">
+                    🐾 Seleccionar Paciente a Liquidar:
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => handleImportInpatientCharges(liqPatientId)}
+                    className="px-3 py-1.5 bg-teal-700 hover:bg-teal-600 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-2xs cursor-pointer active:scale-95 transition-all self-start sm:self-auto"
+                  >
+                    <Sparkles className="w-3.5 h-3.5" />
+                    <span>⚡ Importar Consumos de Internación</span>
+                  </button>
+                </div>
+
+                <select
+                  value={liqPatientId}
+                  onChange={(e) => setLiqPatientId(e.target.value)}
+                  className="w-full bg-white border border-slate-300 rounded-xl p-3 font-bold text-slate-900 focus:ring-2 focus:ring-teal-500 shadow-2xs text-xs"
+                >
+                  {patients.map((p) => {
+                    const own = owners.find((o) => o.id === p.ownerId);
+                    const isInterned = p.status === 'INTERNADO';
+                    return (
+                      <option key={p.id} value={p.id}>
+                        {isInterned ? '🏥 [INTERNADO] ' : '🟢 '}
+                        {p.name} ({p.species} • {p.breed}) — Tutor: {own ? `${own.firstName} ${own.lastName}` : 'N/A'} ({p.clinicalRecordNumber})
+                      </option>
+                    );
+                  })}
+                </select>
+
+                {(() => {
+                  const selPat = patients.find((p) => p.id === liqPatientId);
+                  const selOwn = selPat ? owners.find((o) => o.id === selPat.ownerId) : null;
+                  return (
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1 text-[11px] text-slate-600 font-medium">
+                      <div>Especie: <strong className="text-slate-900">{selPat?.species || '-'}</strong></div>
+                      <div>Peso: <strong className="text-slate-900">{selPat?.weight ? `${selPat.weight} kg` : '-'}</strong></div>
+                      <div>Tutor: <strong className="text-slate-900">{selOwn ? `${selOwn.firstName} ${selOwn.lastName}` : '-'}</strong></div>
+                      <div>Tel: <strong className="text-slate-900">{selOwn?.phone || selOwn?.whatsapp || '-'}</strong></div>
+                    </div>
+                  );
+                })()}
+              </div>
+
+              {/* TABLA DE CONCEPTOS 100% MANUAL */}
+              <div className="bg-white p-4 rounded-2xl border border-slate-200 space-y-3 shadow-2xs">
+                <div className="flex items-center justify-between border-b border-slate-200 pb-2">
+                  <span className="font-black text-slate-900 text-xs uppercase tracking-wider">
+                    Detalle de Prestaciones, Fármacos & Insumos ({liqItems.length})
+                  </span>
+                  <button
+                    type="button"
+                    onClick={handleAddLiqItem}
+                    className="px-3 py-1 bg-slate-100 hover:bg-slate-200 text-teal-800 border border-slate-300 rounded-lg font-bold text-xs flex items-center gap-1 cursor-pointer"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>+ Agregar Concepto</span>
+                  </button>
+                </div>
+
+                <div className="space-y-2.5">
+                  {liqItems.map((item, index) => {
+                    const lineSubtotal = (Number(item.quantity) || 1) * (Number(item.unitPrice) || 0);
+                    return (
+                      <div
+                        key={item.id}
+                        className="grid grid-cols-1 sm:grid-cols-12 gap-2 items-center bg-slate-50 p-2.5 rounded-xl border border-slate-200/90 text-xs"
+                      >
+                        <div className="sm:col-span-3">
+                          <select
+                            value={item.category}
+                            onChange={(e) => handleUpdateLiqItem(item.id, 'category', e.target.value)}
+                            className="w-full bg-white border border-slate-300 rounded-lg p-2 font-bold text-slate-800 text-[11px]"
+                          >
+                            <option value="INTERNACION">🏨 Internación / Canil</option>
+                            <option value="MEDICACION">💊 Fármacos / Medicación</option>
+                            <option value="FLUIDOTERAPIA">💧 Sueros / Vías</option>
+                            <option value="CONSULTA">🩺 Consulta / Guardia</option>
+                            <option value="CIRUGIA">✂️ Cirugía / Procedimiento</option>
+                            <option value="ESTUDIOS">🔬 Estudios / Laboratorio</option>
+                            <option value="DESCARTABLES">📦 Insumos Descartables</option>
+                            <option value="HONORARIOS">👨‍⚕️ Honorarios / Otros</option>
+                          </select>
+                        </div>
+
+                        <div className="sm:col-span-4">
+                          <input
+                            type="text"
+                            value={item.description}
+                            onChange={(e) => handleUpdateLiqItem(item.id, 'description', e.target.value)}
+                            placeholder="Descripción del concepto o medicación..."
+                            required
+                            className="w-full bg-white border border-slate-300 rounded-lg p-2 font-semibold text-slate-900 text-xs"
+                          />
+                        </div>
+
+                        <div className="sm:col-span-2 flex items-center gap-1">
+                          <label className="text-[10px] text-slate-400 font-bold sm:hidden">Cant:</label>
+                          <input
+                            type="number"
+                            min="1"
+                            value={item.quantity}
+                            onChange={(e) => handleUpdateLiqItem(item.id, 'quantity', Number(e.target.value) || 1)}
+                            className="w-full bg-white border border-slate-300 rounded-lg p-2 font-mono font-bold text-center text-slate-900 text-xs"
+                          />
+                        </div>
+
+                        <div className="sm:col-span-2 flex items-center gap-1">
+                          <label className="text-[10px] text-slate-400 font-bold sm:hidden">Precio $:</label>
+                          <input
+                            type="number"
+                            step="100"
+                            value={item.unitPrice}
+                            onChange={(e) => handleUpdateLiqItem(item.id, 'unitPrice', Number(e.target.value) || 0)}
+                            className="w-full bg-white border border-slate-300 rounded-lg p-2 font-mono font-black text-right text-slate-900 text-xs"
+                          />
+                        </div>
+
+                        <div className="sm:col-span-1 flex items-center justify-between sm:justify-end gap-2">
+                          <span className="font-mono font-bold text-teal-800 text-[11px] sm:hidden">
+                            {formatCurrency(lineSubtotal)}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveLiqItem(item.id)}
+                            disabled={liqItems.length <= 1}
+                            className="w-7 h-7 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold flex items-center justify-center cursor-pointer disabled:opacity-30"
+                            title="Eliminar fila"
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* MEDIO DE PAGO, DESCUENTO Y TOTAL */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-slate-50 p-4 rounded-2xl border border-slate-200">
+                <div className="space-y-3">
+                  <div>
+                    <label className="text-slate-700 font-bold block mb-1">Medio de Pago:</label>
+                    <select
+                      value={liqPaymentMethod}
+                      onChange={(e) => setLiqPaymentMethod(e.target.value as any)}
+                      className="w-full bg-white border border-slate-300 rounded-xl p-2.5 font-bold text-slate-900 shadow-2xs"
+                    >
+                      <option value="TRANSFERENCIA">🏦 Transferencia Bancaria (Alias Dr. Diego Irusta)</option>
+                      <option value="EFECTIVO">💵 Efectivo en Caja</option>
+                      <option value="MERCADOPAGO_QR">📱 Mercado Pago / QR</option>
+                      <option value="TARJETA_DEBITO">💳 Tarjeta de Débito</option>
+                      <option value="TARJETA_CREDITO">💳 Tarjeta de Crédito</option>
+                      <option value="CUENTA_CORRIENTE">⏳ Cuenta Corriente (A Pagar)</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="text-slate-700 font-bold block mb-1">Observaciones / Notas:</label>
+                    <input
+                      type="text"
+                      value={liqNotes}
+                      onChange={(e) => setLiqNotes(e.target.value)}
+                      placeholder="Ej: Alta médica con evolución favorable / Tratamiento ambulatorio"
+                      className="w-full bg-white border border-slate-300 rounded-xl p-2.5 font-medium text-slate-900 shadow-2xs"
+                    />
+                  </div>
+                </div>
+
+                <div className="bg-white p-3.5 rounded-2xl border border-slate-200 space-y-2 text-xs">
+                  {(() => {
+                    const subtotal = liqItems.reduce(
+                      (acc, item) => acc + (Number(item.quantity) || 1) * (Number(item.unitPrice) || 0),
+                      0
+                    );
+                    const discountVal = Number(liqDiscount) || 0;
+                    const total = Math.max(0, subtotal - discountVal);
+
+                    return (
+                      <>
+                        <div className="flex justify-between text-slate-600 font-medium">
+                          <span>Subtotal de Prestaciones:</span>
+                          <span className="font-mono font-bold">{formatCurrency(subtotal)}</span>
+                        </div>
+
+                        <div className="flex items-center justify-between gap-2 pt-1 border-t border-slate-100">
+                          <span className="text-slate-600 font-medium">Descuento / Bonificación ($):</span>
+                          <input
+                            type="number"
+                            min="0"
+                            value={liqDiscount}
+                            onChange={(e) => setLiqDiscount(e.target.value ? Number(e.target.value) : '')}
+                            placeholder="0"
+                            className="w-28 bg-slate-50 border border-slate-300 rounded-lg p-1.5 text-right font-mono font-bold text-slate-900"
+                          />
+                        </div>
+
+                        <div className="flex justify-between items-center pt-2 border-t-2 border-slate-200 text-sm">
+                          <span className="font-black text-slate-900">Total a Liquidar:</span>
+                          <strong className="text-xl font-black font-mono text-teal-800">
+                            {formatCurrency(total)}
+                          </strong>
+                        </div>
+                      </>
+                    );
+                  })()}
+                </div>
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setShowPatientLiquidationModal(false)}
+                  className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs cursor-pointer"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  className="px-6 py-2.5 bg-teal-600 hover:bg-teal-500 text-white font-black rounded-xl text-xs shadow-md shadow-teal-600/20 active:scale-95 transition-all cursor-pointer flex items-center gap-2"
+                >
+                  <Receipt className="w-4 h-4" />
+                  <span>Emitir Comprobante de Pago</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* 16. MODAL: COMPROBANTE OFICIAL DE PAGO & RECIBO X (IMPRESIÓN / PDF / WHATSAPP) */}
+      {showReceiptModal && currentReceipt && (
+        <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl max-w-xl w-full p-6 space-y-4 shadow-2xl border border-slate-200 max-h-[92vh] overflow-y-auto custom-scrollbar animate-in zoom-in-95">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-xl bg-teal-50 text-teal-700 flex items-center justify-center font-bold">
+                  <Receipt className="w-4 h-4" />
+                </div>
+                <h3 className="text-base font-black text-slate-900">Comprobante de Pago & Recibo Oficial</h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowReceiptModal(false)}
+                className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold flex items-center justify-center cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* DOCUMENTO MEMBRETADO IMPRIMIBLE */}
+            <div className="bg-slate-50/90 p-5 rounded-3xl border border-slate-200 space-y-3.5 text-xs text-slate-800 print:bg-white print:p-0 print:border-none">
+              {/* Membrete Oficial */}
+              <div className="text-center pb-3 border-b-2 border-slate-200">
+                <span className="font-extrabold text-teal-800 uppercase tracking-widest text-[11px] block">
+                  VETERINARIA IRUSTA — CENTRO HOSPITALARIO VETERINARIO
+                </span>
+                <h4 className="font-black text-slate-900 text-sm mt-0.5 uppercase tracking-wide">
+                  COMPROBANTE DE PAGO & RENDICIÓN DE PRESTACIONES
+                </h4>
+                <p className="text-[10px] text-slate-500 font-medium">
+                  Río Cuarto, Córdoba • Tel/WhatsApp: +54 9 2942 47-7136 • Dirección Médica: Dr. Diego Irusta (MP 8412)
+                </p>
+                <div className="mt-2 inline-block px-3 py-1 bg-teal-100/70 text-teal-900 font-mono font-black text-xs rounded-full border border-teal-300">
+                  Nº {currentReceipt.receiptNumber} • Fecha: {currentReceipt.date} {currentReceipt.time}
+                </div>
+              </div>
+
+              {/* Paciente y Tutor */}
+              <div className="grid grid-cols-2 gap-2 bg-white p-3 rounded-2xl border border-slate-200/80 shadow-2xs">
+                <div>
+                  <span className="text-[10px] text-slate-400 uppercase font-bold block">Paciente:</span>
+                  <strong className="text-slate-900 text-sm block">{currentReceipt.patientName}</strong>
+                  <span className="text-[11px] text-slate-500">
+                    {currentReceipt.species} • {currentReceipt.breed} {currentReceipt.weight ? `(${currentReceipt.weight} kg)` : ''}
+                  </span>
+                  <span className="text-[10px] text-teal-800 font-mono font-bold block mt-0.5">
+                    HC: {currentReceipt.hc}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-[10px] text-slate-400 uppercase font-bold block">Tutor Responsable:</span>
+                  <strong className="text-slate-800 block text-xs">{currentReceipt.ownerName}</strong>
+                  <span className="text-[11px] text-slate-500 block">
+                    Tel: {currentReceipt.ownerPhone || 'N/A'} {currentReceipt.ownerDni ? `• DNI: ${currentReceipt.ownerDni}` : ''}
+                  </span>
+                  <span className="text-[10px] text-slate-400 block mt-0.5">
+                    Medio de Pago: <strong className="text-slate-700 uppercase">{currentReceipt.paymentMethod}</strong>
+                  </span>
+                </div>
+              </div>
+
+              {/* Detalle de Conceptos */}
+              <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-2xs">
+                <table className="w-full text-left text-xs">
+                  <thead className="bg-slate-100 text-[10px] uppercase font-bold text-slate-600 border-b border-slate-200">
+                    <tr>
+                      <th className="p-2.5">Concepto / Prestación</th>
+                      <th className="p-2.5 text-center">Cant.</th>
+                      <th className="p-2.5 text-right">P. Unit</th>
+                      <th className="p-2.5 text-right">Subtotal</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 font-medium">
+                    {currentReceipt.items.map((it, idx) => (
+                      <tr key={idx}>
+                        <td className="p-2.5 text-slate-800 font-semibold">{it.description}</td>
+                        <td className="p-2.5 text-center font-mono font-bold text-slate-600">{it.quantity}</td>
+                        <td className="p-2.5 text-right font-mono text-slate-600">{formatCurrency(it.unitPrice)}</td>
+                        <td className="p-2.5 text-right font-mono font-bold text-slate-900">
+                          {formatCurrency(it.subtotal)}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                  <tfoot className="bg-teal-50/70 border-t-2 border-teal-200 font-bold">
+                    {currentReceipt.discount > 0 && (
+                      <tr>
+                        <td colSpan={3} className="p-2 text-right text-slate-600 text-[11px]">
+                          Bonificación / Descuento:
+                        </td>
+                        <td className="p-2 text-right font-mono text-rose-700 text-xs">
+                          -{formatCurrency(currentReceipt.discount)}
+                        </td>
+                      </tr>
+                    )}
+                    <tr>
+                      <td colSpan={3} className="p-3 text-right text-slate-900 font-black text-sm">
+                        TOTAL ABONADO:
+                      </td>
+                      <td className="p-3 text-right font-mono font-black text-base text-teal-900">
+                        {formatCurrency(currentReceipt.total)}
+                      </td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+
+              {currentReceipt.notes && (
+                <div className="bg-white p-2.5 rounded-xl border border-slate-200 text-[11px] text-slate-600">
+                  <span className="font-bold text-slate-400 text-[10px] block">Observaciones:</span>
+                  <p>{currentReceipt.notes}</p>
+                </div>
+              )}
+
+              {/* Pie con Sello y Firma */}
+              <div className="pt-2 flex items-center justify-between border-t border-slate-200 text-[11px] text-slate-600">
+                <div>
+                  <p className="font-black text-slate-900">{currentReceipt.vetInCharge}</p>
+                  <p className="font-mono text-slate-500">Médico Veterinario • Matrícula {currentReceipt.vetLicense}</p>
+                </div>
+                <div className="flex items-center gap-1.5 text-[10px] text-emerald-800 font-mono bg-emerald-50 px-2 py-1 rounded-lg border border-emerald-200">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                  <span>PAGO VERIFICADO</span>
+                </div>
+              </div>
+            </div>
+
+            {/* BOTONES DE ACCIÓN */}
+            <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-100">
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => window.print()}
+                  className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs flex items-center gap-1.5 cursor-pointer"
+                >
+                  <Printer className="w-4 h-4" />
+                  <span>Imprimir / Guardar PDF</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => handleSendReceiptWhatsApp(currentReceipt)}
+                  className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs flex items-center gap-1.5 shadow-xs cursor-pointer"
+                  title="Enviar comprobante por WhatsApp al tutor"
+                >
+                  <MessageCircle className="w-4 h-4" />
+                  <span>Enviar por WhatsApp</span>
+                </button>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setShowReceiptModal(false)}
+                className="px-5 py-2.5 bg-teal-600 hover:bg-teal-500 text-white font-bold rounded-xl text-xs shadow-md cursor-pointer"
+              >
+                Cerrar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 };

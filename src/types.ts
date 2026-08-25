@@ -817,7 +817,7 @@ export interface TriageEntry {
 }
 
 // CAJA, FACTURACIÓN Y PRESUPUESTOS
-export type InvoiceType = 'FACTURA_A' | 'FACTURA_B' | 'FACTURA_C' | 'RECIBO_X';
+export type InvoiceType = 'FACTURA_A' | 'FACTURA_B' | 'FACTURA_C' | 'RECIBO_X' | 'X';
 export type PaymentMethod = 'EFECTIVO' | 'TRANSFERENCIA' | 'TARJETA_DEBITO' | 'TARJETA_CREDITO' | 'MERCADOPAGO_QR';
 
 export interface InvoiceItem {

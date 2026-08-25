@@ -9,6 +9,11 @@ describe('Workflow de Admisión Inmediata al Registrar Paciente', () => {
       lastName: 'Pérez',
       phone: '+54 9 358 4112233',
       whatsapp: '+54 9 358 4112233',
+      email: 'guillermo@email.com',
+      address: 'Calle San Martín 450',
+      city: 'Río Cuarto',
+      province: 'Córdoba',
+      postalCode: '5800',
       dni: '32111222',
       taxCondition: 'CONSUMIDOR_FINAL',
       balance: 0,
@@ -27,7 +32,7 @@ describe('Workflow de Admisión Inmediata al Registrar Paciente', () => {
       calculatedAge: '2 años',
       weight: 3.8,
       status: 'INTERNADO',
-      alerts: [{ type: 'ALERGIA', description: 'Intolerancia a AINEs', severity: 'ALTA' }],
+      alerts: [{ type: 'ALERGIA', description: 'Intolerancia a AINEs' }],
       clinicalRecordNumber: 'HC-2026-8812',
       ownerId: owner.id,
       branchId: 'branch-central',
@@ -37,23 +42,41 @@ describe('Workflow de Admisión Inmediata al Registrar Paciente', () => {
     const hospitalization: Hospitalization = {
       id: 'hosp-101',
       patientId: patient.id,
-      admissionDate: new Date().toISOString(),
-      status: 'ACTIVA',
-      sector: 'UCI_CRITICOS',
-      kennelNumber: 'CANIL-UCI-01',
-      primaryDiagnosis: 'Obstrucción uretral felina aguda (FLUTD)',
-      priority: 'URGENTE',
+      vetInChargeId: 'usr-1',
       vetInChargeName: 'Dr. Diego Irusta',
-      fluidRateMlH: 15,
-      fluidType: 'Solución Fisiológica 0.9%',
-      hourlySheets: [],
+      sector: 'UCI',
+      kennelNumber: 'CANIL-UCI-01',
+      admittedAt: new Date().toISOString(),
+      primaryDiagnosis: 'Obstrucción uretral felina aguda (FLUTD)',
+      priority: 'CRITICO',
+      fluidTherapy: {
+        isActive: true,
+        solutionType: 'Solución Fisiológica 0.9%',
+        volumeTotalMl: 500,
+        rateMlPerHour: 15,
+        infusionRoute: 'IV',
+        startedAt: new Date().toISOString(),
+        prescribedBy: 'Dr. Diego Irusta',
+      },
+      feeding: {
+        dietType: 'NPO_AYUNO',
+        foodBrand: 'N/A',
+        amountGramsOrMl: 0,
+        frequency: 'N/A',
+        tolerance: 'EXCELENTE',
+      },
+      eliminations: [],
       medications: [],
-      observations: 'Sondaje evacuador y fluidoterapia intensiva.',
+      tasks: [],
+      hourlySheet: [],
+      intervalHours: 1,
+      status: 'ACTIVA',
+      branchId: 'branch-central',
     };
 
     expect(patient.name).toBe('Simba');
     expect(hospitalization.patientId).toBe(patient.id);
-    expect(hospitalization.sector).toBe('UCI_CRITICOS');
+    expect(hospitalization.sector).toBe('UCI');
     expect(hospitalization.kennelNumber).toBe('CANIL-UCI-01');
     expect(hospitalization.primaryDiagnosis).toContain('FLUTD');
     expect(hospitalization.status).toBe('ACTIVA');
@@ -64,7 +87,8 @@ describe('Workflow de Admisión Inmediata al Registrar Paciente', () => {
       id: 'tri-101',
       patientId: 'pat-102',
       ownerId: 'own-102',
-      entryTime: new Date().toISOString(),
+      arrivedAt: new Date().toISOString(),
+      waitTimeMinutes: 0,
       priority: 'URGENTE',
       chiefComplaint: 'Traumatismo por atropello en vía pública',
       status: 'EN_ESPERA',
