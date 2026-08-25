@@ -22,6 +22,7 @@ import {
 import { useVet } from '../context/VetContext';
 import { Prescription, PrescriptionItem, PrescriptionType, SENASACategory } from '../types';
 import { formatDate, formatWeight } from '../utils/formatters';
+import { printA4Prescription } from '../utils/printDocumentHelper';
 import { triggerHaptic } from '../utils/haptics';
 import { PageHeader, EmptyState, SearchInput, FilterBar } from './ui';
 
@@ -280,6 +281,57 @@ export const PrescriptionsView: React.FC = () => {
     showToast('success', 'Receta Emitida con Éxito', 'Receta ' + newPrescription.prescriptionNumber + ' firmada y registrada.');
   };
 
+
+  const handlePrintPrescription = (rx: Prescription) => {
+    triggerHaptic('medium');
+    const pat = patients.find((p) => p.id === rx.patientId);
+    const ow = pat ? owners.find((o) => o.id === pat.ownerId) : null;
+
+    printA4Prescription({
+      prescriptionNumber: rx.prescriptionNumber,
+      date: formatDate(rx.createdAt),
+      time: new Date(rx.createdAt).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' }),
+      type: rx.prescriptionType,
+      diagnosis: rx.diagnosis,
+      notes: rx.notes,
+      doctor: {
+        name: rx.vetName || currentUser?.name || 'Dr. Diego Iván Irusta',
+        license: rx.vetLicense || 'M.P. 502',
+      },
+      branch: {
+        name: activeBranch.name,
+        address: activeBranch.address,
+        phone: activeBranch.phone,
+      },
+      patient: {
+        name: pat?.name || 'Paciente',
+        species: pat?.species || 'CANINO',
+        breed: pat?.breed || 'Mestizo',
+        weight: pat?.weight ? `${pat.weight} kg` : 'N/A',
+        age: pat?.calculatedAge || 'Adulto',
+        hc: pat?.clinicalRecordNumber || 'HC-000',
+      },
+      owner: {
+        name: ow ? `${ow.firstName} ${ow.lastName}` : 'Tutor Responsable',
+        dni: ow?.dni || 'N/A',
+        phone: ow?.phone || ow?.whatsapp || 'N/A',
+        address: ow?.address || 'Río Cuarto',
+      },
+      items: rx.items.map((it) => ({
+        medicationName: it.medicationName,
+        activeIngredient: it.activeIngredient,
+        presentation: it.presentation,
+        dose: it.dose,
+        route: it.route,
+        frequency: it.frequency,
+        duration: it.duration,
+        quantityPrescribed: it.quantityPrescribed,
+        instructions: it.instructions,
+      })),
+    });
+    showToast('success', 'Receta en Impresión A4', `Receta ${rx.prescriptionNumber} enviada a impresión oficial.`);
+  };
+
   const handleSendWhatsApp = (rx: Prescription) => {
     triggerHaptic('light');
     const pat = patients.find((p) => p.id === rx.patientId);
@@ -500,7 +552,7 @@ export const PrescriptionsView: React.FC = () => {
 
                       <button
                         type="button"
-                        onClick={() => window.print()}
+                        onClick={() => handlePrintPrescription(rx)}
                         className="p-2 bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 rounded-xl transition-all active:scale-95"
                         title="Imprimir receta oficial"
                       >

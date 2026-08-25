@@ -1501,3 +1501,283 @@ export function printDailyCashClose(data: PrintableDailyCashCloseData) {
     }, 2000);
   }, 300);
 }
+
+export interface PrintablePrescriptionData {
+  prescriptionNumber: string;
+  date: string;
+  time: string;
+  type: string;
+  diagnosis: string;
+  notes?: string;
+  doctor: {
+    name: string;
+    license: string;
+  };
+  branch: {
+    name: string;
+    address: string;
+    phone: string;
+  };
+  patient: {
+    name: string;
+    species: string;
+    breed: string;
+    weight: string;
+    age: string;
+    hc: string;
+  };
+  owner: {
+    name: string;
+    dni: string;
+    phone: string;
+    address: string;
+  };
+  items: {
+    medicationName: string;
+    activeIngredient?: string;
+    presentation: string;
+    dose: string;
+    route: string;
+    frequency: string;
+    duration: string;
+    quantityPrescribed: number;
+    instructions: string;
+  }[];
+}
+
+export function printA4Prescription(data: PrintablePrescriptionData) {
+  const iframe = document.createElement('iframe');
+  iframe.style.position = 'fixed';
+  iframe.style.right = '0';
+  iframe.style.bottom = '0';
+  iframe.style.width = '0';
+  iframe.style.height = '0';
+  iframe.style.border = 'none';
+  document.body.appendChild(iframe);
+
+  const doc = iframe.contentWindow?.document;
+  if (!doc) return;
+
+  const html = `
+    <!DOCTYPE html>
+    <html lang="es">
+      <head>
+        <meta charset="utf-8">
+        <title>Receta Médica — ${data.prescriptionNumber}</title>
+        <style>
+          @page {
+            size: A4 portrait;
+            margin: 15mm 12mm;
+          }
+          * {
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+            color: #0f172a;
+          }
+          body {
+            margin: 0;
+            padding: 10px;
+            font-size: 11px;
+            line-height: 1.4;
+          }
+          .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            border-bottom: 2.5px solid #0f766e;
+            padding-bottom: 12px;
+            margin-bottom: 15px;
+          }
+          .clinic-name {
+            font-size: 18px;
+            font-weight: 900;
+            color: #0f766e;
+            letter-spacing: -0.5px;
+          }
+          .clinic-sub {
+            font-size: 10px;
+            color: #475569;
+            font-weight: 600;
+          }
+          .rx-badge {
+            background: #f0fdfa;
+            border: 1.5px solid #0f766e;
+            padding: 6px 12px;
+            border-radius: 8px;
+            text-align: right;
+          }
+          .rx-num {
+            font-size: 13px;
+            font-weight: 900;
+            color: #0f766e;
+            font-family: monospace;
+          }
+          .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 15px;
+          }
+          .info-card {
+            background: #f8fafc;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            padding: 8px 12px;
+          }
+          .card-title {
+            font-size: 9.5px;
+            font-weight: 800;
+            color: #0f766e;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+            border-bottom: 1px solid #e2e8f0;
+            padding-bottom: 2px;
+          }
+          .rp-heading {
+            font-size: 16px;
+            font-weight: 900;
+            font-serif: serif;
+            color: #0f766e;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+          }
+          .med-item {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-left: 3.5px solid #0f766e;
+            border-radius: 6px;
+            padding: 8px 12px;
+            margin-bottom: 10px;
+          }
+          .med-name {
+            font-size: 12px;
+            font-weight: 800;
+            color: #0f172a;
+          }
+          .med-detail {
+            font-size: 10.5px;
+            color: #334155;
+            margin-top: 2px;
+          }
+          .med-instructions {
+            font-size: 10px;
+            color: #0f766e;
+            font-style: italic;
+            margin-top: 4px;
+            background: #f0fdfa;
+            padding: 3px 6px;
+            border-radius: 4px;
+          }
+          .signatures {
+            margin-top: 50px;
+            display: flex;
+            justify-content: flex-end;
+          }
+          .sig-box {
+            width: 240px;
+            text-align: center;
+          }
+          .sig-line {
+            border-top: 1.5px solid #0f172a;
+            margin-bottom: 4px;
+          }
+          .footer-note {
+            margin-top: 30px;
+            border-top: 1px solid #e2e8f0;
+            padding-top: 6px;
+            font-size: 8.5px;
+            color: #94a3b8;
+            text-align: center;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <div>
+            <div class="clinic-name">CLÍNICA VETERINARIA IRUSTA</div>
+            <div class="clinic-sub">Dirección Médica: ${data.doctor.name} · ${data.doctor.license}</div>
+            <div class="clinic-sub">${data.branch.name} · ${data.branch.address} · Tel: ${data.branch.phone} · Río Cuarto, Córdoba</div>
+          </div>
+          <div class="rx-badge">
+            <div style="font-size: 8.5px; font-weight: bold; color: #64748b; text-transform: uppercase;">Receta Médica Veterinaria</div>
+            <div class="rx-num">${data.prescriptionNumber}</div>
+            <div style="font-size: 9px; color: #475569; margin-top: 2px;">Fecha: ${data.date}</div>
+          </div>
+        </div>
+
+        <div class="info-grid">
+          <div class="info-card">
+            <div class="card-title">Datos del Paciente</div>
+            <div><b>Nombre:</b> ${data.patient.name} · <b>Especie:</b> ${data.patient.species}</div>
+            <div><b>Raza:</b> ${data.patient.breed} · <b>Peso:</b> ${data.patient.weight}</div>
+            <div><b>HC:</b> ${data.patient.hc} · <b>Edad:</b> ${data.patient.age}</div>
+          </div>
+          <div class="info-card">
+            <div class="card-title">Datos del Tutor Responsable</div>
+            <div><b>Tutor:</b> ${data.owner.name}</div>
+            <div><b>DNI:</b> ${data.owner.dni} · <b>Tel:</b> ${data.owner.phone}</div>
+            <div><b>Domicilio:</b> ${data.owner.address}</div>
+          </div>
+        </div>
+
+        <div style="margin-bottom: 12px; font-size: 11px;">
+          <b>Diagnóstico Clínico / Motivo:</b> ${data.diagnosis}
+        </div>
+
+        <div class="rp-heading">
+          <span>℞</span>
+          <span style="font-size: 12px; font-weight: 800; text-transform: uppercase;">Prescripción & Plan Farmacológico</span>
+        </div>
+
+        <div class="med-list">
+          ${data.items.map((it, idx) => `
+            <div class="med-item">
+              <div style="display: flex; justify-content: space-between;">
+                <div class="med-name">${idx + 1}. ${it.medicationName} ${it.presentation ? '(${it.presentation})' : ''}</div>
+                <div style="font-weight: 800; font-size: 10.5px; color: #0f766e;">Cant: ${it.quantityPrescribed}</div>
+              </div>
+              ${it.activeIngredient ? `<div style="font-size: 9.5px; color: #64748b;">Principio activo: ${it.activeIngredient}</div>` : ''}
+              <div class="med-detail">
+                <b>Posología:</b> ${it.dose} · <b>Vía:</b> ${it.route} · <b>Frecuencia:</b> ${it.frequency} · <b>Duración:</b> ${it.duration}
+              </div>
+              ${it.instructions ? `<div class="med-instructions"><b>Indicaciones:</b> ${it.instructions}</div>` : ''}
+            </div>
+          `).join('')}
+        </div>
+
+        ${data.notes ? `
+          <div style="margin-top: 10px; padding: 6px 10px; background: #fffbeb; border: 1px solid #fef3c7; border-radius: 6px; font-size: 9.5px; color: #92400e;">
+            <b>Observaciones Adicionales:</b> ${data.notes}
+          </div>
+        ` : ''}
+
+        <div class="signatures">
+          <div class="sig-box">
+            <div class="sig-line"></div>
+            <div style="font-weight: 800; font-size: 11px;">${data.doctor.name}</div>
+            <div style="font-size: 9.5px; color: #475569;">Médico Veterinario · ${data.doctor.license}</div>
+            <div style="font-size: 8.5px; color: #0f766e; font-weight: bold; margin-top: 2px;">Dirección Médica • Veterinaria Irusta</div>
+          </div>
+        </div>
+
+        <div class="footer-note">
+          Receta extendida conforme a la Ley de Ejercicio Profesional Veterinario y reglamentación sanitaria SENASA. Válida por 30 días corridos a partir de su emisión.
+        </div>
+      </body>
+    </html>
+  `;
+
+  doc.open();
+  doc.write(html);
+  doc.close();
+
+  setTimeout(() => {
+    iframe.contentWindow?.focus();
+    iframe.contentWindow?.print();
+    setTimeout(() => {
+      document.body.removeChild(iframe);
+    }, 2000);
+  }, 300);
+}
