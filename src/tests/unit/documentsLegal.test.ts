@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { DOCUMENT_TEMPLATES } from '../../components/DocumentsView';
 import { maskDni } from '../../utils/formatters';
 
-describe('Gestión de Documentos Clínicos & Certificados Legales (Fase 16)', () => {
+describe('Gestión de Documentos Clínicos & Certificados Legales', () => {
   it('debe contener las 6 plantillas oficiales de consentimientos y certificados', () => {
     expect(DOCUMENT_TEMPLATES.length).toBe(6);
     const types = DOCUMENT_TEMPLATES.map((t) => t.type);
@@ -26,7 +26,7 @@ describe('Gestión de Documentos Clínicos & Certificados Legales (Fase 16)', ()
       ownerName: 'Juan Pérez',
       ownerDni: '38999888',
       vetName: 'Dr. Diego Irusta',
-      vetLicense: 'MP-VET 8812',
+      vetLicense: 'MP 8412',
     });
 
     expect(sampleText).toContain('Rocky');
@@ -40,5 +40,22 @@ describe('Gestión de Documentos Clínicos & Certificados Legales (Fase 16)', ()
     const rawDni = '38999888';
     const masked = maskDni(rawDni, false);
     expect(masked).toBe('38.***.888');
+  });
+
+  it('debe parsear y limpiar contenido JSON de evolución médica sin mostrar JSON crudo', () => {
+    const rawJsonContent = JSON.stringify({
+      id: 'doc-evo-1787616319475',
+      authorName: 'Dr. Diego Irusta',
+      authorLicense: 'MP 8412 - Dirección Médica',
+      sector: 'UCI Canil 01',
+      shift: 'DIURNO',
+      assessment: 'Paciente canino ingresa a control y tratamiento en guardia. Normotérmico.',
+      plan: 'Mantener plan de fluidos y antibióticos.',
+    });
+
+    const parsed = JSON.parse(rawJsonContent);
+    expect(parsed.authorName).toBe('Dr. Diego Irusta');
+    expect(parsed.assessment).toContain('Paciente canino ingresa a control');
+    expect(parsed.plan).toContain('Mantener plan');
   });
 });

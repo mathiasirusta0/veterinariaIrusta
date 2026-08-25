@@ -875,12 +875,19 @@ export async function syncDocumentToSupabase(doc: ClinicalDocument) {
  */
 export async function syncClinicalEvolutionToSupabase(evo: any) {
   try {
+    let cleanContent = '';
+    if (typeof evo.content === 'string' && evo.content.trim().length > 0 && !evo.content.startsWith('{')) {
+      cleanContent = evo.content;
+    } else {
+      cleanContent = `EVOLUCIÓN MÉDICA INTEGRAL\nSector: ${evo.sector || 'UCI / Guardia'}\nTurno: ${evo.shift || 'General'}\nProfesional: ${evo.authorName || 'Dr. Diego Irusta'} (${evo.authorLicense || 'MP 8412'})\n\nEVALUACIÓN MÉDICA:\n${evo.assessment || 'Sin evaluación registrada'}\n\nPLAN TERAPÉUTICO & INDICACIONES:\n${evo.plan || 'Mantener indicaciones previas'}${evo.notes ? `\n\nOBSERVACIONES:\n${evo.notes}` : ''}`;
+    }
+
     const { error } = await supabase.from('clinical_documents').upsert({
       id: evo.id,
       patient_id: evo.patientId,
       type: 'EVOLUCION_CLINICA',
-      title: `Evolución Médica - ${evo.authorName || 'Dr. Diego Irusta'}`,
-      content: typeof evo.content === 'string' ? evo.content : JSON.stringify(evo),
+      title: `Evolución Médica Integral - ${evo.authorName || 'Dr. Diego Irusta'}`,
+      content: cleanContent,
       created_at: evo.createdAt || new Date().toISOString(),
     });
     if (error) console.error('Error syncing clinical evolution to Supabase:', error);

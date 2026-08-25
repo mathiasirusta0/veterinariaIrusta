@@ -463,3 +463,252 @@ export function downloadHtmlAsPdf(data: PrintableReceiptData) {
   // Triggers clean A4 print with save-as-PDF prompt without web UI baggage
   printA4Document(data);
 }
+
+
+export interface PrintableClinicalDocumentData {
+  title: string;
+  type: string;
+  patientName: string;
+  species: string;
+  breed?: string;
+  hc?: string;
+  ownerName: string;
+  ownerDni?: string;
+  ownerPhone?: string;
+  date: string;
+  time?: string;
+  content: string;
+  vetName: string;
+  vetLicense: string;
+  isSigned?: boolean;
+  signedByOwnerName?: string;
+  signedByOwnerDni?: string;
+  signedAt?: string;
+  signatureDataUrl?: string;
+}
+
+export function printA4ClinicalDocument(data: PrintableClinicalDocumentData) {
+  const iframe = document.createElement('iframe');
+  iframe.style.position = 'fixed';
+  iframe.style.right = '0';
+  iframe.style.bottom = '0';
+  iframe.style.width = '0';
+  iframe.style.height = '0';
+  iframe.style.border = '0';
+  document.body.appendChild(iframe);
+
+  const doc = iframe.contentWindow?.document;
+  if (!doc) return;
+
+  // Format content paragraphs
+  const formattedContent = data.content
+    .split('\n\n')
+    .map((p) => `<p style="margin: 0 0 12px 0; text-align: justify; line-height: 1.6;">${p.replace(/\n/g, '<br />')}</p>`)
+    .join('');
+
+  const html = `
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <meta charset="utf-8" />
+        <title>${data.title} - ${data.patientName}</title>
+        <style>
+          @page {
+            size: A4 portrait;
+            margin: 18mm 15mm;
+          }
+          body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            color: #0f172a;
+            background: #fff;
+            margin: 0;
+            padding: 0;
+            font-size: 12px;
+            line-height: 1.6;
+          }
+          .header {
+            border-bottom: 2px solid #0f766e;
+            padding-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 16px;
+          }
+          .clinic-name {
+            font-size: 18px;
+            font-weight: 900;
+            color: #0f766e;
+            letter-spacing: -0.5px;
+          }
+          .clinic-sub {
+            font-size: 11px;
+            color: #64748b;
+            font-weight: 600;
+          }
+          .doc-badge {
+            background: #f0fdfa;
+            border: 1px solid #99f6e4;
+            padding: 8px 14px;
+            border-radius: 8px;
+            text-align: right;
+          }
+          .doc-title {
+            font-size: 14px;
+            font-weight: 900;
+            color: #0f766e;
+          }
+          .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 16px;
+          }
+          .card {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 10px 12px;
+          }
+          .card-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 4px;
+            font-size: 11px;
+          }
+          .card-row:last-child {
+            margin-bottom: 0;
+          }
+          .label {
+            color: #64748b;
+            font-weight: 600;
+          }
+          .value {
+            color: #0f172a;
+            font-weight: 700;
+          }
+          .section-title {
+            font-size: 11px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #475569;
+            margin-top: 14px;
+            margin-bottom: 6px;
+          }
+          .content-box {
+            background: #fff;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            padding: 16px 18px;
+            font-size: 12px;
+            color: #1e293b;
+            margin-bottom: 24px;
+          }
+          .signatures-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            margin-top: 32px;
+            padding-top: 16px;
+          }
+          .sig-box {
+            text-align: center;
+            padding-top: 8px;
+          }
+          .sig-line {
+            width: 80%;
+            border-top: 1px solid #64748b;
+            margin: 0 auto 6px auto;
+          }
+          .sig-img {
+            max-height: 50px;
+            max-width: 140px;
+            object-fit: contain;
+            margin-bottom: 4px;
+          }
+          .footer-note {
+            font-size: 9px;
+            color: #94a3b8;
+            text-align: center;
+            margin-top: 24px;
+            border-top: 1px solid #e2e8f0;
+            padding-top: 8px;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <div>
+            <div class="clinic-name">VETERINARIA IRUSTA</div>
+            <div class="clinic-sub">Centro Hospitalario Veterinario • Guardia 24 Horas</div>
+            <div class="clinic-sub">Río Cuarto, Córdoba • Tel/WhatsApp: +54 9 2942 47-7136</div>
+            <div class="clinic-sub">Dirección Médica: Dr. Diego Irusta • Matrícula Profesional 8412</div>
+          </div>
+          <div class="doc-badge">
+            <div class="doc-title">${data.title}</div>
+            <div style="font-size: 10px; color: #64748b; margin-top: 2px;">Fecha de Emisión: ${data.date} ${data.time ? '· ' + data.time + ' hs' : ''}</div>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="card">
+            <div class="section-title" style="margin-top: 0;">🐾 Datos del Paciente</div>
+            <div class="card-row"><span class="label">Nombre:</span><span class="value">${data.patientName}</span></div>
+            <div class="card-row"><span class="label">Especie / Raza:</span><span class="value">${data.species} ${data.breed ? '· ' + data.breed : ''}</span></div>
+            <div class="card-row"><span class="label">Historia Clínica:</span><span class="value" style="font-family: monospace;">${data.hc || 'HC-2026'}</span></div>
+          </div>
+
+          <div class="card">
+            <div class="section-title" style="margin-top: 0;">👤 Tutor Responsable</div>
+            <div class="card-row"><span class="label">Nombre:</span><span class="value">${data.ownerName}</span></div>
+            <div class="card-row"><span class="label">DNI / Identificación:</span><span class="value">${data.ownerDni || 'S/D'}</span></div>
+            <div class="card-row"><span class="label">Teléfono:</span><span class="value">${data.ownerPhone || 'S/D'}</span></div>
+          </div>
+        </div>
+
+        <div class="section-title">📄 Declaración & Cláusulas Oficiales</div>
+        <div class="content-box">
+          ${formattedContent}
+        </div>
+
+        <div class="signatures-grid">
+          <div class="sig-box">
+            ${data.signatureDataUrl ? `<img src="${data.signatureDataUrl}" class="sig-img" alt="Firma Tutor" />` : '<div style="height: 40px;"></div>'}
+            <div class="sig-line"></div>
+            <div style="font-weight: 800; font-size: 11px;">${data.signedByOwnerName || data.ownerName}</div>
+            <div style="font-size: 10px; color: #64748b;">Firma del Tutor / Responsable Legal · DNI ${data.signedByOwnerDni || data.ownerDni || 'S/D'}</div>
+            ${data.isSigned ? '<div style="font-size: 9px; color: #166534; font-weight: bold; margin-top: 2px;">✓ Firma Digital Verificada</div>' : '<div style="font-size: 9px; color: #94a3b8; margin-top: 2px;">Pendiente de Firma</div>'}
+          </div>
+
+          <div class="sig-box">
+            <div style="height: 40px;"></div>
+            <div class="sig-line"></div>
+            <div style="font-weight: 800; font-size: 11px;">${data.vetName || 'Dr. Diego Irusta'}</div>
+            <div style="font-size: 10px; color: #64748b;">Médico Veterinario Actuante · ${data.vetLicense || 'MP 8412'}</div>
+            <div style="font-size: 9px; color: #0f766e; font-weight: bold; margin-top: 2px;">Dirección Médica • Veterinaria Irusta</div>
+          </div>
+        </div>
+
+        <div class="footer-note">
+          Documento expedido y validado digitalmente por el Sistema Hospitalario de <strong>Veterinaria Irusta</strong>. Válido como instrumento legal y sanitario.
+        </div>
+      </body>
+    </html>
+  `;
+
+  doc.open();
+  doc.write(html);
+  doc.close();
+
+  setTimeout(() => {
+    iframe.contentWindow?.focus();
+    iframe.contentWindow?.print();
+    setTimeout(() => {
+      document.body.removeChild(iframe);
+    }, 2000);
+  }, 300);
+}
+
+export function downloadClinicalDocumentPdf(data: PrintableClinicalDocumentData) {
+  printA4ClinicalDocument(data);
+}
