@@ -712,3 +712,539 @@ export function printA4ClinicalDocument(data: PrintableClinicalDocumentData) {
 export function downloadClinicalDocumentPdf(data: PrintableClinicalDocumentData) {
   printA4ClinicalDocument(data);
 }
+
+
+// ==========================================
+// HISTORIA CLÍNICA COMPLETA A4 & PDF
+// ==========================================
+
+export interface PrintableMedicalHistoryData {
+  patient: {
+    name: string;
+    species: string;
+    breed?: string;
+    sex?: string;
+    age?: string;
+    weight?: number;
+    color?: string;
+    microchip?: string;
+    hc?: string;
+    status?: string;
+  };
+  owner?: {
+    name: string;
+    phone?: string;
+    dni?: string;
+    address?: string;
+    balance?: number;
+  };
+  doctor: {
+    name: string;
+    license: string;
+  };
+  emissionDate?: string;
+  emissionTime?: string;
+  hospitalizations?: {
+    kennelNumber?: string;
+    sector?: string;
+    admittedAt: string;
+    dischargedAt?: string;
+    daysCount: string;
+    primaryDiagnosis?: string;
+    dischargeSummary?: string;
+    status: string;
+  }[];
+  vitals?: {
+    date: string;
+    dayOfWeek: string;
+    time: string;
+    temp?: number | string;
+    hr?: number | string;
+    rr?: number | string;
+    bp?: string;
+    spo2Glucose?: string;
+    pain?: number | string;
+    recordedBy?: string;
+  }[];
+  evolutions?: {
+    date: string;
+    dayOfWeek: string;
+    time: string;
+    author: string;
+    license?: string;
+    type?: string;
+    content: string;
+  }[];
+  medications?: {
+    date: string;
+    dayOfWeek: string;
+    time: string;
+    drugName: string;
+    dose: string;
+    route: string;
+    administeredBy: string;
+    notes?: string;
+  }[];
+  studies?: {
+    type: 'LABORATORIO' | 'IMAGEN' | 'CIRUGIA';
+    date: string;
+    title: string;
+    subtitle?: string;
+    details: string;
+  }[];
+  financials?: {
+    items: {
+      description: string;
+      category: string;
+      quantity: number;
+      unitPrice: number;
+      subtotal: number;
+    }[];
+    totalSpent: number;
+    totalPaid: number;
+    balanceDue: number;
+  };
+}
+
+export function printA4MedicalHistory(data: PrintableMedicalHistoryData) {
+  const iframe = document.createElement('iframe');
+  iframe.style.position = 'fixed';
+  iframe.style.right = '0';
+  iframe.style.bottom = '0';
+  iframe.style.width = '0';
+  iframe.style.height = '0';
+  iframe.style.border = '0';
+  document.body.appendChild(iframe);
+
+  const doc = iframe.contentWindow?.document;
+  if (!doc) return;
+
+  const now = new Date();
+  const emDate = data.emissionDate || now.toLocaleDateString('es-AR');
+  const emTime = data.emissionTime || now.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
+
+  const html = `
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <meta charset="utf-8" />
+        <title>Historia_Clinica_${data.patient.name}_${data.patient.hc || 'HC'}</title>
+        <style>
+          @page {
+            size: A4 portrait;
+            margin: 14mm 12mm;
+          }
+          * {
+            box-sizing: border-box;
+          }
+          body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            color: #1e293b;
+            background: #ffffff;
+            font-size: 11px;
+            line-height: 1.35;
+          }
+          .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            border-bottom: 2px solid #0f766e;
+            padding-bottom: 10px;
+            margin-bottom: 14px;
+          }
+          .clinic-name {
+            font-size: 18px;
+            font-weight: 900;
+            color: #0f766e;
+            letter-spacing: -0.5px;
+          }
+          .clinic-sub {
+            font-size: 10px;
+            color: #64748b;
+            margin-top: 1px;
+          }
+          .doc-badge {
+            text-align: right;
+          }
+          .doc-title {
+            font-size: 13px;
+            font-weight: 900;
+            color: #0f172a;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+          }
+          .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 14px;
+          }
+          .card {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 10px 12px;
+          }
+          .section-title {
+            font-size: 11px;
+            font-weight: 900;
+            color: #0f766e;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+          }
+          .card-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 10.5px;
+            margin-bottom: 3px;
+          }
+          .label {
+            color: #64748b;
+            font-weight: 600;
+          }
+          .value {
+            font-weight: 700;
+            color: #0f172a;
+          }
+          .block-section {
+            margin-bottom: 14px;
+            page-break-inside: avoid;
+          }
+          .block-title {
+            font-size: 11.5px;
+            font-weight: 900;
+            color: #0f766e;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 1.5px solid #cbd5e1;
+            padding-bottom: 4px;
+            margin-bottom: 8px;
+          }
+          table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 10px;
+            margin-bottom: 6px;
+          }
+          th {
+            background: #f1f5f9;
+            color: #334155;
+            font-weight: 800;
+            text-align: left;
+            padding: 5px 6px;
+            border: 1px solid #cbd5e1;
+          }
+          td {
+            padding: 4px 6px;
+            border: 1px solid #e2e8f0;
+            color: #1e293b;
+          }
+          tr:nth-child(even) td {
+            background: #f8fafc;
+          }
+          .evo-box {
+            background: #f8fafc;
+            border-left: 3px solid #0f766e;
+            padding: 6px 10px;
+            margin-bottom: 6px;
+            border-radius: 0 6px 6px 0;
+            border-top: 1px solid #f1f5f9;
+            border-right: 1px solid #f1f5f9;
+            border-bottom: 1px solid #f1f5f9;
+          }
+          .evo-meta {
+            font-size: 9.5px;
+            font-weight: 800;
+            color: #0f766e;
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 2px;
+          }
+          .evo-body {
+            font-size: 10.5px;
+            color: #1e293b;
+            white-space: pre-line;
+          }
+          .financial-summary {
+            display: flex;
+            justify-content: flex-end;
+            gap: 16px;
+            margin-top: 6px;
+            font-size: 11px;
+            font-weight: 800;
+          }
+          .financial-badge {
+            background: #f1f5f9;
+            border: 1px solid #cbd5e1;
+            padding: 4px 8px;
+            border-radius: 6px;
+          }
+          .signatures-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            margin-top: 20px;
+            padding-top: 10px;
+            page-break-inside: avoid;
+          }
+          .sig-box {
+            text-align: center;
+          }
+          .sig-line {
+            width: 70%;
+            border-top: 1px solid #64748b;
+            margin: 30px auto 4px auto;
+          }
+          .footer-note {
+            font-size: 8.5px;
+            color: #94a3b8;
+            text-align: center;
+            margin-top: 18px;
+            border-top: 1px solid #e2e8f0;
+            padding-top: 6px;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <div>
+            <div class="clinic-name">CLÍNICA VETERINARIA IRUSTA</div>
+            <div class="clinic-sub">Grandes y Pequeños Animales • Cuidados Críticos & Cirugía 24 Hs</div>
+            <div class="clinic-sub">Río Cuarto, Córdoba • Tel/WhatsApp: +54 9 2942 47-7136</div>
+            <div class="clinic-sub">Dirección Médica: <strong>${data.doctor.name}</strong> — Matrícula Profesional: <strong>${data.doctor.license}</strong></div>
+          </div>
+          <div class="doc-badge">
+            <div class="doc-title">Historia Clínica Integral</div>
+            <div style="font-size: 9.5px; color: #64748b; margin-top: 2px;">Emisión: ${emDate} ${emTime} hs</div>
+            <div style="font-size: 9.5px; font-weight: bold; color: #0f766e; margin-top: 2px;">Estado: ${data.patient.status || 'ACTIVO'}</div>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="card">
+            <div class="section-title">🐾 Datos del Paciente</div>
+            <div class="card-row"><span class="label">Nombre:</span><span class="value">${data.patient.name}</span></div>
+            <div class="card-row"><span class="label">Especie / Raza:</span><span class="value">${data.patient.species} ${data.patient.breed ? '• ' + data.patient.breed : ''}</span></div>
+            <div class="card-row"><span class="label">Sexo / Edad:</span><span class="value">${data.patient.sex || 'S/D'} • ${data.patient.age || 'No reg.'}</span></div>
+            <div class="card-row"><span class="label">Peso Actual:</span><span class="value">${data.patient.weight ? data.patient.weight + ' kg' : 'S/D'}</span></div>
+            <div class="card-row"><span class="label">Pelaje / Color:</span><span class="value">${data.patient.color || 'No reg.'}</span></div>
+            <div class="card-row"><span class="label">Microchip ISO:</span><span class="value" style="font-family: monospace;">${data.patient.microchip || 'Sin chip'}</span></div>
+            <div class="card-row"><span class="label">N° Ficha Clínica:</span><span class="value" style="font-family: monospace;">${data.patient.hc || 'HC-2026'}</span></div>
+          </div>
+
+          <div class="card">
+            <div class="section-title">👤 Datos del Tutor Titular</div>
+            <div class="card-row"><span class="label">Nombre:</span><span class="value">${data.owner?.name || 'Sin tutor registrado'}</span></div>
+            <div class="card-row"><span class="label">Teléfono / WhatsApp:</span><span class="value">${data.owner?.phone || 'S/D'}</span></div>
+            <div class="card-row"><span class="label">DNI / CUIT:</span><span class="value">${data.owner?.dni || 'S/D'}</span></div>
+            <div class="card-row"><span class="label">Dirección:</span><span class="value">${data.owner?.address || 'Río Cuarto, Córdoba'}</span></div>
+            <div class="card-row"><span class="label">Cuenta Corriente:</span><span class="value">${data.owner?.balance !== undefined ? '$ ' + Number(data.owner.balance).toLocaleString('es-AR', { minimumFractionDigits: 2 }) : '$ 0,00'}</span></div>
+            <div class="card-row"><span class="label">Veterinario a Cargo:</span><span class="value">${data.doctor.name} (${data.doctor.license})</span></div>
+          </div>
+        </div>
+
+        ${data.hospitalizations && data.hospitalizations.length > 0 ? `
+        <div class="block-section">
+          <div class="block-title">1. Registro de Internación & Días en Hospital</div>
+          ${data.hospitalizations.map(h => `
+            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 8px; margin-bottom: 6px;">
+              <div style="display: flex; justify-content: space-between; font-weight: bold; margin-bottom: 4px;">
+                <span>Box / Canil: ${h.kennelNumber || '01'} (${h.sector || 'GENERAL'})</span>
+                <span style="color: #0f766e;">${h.status} — ${h.daysCount}</span>
+              </div>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 4px; font-size: 10px; color: #475569;">
+                <div><strong>Ingreso:</strong> ${h.admittedAt}</div>
+                <div><strong>Egreso:</strong> ${h.dischargedAt || 'En curso'}</div>
+              </div>
+              ${h.primaryDiagnosis ? `<div style="font-size: 10px; margin-top: 3px;"><strong>Diagnóstico Principal:</strong> ${h.primaryDiagnosis}</div>` : ''}
+              ${h.dischargeSummary ? `<div style="font-size: 10px; margin-top: 3px; background: #ecfdf5; padding: 4px 6px; border-radius: 4px; color: #065f46;"><strong>Epicrisis:</strong> ${h.dischargeSummary}</div>` : ''}
+            </div>
+          `).join('')}
+        </div>
+        ` : ''}
+
+        ${data.vitals && data.vitals.length > 0 ? `
+        <div class="block-section">
+          <div class="block-title">2. Controles de Signos Vitales Multiparamétricos</div>
+          <table>
+            <thead>
+              <tr>
+                <th>Día / Fecha y Hora</th>
+                <th>Temp (°C)</th>
+                <th>FC (lpm)</th>
+                <th>FR (rpm)</th>
+                <th>P. Arterial</th>
+                <th>SpO2 / Glucosa</th>
+                <th>Dolor</th>
+                <th>Profesional</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${data.vitals.map(v => `
+                <tr>
+                  <td style="font-weight: 700;">${v.dayOfWeek} ${v.date} ${v.time}</td>
+                  <td>${v.temp || '-'}</td>
+                  <td>${v.hr || '-'}</td>
+                  <td>${v.rr || '-'}</td>
+                  <td>${v.bp || '-'}</td>
+                  <td>${v.spo2Glucose || '-'}</td>
+                  <td>${v.pain !== undefined ? v.pain + '/10' : '-'}</td>
+                  <td>${v.recordedBy || data.doctor.name}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+        ` : ''}
+
+        ${data.evolutions && data.evolutions.length > 0 ? `
+        <div class="block-section">
+          <div class="block-title">3. Evolución Médica & Notas Clínicas</div>
+          ${data.evolutions.map(e => `
+            <div class="evo-box">
+              <div class="evo-meta">
+                <span>Evolución (${e.type || 'Médica'}) — ${e.dayOfWeek} ${e.date} ${e.time} hs</span>
+                <span>${e.author} (${e.license || data.doctor.license})</span>
+              </div>
+              <div class="evo-body">${e.content}</div>
+            </div>
+          `).join('')}
+        </div>
+        ` : ''}
+
+        ${data.medications && data.medications.length > 0 ? `
+        <div class="block-section">
+          <div class="block-title">4. Medicación & Tratamientos Administrados</div>
+          <table>
+            <thead>
+              <tr>
+                <th>Día / Fecha</th>
+                <th>Hora</th>
+                <th>Fármaco / Principio Activo</th>
+                <th>Dosis</th>
+                <th>Vía</th>
+                <th>Administrado Por</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${data.medications.map(m => `
+                <tr>
+                  <td>${m.dayOfWeek} ${m.date}</td>
+                  <td style="font-weight: 700;">${m.time} hs</td>
+                  <td style="font-weight: 700; color: #0f172a;">${m.drugName}</td>
+                  <td>${m.dose}</td>
+                  <td><span style="background: #f1f5f9; padding: 1px 4px; border-radius: 3px; font-weight: bold;">${m.route}</span></td>
+                  <td>${m.administeredBy}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+        ` : ''}
+
+        ${data.studies && data.studies.length > 0 ? `
+        <div class="block-section">
+          <div class="block-title">5. Estudios Complementarios, Laboratorios & Procedimientos</div>
+          <table>
+            <thead>
+              <tr>
+                <th>Fecha</th>
+                <th>Tipo</th>
+                <th>Estudio / Procedimiento</th>
+                <th>Detalle & Conclusiones</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${data.studies.map(s => `
+                <tr>
+                  <td>${s.date}</td>
+                  <td><span style="font-weight: bold; color: #0f766e;">${s.type}</span></td>
+                  <td style="font-weight: 700;">${s.title}</td>
+                  <td>${s.details}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+        ` : ''}
+
+        ${data.financials && data.financials.items && data.financials.items.length > 0 ? `
+        <div class="block-section">
+          <div class="block-title">6. Presupuesto & Liquidación Total de Insumos y Gastos</div>
+          <table>
+            <thead>
+              <tr>
+                <th>Categoría</th>
+                <th>Descripción del Insumo / Servicio</th>
+                <th style="text-align: center;">Cant.</th>
+                <th style="text-align: right;">P. Unitario</th>
+                <th style="text-align: right;">Subtotal</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${data.financials.items.map(it => `
+                <tr>
+                  <td><span style="background: #f1f5f9; padding: 1px 4px; border-radius: 3px; font-weight: 600;">${it.category}</span></td>
+                  <td style="font-weight: 600;">${it.description}</td>
+                  <td style="text-align: center; font-weight: bold;">${it.quantity}</td>
+                  <td style="text-align: right;">$ ${Number(it.unitPrice).toLocaleString('es-AR', { minimumFractionDigits: 2 })}</td>
+                  <td style="text-align: right; font-weight: bold;">$ ${Number(it.subtotal).toLocaleString('es-AR', { minimumFractionDigits: 2 })}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+
+          <div class="financial-summary">
+            <div class="financial-badge">Total Gastado / Incurrido: <strong>$ ${Number(data.financials.totalSpent).toLocaleString('es-AR', { minimumFractionDigits: 2 })}</strong></div>
+            <div class="financial-badge" style="color: #166534;">Total Abonado: <strong>$ ${Number(data.financials.totalPaid).toLocaleString('es-AR', { minimumFractionDigits: 2 })}</strong></div>
+            <div class="financial-badge" style="${data.financials.balanceDue > 0 ? 'color: #991b1b; background: #fef2f2; border-color: #fecaca;' : 'color: #166534;'}">
+              Saldo Pendiente: <strong>$ ${Number(data.financials.balanceDue).toLocaleString('es-AR', { minimumFractionDigits: 2 })}</strong>
+            </div>
+          </div>
+        </div>
+        ` : ''}
+
+        <div class="signatures-grid">
+          <div class="sig-box">
+            <div class="sig-line"></div>
+            <div style="font-weight: 800; font-size: 11px;">${data.owner?.name || 'Tutor Responsable'}</div>
+            <div style="font-size: 9.5px; color: #64748b;">Firma del Tutor / Titular · DNI ${data.owner?.dni || 'S/D'}</div>
+          </div>
+
+          <div class="sig-box">
+            <div class="sig-line"></div>
+            <div style="font-weight: 800; font-size: 11px;">${data.doctor.name}</div>
+            <div style="font-size: 9.5px; color: #64748b;">Médico Veterinario · ${data.doctor.license}</div>
+            <div style="font-size: 9px; color: #0f766e; font-weight: bold; margin-top: 2px;">Dirección Médica • Veterinaria Irusta</div>
+          </div>
+        </div>
+
+        <div class="footer-note">
+          Historia clínica expedida bajo secreto médico y normas de ejercicio profesional del Colegio Médico Veterinario. Documento oficial auditado con firma digital.
+        </div>
+      </body>
+    </html>
+  `;
+
+  doc.open();
+  doc.write(html);
+  doc.close();
+
+  setTimeout(() => {
+    iframe.contentWindow?.focus();
+    iframe.contentWindow?.print();
+    setTimeout(() => {
+      document.body.removeChild(iframe);
+    }, 2000);
+  }, 300);
+}
+
+export function downloadMedicalHistoryPdf(data: PrintableMedicalHistoryData) {
+  printA4MedicalHistory(data);
+}

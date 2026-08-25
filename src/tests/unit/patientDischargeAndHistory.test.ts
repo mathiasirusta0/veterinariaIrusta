@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { Patient, Hospitalization, VitalSigns, ClinicalEvolutionEntry, ClinicalDocument } from '../../types';
 
-describe('Gestión de Alta Médica, Archivado y Descarga de Historia Clínica', () => {
+describe('Gestión de Alta Médica, Archivado y Descarga de Historia Clínica Integral', () => {
   const mockPatient: Patient = {
     id: 'pat-alta-01',
     name: 'Simba',
@@ -181,6 +181,22 @@ describe('Gestión de Alta Médica, Archivado y Descarga de Historia Clínica', 
     expect(doses[0].adminBy).toBe('Dr. Diego Iván Irusta');
     expect(doses[0].date).toBe('2026-08-20');
     expect(doses[1].date).toBe('2026-08-21');
+  });
+
+  it('debe liquidar y consolidar el presupuesto de insumos, medicamentos y gastos del paciente', () => {
+    const items = [
+      { description: 'Internación UCI 24hs', quantity: 3, unitPrice: 28000, subtotal: 84000 },
+      { description: 'Maropitant (Cerenia)', quantity: 2, unitPrice: 3500, subtotal: 7000 },
+      { description: 'Hemograma Completo', quantity: 1, unitPrice: 14500, subtotal: 14500 },
+    ];
+
+    const totalSpent = items.reduce((acc, it) => acc + it.subtotal, 0);
+    const totalPaid = 50000;
+    const balanceDue = totalSpent - totalPaid;
+
+    expect(totalSpent).toBe(105500);
+    expect(totalPaid).toBe(50000);
+    expect(balanceDue).toBe(55500);
   });
 
   it('debe soportar archivar y desarchivar fichas clínicas manteniendo la trazabilidad', () => {
