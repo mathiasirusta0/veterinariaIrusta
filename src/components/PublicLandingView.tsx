@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   ShieldCheck,
   Stethoscope,
@@ -14,6 +14,10 @@ import {
   Lock,
   ChevronRight,
   Compass,
+  X,
+  Send,
+  Calendar,
+  AlertCircle,
 } from 'lucide-react';
 import { triggerHaptic } from '../utils/haptics';
 
@@ -21,9 +25,23 @@ interface PublicLandingViewProps {
   onOpenLogin: () => void;
 }
 
+export const WHATSAPP_NUMBER = '5492942477136';
+export const WHATSAPP_DISPLAY = '+54 9 2942 47-7136';
+
+export const WA_TURNO_MSG = 'Hola Veterinaria Irusta, quisiera solicitar un turno o consulta médica para mi mascota.';
+export const WA_GUARDIA_MSG = 'Hola Veterinaria Irusta, tengo una urgencia veterinaria y necesito atención médica de guardia inmediata.';
+export const WA_CAMPO_MSG = 'Hola Veterinaria Irusta, quisiera coordinar una visita a campo o consulta para equinos / animales de producción.';
+export const WA_CONSULTA_MSG = 'Hola Veterinaria Irusta, quisiera hacer una consulta sobre sus servicios veterinarios.';
+
+export const getWhatsAppLink = (message: string = WA_TURNO_MSG) => {
+  return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
+};
+
 export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onOpenLogin }) => {
+  const [showWaModal, setShowWaModal] = useState(false);
+
   return (
-    <div className="min-h-screen bg-[#F9F8F5] text-[#1C2B1D] font-sans antialiased selection:bg-[#5F7359] selection:text-white">
+    <div className="min-h-screen bg-[#F9F8F5] text-[#1C2B1D] font-sans antialiased selection:bg-[#5F7359] selection:text-white relative">
       {/* 🌾 TOP BANNER VINTAGE */}
       <div className="bg-[#5F7359] text-[#F9F8F5] py-2 px-4 sm:px-8 text-xs tracking-wide font-medium flex flex-wrap items-center justify-between gap-2 border-b border-[#4D5E48]">
         <div className="flex items-center gap-2">
@@ -33,13 +51,13 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onOpenLogi
         <div className="flex items-center gap-4 text-[11px]">
           <span className="hidden sm:inline opacity-90">Río Cuarto • Buenos Aires</span>
           <a
-            href="https://wa.me/5491138229011"
+            href={getWhatsAppLink(WA_GUARDIA_MSG)}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-1 text-amber-200 hover:text-white underline font-bold"
+            className="inline-flex items-center gap-1.5 text-amber-200 hover:text-white underline font-bold transition-colors"
           >
-            <Phone className="w-3 h-3" />
-            <span>Guardia Directa: (011) 4862-9900</span>
+            <Phone className="w-3.5 h-3.5" />
+            <span>WhatsApp Guardia: {WHATSAPP_DISPLAY}</span>
           </a>
         </div>
       </div>
@@ -68,18 +86,31 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onOpenLogi
             <a href="#sedes" className="hover:text-[#1C2B1D] transition-colors">Sedes & Contacto</a>
           </nav>
 
-          {/* CTA System Access */}
-          <button
-            onClick={() => {
-              triggerHaptic('medium');
-              onOpenLogin();
-            }}
-            className="px-4 py-2.5 bg-[#5F7359] hover:bg-[#4D5E48] active:scale-98 text-white text-xs font-bold rounded-xl transition-all shadow-sm flex items-center gap-2 cursor-pointer border border-[#4D5E48]"
-          >
-            <Lock className="w-3.5 h-3.5 text-amber-200" />
-            <span>Acceso al Sistema</span>
-            <ArrowRight className="w-3.5 h-3.5" />
-          </button>
+          {/* Header Action Buttons */}
+          <div className="flex items-center gap-2.5">
+            <a
+              href={getWhatsAppLink(WA_TURNO_MSG)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hidden sm:inline-flex items-center gap-1.5 px-3.5 py-2 bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs rounded-xl shadow-xs transition-all border border-emerald-800"
+            >
+              <MessageCircle className="w-3.5 h-3.5" />
+              <span>Pedir Turno</span>
+            </a>
+
+            {/* CTA System Access */}
+            <button
+              onClick={() => {
+                triggerHaptic('medium');
+                onOpenLogin();
+              }}
+              className="px-4 py-2 bg-[#5F7359] hover:bg-[#4D5E48] active:scale-98 text-white text-xs font-bold rounded-xl transition-all shadow-sm flex items-center gap-2 cursor-pointer border border-[#4D5E48]"
+            >
+              <Lock className="w-3.5 h-3.5 text-amber-200" />
+              <span>Acceso al Sistema</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </button>
+          </div>
         </div>
       </header>
 
@@ -114,14 +145,42 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onOpenLogi
                 <ArrowRight className="w-4 h-4" />
               </button>
 
+              <button
+                type="button"
+                onClick={() => setShowWaModal(true)}
+                className="px-5 py-3.5 bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-sm rounded-2xl transition-all shadow-md flex items-center gap-2 cursor-pointer border border-emerald-800 active:scale-98"
+              >
+                <MessageCircle className="w-4 h-4 text-emerald-200" />
+                <span>Solicitar Turno / Consulta (WhatsApp)</span>
+              </button>
+            </div>
+
+            {/* Quick Access Badges for WhatsApp */}
+            <div className="flex flex-wrap items-center gap-2 pt-1">
+              <span className="text-[11px] font-bold text-[#6E502B]">Contacto Inmediato:</span>
               <a
-                href="https://wa.me/5491138229011"
+                href={getWhatsAppLink(WA_TURNO_MSG)}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="px-5 py-3.5 bg-white hover:bg-[#F3EFEA] border border-[#DDD7C8] text-[#1C2B1D] font-bold text-sm rounded-2xl transition-all shadow-xs flex items-center gap-2"
+                className="px-3 py-1 bg-white hover:bg-emerald-50 border border-emerald-200 text-emerald-900 font-bold text-[11px] rounded-xl transition-colors shadow-2xs flex items-center gap-1"
               >
-                <MessageCircle className="w-4 h-4 text-[#5F7359]" />
-                <span>Guardia & Consultas (WhatsApp)</span>
+                <span>🩺 Turno Clínico</span>
+              </a>
+              <a
+                href={getWhatsAppLink(WA_GUARDIA_MSG)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-3 py-1 bg-red-50 hover:bg-red-100 border border-red-200 text-red-900 font-bold text-[11px] rounded-xl transition-colors shadow-2xs flex items-center gap-1"
+              >
+                <span>🚨 Urgencia 24hs</span>
+              </a>
+              <a
+                href={getWhatsAppLink(WA_CAMPO_MSG)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-3 py-1 bg-[#EFECE3] hover:bg-[#E2DDD0] border border-[#DDD7C8] text-[#5F7359] font-bold text-[11px] rounded-xl transition-colors shadow-2xs flex items-center gap-1"
+              >
+                <span>🐴 Equinos & Campo</span>
               </a>
             </div>
 
@@ -183,7 +242,7 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onOpenLogi
         </div>
       </section>
 
-      {/* 🌿 3 GRANDES PILARES DE ATENCIÓN (SINTETIZADO Y DE ALTO IMPACTO) */}
+      {/* 🌿 3 GRANDES PILARES DE ATENCIÓN */}
       <section id="servicios" className="py-14 px-4 sm:px-8 max-w-7xl mx-auto space-y-8">
         <div className="text-center space-y-1.5 max-w-2xl mx-auto">
           <span className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#8C6B43]">Nuestros 3 Pilares Médicos</span>
@@ -263,7 +322,7 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onOpenLogi
             <p className="text-sm text-[#4A5D4B] leading-relaxed">
               En Veterinaria Irusta acompañamos a cada criador, propietario y familia con diagnósticos precisos, tecnología de avanzada y una atención compasiva e ininterrumpida las 24 horas del día.
             </p>
-            <div className="pt-2">
+            <div className="pt-2 flex flex-wrap items-center gap-3">
               <button
                 onClick={() => {
                   triggerHaptic('medium');
@@ -274,6 +333,16 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onOpenLogi
                 <span>Acceder a Historias Clínicas en VET SYSTEM</span>
                 <ArrowRight className="w-3.5 h-3.5" />
               </button>
+
+              <a
+                href={getWhatsAppLink(WA_CONSULTA_MSG)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-4 py-3 bg-white hover:bg-emerald-50 border border-emerald-300 text-emerald-900 text-xs font-bold rounded-xl transition-colors shadow-xs flex items-center gap-1.5"
+              >
+                <MessageCircle className="w-4 h-4 text-emerald-700" />
+                <span>Contactar a Dirección Médica</span>
+              </a>
             </div>
           </div>
         </div>
@@ -282,21 +351,32 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onOpenLogi
       {/* 📍 SEDES & CONTACTO */}
       <section id="sedes" className="py-14 px-4 sm:px-8 max-w-7xl mx-auto space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="bg-white rounded-3xl p-6 border border-[#E8E3D9] shadow-xs space-y-2.5">
+          <div className="bg-white rounded-3xl p-6 border border-[#E8E3D9] shadow-xs space-y-3">
             <h3 className="text-base font-serif font-bold text-[#162217]">Sede Matriz Río Cuarto (Córdoba)</h3>
             <p className="text-xs text-[#556956]">Atención a campo, boxes de internación y clínica general.</p>
-            <div className="space-y-1 text-xs text-[#4A5D4B] pt-2 border-t border-[#F3EFEA]">
+            <div className="space-y-1.5 text-xs text-[#4A5D4B] pt-2 border-t border-[#F3EFEA]">
               <div className="flex items-center gap-2"><MapPin className="w-3.5 h-3.5 text-[#5F7359]" /> <span>Río Cuarto, Córdoba (CP 5800)</span></div>
-              <div className="flex items-center gap-2"><Phone className="w-3.5 h-3.5 text-[#5F7359]" /> <span>Tel: (0358) 464-9000</span></div>
+              <div className="flex items-center gap-2">
+                <MessageCircle className="w-3.5 h-3.5 text-emerald-600" />
+                <a href={getWhatsAppLink(WA_TURNO_MSG)} target="_blank" rel="noopener noreferrer" className="text-emerald-800 font-bold hover:underline">
+                  WhatsApp Central: {WHATSAPP_DISPLAY}
+                </a>
+              </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-3xl p-6 border border-[#E8E3D9] shadow-xs space-y-2.5">
+          <div className="bg-white rounded-3xl p-6 border border-[#E8E3D9] shadow-xs space-y-3">
             <h3 className="text-base font-serif font-bold text-[#162217]">Hospital Central 24hs (Buenos Aires)</h3>
             <p className="text-xs text-[#556956]">Centro de alta complejidad, quirófano de urgencias y UCI continua.</p>
-            <div className="space-y-1 text-xs text-[#4A5D4B] pt-2 border-t border-[#F3EFEA]">
+            <div className="space-y-1.5 text-xs text-[#4A5D4B] pt-2 border-t border-[#F3EFEA]">
               <div className="flex items-center gap-2"><MapPin className="w-3.5 h-3.5 text-[#5F7359]" /> <span>Av. Corrientes 4550, CABA / Av. Maipú 2140, Olivos</span></div>
               <div className="flex items-center gap-2"><Clock className="w-3.5 h-3.5 text-[#5F7359]" /> <span>Guardia Médica 24 Horas Activa</span></div>
+              <div className="flex items-center gap-2">
+                <Phone className="w-3.5 h-3.5 text-emerald-600" />
+                <a href={getWhatsAppLink(WA_GUARDIA_MSG)} target="_blank" rel="noopener noreferrer" className="text-emerald-800 font-bold hover:underline">
+                  Línea de Urgencias: {WHATSAPP_DISPLAY}
+                </a>
+              </div>
             </div>
           </div>
         </div>
@@ -313,6 +393,12 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onOpenLogi
             <p className="text-xs text-slate-300">
               Clínica Veterinaria para Grandes y Pequeños Animales • Río Cuarto & Buenos Aires
             </p>
+            <div className="pt-1 flex items-center justify-center sm:justify-start gap-2 text-xs text-emerald-400 font-bold">
+              <MessageCircle className="w-3.5 h-3.5" />
+              <a href={getWhatsAppLink(WA_TURNO_MSG)} target="_blank" rel="noopener noreferrer" className="hover:underline">
+                WhatsApp Oficial: {WHATSAPP_DISPLAY}
+              </a>
+            </div>
           </div>
 
           <button
@@ -330,6 +416,134 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onOpenLogi
           © 2026 Veterinaria Irusta • VET SYSTEM — Todos los derechos reservados.
         </div>
       </footer>
+
+      {/* 💬 BOTÓN FLOTANTE WHATSAPP 24HS (ESQUINA INFERIOR DERECHA) */}
+      <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-2">
+        {/* Popover / Menú Rápido */}
+        {showWaModal && (
+          <div className="bg-white rounded-3xl p-5 border border-slate-200 shadow-2xl w-80 sm:w-96 space-y-3.5 animate-scale-up border-t-4 border-t-emerald-600">
+            <div className="flex items-start justify-between border-b border-slate-100 pb-3">
+              <div className="flex items-center gap-2.5">
+                <div className="w-10 h-10 rounded-full bg-emerald-600 text-white flex items-center justify-center text-xl shadow-xs">
+                  💬
+                </div>
+                <div>
+                  <h4 className="text-sm font-black text-slate-900">Veterinaria Irusta</h4>
+                  <p className="text-[11px] text-emerald-700 font-bold flex items-center gap-1">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                    <span>WhatsApp Oficial en Línea</span>
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowWaModal(false)}
+                className="text-slate-400 hover:text-slate-700 p-1 rounded-lg hover:bg-slate-100 transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <p className="text-xs text-slate-600 font-medium">
+              Seleccione la opción para enviar un mensaje directo a nuestro equipo con el texto preparado:
+            </p>
+
+            <div className="space-y-2">
+              <a
+                href={getWhatsAppLink(WA_TURNO_MSG)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full p-3 rounded-2xl bg-slate-50 hover:bg-emerald-50 border border-slate-200 hover:border-emerald-300 transition-all flex items-center justify-between gap-2 text-left group"
+              >
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-xl bg-white text-emerald-700 flex items-center justify-center shadow-2xs border border-emerald-100 font-bold">
+                    🩺
+                  </div>
+                  <div>
+                    <strong className="text-xs font-black text-slate-900 block group-hover:text-emerald-950">
+                      Solicitar Turno / Consulta
+                    </strong>
+                    <span className="text-[10px] text-slate-500">Para caninos, felinos y chequeos generales</span>
+                  </div>
+                </div>
+                <Send className="w-3.5 h-3.5 text-emerald-600 opacity-0 group-hover:opacity-100 transition-opacity" />
+              </a>
+
+              <a
+                href={getWhatsAppLink(WA_GUARDIA_MSG)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full p-3 rounded-2xl bg-red-50/60 hover:bg-red-100/80 border border-red-200 hover:border-red-300 transition-all flex items-center justify-between gap-2 text-left group"
+              >
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-xl bg-white text-red-700 flex items-center justify-center shadow-2xs border border-red-200 font-bold">
+                    🚨
+                  </div>
+                  <div>
+                    <strong className="text-xs font-black text-red-950 block">
+                      Guardia & Urgencias 24hs
+                    </strong>
+                    <span className="text-[10px] text-red-700 font-medium">Atención médica prioritaria inmediata</span>
+                  </div>
+                </div>
+                <Send className="w-3.5 h-3.5 text-red-600 opacity-0 group-hover:opacity-100 transition-opacity" />
+              </a>
+
+              <a
+                href={getWhatsAppLink(WA_CAMPO_MSG)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full p-3 rounded-2xl bg-amber-50/60 hover:bg-amber-100/80 border border-amber-200 hover:border-amber-300 transition-all flex items-center justify-between gap-2 text-left group"
+              >
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-xl bg-white text-amber-800 flex items-center justify-center shadow-2xs border border-amber-200 font-bold">
+                    🐴
+                  </div>
+                  <div>
+                    <strong className="text-xs font-black text-amber-950 block">
+                      Equinos & Visitas a Campo
+                    </strong>
+                    <span className="text-[10px] text-amber-800 font-medium">Caballos deportivos, polo y producción</span>
+                  </div>
+                </div>
+                <Send className="w-3.5 h-3.5 text-amber-700 opacity-0 group-hover:opacity-100 transition-opacity" />
+              </a>
+
+              <a
+                href={getWhatsAppLink(WA_CONSULTA_MSG)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full p-2.5 rounded-xl text-center text-xs font-bold text-slate-600 hover:text-emerald-800 hover:bg-slate-100 transition-colors block"
+              >
+                💬 Escribir mensaje libre por WhatsApp
+              </a>
+            </div>
+
+            <div className="text-center pt-1 border-t border-slate-100">
+              <span className="text-[10px] font-mono font-bold text-slate-500">
+                Número Directo: {WHATSAPP_DISPLAY}
+              </span>
+            </div>
+          </div>
+        )}
+
+        {/* Botón Principal Flotante */}
+        <button
+          type="button"
+          onClick={() => {
+            triggerHaptic('medium');
+            setShowWaModal(!showWaModal);
+          }}
+          className="px-5 py-3.5 bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs rounded-full shadow-2xl flex items-center gap-2.5 transition-all hover:scale-105 active:scale-95 border-2 border-white cursor-pointer group"
+          title="Abrir opciones de WhatsApp"
+        >
+          <div className="relative">
+            <MessageCircle className="w-5 h-5 fill-white text-emerald-600" />
+            <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-amber-400 border-2 border-emerald-600 animate-ping" />
+          </div>
+          <span className="font-sans tracking-wide">WhatsApp Guardia & Turnos</span>
+        </button>
+      </div>
     </div>
   );
 };
