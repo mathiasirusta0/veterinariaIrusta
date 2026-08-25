@@ -1781,3 +1781,500 @@ export function printA4Prescription(data: PrintablePrescriptionData) {
     }, 2000);
   }, 300);
 }
+
+export interface PrintableLabReportData {
+  orderNumber: string;
+  testType: string;
+  date: string;
+  time: string;
+  status: string;
+  requestedBy: string;
+  conclusions?: string;
+  doctor: {
+    name: string;
+    license: string;
+  };
+  branch: {
+    name: string;
+    address: string;
+    phone: string;
+  };
+  patient: {
+    name: string;
+    species: string;
+    breed: string;
+    weight: string;
+    age: string;
+    hc: string;
+  };
+  owner: {
+    name: string;
+    dni: string;
+    phone: string;
+  };
+  results: {
+    parameter: string;
+    value: string;
+    unit: string;
+    referenceRange: string;
+    isAbnormal: boolean;
+  }[];
+}
+
+export function printA4LabReport(data: PrintableLabReportData) {
+  const iframe = document.createElement('iframe');
+  iframe.style.position = 'fixed';
+  iframe.style.right = '0';
+  iframe.style.bottom = '0';
+  iframe.style.width = '0';
+  iframe.style.height = '0';
+  iframe.style.border = 'none';
+  document.body.appendChild(iframe);
+
+  const doc = iframe.contentWindow?.document;
+  if (!doc) return;
+
+  const html = `
+    <!DOCTYPE html>
+    <html lang="es">
+      <head>
+        <meta charset="utf-8">
+        <title>Informe de Laboratorio — ${data.orderNumber}</title>
+        <style>
+          @page {
+            size: A4 portrait;
+            margin: 15mm 12mm;
+          }
+          * {
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+            color: #0f172a;
+          }
+          body {
+            margin: 0;
+            padding: 10px;
+            font-size: 11px;
+            line-height: 1.4;
+          }
+          .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            border-bottom: 2.5px solid #0f766e;
+            padding-bottom: 12px;
+            margin-bottom: 15px;
+          }
+          .clinic-name {
+            font-size: 18px;
+            font-weight: 900;
+            color: #0f766e;
+            letter-spacing: -0.5px;
+          }
+          .clinic-sub {
+            font-size: 10px;
+            color: #475569;
+            font-weight: 600;
+          }
+          .lab-badge {
+            background: #f0fdfa;
+            border: 1.5px solid #0f766e;
+            padding: 6px 12px;
+            border-radius: 8px;
+            text-align: right;
+          }
+          .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 15px;
+          }
+          .info-card {
+            background: #f8fafc;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            padding: 8px 12px;
+          }
+          .card-title {
+            font-size: 9.5px;
+            font-weight: 800;
+            color: #0f766e;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+            border-bottom: 1px solid #e2e8f0;
+            padding-bottom: 2px;
+          }
+          table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            margin-bottom: 15px;
+          }
+          th {
+            background: #f1f5f9;
+            padding: 6px 8px;
+            text-align: left;
+            font-weight: 800;
+            font-size: 9.5px;
+            border-bottom: 1.5px solid #cbd5e1;
+            color: #334155;
+            text-transform: uppercase;
+          }
+          td {
+            padding: 6px 8px;
+            border-bottom: 1px solid #f1f5f9;
+            font-size: 10.5px;
+          }
+          .val-abnormal {
+            font-weight: 900;
+            color: #b91c1c;
+            background: #fef2f2;
+            padding: 2px 6px;
+            border-radius: 4px;
+            border: 1px solid #fecaca;
+          }
+          .signatures {
+            margin-top: 40px;
+            display: flex;
+            justify-content: flex-end;
+          }
+          .sig-box {
+            width: 240px;
+            text-align: center;
+          }
+          .sig-line {
+            border-top: 1.5px solid #0f172a;
+            margin-bottom: 4px;
+          }
+          .footer-note {
+            margin-top: 25px;
+            border-top: 1px solid #e2e8f0;
+            padding-top: 6px;
+            font-size: 8.5px;
+            color: #94a3b8;
+            text-align: center;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <div>
+            <div class="clinic-name">CLÍNICA VETERINARIA IRUSTA</div>
+            <div class="clinic-sub">Dirección Médica: ${data.doctor.name} · ${data.doctor.license}</div>
+            <div class="clinic-sub">${data.branch.name} · ${data.branch.address} · Tel: ${data.branch.phone} · Río Cuarto, Córdoba</div>
+          </div>
+          <div class="lab-badge">
+            <div style="font-size: 8.5px; font-weight: bold; color: #64748b; text-transform: uppercase;">Laboratorio de Análisis Clínicos</div>
+            <div style="font-size: 13px; font-weight: 900; color: #0f766e; font-family: monospace;">${data.orderNumber}</div>
+            <div style="font-size: 9px; color: #475569; margin-top: 2px;">Fecha: ${data.date} · ${data.time} hs</div>
+          </div>
+        </div>
+
+        <div class="info-grid">
+          <div class="info-card">
+            <div class="card-title">Datos del Paciente</div>
+            <div><b>Nombre:</b> ${data.patient.name} · <b>Especie:</b> ${data.patient.species}</div>
+            <div><b>Raza:</b> ${data.patient.breed} · <b>Peso:</b> ${data.patient.weight}</div>
+            <div><b>HC:</b> ${data.patient.hc} · <b>Edad:</b> ${data.patient.age}</div>
+          </div>
+          <div class="info-card">
+            <div class="card-title">Datos del Estudio & Solicitante</div>
+            <div><b>Estudio:</b> ${data.testType}</div>
+            <div><b>Solicitante:</b> ${data.requestedBy}</div>
+            <div><b>Tutor:</b> ${data.owner.name} · <b>Tel:</b> ${data.owner.phone}</div>
+          </div>
+        </div>
+
+        <div style="font-weight: 800; font-size: 11px; color: #0f766e; text-transform: uppercase; margin-top: 10px;">
+          Resultados Analíticos Obtenidos (${data.results.length} determinaciones)
+        </div>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Parámetro / Determinación</th>
+              <th>Resultado</th>
+              <th>Unidad</th>
+              <th>Rango de Referencia (${data.patient.species})</th>
+              <th>Estado</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${data.results.map(r => `
+              <tr>
+                <td style="font-weight: 700;">${r.parameter}</td>
+                <td>
+                  <span class="${r.isAbnormal ? 'val-abnormal' : ''}">${r.value}</span>
+                </td>
+                <td style="color: #64748b; font-family: monospace;">${r.unit}</td>
+                <td style="font-family: monospace; color: #334155;">${r.referenceRange}</td>
+                <td>
+                  <span style="font-weight: bold; color: ${r.isAbnormal ? '#dc2626' : '#16a34a'};">
+                    ${r.isAbnormal ? '⚠ Fuera de rango' : '✓ Normal'}
+                  </span>
+                </td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+
+        ${data.conclusions ? `
+          <div style="margin-top: 15px; padding: 10px 14px; background: #f8fafc; border: 1.5px solid #cbd5e1; border-radius: 8px;">
+            <div style="font-weight: 800; font-size: 10px; color: #0f766e; text-transform: uppercase; margin-bottom: 3px;">
+              Conclusiones & Observaciones Clínicas:
+            </div>
+            <div style="font-size: 10.5px; color: #1e293b;">${data.conclusions}</div>
+          </div>
+        ` : ''}
+
+        <div class="signatures">
+          <div class="sig-box">
+            <div class="sig-line"></div>
+            <div style="font-weight: 800; font-size: 11px;">${data.doctor.name}</div>
+            <div style="font-size: 9.5px; color: #475569;">Bioquímico / Médico Veterinario · ${data.doctor.license}</div>
+            <div style="font-size: 8.5px; color: #0f766e; font-weight: bold; margin-top: 2px;">Dirección Médica • Veterinaria Irusta</div>
+          </div>
+        </div>
+
+        <div class="footer-note">
+          Informe de laboratorio clínico veterinario. Los resultados deben correlacionarse con el cuadro clínico del paciente por el médico tratante.
+        </div>
+      </body>
+    </html>
+  `;
+
+  doc.open();
+  doc.write(html);
+  doc.close();
+
+  setTimeout(() => {
+    iframe.contentWindow?.focus();
+    iframe.contentWindow?.print();
+    setTimeout(() => {
+      document.body.removeChild(iframe);
+    }, 2000);
+  }, 300);
+}
+
+export interface PrintableImagingReportData {
+  studyNumber: string;
+  modality: string;
+  region: string;
+  date: string;
+  time: string;
+  status: string;
+  radiologistName: string;
+  findings: string;
+  conclusions: string;
+  images?: string[];
+  doctor: {
+    name: string;
+    license: string;
+  };
+  branch: {
+    name: string;
+    address: string;
+    phone: string;
+  };
+  patient: {
+    name: string;
+    species: string;
+    breed: string;
+    weight: string;
+    age: string;
+    hc: string;
+  };
+  owner: {
+    name: string;
+    dni: string;
+    phone: string;
+  };
+}
+
+export function printA4ImagingReport(data: PrintableImagingReportData) {
+  const iframe = document.createElement('iframe');
+  iframe.style.position = 'fixed';
+  iframe.style.right = '0';
+  iframe.style.bottom = '0';
+  iframe.style.width = '0';
+  iframe.style.height = '0';
+  iframe.style.border = 'none';
+  document.body.appendChild(iframe);
+
+  const doc = iframe.contentWindow?.document;
+  if (!doc) return;
+
+  const html = `
+    <!DOCTYPE html>
+    <html lang="es">
+      <head>
+        <meta charset="utf-8">
+        <title>Informe de Diagnóstico por Imágenes — ${data.studyNumber}</title>
+        <style>
+          @page {
+            size: A4 portrait;
+            margin: 15mm 12mm;
+          }
+          * {
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+            color: #0f172a;
+          }
+          body {
+            margin: 0;
+            padding: 10px;
+            font-size: 11px;
+            line-height: 1.4;
+          }
+          .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            border-bottom: 2.5px solid #0f766e;
+            padding-bottom: 12px;
+            margin-bottom: 15px;
+          }
+          .clinic-name {
+            font-size: 18px;
+            font-weight: 900;
+            color: #0f766e;
+            letter-spacing: -0.5px;
+          }
+          .clinic-sub {
+            font-size: 10px;
+            color: #475569;
+            font-weight: 600;
+          }
+          .img-badge {
+            background: #f0fdfa;
+            border: 1.5px solid #0f766e;
+            padding: 6px 12px;
+            border-radius: 8px;
+            text-align: right;
+          }
+          .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 15px;
+          }
+          .info-card {
+            background: #f8fafc;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            padding: 8px 12px;
+          }
+          .card-title {
+            font-size: 9.5px;
+            font-weight: 800;
+            color: #0f766e;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+            border-bottom: 1px solid #e2e8f0;
+            padding-bottom: 2px;
+          }
+          .section-box {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-left: 3.5px solid #0f766e;
+            border-radius: 6px;
+            padding: 10px 14px;
+            margin-bottom: 12px;
+          }
+          .section-title {
+            font-weight: 800;
+            font-size: 10.5px;
+            color: #0f766e;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+          }
+          .signatures {
+            margin-top: 40px;
+            display: flex;
+            justify-content: flex-end;
+          }
+          .sig-box {
+            width: 240px;
+            text-align: center;
+          }
+          .sig-line {
+            border-top: 1.5px solid #0f172a;
+            margin-bottom: 4px;
+          }
+          .footer-note {
+            margin-top: 25px;
+            border-top: 1px solid #e2e8f0;
+            padding-top: 6px;
+            font-size: 8.5px;
+            color: #94a3b8;
+            text-align: center;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <div>
+            <div class="clinic-name">CLÍNICA VETERINARIA IRUSTA</div>
+            <div class="clinic-sub">Dirección Médica: ${data.doctor.name} · ${data.doctor.license}</div>
+            <div class="clinic-sub">${data.branch.name} · ${data.branch.address} · Tel: ${data.branch.phone} · Río Cuarto, Córdoba</div>
+          </div>
+          <div class="img-badge">
+            <div style="font-size: 8.5px; font-weight: bold; color: #64748b; text-transform: uppercase;">Diagnóstico por Imágenes</div>
+            <div style="font-size: 13px; font-weight: 900; color: #0f766e; font-family: monospace;">${data.studyNumber}</div>
+            <div style="font-size: 9px; color: #475569; margin-top: 2px;">Fecha: ${data.date} · ${data.time} hs</div>
+          </div>
+        </div>
+
+        <div class="info-grid">
+          <div class="info-card">
+            <div class="card-title">Datos del Paciente</div>
+            <div><b>Nombre:</b> ${data.patient.name} · <b>Especie:</b> ${data.patient.species}</div>
+            <div><b>Raza:</b> ${data.patient.breed} · <b>Peso:</b> ${data.patient.weight}</div>
+            <div><b>HC:</b> ${data.patient.hc} · <b>Edad:</b> ${data.patient.age}</div>
+          </div>
+          <div class="info-card">
+            <div class="card-title">Datos del Estudio Realizado</div>
+            <div><b>Modalidad:</b> ${data.modality}</div>
+            <div><b>Región Anatómica:</b> ${data.region}</div>
+            <div><b>Especialista / Informante:</b> ${data.radiologistName}</div>
+            <div><b>Tutor:</b> ${data.owner.name} · <b>Tel:</b> ${data.owner.phone}</div>
+          </div>
+        </div>
+
+        <div class="section-box">
+          <div class="section-title">Hallazgos & Descripción Radiológica / Ecográfica:</div>
+          <div style="font-size: 11px; color: #1e293b; white-space: pre-line;">${data.findings || 'Sin hallazgos patológicos significativos observados.'}</div>
+        </div>
+
+        <div class="section-box" style="background: #f0fdfa; border-color: #0f766e;">
+          <div class="section-title">Conclusión Diagnóstica & Sugerencias:</div>
+          <div style="font-size: 11px; font-weight: 700; color: #0f766e; white-space: pre-line;">${data.conclusions || 'Estudio compatible con parámetros normales.'}</div>
+        </div>
+
+        <div class="signatures">
+          <div class="sig-box">
+            <div class="sig-line"></div>
+            <div style="font-weight: 800; font-size: 11px;">${data.radiologistName || data.doctor.name}</div>
+            <div style="font-size: 9.5px; color: #475569;">Especialista en Diagnóstico por Imágenes · ${data.doctor.license}</div>
+            <div style="font-size: 8.5px; color: #0f766e; font-weight: bold; margin-top: 2px;">Dirección Médica • Veterinaria Irusta</div>
+          </div>
+        </div>
+
+        <div class="footer-note">
+          Informe de diagnóstico por imágenes. Documento médico oficial con validez clínico-legal.
+        </div>
+      </body>
+    </html>
+  `;
+
+  doc.open();
+  doc.write(html);
+  doc.close();
+
+  setTimeout(() => {
+    iframe.contentWindow?.focus();
+    iframe.contentWindow?.print();
+    setTimeout(() => {
+      document.body.removeChild(iframe);
+    }, 2000);
+  }, 300);
+}

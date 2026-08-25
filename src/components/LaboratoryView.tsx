@@ -21,12 +21,15 @@ import {
 import { useVet } from '../context/VetContext';
 import { LaboratoryOrder, LabResultItem, LabTestType } from '../types';
 import { formatDate, formatDateTime, formatWeight } from '../utils/formatters';
+import { printA4LabReport } from '../utils/printDocumentHelper';
 import { triggerHaptic } from '../utils/haptics';
 import { PageHeader, EmptyState, SearchInput, FilterBar } from './ui';
 
 export const LaboratoryView: React.FC = () => {
   const {
     labOrders,
+    currentUser,
+    activeBranch,
     patients,
     owners,
     updateLabResults,
@@ -93,6 +96,53 @@ export const LaboratoryView: React.FC = () => {
           ]
     );
     setEditConclusions(lab.conclusions || 'Parámetros evaluados dentro de rangos normales de referencia.');
+  };
+
+
+  const handlePrintLab = (lab: LaboratoryOrder) => {
+    triggerHaptic('medium');
+    const pat = patients.find((p) => p.id === lab.patientId);
+    const ow = pat ? owners.find((o) => o.id === pat.ownerId) : null;
+
+    printA4LabReport({
+      orderNumber: lab.orderNumber,
+      testType: lab.testType,
+      date: formatDate(lab.requestedAt),
+      time: new Date(lab.requestedAt).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' }),
+      status: lab.status,
+      requestedBy: lab.requestedBy,
+      conclusions: lab.conclusions,
+      doctor: {
+        name: currentUser?.name || 'Dr. Diego Iván Irusta',
+        license: currentUser?.licenseNumber || 'M.P. 502',
+      },
+      branch: {
+        name: activeBranch?.name || 'Clínica Veterinaria Irusta',
+        address: activeBranch?.address || 'Río Cuarto, Córdoba',
+        phone: activeBranch?.phone || '+54 9 2942 47-7136',
+      },
+      patient: {
+        name: pat?.name || 'Paciente',
+        species: pat?.species || 'CANINO',
+        breed: pat?.breed || 'Mestizo',
+        weight: pat?.weight ? `${pat.weight} kg` : 'N/A',
+        age: pat?.calculatedAge || 'Adulto',
+        hc: pat?.clinicalRecordNumber || 'HC-000',
+      },
+      owner: {
+        name: ow ? `${ow.firstName} ${ow.lastName}` : 'Tutor Responsable',
+        dni: ow?.dni || 'N/A',
+        phone: ow?.phone || ow?.whatsapp || 'N/A',
+      },
+      results: (lab.results || []).map((r) => ({
+        parameter: r.parameter,
+        value: String(r.value),
+        unit: r.unit || '',
+        referenceRange: r.referenceRange || '-',
+        isAbnormal: !!r.isAbnormal,
+      })),
+    });
+    showToast('success', 'Informe en Impresión A4', `Informe ${lab.orderNumber} enviado a impresión oficial.`);
   };
 
   const handleSaveResults = (e: React.FormEvent) => {
@@ -403,7 +453,7 @@ export const LaboratoryView: React.FC = () => {
                     {/* Print Report */}
                     <button
                       type="button"
-                      onClick={() => window.print()}
+                      onClick={() => handlePrintLab(lab)}
                       className="min-h-[38px] p-2 bg-slate-50 hover:bg-slate-100 text-slate-700 rounded-xl border border-slate-200 transition-colors"
                       title="Imprimir informe analítico oficial"
                     >

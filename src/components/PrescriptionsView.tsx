@@ -150,6 +150,8 @@ const CLINICAL_PRESETS: PrescriptionPreset[] = [
 export const PrescriptionsView: React.FC = () => {
   const {
     prescriptions,
+    currentUser,
+    activeBranch,
     patients,
     owners,
     users,
@@ -289,19 +291,19 @@ export const PrescriptionsView: React.FC = () => {
 
     printA4Prescription({
       prescriptionNumber: rx.prescriptionNumber,
-      date: formatDate(rx.createdAt),
-      time: new Date(rx.createdAt).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' }),
+      date: formatDate(rx.date || new Date().toISOString()),
+      time: new Date().toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' }),
       type: rx.prescriptionType,
-      diagnosis: rx.diagnosis,
+      diagnosis: rx.diagnosis || 'Consulta clínica general',
       notes: rx.notes,
       doctor: {
         name: rx.vetName || currentUser?.name || 'Dr. Diego Iván Irusta',
         license: rx.vetLicense || 'M.P. 502',
       },
       branch: {
-        name: activeBranch.name,
-        address: activeBranch.address,
-        phone: activeBranch.phone,
+        name: activeBranch?.name || 'Clínica Veterinaria Irusta',
+        address: activeBranch?.address || 'Río Cuarto, Córdoba',
+        phone: activeBranch?.phone || '+54 9 2942 47-7136',
       },
       patient: {
         name: pat?.name || 'Paciente',
@@ -326,7 +328,7 @@ export const PrescriptionsView: React.FC = () => {
         frequency: it.frequency,
         duration: it.duration,
         quantityPrescribed: it.quantityPrescribed,
-        instructions: it.instructions,
+        instructions: it.instructions || '',
       })),
     });
     showToast('success', 'Receta en Impresión A4', `Receta ${rx.prescriptionNumber} enviada a impresión oficial.`);
