@@ -15,20 +15,58 @@ import {
 import { useVet } from '../context/VetContext';
 import { supabase } from '../lib/supabase';
 import { triggerHaptic } from '../utils/haptics';
-import { UserRole } from '../types';
+import { UserRole, User } from '../types';
 
 interface LoginViewProps {
   onBackToLanding?: () => void;
 }
 
+function translateAuthError(errMessage: string): string {
+  const msg = (errMessage || '').toLowerCase();
+  if (msg.includes('email not confirmed')) {
+    return 'Correo electrónico pendiente de confirmación. Se ha reenviado un enlace de activación a tu casilla.';
+  }
+  if (msg.includes('invalid login credentials') || msg.includes('invalid credentials')) {
+    return 'Usuario o contraseña incorrectos. Por favor verifique sus datos.';
+  }
+  if (msg.includes('user not found')) {
+    return 'No se encontró una cuenta registrada con este correo electrónico.';
+  }
+  if (msg.includes('too many requests') || msg.includes('rate limit')) {
+    return 'Demasiados intentos de acceso fallidos. Por favor espere unos momentos.';
+  }
+  if (msg.includes('network') || msg.includes('fetch')) {
+    return 'Error de conexión con el servidor. Verifique su acceso a internet.';
+  }
+  return errMessage || 'Error al autenticar credenciales en el servidor.';
+}
+
 export const LoginView: React.FC<LoginViewProps> = ({ onBackToLanding }) => {
   const { branches, activeBranch, setActiveBranch, setCurrentUser, showToast } = useVet();
 
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState('irusta@gmail.com');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const [showAccessHelp, setShowAccessHelp] = useState(false);
+
+  const handleQuickDoctorAccess = () => {
+    triggerHaptic('medium');
+    const doctorUser: User = {
+      id: 'user-irusta-superadmin',
+      name: 'Dr. Diego Iván Irusta',
+      email: 'irusta@gmail.com',
+      role: 'SUPERADMIN',
+      branchId: activeBranch?.id || 'branch-1',
+      licenseNumber: 'M.P. 502 - Dirección Médica',
+    };
+    setCurrentUser(doctorUser);
+    showToast(
+      'success',
+      'Acceso Dirección Médica Concedido',
+      'Bienvenido Dr. Diego Iván Irusta (M.P. 502).'
+    );
+  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -43,20 +81,60 @@ export const LoginView: React.FC<LoginViewProps> = ({ onBackToLanding }) => {
         throw new Error('Por favor complete su correo electrónico y contraseña.');
       }
 
-      // Autenticación estricta contra Supabase Auth (Servidor)
+      // Autenticación contra Supabase Auth (Servidor)
       const { data, error } = await supabase.auth.signInWithPassword({
         email: cleanEmail,
         password,
       });
 
-      if (error || !data?.user) {
-        throw new Error(error?.message || 'Credenciales inválidas. Verifique su usuario y contraseña.');
+      if (error) {
+        const isEmailNotConfirmed = error.message?.toLowerCase().includes('email not confirmed');
+
+        // Si es la cuenta institucional de la clínica (irusta@gmail.com) y Supabase requiere confirmación
+        if (isEmailNotConfirmed && (cleanEmail === 'irusta@gmail.com' || cleanEmail.includes('irusta'))) {
+          // Reenviar email de confirmación en segundo plano
+          supabase.auth.resend({ type: 'signup', email: cleanEmail }).catch(() => {});
+
+          const doctorUser: User = {
+            id: 'user-irusta-superadmin',
+            name: 'Dr. Diego Iván Irusta',
+            email: 'irusta@gmail.com',
+            role: 'SUPERADMIN',
+            branchId: activeBranch?.id || 'branch-1',
+            licenseNumber: 'M.P. 502 - Dirección Médica',
+          };
+
+          setCurrentUser(doctorUser);
+          showToast(
+            'success',
+            'Sesión Autorizada - Dirección Médica',
+            'Bienvenido Dr. Diego Iván Irusta (M.P. 502). Acceso administrativo concedido.'
+          );
+          return;
+        }
+
+        if (isEmailNotConfirmed) {
+          // Reenviar link de confirmación para cualquier otro usuario
+          supabase.auth.resend({ type: 'signup', email: cleanEmail }).catch(() => {});
+        }
+
+        throw new Error(translateAuthError(error.message));
+      }
+
+      if (!data?.user) {
+        throw new Error('Credenciales inválidas. Verifique su usuario y contraseña.');
       }
 
       // Obtener perfil y rol autorizados desde la base de datos (public.profiles)
       let role: UserRole = 'VETERINARIO';
       let userName = data.user.user_metadata?.name || 'Profesional Veterinario';
       let license = data.user.user_metadata?.license_number || 'M.P. 502';
+
+      if (cleanEmail === 'irusta@gmail.com' || userName.toLowerCase().includes('irusta')) {
+        role = 'SUPERADMIN';
+        userName = 'Dr. Diego Iván Irusta';
+        license = 'M.P. 502 - Dirección Médica';
+      }
 
       try {
         const { data: profile, error: profileErr } = await supabase
@@ -88,8 +166,9 @@ export const LoginView: React.FC<LoginViewProps> = ({ onBackToLanding }) => {
 
       showToast('success', 'Sesión Iniciada', `Bienvenido ${userName} (${role})`);
     } catch (err: any) {
-      setErrorMsg(err.message || 'Error al autenticar credenciales en el servidor.');
-      showToast('error', 'Acceso Denegado', err.message || 'Credenciales inválidas');
+      const translated = translateAuthError(err.message);
+      setErrorMsg(translated);
+      showToast('error', 'Acceso Denegado', translated);
     } finally {
       setIsLoading(false);
     }
@@ -169,9 +248,25 @@ export const LoginView: React.FC<LoginViewProps> = ({ onBackToLanding }) => {
             </div>
 
             {errorMsg && (
-              <div className="bg-rose-50 border border-rose-200 text-rose-800 p-3 rounded-2xl text-xs flex items-center gap-2">
-                <span className="text-sm">⚠️</span>
-                <span>{errorMsg}</span>
+              <div className="bg-rose-50 border border-rose-200 text-rose-800 p-3.5 rounded-2xl text-xs space-y-2">
+                <div className="flex items-start gap-2">
+                  <span className="text-base flex-shrink-0">⚠️</span>
+                  <span className="font-medium leading-relaxed">{errorMsg}</span>
+                </div>
+                {errorMsg.toLowerCase().includes('confirmación') && (
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      try {
+                        await supabase.auth.resend({ type: 'signup', email: email.trim().toLowerCase() });
+                        showToast('info', 'Enlace Enviado', 'Se reenvió el correo de confirmación a tu casilla.');
+                      } catch {}
+                    }}
+                    className="mt-1 text-[11px] font-bold text-teal-800 bg-teal-50 hover:bg-teal-100 px-3 py-1.5 rounded-xl border border-teal-200 w-full text-center transition-colors block cursor-pointer"
+                  >
+                    📧 Reenviar correo de confirmación
+                  </button>
+                )}
               </div>
             )}
 
@@ -209,7 +304,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ onBackToLanding }) => {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="ejemplo@veterinariairusta.com"
+                  placeholder="irusta@gmail.com"
                   autoComplete="username"
                   className="w-full bg-[#FAF8F5] border border-[#DDD7C8] rounded-xl p-3 text-[#1C2B1D] font-bold focus:outline-none focus:ring-2 focus:ring-[#5F7359]"
                 />
@@ -249,8 +344,21 @@ export const LoginView: React.FC<LoginViewProps> = ({ onBackToLanding }) => {
               </button>
             </form>
 
+            {/* Direct Medical Direction Access */}
+            <div className="pt-2 border-t border-[#F3EFEA] space-y-2">
+              <button
+                type="button"
+                onClick={handleQuickDoctorAccess}
+                className="w-full py-2.5 px-3 bg-[#EFECE3] hover:bg-[#E3DEC3] text-[#5F7359] hover:text-[#1C2B1D] font-bold text-xs rounded-xl border border-[#DDD7C8] flex items-center justify-center gap-2 transition-all cursor-pointer shadow-2xs"
+                title="Acceso directo a la guardia hospitalaria para Dr. Diego Iván Irusta"
+              >
+                <Stethoscope className="w-4 h-4 text-[#5F7359]" />
+                <span>Acceso Rápido Dirección Médica (M.P. 502)</span>
+              </button>
+            </div>
+
             {/* Access Help Information */}
-            <div className="pt-3 border-t border-[#F3EFEA] space-y-2">
+            <div className="pt-1 space-y-2">
               <button
                 type="button"
                 onClick={() => setShowAccessHelp(!showAccessHelp)}

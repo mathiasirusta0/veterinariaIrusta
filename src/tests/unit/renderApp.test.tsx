@@ -101,4 +101,27 @@ describe('Autenticación y Puerta de Enlace (P0-01, P0-02)', () => {
     fireEvent.click(backButton!);
     expect(backTriggered).toBe(true);
   });
+
+  it('LoginView permite el acceso rápido de Dirección Médica (Dr. Diego Iván Irusta • M.P. 502)', async () => {
+    const { LoginView } = await import('../../components/LoginView');
+    const { VetProvider } = await import('../../context/VetContext');
+
+    const { container } = render(
+      <VetProvider>
+        <LoginView />
+      </VetProvider>
+    );
+
+    const buttons = container.querySelectorAll('button');
+    const quickAccessBtn = Array.from(buttons).find((b) => b.textContent?.includes('Dirección Médica'));
+    expect(quickAccessBtn).toBeDefined();
+
+    fireEvent.click(quickAccessBtn!);
+
+    // Verificar que el usuario queda guardado en localStorage
+    const savedUser = JSON.parse(localStorage.getItem('vetsys_auth_user') || '{}');
+    expect(savedUser.name).toBe('Dr. Diego Iván Irusta');
+    expect(savedUser.role).toBe('SUPERADMIN');
+    expect(savedUser.licenseNumber).toContain('M.P. 502');
+  });
 });
