@@ -75,7 +75,6 @@ export const Patient360View: React.FC = () => {
     prescriptions,
     openPrintModal,
     openCalculators,
-    openMonitor,
     openDentalChart,
     openAnatomicalMap,
     openAnesthesiaChart,

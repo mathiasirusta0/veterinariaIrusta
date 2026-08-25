@@ -87,7 +87,6 @@ export const HospitalizationWhiteboardView: React.FC = () => {
     setActiveView,
     openPrintModal,
     openCalculators,
-    openMonitor,
     openWhatsAppHub,
     showToast,
   } = useVet();

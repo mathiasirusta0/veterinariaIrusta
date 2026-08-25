@@ -46,7 +46,6 @@ export const DashboardView: React.FC = () => {
     setActivePatientTab,
     setQuickModal,
     openCalculators,
-    openMonitor,
   } = useVet();
 
   // Metrics
@@ -133,14 +132,6 @@ export const DashboardView: React.FC = () => {
           >
             <Calculator className="w-3.5 h-3.5 text-teal-600" />
             <span>Calculadora Dosis</span>
-          </button>
-          <button
-            onClick={() => openMonitor()}
-            className="bg-slate-900 border border-slate-700 text-emerald-400 hover:bg-slate-800 px-3 py-2 rounded-xl text-xs font-bold shadow-sm transition-all flex items-center gap-1.5"
-            title="Monitor multiparamétrico en vivo"
-          >
-            <Radio className="w-3.5 h-3.5 text-emerald-400 animate-pulse" />
-            <span>Telemetría UCI</span>
           </button>
           <button
             onClick={() => setQuickModal('NUEVO_TURNO')}

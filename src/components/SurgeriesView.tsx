@@ -38,7 +38,6 @@ export const SurgeriesView: React.FC = () => {
     setActivePatientTab,
     setActiveView,
     setQuickModal,
-    openMonitor,
     openCalculators,
     openAnesthesiaChart,
     openWhatsAppHub,
@@ -129,12 +128,6 @@ export const SurgeriesView: React.FC = () => {
         description="Planificación quirúrgica, protocolos anestésicos multimodales, estratificación ASA y listas de verificación"
         icon={Scissors}
         actions={[
-          {
-            label: 'Monitor Quirúrgico',
-            icon: Radio,
-            onClick: () => openMonitor(),
-            variant: 'secondary',
-          },
           {
             label: 'Calculadora Dosis',
             icon: Calculator,

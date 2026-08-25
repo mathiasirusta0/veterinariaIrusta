@@ -6,7 +6,6 @@ import { GlobalSearchModal } from './components/GlobalSearchModal';
 import { QuickModals } from './components/QuickModals';
 import { ClinicalCalculatorsModal } from './components/ClinicalCalculatorsModal';
 import { MedicalPrintModal } from './components/MedicalPrintModal';
-import { MultiparameterMonitorModal } from './components/MultiparameterMonitorModal';
 import { DentalChartModal } from './components/DentalChartModal';
 import { AnatomicalBodyMapModal } from './components/AnatomicalBodyMapModal';
 import { AnesthesiaChartModal } from './components/AnesthesiaChartModal';
@@ -69,9 +68,6 @@ const MainLayout: React.FC = () => {
     isPrintModalOpen,
     closePrintModal,
     printData,
-    isMonitorOpen,
-    closeMonitor,
-    monitorPatientId,
 
     // Next-Gen Modals
     isDentalChartOpen,
@@ -287,11 +283,6 @@ const MainLayout: React.FC = () => {
         isOpen={isPrintModalOpen}
         onClose={closePrintModal}
         printData={printData}
-      />
-      <MultiparameterMonitorModal
-        isOpen={isMonitorOpen}
-        onClose={closeMonitor}
-        patientId={monitorPatientId || undefined}
       />
       <DentalChartModal
         isOpen={isDentalChartOpen}

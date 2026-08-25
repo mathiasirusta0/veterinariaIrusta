@@ -69,7 +69,6 @@ export const VitalSignsView: React.FC = () => {
     setSelectedPatientId,
     setActivePatientTab,
     setActiveView,
-    openMonitor,
     openCalculators,
     showToast,
     logAudit,
@@ -249,14 +248,6 @@ export const VitalSignsView: React.FC = () => {
         </div>
 
         <div className="flex flex-wrap items-center gap-2.5">
-          <button
-            onClick={() => openMonitor()}
-            className="flex items-center gap-1.5 px-3.5 py-2 bg-slate-950 hover:bg-slate-900 text-emerald-400 border border-slate-800 text-xs font-bold rounded-lg shadow-sm transition-all"
-            title="Abrir telemetría multiparamétrica de UCI"
-          >
-            <Radio className="w-3.5 h-3.5 text-emerald-400 animate-pulse" />
-            <span>Telemetría en Vivo</span>
-          </button>
 
           <button
             onClick={() => openCalculators()}
