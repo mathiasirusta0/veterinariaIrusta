@@ -30,10 +30,13 @@ function computeBirthDateFromAge(val: number, unit: 'AÑOS' | 'MESES'): string {
 }
 
 import React, { useState } from 'react';
+import { processImageFile } from '../utils/imageUploadHelper';
 import {
   X,
   PawPrint,
   Users,
+  Camera,
+  Upload,
   Calendar,
   Clock,
   Stethoscope,
@@ -99,6 +102,7 @@ export const QuickModals: React.FC = () => {
   const [patMicrochip, setPatMicrochip] = useState('');
   const [patOwnerId, setPatOwnerId] = useState(owners[0]?.id || '');
   const [patAlert, setPatAlert] = useState('');
+  const [patPhotoUrl, setPatPhotoUrl] = useState('');
 
   // Owner Form State inside Patient Registration (Manual owner creation)
   const [patOwnerMode, setPatOwnerMode] = useState<'MANUAL' | 'EXISTING'>('MANUAL');
@@ -285,6 +289,7 @@ export const QuickModals: React.FC = () => {
       weight: Number(patWeight) || 10,
       color: patColor.trim() || 'Estándar',
       microchip: patMicrochip.trim() || undefined,
+      photoUrl: patPhotoUrl || undefined,
       ownerId: ownerIdToUse,
       status: 'ACTIVO',
       alerts: patAlert ? [{ type: 'ALERGIA' as const, description: patAlert, severity: 'ALTA' as const }] : [],
@@ -301,6 +306,7 @@ export const QuickModals: React.FC = () => {
     setPatOwnerPhone('');
     setPatOwnerDni('');
     setPatOwnerEmail('');
+    setPatPhotoUrl('');
 
     setSelectedPatientId(created.id);
     setActiveView('PACIENTES');
@@ -919,7 +925,7 @@ export const QuickModals: React.FC = () => {
               <div className="flex items-center gap-2 border-b border-slate-200/80 pb-2">
                 <span className="text-base">🛡️</span>
                 <span className="font-extrabold text-slate-900 text-xs uppercase tracking-wider">
-                  3. Datos Clínicos Adicionales
+                  3. Datos Clínicos Adicionales & Identificación
                 </span>
               </div>
 
@@ -944,6 +950,86 @@ export const QuickModals: React.FC = () => {
                     placeholder="ej: Alérgico a penicilina, Cardiópata, Agresivo..."
                     className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-rose-700 placeholder-slate-400 font-semibold focus:outline-none focus:ring-2 focus:ring-rose-500 shadow-2xs"
                   />
+                </div>
+              </div>
+            </div>
+
+            {/* BLOQUE 4: FOTO DEL PACIENTE (CÁMARA / ARCHIVO LOCAL) */}
+            <div className="p-4 bg-amber-50/40 rounded-2xl border border-amber-200/80 space-y-3 shadow-2xs">
+              <div className="flex items-center justify-between border-b border-amber-200/80 pb-2">
+                <div className="flex items-center gap-2">
+                  <span className="text-base">📷</span>
+                  <span className="font-extrabold text-amber-950 text-xs uppercase tracking-wider">
+                    4. Foto del Paciente (Cámara del Teléfono o Archivo)
+                  </span>
+                </div>
+                <span className="text-[10px] text-amber-800 font-medium">Opcional</span>
+              </div>
+
+              <div className="flex flex-col sm:flex-row items-center gap-3">
+                <div className="w-16 h-16 rounded-2xl bg-white border-2 border-amber-300 overflow-hidden flex items-center justify-center flex-shrink-0 shadow-2xs">
+                  {patPhotoUrl ? (
+                    <img src={patPhotoUrl} alt="Preview" className="w-full h-full object-cover" />
+                  ) : (
+                    <span className="text-2xl text-amber-400">🐾</span>
+                  )}
+                </div>
+
+                <div className="flex flex-wrap items-center gap-2 flex-1">
+                  <label className="px-3.5 py-2 bg-amber-700 hover:bg-amber-600 text-white rounded-xl font-bold text-xs cursor-pointer flex items-center gap-1.5 shadow-2xs active:scale-95 transition-all">
+                    <Camera className="w-4 h-4" />
+                    <span>📷 Sacar Foto con Cámara</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      capture="environment"
+                      className="hidden"
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          try {
+                            const dataUrl = await processImageFile(file);
+                            setPatPhotoUrl(dataUrl);
+                            showToast('success', 'Foto Capturada', 'Foto tomada con éxito.');
+                          } catch (err: any) {
+                            showToast('error', 'Error al Capturar Foto', err.message);
+                          }
+                        }
+                      }}
+                    />
+                  </label>
+
+                  <label className="px-3.5 py-2 bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 rounded-xl font-bold text-xs cursor-pointer flex items-center gap-1.5 active:scale-95 transition-all">
+                    <Upload className="w-4 h-4" />
+                    <span>📁 Subir desde Archivo</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          try {
+                            const dataUrl = await processImageFile(file);
+                            setPatPhotoUrl(dataUrl);
+                            showToast('success', 'Foto Cargada', 'Foto seleccionada con éxito.');
+                          } catch (err: any) {
+                            showToast('error', 'Error al Cargar Foto', err.message);
+                          }
+                        }
+                      }}
+                    />
+                  </label>
+
+                  {patPhotoUrl && (
+                    <button
+                      type="button"
+                      onClick={() => setPatPhotoUrl('')}
+                      className="px-2.5 py-2 text-rose-600 hover:bg-rose-50 rounded-xl font-bold text-xs transition-colors"
+                    >
+                      Quitar Foto
+                    </button>
+                  )}
                 </div>
               </div>
             </div>

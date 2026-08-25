@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { processImageFile } from '../utils/imageUploadHelper';
 import {
   PawPrint,
   Calendar,
@@ -37,6 +38,8 @@ import {
   Edit3,
   Trash2,
   Scale,
+  Camera,
+  Upload,
   X,
   Check,
 } from 'lucide-react';
@@ -560,16 +563,7 @@ export const Patient360View: React.FC = () => {
 
         {/* Clean Contextual Actions */}
         <div className="flex items-center gap-2">
-          {patientHosp && (
-            <button
-              onClick={() => openMonitor(patient.id)}
-              className="flex items-center gap-1.5 bg-slate-900 hover:bg-slate-800 text-emerald-400 text-xs font-bold px-3 py-2 rounded-xl transition-colors border border-slate-800 shadow-xs"
-              title="Telemetría en Vivo UCI"
-            >
-              <Radio className="w-3.5 h-3.5 text-emerald-400 animate-pulse" />
-              <span>Monitor UCI Activo</span>
-            </button>
-          )}
+
 
           <button
             type="button"
@@ -635,13 +629,38 @@ export const Patient360View: React.FC = () => {
         {/* Patient Identity Row */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-start gap-4">
-            <div className="relative flex-shrink-0">
+            <div className="relative flex-shrink-0 group">
               <img
                 src={patient.photoUrl || 'https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=200'}
                 alt={patient.name}
                 className="w-20 h-20 rounded-2xl object-cover border-2 border-slate-200 shadow-xs"
                 referrerPolicy="no-referrer"
               />
+              <label
+                className="absolute inset-0 rounded-2xl bg-black/50 opacity-0 group-hover:opacity-100 flex flex-col items-center justify-center text-white text-[10px] font-bold cursor-pointer transition-opacity backdrop-blur-2xs"
+                title="Cambiar o sacar foto al paciente"
+              >
+                <Camera className="w-5 h-5 mb-0.5 text-white" />
+                <span>Foto</span>
+                <input
+                  type="file"
+                  accept="image/*"
+                  capture="environment"
+                  className="hidden"
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      try {
+                        const dataUrl = await processImageFile(file);
+                        updatePatient(patient.id, { photoUrl: dataUrl });
+                        showToast('success', 'Foto Actualizada', `Se guardó la nueva foto de ${patient.name}.`);
+                      } catch (err: any) {
+                        showToast('error', 'Error al Cargar Foto', err.message || 'No se pudo procesar la imagen.');
+                      }
+                    }
+                  }}
+                />
+              </label>
               <span className="absolute -bottom-1 -right-1 text-sm bg-white p-0.5 rounded-full shadow-2xs">
                 {patient.species?.toUpperCase() === 'CANINO' ? '🐕' : patient.species?.toUpperCase() === 'FELINO' ? '🐈' : '🦜'}
               </span>
@@ -2587,14 +2606,77 @@ export const Patient360View: React.FC = () => {
                   </div>
 
                   <div className="sm:col-span-2">
-                    <label className="font-bold text-slate-700 block mb-1">URL Foto del Paciente</label>
-                    <input
-                      type="text"
-                      value={editFormData.photoUrl ?? ''}
-                      onChange={(e) => setEditFormData({ ...editFormData, photoUrl: e.target.value })}
-                      placeholder="https://images.unsplash.com/..."
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-teal-500 font-mono text-[11px]"
-                    />
+                    <label className="font-bold text-slate-700 block mb-1">Foto del Paciente (Cámara o Archivo Local)</label>
+                    <div className="flex flex-col sm:flex-row items-center gap-3 bg-slate-50 p-3 rounded-2xl border border-slate-200">
+                      <div className="w-16 h-16 rounded-xl bg-white border-2 border-slate-200 overflow-hidden flex items-center justify-center flex-shrink-0 shadow-2xs">
+                        {editFormData.photoUrl ? (
+                          <img
+                            src={editFormData.photoUrl}
+                            alt="Preview"
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <span className="text-2xl text-slate-400">🐾</span>
+                        )}
+                      </div>
+
+                      <div className="flex flex-wrap items-center gap-2 flex-1">
+                        <label className="px-3 py-2 bg-teal-600 hover:bg-teal-500 text-white rounded-xl font-bold text-xs cursor-pointer flex items-center gap-1.5 shadow-2xs active:scale-95 transition-all">
+                          <Camera className="w-3.5 h-3.5" />
+                          <span>📷 Sacar Foto con Cámara</span>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            capture="environment"
+                            className="hidden"
+                            onChange={async (e) => {
+                              const file = e.target.files?.[0];
+                              if (file) {
+                                try {
+                                  const dataUrl = await processImageFile(file);
+                                  setEditFormData({ ...editFormData, photoUrl: dataUrl });
+                                  showToast('success', 'Foto Capturada', 'Imagen tomada y lista para guardar.');
+                                } catch (err: any) {
+                                  showToast('error', 'Error de Imagen', err.message);
+                                }
+                              }
+                            }}
+                          />
+                        </label>
+
+                        <label className="px-3 py-2 bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 rounded-xl font-bold text-xs cursor-pointer flex items-center gap-1.5 active:scale-95 transition-all">
+                          <Upload className="w-3.5 h-3.5" />
+                          <span>📁 Subir desde Archivo</span>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={async (e) => {
+                              const file = e.target.files?.[0];
+                              if (file) {
+                                try {
+                                  const dataUrl = await processImageFile(file);
+                                  setEditFormData({ ...editFormData, photoUrl: dataUrl });
+                                  showToast('success', 'Foto Cargada', 'Imagen cargada y lista para guardar.');
+                                } catch (err: any) {
+                                  showToast('error', 'Error de Imagen', err.message);
+                                }
+                              }
+                            }}
+                          />
+                        </label>
+
+                        {editFormData.photoUrl && (
+                          <button
+                            type="button"
+                            onClick={() => setEditFormData({ ...editFormData, photoUrl: '' })}
+                            className="px-2.5 py-2 text-rose-600 hover:bg-rose-50 rounded-xl font-bold text-xs transition-colors"
+                          >
+                            Quitar Foto
+                          </button>
+                        )}
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
