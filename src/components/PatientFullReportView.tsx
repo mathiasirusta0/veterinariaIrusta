@@ -506,8 +506,8 @@ export const PatientFullReportView: React.FC<PatientFullReportViewProps> = ({ pa
       </div>
 
       {/* 2. QUICK JUMP STICKY NAV BAR (Hidden on print) */}
-      <div className="sticky top-2 z-20 bg-white/95 backdrop-blur-md border border-slate-200 p-2 rounded-2xl shadow-sm overflow-x-auto no-scrollbar print:hidden">
-        <div className="flex items-center gap-1.5 text-xs font-bold text-slate-700 min-w-max">
+      <div className="sticky top-2 z-20 bg-white/95 backdrop-blur-md border border-slate-200 p-2.5 rounded-2xl shadow-xs print:hidden">
+        <div className="flex items-center gap-1.5 text-xs font-bold text-slate-700 flex-wrap">
           <span className="text-[10px] uppercase text-slate-400 font-extrabold px-1">Secciones:</span>
           {[
             { id: 'sec-resumen', label: 'Resumen', icon: '📊' },
@@ -518,7 +518,7 @@ export const PatientFullReportView: React.FC<PatientFullReportViewProps> = ({ pa
             { id: 'sec-diagnosticos', label: 'Diagnósticos (' + patientProblems.length + ')', icon: '🎯' },
             { id: 'sec-vitals', label: 'Signos Vitales', icon: '❤️' },
             { id: 'sec-peso', label: 'Peso', icon: '⚖️' },
-            { id: 'sec-medicacion', label: 'Medicación & Recetas', icon: '💊' },
+            { id: 'sec-medicacion', label: 'Medicación', icon: '💊' },
             { id: 'sec-vacunas', label: 'Vacunas (' + patientVaccinations.length + ')', icon: '💉' },
             { id: 'sec-laboratorio', label: 'Laboratorio (' + patientLabs.length + ')', icon: '🧪' },
             { id: 'sec-imagenes', label: 'Imágenes (' + patientImaging.length + ')', icon: '📷' },
@@ -531,7 +531,7 @@ export const PatientFullReportView: React.FC<PatientFullReportViewProps> = ({ pa
               key={item.id}
               type="button"
               onClick={() => scrollToSection(item.id)}
-              className="px-2.5 py-1 bg-slate-100 hover:bg-teal-50 hover:text-teal-900 rounded-xl text-[11px] transition-colors flex items-center gap-1 border border-slate-200/60 active:scale-95"
+              className="px-2.5 py-1 bg-slate-100 hover:bg-teal-50 hover:text-teal-900 rounded-xl text-[11px] transition-colors flex items-center gap-1 border border-slate-200/60 active:scale-95 cursor-pointer shadow-2xs"
             >
               <span>{item.icon}</span>
               <span>{item.label}</span>

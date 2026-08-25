@@ -305,12 +305,12 @@ export const Patient360View: React.FC = () => {
   ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
   const tabs = [
-    { id: 'HISTORIA', label: '1. Evolución Médica (SOAP)', icon: Stethoscope, count: (clinicalEvolutions?.filter(e => e.patientId === patient.id).length || 0) },
+    { id: 'HISTORIA', label: '1. Evolución (SOAP)', icon: Stethoscope, count: (clinicalEvolutions?.filter(e => e.patientId === patient.id).length || 0) },
     { id: 'SIGNOS', label: '2. Signos Vitales', icon: Heart, count: patientVitals.length },
-    { id: 'RECETAS', label: '3. Medicación & Indicaciones', icon: Pill, count: (patientHosp?.medications?.length || 0) + patientPrescriptions.length },
-    { id: 'LABORATORIO', label: '4. Estudios & Laboratorio', icon: FlaskConical, count: patientLabs.length + patientImaging.length },
-    { id: 'TUTOR', label: '5. Tutor Responsable', icon: User, count: owner ? 1 : 0 },
-    { id: 'INFORME_COMPLETO', label: '6. Informe Completo (Expediente)', icon: FileText, count: undefined },
+    { id: 'RECETAS', label: '3. Medicación', icon: Pill, count: (patientHosp?.medications?.length || 0) + patientPrescriptions.length },
+    { id: 'LABORATORIO', label: '4. Estudios & Lab', icon: FlaskConical, count: patientLabs.length + patientImaging.length },
+    { id: 'TUTOR', label: '5. Tutor a Cargo', icon: User, count: owner ? 1 : 0 },
+    { id: 'INFORME_COMPLETO', label: '6. Informe 360°', icon: FileText, count: undefined },
   ];
 
   const handleGenerateAiSummary = () => {
@@ -720,7 +720,7 @@ export const Patient360View: React.FC = () => {
 
           {/* Owner Details Card & Immediate Actions */}
           {owner ? (
-            <div className="bg-gradient-to-br from-slate-50 to-teal-50/40 border border-teal-200/80 p-4 rounded-3xl w-full md:w-auto md:min-w-[280px] max-w-full text-xs space-y-2 shadow-xs">
+            <div className="bg-gradient-to-br from-slate-50 to-teal-50/40 border border-teal-200/80 p-4 rounded-3xl w-full md:w-auto md:min-w-[280px] max-w-full text-xs space-y-2.5 shadow-xs">
               {(() => {
                 const ownerBalance = formatOwnerBalance(owner.balance);
                 return (
@@ -735,17 +735,20 @@ export const Patient360View: React.FC = () => {
                       </span>
                     </div>
 
-                    <div>
+                    <div className="space-y-0.5">
                       <p className="font-black text-slate-900 text-sm">
                         {[owner.firstName, owner.lastName].filter(Boolean).join(' ') || 'Tutor Registrado'}
                       </p>
-                      <p className="text-slate-500 font-mono text-[11px]">
-                        {owner.dni?.length === 11 ? 'CUIT' : 'DNI'}: {owner.dni || 'S/D'} • Tel: {owner.phone || 'S/D'}
-                      </p>
+                      <div className="text-slate-500 font-mono text-[11px] flex flex-wrap items-center gap-x-2">
+                        <span>{owner.dni?.length === 11 ? 'CUIT' : 'DNI'}: {owner.dni || 'S/D'}</span>
+                        <span>•</span>
+                        <span>Tel: {owner.phone || owner.whatsapp || 'S/D'}</span>
+                      </div>
                     </div>
 
                     <div className="flex items-center gap-1.5 pt-2 border-t border-teal-100">
                       <button
+                        type="button"
                         onClick={() =>
                           openWhatsAppHub({
                             patientId: patient.id,
@@ -760,7 +763,7 @@ export const Patient360View: React.FC = () => {
                             },
                           })
                         }
-                        className="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-1.5 px-3 rounded-xl text-[11px] transition-colors flex items-center justify-center gap-1.5 shadow-2xs active:scale-95"
+                        className="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-1.5 px-3 rounded-xl text-[11px] transition-colors flex items-center justify-center gap-1.5 shadow-2xs active:scale-95 cursor-pointer"
                         title="Enviar mensaje de seguimiento por WhatsApp"
                       >
                         <span>💬</span>
@@ -785,8 +788,9 @@ export const Patient360View: React.FC = () => {
               <span className="text-[10px] font-bold text-amber-800 uppercase block">⚠️ Sin Tutor Asignado</span>
               <p className="text-slate-600 text-[11px]">Este paciente no tiene un tutor responsable vinculado.</p>
               <button
+                type="button"
                 onClick={() => setQuickModal('NUEVO_PROPIETARIO')}
-                className="w-full bg-amber-600 hover:bg-amber-500 text-white font-bold py-1.5 rounded-xl text-[11px] transition-colors"
+                className="w-full bg-amber-600 hover:bg-amber-500 text-white font-bold py-1.5 rounded-xl text-[11px] transition-colors cursor-pointer"
               >
                 + Asignar Tutor Responsable
               </button>
@@ -794,29 +798,30 @@ export const Patient360View: React.FC = () => {
           )}
         </div>
 
-        {/* 6 Autonomous Clinical Navigation Tabs */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-2 border-t border-slate-100 pt-3.5 scrollbar-none no-scrollbar snap-x snap-mandatory scroll-smooth">
+        {/* 6 Clinical Navigation Tabs Grid */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-2 border-t border-slate-100 pt-3.5">
           {tabs.map((tab) => {
             const Icon = tab.icon;
             const isActive = activePatientTab === tab.id;
             return (
               <button
                 key={tab.id}
+                type="button"
                 onClick={() => {
                   triggerHaptic('light');
                   setActivePatientTab(tab.id as any);
                 }}
-                className={`btn-physical flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-black whitespace-nowrap transition-all snap-start active:scale-95 touch-manipulation ${
+                className={`flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-2xl text-xs font-black transition-all active:scale-95 touch-manipulation cursor-pointer text-center ${
                   isActive
-                    ? 'btn-physical-teal text-white shadow-md'
-                    : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900 bg-slate-50 border border-slate-200'
+                    ? 'bg-teal-600 text-white shadow-md shadow-teal-600/20'
+                    : 'text-slate-700 hover:bg-teal-50 hover:text-teal-900 bg-slate-50 border border-slate-200/80'
                 }`}
               >
-                <Icon className={`w-4 h-4 flex-shrink-0 ${isActive ? 'text-white' : 'text-slate-400'}`} />
-                <span>{tab.label}</span>
+                <Icon className={`w-4 h-4 flex-shrink-0 ${isActive ? 'text-white' : 'text-teal-600'}`} />
+                <span className="truncate">{tab.label}</span>
                 {tab.count !== undefined && tab.count > 0 && (
                   <span
-                    className={`text-[10px] px-1.5 py-0.5 rounded-full font-mono font-bold ${
+                    className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono font-bold ${
                       isActive ? 'bg-white/25 text-white' : 'bg-slate-200 text-slate-700'
                     }`}
                   >
