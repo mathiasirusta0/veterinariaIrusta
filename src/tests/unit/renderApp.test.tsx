@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import React from 'react';
-import { describe, it, expect, beforeEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { render, screen, cleanup, fireEvent } from '@testing-library/react';
 import App from '../../App';
 
 import { ToastNotification } from '../../components/ToastNotification';
@@ -9,6 +9,10 @@ import { ToastNotification } from '../../components/ToastNotification';
 describe('Autenticación y Puerta de Enlace (P0-01, P0-02)', () => {
   beforeEach(() => {
     localStorage.clear();
+  });
+
+  afterEach(() => {
+    cleanup();
   });
 
   it('un visitante sin sesión previa visualiza la Landing Page Publicitaria Institucional', async () => {
@@ -61,5 +65,40 @@ describe('Autenticación y Puerta de Enlace (P0-01, P0-02)', () => {
       />
     );
     expect(c3.textContent).toContain('Alerta');
+  });
+
+  it('PublicLandingView ejecuta onGoToLogin y onOpenLogin correctamente sin bucles infinitos de recursión', async () => {
+    const { PublicLandingView } = await import('../../components/PublicLandingView');
+    let loginOpened = false;
+
+    const { container } = render(
+      <PublicLandingView onGoToLogin={() => { loginOpened = true; }} />
+    );
+
+    const buttons = container.querySelectorAll('button');
+    const ctaButton = Array.from(buttons).find((b) => b.textContent?.includes('Acceso al Sistema'));
+    expect(ctaButton).toBeDefined();
+
+    fireEvent.click(ctaButton!);
+    expect(loginOpened).toBe(true);
+  });
+
+  it('LoginView ejecuta onBackToLanding al solicitar volver a la página principal', async () => {
+    const { LoginView } = await import('../../components/LoginView');
+    const { VetProvider } = await import('../../context/VetContext');
+    let backTriggered = false;
+
+    const { container } = render(
+      <VetProvider>
+        <LoginView onBackToLanding={() => { backTriggered = true; }} />
+      </VetProvider>
+    );
+
+    const backButton = container.querySelector('button');
+    expect(backButton).toBeDefined();
+    expect(backButton?.textContent).toContain('Volver a la Página Principal');
+
+    fireEvent.click(backButton!);
+    expect(backTriggered).toBe(true);
   });
 });

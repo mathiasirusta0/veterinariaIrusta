@@ -355,7 +355,10 @@ export const AppContent: React.FC = () => {
     }
     return (
       <Suspense fallback={<ViewLoadingFallback />}>
-        <PublicLandingView onGoToLogin={() => setAuthViewMode('LOGIN')} />
+        <PublicLandingView
+          onGoToLogin={() => setAuthViewMode('LOGIN')}
+          onOpenLogin={() => setAuthViewMode('LOGIN')}
+        />
       </Suspense>
     );
   }

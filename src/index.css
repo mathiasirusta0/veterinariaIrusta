@@ -10,13 +10,12 @@
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
     -webkit-overflow-scrolling: touch;
     -webkit-tap-highlight-color: transparent;
-    touch-action: manipulation;
+    touch-action: pan-y pinch-zoom;
     width: 100%;
     max-width: 100%;
     overflow-x: hidden;
     margin: 0;
     padding: 0;
-    overscroll-behavior-y: none;
   }
 
   #root {
@@ -27,6 +26,7 @@
     overflow-x: hidden;
     display: flex;
     flex-direction: column;
+    touch-action: pan-y pinch-zoom;
   }
 
   /* Prevent iOS Safari auto-zoom on input focus */

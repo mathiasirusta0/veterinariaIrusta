@@ -43,12 +43,12 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onOpenLogi
 
   const handleOpenLogin = () => {
     triggerHaptic('light');
-    if (onOpenLogin) handleOpenLogin();
+    if (onOpenLogin) onOpenLogin();
     if (onGoToLogin) onGoToLogin();
   };
 
   return (
-    <div className="min-h-screen bg-[#F9F8F5] text-[#1C2B1D] font-sans antialiased selection:bg-[#5F7359] selection:text-white relative">
+    <div className="min-h-screen min-h-[100dvh] w-full max-w-full overflow-x-hidden overflow-y-auto bg-[#F9F8F5] text-[#1C2B1D] font-sans antialiased selection:bg-[#5F7359] selection:text-white relative">
       {/* 🌾 TOP BANNER VINTAGE */}
       <div className="bg-[#5F7359] text-[#F9F8F5] py-2 px-4 sm:px-8 text-xs tracking-wide font-medium flex flex-wrap items-center justify-between gap-2 border-b border-[#4D5E48]">
         <div className="flex items-center gap-2">

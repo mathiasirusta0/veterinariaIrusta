@@ -96,7 +96,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ onBackToLanding }) => {
   };
 
   return (
-    <div className="min-h-screen bg-[#F9F8F5] text-[#1C2B1D] flex flex-col lg:flex-row items-stretch justify-center selection:bg-[#5F7359] selection:text-white font-sans">
+    <div className="min-h-screen min-h-[100dvh] w-full max-w-full overflow-x-hidden overflow-y-auto bg-[#F9F8F5] text-[#1C2B1D] flex flex-col lg:flex-row items-stretch justify-center selection:bg-[#5F7359] selection:text-white font-sans">
       {/* 🌟 LEFT SIDE: BRANDING & PHOTO */}
       <div className="lg:w-1/2 p-6 sm:p-10 lg:p-14 flex flex-col justify-between bg-[#EFECE3] border-b lg:border-b-0 lg:border-r border-[#E8E3D9] relative overflow-hidden">
         <div className="relative z-10 space-y-4">
