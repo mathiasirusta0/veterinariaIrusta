@@ -319,8 +319,6 @@ export const ClinicalCalculatorsModal: React.FC<ClinicalCalculatorsModalProps> =
   // Vademécum Search
   const [vademecumSearch, setVademecumSearch] = useState('');
 
-  if (!isOpen) return null;
-
   const handlePatientSelect = (patId: string) => {
     triggerHaptic('light');
     setCurrentPatientId(patId);
@@ -508,6 +506,8 @@ export const ClinicalCalculatorsModal: React.FC<ClinicalCalculatorsModalProps> =
     navigator.clipboard.writeText(text);
     showToast('success', 'Copiado al Portapapeles', text);
   };
+
+  if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
