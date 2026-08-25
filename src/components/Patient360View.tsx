@@ -250,7 +250,7 @@ export const Patient360View: React.FC = () => {
     ...allPatientHosps.map((h) => ({
       id: h.id,
       date: h.admittedAt,
-      type: 'INTERNACION',
+      type: 'CONSULTA',
       title: `Internación Hospitalaria — Sector ${h.sector} (Canil ${h.kennelNumber})`,
       subtitle: `Diag: ${h.primaryDiagnosis} • Responsable: ${h.vetInChargeName}`,
       tag: h.status,
@@ -305,12 +305,12 @@ export const Patient360View: React.FC = () => {
   ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
   const tabs = [
-    { id: 'INFORME_COMPLETO', label: '📄 Informe Completo (Expediente)', icon: FileText, count: undefined },
-    { id: 'SIGNOS', label: '1. Signos Vitales', icon: Heart, count: patientVitals.length },
-    { id: 'RECETAS', label: '2. Medicación & Indicaciones', icon: Pill, count: (patientHosp?.medications?.length || 0) + patientPrescriptions.length },
-    { id: 'HISTORIA', label: '3. Evolución Médica', icon: Sparkles, count: (clinicalEvolutions?.filter(e => e.patientId === patient.id).length || 0) },
+    { id: 'HISTORIA', label: '1. Evolución Médica (SOAP)', icon: Stethoscope, count: (clinicalEvolutions?.filter(e => e.patientId === patient.id).length || 0) },
+    { id: 'SIGNOS', label: '2. Signos Vitales', icon: Heart, count: patientVitals.length },
+    { id: 'RECETAS', label: '3. Medicación & Indicaciones', icon: Pill, count: (patientHosp?.medications?.length || 0) + patientPrescriptions.length },
     { id: 'LABORATORIO', label: '4. Estudios & Laboratorio', icon: FlaskConical, count: patientLabs.length + patientImaging.length },
-    { id: 'TUTOR', label: '5. Propietario / Tutor', icon: User, count: owner ? 1 : 0 },
+    { id: 'TUTOR', label: '5. Tutor Responsable', icon: User, count: owner ? 1 : 0 },
+    { id: 'INFORME_COMPLETO', label: '6. Informe Completo (Expediente)', icon: FileText, count: undefined },
   ];
 
   const handleGenerateAiSummary = () => {
@@ -673,12 +673,14 @@ export const Patient360View: React.FC = () => {
                 </span>
                 <span
                   className={`text-xs font-bold px-2.5 py-0.5 rounded-full uppercase ${
-                    patient.status === 'INTERNADO' || patientHosp
-                      ? 'bg-red-50 text-red-600 border border-red-200 font-black animate-pulse'
-                      : 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                    patient.status === 'ALTA'
+                      ? 'bg-slate-100 text-slate-700 border border-slate-200'
+                      : patient.status === 'EN_TRATAMIENTO'
+                      ? 'bg-amber-50 text-amber-800 border border-amber-200 font-black'
+                      : 'bg-emerald-50 text-emerald-700 border border-emerald-200 font-black'
                   }`}
                 >
-                  {patient.status === 'INTERNADO' || patientHosp ? '🏥 INTERNADO' : '🟢 AMBULATORIO'}
+                  {patient.status === 'ALTA' ? '⚪ ALTA MÉDICA' : patient.status === 'EN_TRATAMIENTO' ? '🟡 EN TRATAMIENTO' : '🟢 EN ATENCIÓN CLÍNICA'}
                 </span>
               </div>
 
@@ -2596,7 +2598,8 @@ export const Patient360View: React.FC = () => {
                       className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-teal-500 font-medium"
                     >
                       <option value="ACTIVO">🟢 ACTIVO (Ambulatorio)</option>
-                      <option value="INTERNADO">🔴 INTERNADO (Hospital / UCI)</option>
+                      <option value="ACTIVO">🟢 ACTIVO (En Consulta / Atención)</option>
+                      <option value="EN_TRATAMIENTO">🟡 EN TRATAMIENTO / OBSERVACIÓN</option>
                       <option value="EN_CONSULTA">🟡 EN CONSULTA</option>
                       <option value="EN_CIRUGIA">🟣 EN QUIRÓFANO</option>
                       <option value="DERIVADO">⚪ DERIVADO A ESPECIALISTA</option>

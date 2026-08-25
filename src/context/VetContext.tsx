@@ -382,7 +382,7 @@ export const VetProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [activeView, setActiveView] = useState<string>('PACIENTES');
   const [selectedPatientId, setSelectedPatientId] = useState<string | null>(null); // Default select Toby
   const [selectedOwnerId, setSelectedOwnerId] = useState<string | null>(null);
-  const [activePatientTab, setActivePatientTab] = useState<string>('SIGNOS');
+  const [activePatientTab, setActivePatientTab] = useState<string>('HISTORIA');
 
   const [branches] = useState<Branch[]>(INITIAL_BRANCHES);
   const [activeBranch, setActiveBranch] = useState<Branch>(INITIAL_BRANCHES[0]);
