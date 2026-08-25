@@ -622,47 +622,6 @@ export const VaccinationView: React.FC = () => {
         />
       </div>
 
-      {/* Plantillas Rápidas de Vacunación (1-Click Presets) */}
-      <div className="bg-white border border-slate-200 rounded-3xl p-4 sm:p-5 shadow-xs space-y-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Sparkles className="w-4 h-4 text-teal-600" />
-            <h3 className="text-xs font-black text-slate-900 uppercase tracking-wider">
-              Plantillas Rápidas & Esquemas de Inmunización (1-Click)
-            </h3>
-          </div>
-          <span className="text-[11px] text-slate-400 font-semibold hidden sm:inline">
-            Selecciona una plantilla o escribe cualquier biológico a mano
-          </span>
-        </div>
-
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2">
-          {VACCINE_PRESETS.map((preset) => (
-            <button
-              key={preset.id}
-              type="button"
-              onClick={() => {
-                handleApplyPreset(preset);
-                setIsNewModalOpen(true);
-              }}
-              className="p-2.5 rounded-2xl bg-slate-50 hover:bg-teal-50/70 border border-slate-200 hover:border-teal-300 text-left transition-all group flex flex-col justify-between shadow-2xs hover:shadow-xs active:scale-95 cursor-pointer"
-            >
-              <div>
-                <span className="text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded-md bg-white border border-slate-200 text-slate-700 block w-max mb-1">
-                  {preset.categoryLabel}
-                </span>
-                <p className="text-xs font-bold text-slate-800 group-hover:text-teal-900 line-clamp-2 leading-tight">
-                  {preset.name}
-                </p>
-              </div>
-              <div className="mt-2 pt-1 border-t border-slate-200/60 flex items-center justify-between text-[10px] text-slate-500 font-mono">
-                <span>{preset.durationMonths > 0 ? `Ref: ${preset.durationMonths}m` : 'Dosis única'}</span>
-                <span className="text-teal-600 font-bold group-hover:translate-x-0.5 transition-transform">+</span>
-              </div>
-            </button>
-          ))}
-        </div>
-      </div>
 
       {/* Barra de Búsqueda y Filtros */}
       <div className="bg-white border border-slate-200 p-3 sm:p-4 rounded-3xl shadow-xs space-y-3">
@@ -1083,6 +1042,28 @@ export const VaccinationView: React.FC = () => {
                   <span className="text-[10px] text-teal-800 font-bold bg-teal-50 px-2 py-0.5 rounded-full border border-teal-200">
                     ✍️ Todos los campos editables a mano
                   </span>
+                </div>
+
+                {/* Selector Opcional de Plantilla */}
+                <div>
+                  <label className="text-slate-700 block font-bold mb-1 text-xs">
+                    Plantilla Rápida Predefinida (Opcional):
+                  </label>
+                  <select
+                    onChange={(e) => {
+                      const p = VACCINE_PRESETS.find((x) => x.id === e.target.value);
+                      if (p) handleApplyPreset(p);
+                    }}
+                    defaultValue=""
+                    className="w-full bg-white border border-slate-300 rounded-xl p-2.5 font-bold text-slate-700 text-xs shadow-2xs cursor-pointer focus:ring-2 focus:ring-teal-500"
+                  >
+                    <option value="" disabled>-- Autocompletar con plantilla rápida (opcional) --</option>
+                    {VACCINE_PRESETS.map((p) => (
+                      <option key={p.id} value={p.id}>
+                        {p.categoryLabel}: {p.name} ({p.manufacturer})
+                      </option>
+                    ))}
+                  </select>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
