@@ -47,6 +47,26 @@ export const SPECIES_RANGES = {
     spo2: { min: 95, max: 100, unit: '%', label: '95 - 100%' },
     bloodGlucose: { min: 70, max: 150, unit: 'mg/dL', label: '70 - 150 mg/dL' },
   },
+  Equino: {
+    heartRate: { min: 28, max: 44, unit: 'lpm', label: '28 - 44 lpm' },
+    respiratoryRate: { min: 8, max: 16, unit: 'rpm', label: '8 - 16 rpm' },
+    temperature: { min: 37.0, max: 38.5, unit: '°C', label: '37.0 - 38.5 °C' },
+    systolicBP: { min: 100, max: 135, unit: 'mmHg', label: '100 - 135 mmHg' },
+    diastolicBP: { min: 60, max: 85, unit: 'mmHg', label: '60 - 85 mmHg' },
+    meanBP: { min: 70, max: 95, unit: 'mmHg', label: '70 - 95 mmHg' },
+    spo2: { min: 95, max: 100, unit: '%', label: '95 - 100%' },
+    bloodGlucose: { min: 70, max: 120, unit: 'mg/dL', label: '70 - 120 mg/dL' },
+  },
+  Bovino: {
+    heartRate: { min: 55, max: 80, unit: 'lpm', label: '55 - 80 lpm' },
+    respiratoryRate: { min: 12, max: 30, unit: 'rpm', label: '12 - 30 rpm' },
+    temperature: { min: 38.0, max: 39.3, unit: '°C', label: '38.0 - 39.3 °C' },
+    systolicBP: { min: 110, max: 145, unit: 'mmHg', label: '110 - 145 mmHg' },
+    diastolicBP: { min: 65, max: 95, unit: 'mmHg', label: '65 - 95 mmHg' },
+    meanBP: { min: 75, max: 105, unit: 'mmHg', label: '75 - 105 mmHg' },
+    spo2: { min: 95, max: 100, unit: '%', label: '95 - 100%' },
+    bloodGlucose: { min: 45, max: 75, unit: 'mg/dL', label: '45 - 75 mg/dL' },
+  },
   Exótico: {
     heartRate: { min: 120, max: 300, unit: 'lpm', label: '120 - 300 lpm (según especie)' },
     respiratoryRate: { min: 30, max: 60, unit: 'rpm', label: '30 - 60 rpm' },
@@ -75,7 +95,7 @@ export const VitalSignsView: React.FC = () => {
   } = useVet();
 
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedSpecies, setSelectedSpecies] = useState<'TODAS' | 'Canino' | 'Felino' | 'Exótico'>('TODAS');
+  const [selectedSpecies, setSelectedSpecies] = useState<'TODAS' | 'Canino' | 'Felino' | 'Equino' | 'Bovino' | 'Exótico'>('TODAS');
   const [filterAlertsOnly, setFilterAlertsOnly] = useState(false);
   const [selectedPatientFilter, setSelectedPatientFilter] = useState<string>('TODOS');
 
@@ -100,8 +120,11 @@ export const VitalSignsView: React.FC = () => {
   // Helper to evaluate if vital sign is out of bounds
   const getVitalAlerts = (v: VitalSigns, patientSpecies?: string) => {
     const spUpper = (patientSpecies || 'Canino').toUpperCase();
-    const normalizedSpecies: 'Canino' | 'Felino' | 'Exótico' =
-      spUpper === 'FELINO' ? 'Felino' : spUpper.startsWith('EX') ? 'Exótico' : 'Canino';
+    const normalizedSpecies: 'Canino' | 'Felino' | 'Equino' | 'Bovino' | 'Exótico' =
+      spUpper === 'FELINO' ? 'Felino' :
+      spUpper === 'EQUINO' ? 'Equino' :
+      spUpper === 'BOVINO' ? 'Bovino' :
+      spUpper.startsWith('EX') ? 'Exótico' : 'Canino';
     const range = SPECIES_RANGES[normalizedSpecies] || SPECIES_RANGES.Canino;
     const alerts: { param: string; message: string; severity: 'HIGH' | 'MEDIUM' }[] = [];
 
@@ -381,7 +404,7 @@ export const VitalSignsView: React.FC = () => {
 
           <div className="flex items-center gap-1.5">
             <span className="font-bold text-slate-500 uppercase text-[10px]">Especie:</span>
-            {['TODAS', 'Canino', 'Felino', 'Exótico'].map((spec) => (
+            {['TODAS', 'Canino', 'Felino', 'Equino', 'Bovino', 'Exótico'].map((spec) => (
               <button
                 key={spec}
                 onClick={() => setSelectedSpecies(spec as any)}

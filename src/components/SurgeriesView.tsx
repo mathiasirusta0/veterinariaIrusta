@@ -59,6 +59,9 @@ export const SurgeriesView: React.FC = () => {
     bloodLossRiskReviewed: true,
     sterileIndicatorsChecked: true,
     antibioticProphylaxisGiven: true,
+    spongeAndInstrumentCountConfirmed: true,
+    specimenLabeled: true,
+    postOpAnalgesiaPlanReviewed: true,
   });
 
   const filteredSurgeries = surgeries.filter((surg) => {
@@ -488,6 +491,41 @@ export const SurgeriesView: React.FC = () => {
                       className="rounded text-teal-600"
                     />
                     <span>Riesgo de hemorragia y fluidoterapia evaluados</span>
+                  </label>
+                </div>
+              </div>
+
+              <div>
+                <span className="text-[10px] uppercase font-bold text-teal-700 block mb-1">
+                  3. Sign Out (Antes de salir del quirófano / pase a recuperación):
+                </span>
+                <div className="space-y-1.5 pl-2">
+                  <label className="flex items-center gap-2 text-slate-700 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={checklistState.spongeAndInstrumentCountConfirmed}
+                      onChange={(e) => setChecklistState({ ...checklistState, spongeAndInstrumentCountConfirmed: e.target.checked })}
+                      className="rounded text-teal-600"
+                    />
+                    <span>Recuento completo de gasas, compresas e instrumental quirúrgico confirmado</span>
+                  </label>
+                  <label className="flex items-center gap-2 text-slate-700 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={checklistState.specimenLabeled}
+                      onChange={(e) => setChecklistState({ ...checklistState, specimenLabeled: e.target.checked })}
+                      className="rounded text-teal-600"
+                    />
+                    <span>Etiquetado y rotulado de muestras/biopsias con datos del paciente</span>
+                  </label>
+                  <label className="flex items-center gap-2 text-slate-700 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={checklistState.postOpAnalgesiaPlanReviewed}
+                      onChange={(e) => setChecklistState({ ...checklistState, postOpAnalgesiaPlanReviewed: e.target.checked })}
+                      className="rounded text-teal-600"
+                    />
+                    <span>Plan de analgesia postoperatoria, fluidos y monitoreo en internación acordado</span>
                   </label>
                 </div>
               </div>

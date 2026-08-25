@@ -38,6 +38,7 @@ import {
   printA4Document,
   downloadHtmlAsPdf,
   PrintableReceiptData,
+  printDailyCashClose,
 } from '../utils/printDocumentHelper';
 
 export const FinancesUnifiedView: React.FC = () => {
@@ -82,6 +83,7 @@ export const FinancesUnifiedView: React.FC = () => {
 
   // Receipt / Estimate Modal State
   const [showReceiptModal, setShowReceiptModal] = useState(false);
+  const [showCashCloseModal, setShowCashCloseModal] = useState(false);
   const [currentDocument, setCurrentDocument] = useState<PrintableReceiptData | null>(null);
 
   const todayStr = new Date().toISOString().split('T')[0];
@@ -348,6 +350,35 @@ export const FinancesUnifiedView: React.FC = () => {
     showToast('success', 'Presupuesto Cobrado', `Se registró el cobro y comprobante ${receiptNumber}.`);
   };
 
+
+  const handlePrintCashClose = () => {
+    triggerHaptic('medium');
+    printDailyCashClose({
+      date: new Date().toLocaleDateString('es-AR'),
+      time: new Date().toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' }),
+      responsibleName: currentUser?.name || 'Dr. Diego Iván Irusta',
+      branchName: activeBranch.name,
+      branchAddress: activeBranch.address,
+      totalIncome: totalToday,
+      totalExpense: 0,
+      netBalance: totalToday,
+      breakdown: {
+        cashTotal,
+        transferTotal,
+        qrTotal: 0,
+        cardTotal: 0,
+      },
+      transactions: todayMovements.map((m) => ({
+        time: m.time || '12:00',
+        concept: m.concept,
+        clientName: m.clientName || 'Cliente',
+        paymentMethod: m.paymentMethod,
+        amount: m.amount,
+      })),
+    });
+    showToast('success', 'Arqueo Emitido', 'Cierre de caja oficial enviado a impresión A4.');
+  };
+
   const handleSendWhatsApp = (doc: PrintableReceiptData | null) => {
     if (!doc) return;
     triggerHaptic('light');
@@ -437,6 +468,23 @@ export const FinancesUnifiedView: React.FC = () => {
         description="Gestión simple y ágil de cobros, presupuestos clínicos y emisión con descarga PDF, ticket térmico y WhatsApp"
         icon={Receipt}
       />
+
+      
+      {/* Action Bar & Quick Arqueo */}
+      <div className="flex flex-wrap items-center justify-between gap-3 bg-white p-3.5 rounded-2xl border border-slate-200 shadow-2xs">
+        <div className="flex items-center gap-2 text-xs font-bold text-slate-700">
+          <Sparkles className="w-4 h-4 text-teal-600" />
+          <span>Gestión de Caja Diaria & Arqueos de Turno</span>
+        </div>
+        <button
+          type="button"
+          onClick={() => setShowCashCloseModal(true)}
+          className="flex items-center gap-2 px-3.5 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold shadow-xs active:scale-95 transition-all cursor-pointer"
+        >
+          <Printer className="w-4 h-4 text-teal-400" />
+          <span>Arqueo & Cierre de Caja Diario</span>
+        </button>
+      </div>
 
       {/* KPI Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">

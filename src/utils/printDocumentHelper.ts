@@ -1248,3 +1248,256 @@ export function printA4MedicalHistory(data: PrintableMedicalHistoryData) {
 export function downloadMedicalHistoryPdf(data: PrintableMedicalHistoryData) {
   printA4MedicalHistory(data);
 }
+
+export interface PrintableDailyCashCloseData {
+  date: string;
+  time: string;
+  responsibleName: string;
+  branchName: string;
+  branchAddress: string;
+  totalIncome: number;
+  totalExpense: number;
+  netBalance: number;
+  breakdown: {
+    cashTotal: number;
+    transferTotal: number;
+    qrTotal: number;
+    cardTotal: number;
+  };
+  transactions: {
+    time: string;
+    concept: string;
+    clientName: string;
+    paymentMethod: string;
+    amount: number;
+  }[];
+}
+
+export function printDailyCashClose(data: PrintableDailyCashCloseData) {
+  const iframe = document.createElement('iframe');
+  iframe.style.position = 'fixed';
+  iframe.style.right = '0';
+  iframe.style.bottom = '0';
+  iframe.style.width = '0';
+  iframe.style.height = '0';
+  iframe.style.border = 'none';
+  document.body.appendChild(iframe);
+
+  const doc = iframe.contentWindow?.document;
+  if (!doc) return;
+
+  const html = `
+    <!DOCTYPE html>
+    <html lang="es">
+      <head>
+        <meta charset="utf-8">
+        <title>Arqueo y Cierre de Caja — ${data.date}</title>
+        <style>
+          @page {
+            size: A4 portrait;
+            margin: 14mm 12mm;
+          }
+          * {
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+            color: #0f172a;
+          }
+          body {
+            margin: 0;
+            padding: 10px;
+            font-size: 11px;
+            line-height: 1.4;
+          }
+          .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            border-bottom: 2px solid #0f766e;
+            padding-bottom: 12px;
+            margin-bottom: 15px;
+          }
+          .logo-title {
+            font-size: 18px;
+            font-weight: 900;
+            color: #0f766e;
+            letter-spacing: -0.5px;
+          }
+          .logo-sub {
+            font-size: 10px;
+            color: #475569;
+            font-weight: 600;
+          }
+          .doc-badge {
+            background: #f0fdfa;
+            border: 1px solid #0f766e;
+            padding: 4px 10px;
+            border-radius: 6px;
+            text-align: right;
+          }
+          .doc-badge-title {
+            font-size: 12px;
+            font-weight: 900;
+            color: #0f766e;
+          }
+          .grid-summary {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            margin-bottom: 15px;
+          }
+          .stat-card {
+            background: #f8fafc;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            padding: 8px 10px;
+          }
+          .stat-label {
+            font-size: 9px;
+            font-weight: 800;
+            color: #64748b;
+            text-transform: uppercase;
+          }
+          .stat-val {
+            font-size: 14px;
+            font-weight: 900;
+            color: #0f172a;
+            margin-top: 2px;
+          }
+          table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            font-size: 10px;
+          }
+          th {
+            background: #f1f5f9;
+            padding: 6px 8px;
+            text-align: left;
+            font-weight: 800;
+            font-size: 9.5px;
+            border-bottom: 1.5px solid #cbd5e1;
+            color: #334155;
+            text-transform: uppercase;
+          }
+          td {
+            padding: 6px 8px;
+            border-bottom: 1px solid #f1f5f9;
+          }
+          .total-box {
+            margin-top: 15px;
+            padding: 10px 14px;
+            background: #f0fdfa;
+            border: 1.5px solid #0f766e;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+          }
+          .signatures {
+            margin-top: 40px;
+            display: flex;
+            justify-content: space-between;
+          }
+          .sig-line {
+            width: 200px;
+            border-top: 1px solid #64748b;
+            text-align: center;
+            padding-top: 5px;
+            font-size: 9px;
+            font-weight: bold;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <div>
+            <div class="logo-title">CLÍNICA VETERINARIA IRUSTA</div>
+            <div class="logo-sub">Dirección Médica: Dr. Diego Iván Irusta • M.P. 502</div>
+            <div class="logo-sub">${data.branchName} · ${data.branchAddress} · Río Cuarto, Cba.</div>
+          </div>
+          <div class="doc-badge">
+            <div class="doc-badge-title">ARQUEO & CIERRE DE CAJA</div>
+            <div style="font-size: 9.5px; color: #475569;">Fecha: ${data.date} · ${data.time} hs</div>
+            <div style="font-size: 9px; color: #64748b;">Resp: ${data.responsibleName}</div>
+          </div>
+        </div>
+
+        <div class="grid-summary">
+          <div class="stat-card">
+            <div class="stat-label">Efectivo en Caja</div>
+            <div class="stat-val" style="color: #047857;">$${data.breakdown.cashTotal.toLocaleString('es-AR')}</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Transferencias / MP</div>
+            <div class="stat-val" style="color: #0284c7;">$${data.breakdown.transferTotal.toLocaleString('es-AR')}</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Tarjetas Débito/Créd.</div>
+            <div class="stat-val" style="color: #7c3aed;">$${data.breakdown.cardTotal.toLocaleString('es-AR')}</div>
+          </div>
+          <div class="stat-card" style="background: #f0fdfa; border-color: #0f766e;">
+            <div class="stat-label" style="color: #0f766e;">Total Recaudado</div>
+            <div class="stat-val" style="color: #0f766e;">$${data.totalIncome.toLocaleString('es-AR')}</div>
+          </div>
+        </div>
+
+        <div style="font-weight: 800; font-size: 11px; margin-top: 15px; color: #0f766e; text-transform: uppercase;">
+          Detalle de Transacciones y Cobros del Turno (${data.transactions.length})
+        </div>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Hora</th>
+              <th>Concepto / Atención</th>
+              <th>Cliente / Paciente</th>
+              <th>Medio de Pago</th>
+              <th style="text-align: right;">Importe ($)</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${data.transactions.map(t => `
+              <tr>
+                <td style="font-weight: 700;">${t.time} hs</td>
+                <td style="font-weight: 700; color: #0f172a;">${t.concept}</td>
+                <td>${t.clientName}</td>
+                <td>${t.paymentMethod}</td>
+                <td style="text-align: right; font-weight: 800; font-family: monospace;">$${t.amount.toLocaleString('es-AR')}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+
+        <div class="total-box">
+          <div style="font-weight: 800; font-size: 12px; color: #0f766e;">BALANCE NETO DE CAJA DEL DÍA:</div>
+          <div style="font-weight: 900; font-size: 16px; color: #0f766e; font-family: monospace;">
+            $${data.netBalance.toLocaleString('es-AR')} ARS
+          </div>
+        </div>
+
+        <div class="signatures">
+          <div class="sig-line">
+            Firma Operador de Caja / Recepción<br>
+            ${data.responsibleName}
+          </div>
+          <div class="sig-line">
+            Firma y Sello Dirección Médica<br>
+            Dr. Diego Iván Irusta • M.P. 502
+          </div>
+        </div>
+      </body>
+    </html>
+  `;
+
+  doc.open();
+  doc.write(html);
+  doc.close();
+
+  setTimeout(() => {
+    iframe.contentWindow?.focus();
+    iframe.contentWindow?.print();
+    setTimeout(() => {
+      document.body.removeChild(iframe);
+    }, 2000);
+  }, 300);
+}

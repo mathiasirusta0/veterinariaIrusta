@@ -98,7 +98,27 @@ export const InventoryView: React.FC = () => {
       p.requiresOfficialArchive
   );
 
+  // Helper FEFO Expiration Status
+  const getExpirationStatus = (expDate?: string) => {
+    if (!expDate) return { label: 'Sin vencimiento', color: 'bg-slate-100 text-slate-600', isExpiringSoon: false, isExpired: false };
+    const exp = new Date(expDate).getTime();
+    const now = new Date().getTime();
+    const diffDays = Math.round((exp - now) / (1000 * 60 * 60 * 24));
+
+    if (diffDays < 0) {
+      return { label: `VENCIDO (${Math.abs(diffDays)}d)`, color: 'bg-rose-100 text-rose-900 border border-rose-300 font-black', isExpiringSoon: true, isExpired: true };
+    }
+    if (diffDays <= 30) {
+      return { label: `Vence en ${diffDays}d (Crítico)`, color: 'bg-rose-50 text-rose-800 border border-rose-200 font-bold', isExpiringSoon: true, isExpired: false };
+    }
+    if (diffDays <= 60) {
+      return { label: `Vence en ${diffDays}d (FEFO)`, color: 'bg-amber-50 text-amber-800 border border-amber-200 font-bold', isExpiringSoon: true, isExpired: false };
+    }
+    return { label: `Vence: ${expDate}`, color: 'bg-slate-50 text-slate-600 border border-slate-200', isExpiringSoon: false, isExpired: false };
+  };
+
   const lowStockCount = products.filter((p) => (p.currentStock || 0) <= (p.minStock || 0)).length;
+  const expiringSoonCount = products.filter((p) => getExpirationStatus(p.expirationDate).isExpiringSoon).length;
   const totalStockUnits = products.reduce((acc, p) => acc + (p.currentStock || 0), 0);
   const totalCostValuation = products.reduce((acc, p) => acc + (p.currentStock || 0) * (p.costPrice || 0), 0);
   const totalSaleValuation = products.reduce((acc, p) => acc + (p.currentStock || 0) * (p.salePrice || 0), 0);
@@ -221,7 +241,7 @@ export const InventoryView: React.FC = () => {
       </div>
 
       {/* 3. Metrics Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 text-xs">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 text-xs">
         <StatCard
           title="Total en Catálogo"
           value={products.length.toString()}
@@ -244,6 +264,14 @@ export const InventoryView: React.FC = () => {
           subtitle={lowStockCount > 0 ? 'Requieren orden de compra urgente' : 'Nivel de existencias óptimo'}
           icon={AlertTriangle}
           variant={lowStockCount > 0 ? 'rose' : 'slate'}
+        />
+
+        <StatCard
+          title="Control FEFO / Vencimientos"
+          value={expiringSoonCount + ' lotes'}
+          subtitle={expiringSoonCount > 0 ? 'Lotes por vencer (<60d) o vencidos' : 'Sin alertas de vencimiento'}
+          icon={Clock}
+          variant={expiringSoonCount > 0 ? 'amber' : 'slate'}
         />
       </div>
 
