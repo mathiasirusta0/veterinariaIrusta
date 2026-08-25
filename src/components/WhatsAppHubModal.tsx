@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   X,
   MessageCircle,
@@ -15,14 +15,20 @@ import {
   CreditCard,
   CheckCheck,
   ShieldAlert,
+  RotateCcw,
+  Stethoscope,
+  HeartPulse,
 } from 'lucide-react';
 import { useVet } from '../context/VetContext';
 import { formatPhoneNumberE164 } from '../utils/formatters';
+import { triggerHaptic } from '../utils/haptics';
 
 export interface WhatsAppData {
-  ownerPhone: string;
+  ownerPhone?: string;
   ownerName?: string;
   patientName?: string;
+  patientId?: string;
+  ownerId?: string;
   type?: 'TURNO' | 'VACUNA' | 'INTERNACION' | 'RECETA' | 'PRESUPUESTO' | 'COBRO_INSUMO' | 'ALTA_MEDICA' | 'AUTORIZACION_ESTUDIO';
   details?: {
     date?: string;
@@ -50,120 +56,214 @@ export const WhatsAppHubModal: React.FC<WhatsAppHubModalProps> = ({
   onClose,
   initialData,
 }) => {
-  const { owners, patients, showToast, logAudit } = useVet();
+  const {
+    owners,
+    patients,
+    hospitalizations,
+    clinicalEvolutions,
+    prescriptions,
+    encounterConsumptions,
+    appointments,
+    currentUser,
+    showToast,
+    logAudit,
+  } = useVet();
 
-  const [selectedOwnerId, setSelectedOwnerId] = useState(
-    initialData
-      ? owners.find((o) => o.whatsapp === initialData.ownerPhone || o.phone === initialData.ownerPhone)?.id || owners[0]?.id
-      : owners[0]?.id
-  );
+  // Selected Owner state
+  const [selectedOwnerId, setSelectedOwnerId] = useState<string>('');
+  // Selected Patient state
+  const [selectedPatientId, setSelectedPatientId] = useState<string>('');
+  // Custom phone number state
+  const [customPhone, setCustomPhone] = useState<string>('');
+  // Template type state
+  const [templateType, setTemplateType] = useState<NonNullable<WhatsAppData['type']>>('INTERNACION');
+  // Message body state
+  const [messageBody, setMessageBody] = useState<string>('');
 
+  // Find objects
   const currentOwner = owners.find((o) => o.id === selectedOwnerId) || owners[0];
-  const ownerPets = patients.filter((p) => p.ownerId === currentOwner?.id);
-  const [selectedPatientId, setSelectedPatientId] = useState(ownerPets[0]?.id || patients[0]?.id);
-  const currentPatient = patients.find((p) => p.id === selectedPatientId) || patients[0];
+  const ownerPatients = patients.filter((p) => p.ownerId === currentOwner?.id);
+  const currentPatient = patients.find((p) => p.id === selectedPatientId) || ownerPatients[0] || patients[0];
 
-  const [templateType, setTemplateType] = useState<NonNullable<WhatsAppData['type']>>(
-    initialData?.type || 'TURNO'
-  );
+  // Helper to generate dynamic message based on actual patient, owner and clinical data
+  const generateTemplateMessage = (
+    type: NonNullable<WhatsAppData['type']>,
+    owner = currentOwner,
+    patient = currentPatient
+  ): string => {
+    const ownerName = owner ? `${owner.firstName} ${owner.lastName || ''}`.trim() : 'Tutor';
+    const petName = patient ? patient.name : 'su mascota';
+    const vetInCharge = currentUser?.name || 'Dr. Diego Irusta';
 
-  const [customPhone, setCustomPhone] = useState(
-    initialData?.ownerPhone || currentOwner?.whatsapp || currentOwner?.phone || '+5491167891234'
-  );
+    // Fetch latest clinical data for this patient
+    const patientHosp = hospitalizations.find((h) => h.patientId === patient?.id && h.status === 'ACTIVA');
+    const patientEvos = clinicalEvolutions
+      .filter((e) => e.patientId === patient?.id)
+      .sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
+    const latestEvo = patientEvos[0];
+    const latestEvoText = latestEvo
+      ? latestEvo.assessment || latestEvo.plan || latestEvo.evolutionText || 'Paciente estable con monitoreo continuo.'
+      : 'Paciente hemodinámicamente estable, afebril y con buena tolerancia.';
 
-  // Generate message based on template
-  const generateTemplateMessage = (type: NonNullable<WhatsAppData['type']>): string => {
-    const ownerName = currentOwner ? currentOwner.firstName : 'Tutor';
-    const petName = currentPatient ? currentPatient.name : 'su mascota';
+    // Active meds
+    const activeMeds = (patientHosp?.medications || [])
+      .filter((m) => m.status !== 'SUSPENDIDA')
+      .map((m) => `• ${m.drugName} (${m.dose} ${m.route}) c/${m.frequency}`)
+      .join('\n');
 
     switch (type) {
-      case 'TURNO':
-        return `Hola ${ownerName}! 👋 Le escribimos de *VET SYSTEM Hospital Veterinario*.
-Le recordamos que *${petName}* tiene un turno agendado para el día *${initialData?.details?.date || 'Mañana'}* a las *${initialData?.details?.time || '15:30'} hs* con el/la profesional *${initialData?.details?.vetName || 'Dr. Diego Irusta'}*.
-
-📍 *Dirección:* Av. Corrientes 4550, CABA
-⚠️ *Indicaciones previas:* Por favor concurrir con collar y correa o transportadora. Si tiene ayuno indicado, cumplir 8 hs de sólidos.
-
-Por favor, responda *CONFIRMAR* para reservar su horario. ¡Muchas gracias! 🐾`;
-
-      case 'VACUNA':
-        return `Hola ${ownerName}! 👋 Le recordamos desde *VET SYSTEM* que *${petName}* tiene próxima la aplicación de su vacuna *${initialData?.details?.vaccineName || 'Séxtuple / Antirrábica'}* (Vencimiento: *${initialData?.details?.dueDate || 'en los próximos días'}*).
-
-Mantener el plan de vacunación al día es fundamental para su protección. 
-¿Desea que le reservemos un turno para esta semana? 💉🐾`;
-
       case 'INTERNACION':
-        return `Estimada familia de *${petName}* 🏥:
-Les enviamos el *Reporte Médico de Internación* de hoy.
+        return `Estimado/a ${ownerName} 👋:
+Le enviamos el *Reporte Médico & Novedades* de *${petName}* de *Veterinaria Irusta*.
 
-${petName} se encuentra estable bajo monitoreo continuo en nuestra UCI.
-💧 *Fluidoterapia:* Activa con balance de hidratación controlado.
-💊 *Tratamientos:* Recibiendo medicación reglada según plan.
-🥣 *Alimentación & Ánimo:* Con buena tolerancia y descansando confortablemente.
+📋 *Estado Clínico & Evolución:*
+${latestEvoText}
 
-⏰ *Horario de Visita:* Hoy de 16:00 a 18:00 hs.
-¡Cualquier novedad les avisaremos de inmediato! Nuestro equipo 24hs está cuidando de ${petName}. 🩺❤️`;
+💊 *Tratamiento & Medicaciones:*
+${activeMeds || '• Medicación y plan terapéutico reglado según indicación.'}
+
+🩺 *Monitoreo:* Cuidados intensivos y control de constantes bajo supervisión del *${vetInCharge}* (MP 8412).
+⏰ *Horario de Visitas de Internación:* Hoy de 16:00 a 18:00 hs.
+📱 *WhatsApp de Guardia:* +54 9 2942 47-7136. ¡Cuidamos de ${petName} con el mayor compromiso! 🐾❤️`;
+
+      case 'TURNO':
+        return `Hola ${ownerName}! 👋 Le recordamos desde *Veterinaria Irusta*.
+*${petName}* tiene una consulta / turno programado para el día *${initialData?.details?.date || 'Mañana'}* a las *${initialData?.details?.time || '15:30'} hs* con el/la profesional *${initialData?.details?.vetName || vetInCharge}* (MP 8412).
+
+📍 *Sede:* Veterinaria Irusta
+⚠️ *Indicaciones:* Concurrir con collar y correa o transportadora. Cumplir ayuno si fue indicado previamente.
+
+Por favor, responda *CONFIRMAR* para agendar su horario. ¡Muchas gracias! 🐾`;
+
+      case 'RECETA':
+        return `Hola ${ownerName}! 👋 Adjuntamos las indicaciones médicas y receta para *${petName}* prescripta por *${vetInCharge}* de *Veterinaria Irusta*:
+
+📋 *Plan Farmacológico:*
+${initialData?.details?.prescriptionText || activeMeds || '1. Protector gástrico y antiemético según indicación.\n2. Dieta blanda gastrointestinal fraccionada.\n3. Reposo y control de hidratación.'}
+
+⚠️ Ante cualquier duda o síntoma de alarma, contáctenos a nuestra guardia: *+54 9 2942 47-7136*. ¡Pronta recuperación para ${petName}! 🐾`;
 
       case 'COBRO_INSUMO':
-        return `Hola ${ownerName}! 👋 Le informamos desde administración de *VET SYSTEM* sobre los insumos médicos aplicados en la atención de *${petName}*:
+        return `Hola ${ownerName}! 👋 Le informamos desde administración de *Veterinaria Irusta* sobre los insumos médicos y tratamientos realizados a *${petName}*:
 
-🧾 *Detalle de Insumo / Medicación:* ${initialData?.details?.supplyName || 'Medicación endovenosa, fluidoterapia y descartables de internación'}
-💵 *Monto Total:* $${(initialData?.details?.supplyAmount || 18500).toLocaleString('es-AR')}
-🏦 *Alias de Pago / Transferencia:* ` + (initialData?.details?.bankAlias || 'VETSYSTEM.PAGOS.MP') + `
+🧾 *Detalle de Prestaciones / Insumos:* ${initialData?.details?.supplyName || 'Tratamiento médico de guardia, descartables y medicación aplicada'}
+💵 *Total a Abonar:* $${(initialData?.details?.supplyAmount || 18500).toLocaleString('es-AR')}
+🏦 *Alias de Pago / Transferencia:* ` + (initialData?.details?.bankAlias || 'VET.IRUSTA.PAGOS') + `
+Titular: Dr. Diego Irusta
 
 Agradecemos enviar el comprobante por este medio para asentar en la cuenta de ${petName}. ¡Muchas gracias! 🐾`;
 
       case 'ALTA_MEDICA':
         return `¡Excelentes noticias ${ownerName}! 🎉
-*${petName}* ha respondido muy bien al tratamiento y ha recibido el *Alta Médica*.
+*${petName}* ha respondido muy favorablemente al tratamiento y ha recibido el *Alta Médica* en *Veterinaria Irusta* por indicación del *${vetInCharge}*.
 
-⏰ Pueden pasar a retirarlo/a hoy hasta las 20:00 hs.
-📄 Les entregaremos el resumen de historia clínica, indicaciones de medicación ambulatoria y pautas de alarma.
+⏰ Pueden pasar a retirarlo/a hoy por la clínica.
+📄 Les entregaremos el resumen de historia clínica, indicaciones de medicación ambulatoria y pautas de control.
 
-¡Los esperamos en recepción para el reencuentro con ${petName}! 🐶🐱❤️`;
+¡Los esperamos para el reencuentro con ${petName}! 🐶🐱❤️`;
 
       case 'AUTORIZACION_ESTUDIO':
         return `Estimado/a ${ownerName} ⚠️:
-Desde el equipo médico de *VET SYSTEM*, les solicitamos autorización para realizar un estudio complementario a *${petName}*:
+Desde el equipo médico de *Veterinaria Irusta*, le solicitamos autorización para realizar un procedimiento / estudio complementario a *${petName}*:
 
-🔬 *Procedimiento:* ${initialData?.details?.supplyName || 'Ecografía abdominal de urgencia y panel de química sanguínea'}
-💡 *Motivo:* Valoración diagnóstica inmediata para ajustar el plan terapéutico.
+🔬 *Procedimiento:* ${initialData?.details?.supplyName || 'Ecografía abdominal y panel bioquímico de urgencia'}
+💡 *Motivo:* Valoración diagnóstica inmediata para definir el tratamiento médico adecuado.
+👨‍⚕️ *Profesional Responsable:* ${vetInCharge}
 
-Por favor, responda *AUTORIZO* para proceder de inmediato. Quedamos a su disposición ante cualquier consulta. 🩺`;
+Por favor, responda *AUTORIZO* para proceder de inmediato. Quedamos a su entera disposición. 🩺`;
 
-      case 'RECETA':
-        return `Hola ${ownerName}! 👋 Adjuntamos las indicaciones médicas y receta digital para *${petName}*:
+      case 'VACUNA':
+        return `Hola ${ownerName}! 👋 Le recordamos desde *Veterinaria Irusta* que *${petName}* tiene próxima la aplicación de su vacuna *${initialData?.details?.vaccineName || 'Antirrábica / Séxtuple'}* (Vencimiento: *${initialData?.details?.dueDate || 'en los próximos días'}*).
 
-📋 *Tratamiento Prescripto:*
-${initialData?.details?.prescriptionText || '1. Maropitant 1 comp c/24hs por 3 días.\n2. Omeprazol 20mg 1 cápsula en ayunas por 7 días.\n3. Dieta blanda gastrointestinal.'}
-
-⚠️ Ante vómitos reiterados o decaimiento, contáctese con nuestra guardia médica 24hs. ¡Pronta recuperación para ${petName}! 🐾`;
+Mantener su plan sanitario al día es fundamental para proteger su salud.
+¿Desea que le reservemos un turno esta semana? 💉🐾`;
 
       case 'PRESUPUESTO':
-        return `Hola ${ownerName}! 👋 Le enviamos el presupuesto médico solicitado para *${petName}*:
+        return `Hola ${ownerName}! 👋 Le enviamos el presupuesto médico estimado para *${petName}* de *Veterinaria Irusta*:
 
 🧾 *Total Estimado:* $${(initialData?.details?.estimateTotal || 45000).toLocaleString('es-AR')}
-Incluye honorarios clínicos/quirúrgicos, monitoreo y medicación perioperatoria.
+Incluye honorarios médicos, monitoreo y medicación correspondiente.
+👨‍⚕️ *Dirección Médica:* Dr. Diego Irusta (MP 8412)
 
-Este presupuesto tiene una validez de 15 días. Quedamos a su disposición para coordinar la fecha. 🐾`;
+Este presupuesto tiene validez por 15 días. Quedamos a su disposición para coordinar. 🐾`;
 
       default:
-        return `Hola ${ownerName}, le escribimos de VET SYSTEM respecto a ${petName}.`;
+        return `Hola ${ownerName}, le escribimos de Veterinaria Irusta respecto a ${petName}.`;
     }
   };
 
-  const [messageBody, setMessageBody] = useState(() =>
-    generateTemplateMessage(templateType)
-  );
+  // Synchronize modal state on open or initialData change
+  useEffect(() => {
+    if (!isOpen) return;
+
+    // 1. Resolve owner
+    let targetOwner = owners[0];
+    if (initialData?.ownerId) {
+      targetOwner = owners.find((o) => o.id === initialData.ownerId) || targetOwner;
+    } else if (initialData?.ownerPhone) {
+      targetOwner = owners.find((o) => o.whatsapp === initialData.ownerPhone || o.phone === initialData.ownerPhone) || targetOwner;
+    }
+
+    // 2. Resolve patient
+    let targetPatient = patients[0];
+    if (initialData?.patientId) {
+      targetPatient = patients.find((p) => p.id === initialData.patientId) || targetPatient;
+    } else if (targetOwner) {
+      targetPatient = patients.find((p) => p.ownerId === targetOwner.id) || targetPatient;
+    }
+
+    const newOwnerId = targetOwner?.id || '';
+    const newPatientId = targetPatient?.id || '';
+    const newPhone = initialData?.ownerPhone || targetOwner?.whatsapp || targetOwner?.phone || '+5493584362824';
+    const newType = initialData?.type || 'INTERNACION';
+
+    setSelectedOwnerId(newOwnerId);
+    setSelectedPatientId(newPatientId);
+    setCustomPhone(newPhone);
+    setTemplateType(newType);
+    setMessageBody(generateTemplateMessage(newType, targetOwner, targetPatient));
+  }, [isOpen, initialData]);
 
   if (!isOpen) return null;
 
+  const handleOwnerChange = (newOwnerId: string) => {
+    setSelectedOwnerId(newOwnerId);
+    const owner = owners.find((o) => o.id === newOwnerId);
+    if (owner) {
+      const ownerPhone = owner.whatsapp || owner.phone || '';
+      setCustomPhone(ownerPhone);
+      const firstPet = patients.find((p) => p.ownerId === owner.id) || patients[0];
+      if (firstPet) setSelectedPatientId(firstPet.id);
+      setMessageBody(generateTemplateMessage(templateType, owner, firstPet));
+    }
+  };
+
+  const handlePatientChange = (newPatientId: string) => {
+    setSelectedPatientId(newPatientId);
+    const patient = patients.find((p) => p.id === newPatientId);
+    if (patient) {
+      const owner = owners.find((o) => o.id === patient.ownerId) || currentOwner;
+      if (owner && owner.id !== selectedOwnerId) {
+        setSelectedOwnerId(owner.id);
+        setCustomPhone(owner.whatsapp || owner.phone || '');
+      }
+      setMessageBody(generateTemplateMessage(templateType, owner, patient));
+    }
+  };
+
   const handleTemplateChange = (type: NonNullable<WhatsAppData['type']>) => {
     setTemplateType(type);
-    setMessageBody(generateTemplateMessage(type));
+    setMessageBody(generateTemplateMessage(type, currentOwner, currentPatient));
+  };
+
+  const handleRegenerate = () => {
+    triggerHaptic('light');
+    setMessageBody(generateTemplateMessage(templateType, currentOwner, currentPatient));
+    showToast('info', 'Mensaje Regenerado', 'Se recargaron los datos actualizados del paciente y tutor.');
   };
 
   const handleSendWhatsApp = () => {
+    triggerHaptic('success');
     const cleanPhone = formatPhoneNumberE164(customPhone);
     const encoded = encodeURIComponent(messageBody);
     const url = `https://wa.me/${cleanPhone}?text=${encoded}`;
@@ -174,12 +274,13 @@ Este presupuesto tiene una validez de 15 días. Quedamos a su disposición para 
       'ENVIO_WHATSAPP',
       'Owner',
       currentOwner?.id || 'own-1',
-      `Mensaje WhatsApp (${templateType}) generado para ${customPhone}`
+      `Mensaje WhatsApp (${templateType}) para ${currentOwner?.firstName} ${currentOwner?.lastName} (${customPhone})`
     );
     onClose();
   };
 
   const handleCopyMessage = () => {
+    triggerHaptic('light');
     navigator.clipboard.writeText(messageBody);
     showToast('info', 'Mensaje Copiado', 'Texto copiado al portapapeles.');
   };
@@ -190,22 +291,22 @@ Este presupuesto tiene una validez de 15 días. Quedamos a su disposición para 
         {/* Header */}
         <div className="px-6 py-4 bg-emerald-700 text-white flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-white/20 border border-white/30 flex items-center justify-center text-white font-bold text-lg">
+            <div className="w-10 h-10 rounded-2xl bg-white/20 border border-white/30 flex items-center justify-center text-white font-bold text-lg shadow-xs">
               <MessageCircle className="w-6 h-6" />
             </div>
             <div>
-              <h2 className="text-base font-bold text-white tracking-tight">
-                Centro de Comunicación & WhatsApp con Tutores
+              <h2 className="text-base font-black text-white tracking-tight flex items-center gap-2">
+                <span>Centro de Comunicación & WhatsApp con Tutores</span>
               </h2>
-              <p className="text-xs text-emerald-100">
-                Cobro de insumos, reportes UCI, recetas, turnos y avisos al tutor responsable
+              <p className="text-xs text-emerald-100 font-medium">
+                Veterinaria Irusta • Novedades médicas, reportes clínicos, recetas, turnos y avisos
               </p>
             </div>
           </div>
 
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg text-emerald-100 hover:text-white hover:bg-emerald-800 transition-colors"
+            className="p-2 rounded-xl text-emerald-100 hover:text-white hover:bg-emerald-800 transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
@@ -214,53 +315,80 @@ Este presupuesto tiene una validez de 15 días. Quedamos a su disposición para 
         {/* Content */}
         <div className="p-6 overflow-y-auto space-y-5 text-xs text-slate-700">
           {/* Target Tutor & Patient Selector */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-slate-50 p-3.5 rounded-2xl border border-slate-200">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-slate-50 p-4 rounded-2xl border border-slate-200">
             <div>
-              <label className="text-slate-700 font-bold block mb-1">Tutor / Destinatario:</label>
+              <label className="text-slate-800 font-bold block mb-1">Tutor / Destinatario:</label>
               <select
                 value={selectedOwnerId}
-                onChange={(e) => {
-                  setSelectedOwnerId(e.target.value);
-                  const o = owners.find((own) => own.id === e.target.value);
-                  if (o) setCustomPhone(o.whatsapp || o.phone);
-                }}
-                className="w-full bg-white border border-slate-300 rounded-lg px-3 py-1.5 font-bold text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                onChange={(e) => handleOwnerChange(e.target.value)}
+                className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 font-bold text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
               >
                 {owners.map((o) => (
                   <option key={o.id} value={o.id}>
-                    {o.firstName} {o.lastName} ({o.whatsapp || o.phone})
+                    {o.firstName} {o.lastName}
                   </option>
                 ))}
               </select>
             </div>
 
             <div>
-              <label className="text-slate-700 font-bold block mb-1">Número de WhatsApp (con código país):</label>
+              <label className="text-slate-800 font-bold block mb-1">Paciente / Mascota:</label>
+              <select
+                value={selectedPatientId}
+                onChange={(e) => handlePatientChange(e.target.value)}
+                className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 font-bold text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              >
+                {patients.map((p) => {
+                  const o = owners.find((own) => own.id === p.ownerId);
+                  return (
+                    <option key={p.id} value={p.id}>
+                      {p.name} ({p.species} • {o ? `${o.firstName}` : 'Sin tutor'})
+                    </option>
+                  );
+                })}
+              </select>
+            </div>
+
+            <div>
+              <label className="text-slate-800 font-bold block mb-1">WhatsApp de Destino:</label>
               <input
                 type="text"
                 value={customPhone}
                 onChange={(e) => setCustomPhone(e.target.value)}
-                placeholder="+54 9 11 1234-5678"
-                className="w-full bg-white border border-slate-300 rounded-lg px-3 py-1.5 font-bold font-mono text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-              />
+                placeholder="+54 9 358 436-2824"
+                className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 font-bold font-mono text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              >
+              </input>
             </div>
           </div>
 
           {/* Template Selector Tabs */}
           <div>
-            <span className="font-bold text-slate-800 uppercase tracking-wider text-[11px] block mb-2">
-              Plantillas de Comunicación con el Propietario:
-            </span>
+            <div className="flex items-center justify-between mb-2">
+              <span className="font-black text-slate-800 uppercase tracking-wider text-[11px] block">
+                Plantillas de Comunicación con el Propietario:
+              </span>
+              <button
+                type="button"
+                onClick={handleRegenerate}
+                className="text-[11px] font-bold text-emerald-700 hover:text-emerald-900 flex items-center gap-1 cursor-pointer transition-colors"
+                title="Recargar texto con datos actuales del paciente"
+              >
+                <RotateCcw className="w-3 h-3" />
+                <span>Recargar Datos</span>
+              </button>
+            </div>
+
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
               {[
-                { id: 'COBRO_INSUMO', label: 'Pago de Insumo', icon: CreditCard, color: 'text-amber-600' },
-                { id: 'INTERNACION', label: 'Reporte UCI', icon: BedDouble, color: 'text-teal-600' },
-                { id: 'ALTA_MEDICA', label: 'Alta Médica', icon: CheckCheck, color: 'text-emerald-600' },
-                { id: 'AUTORIZACION_ESTUDIO', label: 'Autorización', icon: ShieldAlert, color: 'text-rose-600' },
+                { id: 'INTERNACION', label: 'Reporte UCI / Novedades', icon: BedDouble, color: 'text-teal-600' },
+                { id: 'RECETA', label: 'Plan de Medicación', icon: FileText, color: 'text-purple-600' },
                 { id: 'TURNO', label: 'Turno Agendado', icon: Calendar, color: 'text-blue-600' },
-                { id: 'RECETA', label: 'Receta Digital', icon: FileText, color: 'text-purple-600' },
-                { id: 'VACUNA', label: 'Aviso Vacuna', icon: Syringe, color: 'text-emerald-600' },
-                { id: 'PRESUPUESTO', label: 'Presupuesto', icon: DollarSign, color: 'text-slate-600' },
+                { id: 'COBRO_INSUMO', label: 'Pago de Insumo / Saldo', icon: CreditCard, color: 'text-amber-600' },
+                { id: 'ALTA_MEDICA', label: 'Alta Médica & Egreso', icon: CheckCheck, color: 'text-emerald-600' },
+                { id: 'AUTORIZACION_ESTUDIO', label: 'Autorización Médica', icon: ShieldAlert, color: 'text-rose-600' },
+                { id: 'VACUNA', label: 'Aviso de Vacuna', icon: Syringe, color: 'text-emerald-600' },
+                { id: 'PRESUPUESTO', label: 'Presupuesto Estimado', icon: DollarSign, color: 'text-slate-600' },
               ].map((tpl) => {
                 const Icon = tpl.icon;
                 const isSelected = templateType === tpl.id;
@@ -270,14 +398,14 @@ Este presupuesto tiene una validez de 15 días. Quedamos a su disposición para 
                     key={tpl.id}
                     type="button"
                     onClick={() => handleTemplateChange(tpl.id as any)}
-                    className={`p-2.5 rounded-xl border text-center flex flex-col items-center justify-center gap-1 transition-all ${
+                    className={`p-3 rounded-2xl border text-center flex flex-col items-center justify-center gap-1.5 transition-all cursor-pointer ${
                       isSelected
-                        ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm font-bold'
-                        : 'bg-white text-slate-700 border-slate-200 hover:border-slate-300'
+                        ? 'bg-emerald-600 text-white border-emerald-600 shadow-md font-bold scale-[1.02]'
+                        : 'bg-white text-slate-700 border-slate-200 hover:border-slate-300 hover:bg-slate-50'
                     }`}
                   >
                     <Icon className={`w-4 h-4 ${isSelected ? 'text-white' : tpl.color}`} />
-                    <span className="text-[11px] leading-tight">{tpl.label}</span>
+                    <span className="text-[11px] leading-tight font-medium">{tpl.label}</span>
                   </button>
                 );
               })}
@@ -287,24 +415,27 @@ Este presupuesto tiene una validez de 15 días. Quedamos a su disposición para 
           {/* Message Preview & Editor */}
           <div className="space-y-1.5">
             <div className="flex items-center justify-between">
-              <label className="text-slate-700 font-bold">Mensaje a Enviar:</label>
+              <label className="text-slate-800 font-black text-xs flex items-center gap-1.5">
+                <span>Mensaje Preparado para Enviar:</span>
+                <span className="text-slate-400 font-normal text-[11px]">(editable antes de enviar)</span>
+              </label>
               <span className="text-[10px] text-slate-400 font-mono">
                 {messageBody.length} caracteres
               </span>
             </div>
             <textarea
-              rows={6}
+              rows={7}
               value={messageBody}
               onChange={(e) => setMessageBody(e.target.value)}
-              className="w-full bg-slate-50 border border-slate-300 rounded-2xl p-3.5 text-xs text-slate-900 font-mono focus:outline-none focus:ring-2 focus:ring-emerald-500 leading-relaxed"
+              className="w-full bg-slate-50 border border-slate-300 rounded-2xl p-3.5 text-xs text-slate-900 font-mono focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white leading-relaxed transition-all"
             />
           </div>
 
           {/* Info Card */}
-          <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-3 flex items-start gap-2.5">
+          <div className="bg-emerald-50/80 border border-emerald-200 rounded-2xl p-3 flex items-start gap-2.5">
             <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0 mt-0.5" />
-            <p className="text-[11px] text-emerald-900 leading-relaxed">
-              El mensaje se enviará directamente a través de WhatsApp Web o la aplicación móvil oficial de WhatsApp con formato enriquecido en negritas y emojis.
+            <p className="text-[11px] text-emerald-950 leading-relaxed font-medium">
+              El mensaje se enviará directamente a través de WhatsApp Web o la app oficial de WhatsApp al número del tutor con formato enriquecido en negritas y emojis.
             </p>
           </div>
         </div>
@@ -314,7 +445,7 @@ Este presupuesto tiene una validez de 15 días. Quedamos a su disposición para 
           <button
             type="button"
             onClick={handleCopyMessage}
-            className="flex items-center gap-1.5 px-4 py-2 bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 text-xs font-bold rounded-xl transition-all"
+            className="flex items-center gap-1.5 px-4 py-2.5 bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 text-xs font-bold rounded-xl transition-all cursor-pointer active:scale-95"
           >
             <Copy className="w-3.5 h-3.5" />
             <span>Copiar Texto</span>
@@ -324,14 +455,14 @@ Este presupuesto tiene una validez de 15 días. Quedamos a su disposición para 
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-slate-600 hover:text-slate-900 text-xs font-semibold rounded-xl"
+              className="px-4 py-2.5 text-slate-600 hover:text-slate-900 text-xs font-semibold rounded-xl cursor-pointer"
             >
               Cancelar
             </button>
             <button
               type="button"
               onClick={handleSendWhatsApp}
-              className="flex items-center gap-2 px-5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl shadow-md shadow-emerald-600/20 active:scale-95 transition-all"
+              className="flex items-center gap-2 px-6 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black rounded-xl shadow-md shadow-emerald-600/20 active:scale-95 transition-all cursor-pointer"
             >
               <Send className="w-4 h-4" />
               <span>Abrir en WhatsApp</span>

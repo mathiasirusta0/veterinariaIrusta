@@ -667,12 +667,14 @@ export const Patient360View: React.FC = () => {
                       <button
                         onClick={() =>
                           openWhatsAppHub({
+                            patientId: patient.id,
+                            ownerId: owner.id,
                             patientName: patient.name,
                             ownerName: `${owner.firstName} ${owner.lastName}`,
-                            ownerPhone: owner.phone || owner.whatsapp || '',
-                            type: 'CONTROL_GENERAL',
+                            ownerPhone: owner.whatsapp || owner.phone || '',
+                            type: 'INTERNACION',
                             details: {
-                              supplyName: 'Atención clínica y seguimiento de ' + patient.name,
+                              supplyName: 'Atención médica y novedades de ' + patient.name,
                               supplyAmount: owner.balance < 0 ? Math.abs(owner.balance) : 0,
                             },
                           })
@@ -1762,10 +1764,12 @@ export const Patient360View: React.FC = () => {
                     type="button"
                     onClick={() =>
                       openWhatsAppHub({
+                        patientId: patient.id,
+                        ownerId: owner.id,
                         patientName: patient.name,
                         ownerName: `${owner.firstName} ${owner.lastName}`,
-                        ownerPhone: owner.phone,
-                        type: 'CONTROL_GENERAL',
+                        ownerPhone: owner.whatsapp || owner.phone || '',
+                        type: 'INTERNACION',
                       })
                     }
                     className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl shadow-2xs flex items-center gap-1.5 active:scale-95 transition-all"
