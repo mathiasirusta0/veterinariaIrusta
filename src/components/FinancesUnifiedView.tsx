@@ -516,8 +516,8 @@ export const FinancesUnifiedView: React.FC = () => {
                 <input
                   type="number"
                   required
-                  min="1"
-                  step="100"
+                  min="0.01"
+                  step="any"
                   value={chargeAmount}
                   onChange={(e) => setChargeAmount(e.target.value ? Number(e.target.value) : '')}
                   placeholder="15000"
