@@ -36,7 +36,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleMobileMenu }) => {
     isCloudConnected,
   } = useVet();
 
-  const criticalCount = hospitalizations.filter(
+  const criticalCount = (hospitalizations || []).filter(
     (h) => h.status === 'ACTIVA' && (h.priority === 'CRITICO' || h.priority === 'PRIORITARIO')
   ).length;
 

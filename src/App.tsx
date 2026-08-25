@@ -105,8 +105,8 @@ const MainLayout: React.FC = () => {
 
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  const activeHospitalCount = hospitalizations.filter((h) => h.status === 'ACTIVA').length;
-  const waitingTriageCount = triageList.filter((t) => t.status === 'EN_ESPERA').length;
+  const activeHospitalCount = (hospitalizations || []).filter((h) => h.status === 'ACTIVA').length;
+  const waitingTriageCount = (triageList || []).filter((t) => t.status === 'EN_ESPERA').length;
 
   const renderActiveView = () => {
     // Normalizar ID de vista

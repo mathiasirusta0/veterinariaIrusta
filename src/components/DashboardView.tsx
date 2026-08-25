@@ -49,7 +49,7 @@ export const DashboardView: React.FC = () => {
   } = useVet();
 
   // Metrics
-  const activeHospital = hospitalizations.filter((h) => h.status === 'ACTIVA');
+  const activeHospital = (hospitalizations || []).filter((h) => h.status === 'ACTIVA');
   const criticalPatients = activeHospital.filter(
     (h) => h.priority === 'CRITICO' || h.priority === 'PRIORITARIO'
   );
@@ -63,21 +63,21 @@ export const DashboardView: React.FC = () => {
     });
   });
 
-  const pendingLabs = labOrders.filter(
+  const pendingLabs = (labOrders || []).filter(
     (l) => l.status === 'SOLICITADO' || l.status === 'EN_PROCESO'
   );
-  const todaySurgeries = surgeries.filter(
+  const todaySurgeries = (surgeries || []).filter(
     (s) => s.date === new Date().toISOString().split('T')[0]
   );
-  const waitingTriage = triageList.filter((t) => t.status === 'EN_ESPERA');
-  const lowStock = products.filter((p) => p.currentStock <= p.minStock);
+  const waitingTriage = (triageList || []).filter((t) => t.status === 'EN_ESPERA');
+  const lowStock = (products || []).filter((p) => (p.currentStock ?? 0) <= (p.minStock ?? 0));
 
-  const todayAppointments = appointments.filter(
+  const todayAppointments = (appointments || []).filter(
     (a) => a.date === new Date().toISOString().split('T')[0] && a.status !== 'CANCELADO'
   );
 
-  const totalRevenue = invoices.reduce((sum, inv) => sum + (inv.totalAmount || 0), 0);
-  const globalOccupancyPercent = Math.min(100, Math.round((activeHospital.length / 18) * 100));
+  const totalRevenue = (invoices || []).reduce((sum, inv) => sum + (inv.totalAmount || 0), 0);
+  const globalOccupancyPercent = Math.min(100, Math.round(((activeHospital.length || 0) / 18) * 100));
 
   const openPatientDetail = (patientId: string, tab = 'RESUMEN') => {
     setSelectedPatientId(patientId);

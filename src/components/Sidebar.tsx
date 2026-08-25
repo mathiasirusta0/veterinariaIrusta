@@ -26,14 +26,14 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpenMobile, onCloseMobile })
     setSelectedPatientId,
   } = useVet();
 
-  const lowStockCount = products.filter((p) => p.currentStock <= p.minStock).length;
-  const activeHospitalCount = hospitalizations.filter((h) => h.status === 'ACTIVA').length;
-  const waitingTriageCount = triageList.filter((t) => t.status === 'EN_ESPERA').length;
+  const lowStockCount = (products || []).filter((p) => (p.currentStock ?? 0) <= (p.minStock ?? 0)).length;
+  const activeHospitalCount = (hospitalizations || []).filter((h) => h.status === 'ACTIVA').length;
+  const waitingTriageCount = (triageList || []).filter((t) => t.status === 'EN_ESPERA').length;
 
   const getBadgeForView = (viewId: SystemView) => {
     switch (viewId) {
       case 'PACIENTES':
-        return { count: patients.length, color: 'bg-slate-200 text-slate-700' };
+        return { count: (patients || []).length, color: 'bg-slate-200 text-slate-700' };
       case 'INVENTARIO':
         return lowStockCount > 0 ? { count: lowStockCount, color: 'bg-amber-500 text-white' } : null;
       default:
@@ -41,15 +41,15 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpenMobile, onCloseMobile })
     }
   };
 
-  const navGroups = NAV_GROUPS.map((grp) => {
-    const items = NAVIGATION_ITEMS.filter(
+  const navGroups = (NAV_GROUPS || []).map((grp) => {
+    const items = (NAVIGATION_ITEMS || []).filter(
       (item) => item.group === grp.id && hasViewPermission(currentUser?.role, item.id)
     );
     return {
       group: grp.label,
       items,
     };
-  }).filter((grp) => grp.items.length > 0);
+  }).filter((grp) => grp.items && grp.items.length > 0);
 
   const handleSelect = (id: SystemView) => {
     triggerHaptic('light');

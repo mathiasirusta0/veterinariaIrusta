@@ -82,7 +82,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ onBackToLanding }) => {
         name: userName,
         email: data.user.email || cleanEmail,
         role,
-        branchId: activeBranch.id,
+        branchId: activeBranch?.id || 'central',
         licenseNumber: license,
       });
 

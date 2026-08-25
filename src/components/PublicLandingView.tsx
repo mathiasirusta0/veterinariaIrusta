@@ -22,7 +22,8 @@ import {
 import { triggerHaptic } from '../utils/haptics';
 
 interface PublicLandingViewProps {
-  onOpenLogin: () => void;
+  onOpenLogin?: () => void;
+  onGoToLogin?: () => void;
 }
 
 export const WHATSAPP_NUMBER = '5492942477136';
@@ -37,8 +38,14 @@ export const getWhatsAppLink = (message: string = WA_TURNO_MSG) => {
   return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
 };
 
-export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onOpenLogin }) => {
+export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onOpenLogin, onGoToLogin }) => {
   const [showWaModal, setShowWaModal] = useState(false);
+
+  const handleOpenLogin = () => {
+    triggerHaptic('light');
+    if (onOpenLogin) handleOpenLogin();
+    if (onGoToLogin) onGoToLogin();
+  };
 
   return (
     <div className="min-h-screen bg-[#F9F8F5] text-[#1C2B1D] font-sans antialiased selection:bg-[#5F7359] selection:text-white relative">
@@ -102,7 +109,7 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onOpenLogi
             <button
               onClick={() => {
                 triggerHaptic('medium');
-                onOpenLogin();
+                handleOpenLogin();
               }}
               className="px-4 py-2 bg-[#5F7359] hover:bg-[#4D5E48] active:scale-98 text-white text-xs font-bold rounded-xl transition-all shadow-sm flex items-center gap-2 cursor-pointer border border-[#4D5E48]"
             >
@@ -137,7 +144,7 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onOpenLogi
               <button
                 onClick={() => {
                   triggerHaptic('medium');
-                  onOpenLogin();
+                  handleOpenLogin();
                 }}
                 className="px-6 py-3.5 bg-[#5F7359] hover:bg-[#4D5E48] active:scale-98 text-white font-bold text-sm rounded-2xl transition-all shadow-md flex items-center gap-2 cursor-pointer border border-[#4D5E48]"
               >
@@ -326,7 +333,7 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onOpenLogi
               <button
                 onClick={() => {
                   triggerHaptic('medium');
-                  onOpenLogin();
+                  handleOpenLogin();
                 }}
                 className="px-5 py-3 bg-[#5F7359] hover:bg-[#4D5E48] text-white text-xs font-bold rounded-xl transition-all shadow-xs flex items-center gap-2 cursor-pointer border border-[#4D5E48]"
               >
@@ -404,7 +411,7 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onOpenLogi
           <button
             onClick={() => {
               triggerHaptic('medium');
-              onOpenLogin();
+              handleOpenLogin();
             }}
             className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white text-xs font-bold rounded-xl border border-white/20 transition-all flex items-center gap-1.5 cursor-pointer"
           >
