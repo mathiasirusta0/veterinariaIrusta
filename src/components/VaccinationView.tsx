@@ -18,118 +18,257 @@ import {
   FileCheck,
   User,
   ExternalLink,
+  ShieldAlert,
+  ChevronRight,
+  TrendingUp,
+  Check,
+  Layers,
+  Heart,
+  Droplet,
+  Info,
 } from 'lucide-react';
 import { useVet } from '../context/VetContext';
 import { VaccinationRecord, Patient, Species, Sex } from '../types';
 import { formatDate, formatWeight } from '../utils/formatters';
 import { triggerHaptic } from '../utils/haptics';
-import { PageHeader, EmptyState, SearchInput, FilterBar } from './ui';
+import { PageHeader, EmptyState, SearchInput, StatCard } from './ui';
 
 interface VaccinePreset {
+  id: string;
   name: string;
   species: Species;
   categoryLabel: string;
   type: string;
   manufacturer: string;
   durationMonths: number;
+  route: string;
   notes: string;
+  badgeColor: string;
 }
 
-const MILITARY_AND_CLINICAL_PRESETS: VaccinePreset[] = [
-  // ÉQUIDOS (CABALLOS, BURROS, MULAS)
+export const VACCINE_PRESETS: VaccinePreset[] = [
+  // 🐕 CANINOS
   {
+    id: 'can-sextuple',
+    name: 'Séxtuple Canina (DHPPI-L)',
+    species: 'CANINO',
+    categoryLabel: '🐕 Canino',
+    type: 'Plan Sanitario Anual / Primovacunación',
+    manufacturer: 'Zoetis Vanguard / Nobivac',
+    durationMonths: 12,
+    route: 'Subcutánea (SC)',
+    notes: 'Inmunización contra Parvovirus, Moquillo, Hepatitis, Adenovirus, Parainfluenza y Leptospira.',
+    badgeColor: 'bg-teal-50 text-teal-800 border-teal-200',
+  },
+  {
+    id: 'can-rabia',
+    name: 'Antirrábica Canina Oficial (Ley 22.953)',
+    species: 'CANINO',
+    categoryLabel: '🐕 Canino Obligatoria',
+    type: 'Vacunación Obligatoria por Ley Nacional',
+    manufacturer: 'Nobivac Rabies / BioCan',
+    durationMonths: 12,
+    route: 'Subcutánea (SC)',
+    notes: 'Inmunización obligatoria anual a partir de los 3 meses de edad. Emisión de certificado oficial.',
+    badgeColor: 'bg-rose-50 text-rose-800 border-rose-200',
+  },
+  {
+    id: 'can-kc',
+    name: 'Tos de las Perreras (KC / Bordetella)',
+    species: 'CANINO',
+    categoryLabel: '🐕 Canino',
+    type: 'Complejo Respiratorio Infeccioso Canino',
+    manufacturer: 'Nobivac KC / Bronchicine',
+    durationMonths: 12,
+    route: 'Intranasal (IN) / SC',
+    notes: 'Protección contra Bordetella bronchiseptica y Parainfluenza. Ideal para guarderías y paseos.',
+    badgeColor: 'bg-blue-50 text-blue-800 border-blue-200',
+  },
+  {
+    id: 'can-puppy',
+    name: 'Puppy DP (Parvovirus + Moquillo)',
+    species: 'CANINO',
+    categoryLabel: '🐕 Cachorros',
+    type: 'Primovacunación Temprana (45 días)',
+    manufacturer: 'Nobivac Puppy DP / Vanguard',
+    durationMonths: 1,
+    route: 'Subcutánea (SC)',
+    notes: 'Primera dosis de alta concentración antigénica para cachorros destetados.',
+    badgeColor: 'bg-amber-50 text-amber-800 border-amber-200',
+  },
+  {
+    id: 'can-giardia',
+    name: 'GiardiaVax (Giardiasis Canina)',
+    species: 'CANINO',
+    categoryLabel: '🐕 Canino',
+    type: 'Control de Enteroparásitos',
+    manufacturer: 'Zoetis GiardiaVax',
+    durationMonths: 12,
+    route: 'Subcutánea (SC)',
+    notes: 'Reduce la excreción de quistes y la severidad de cuadros entéricos por Giardia lamblia.',
+    badgeColor: 'bg-indigo-50 text-indigo-800 border-indigo-200',
+  },
+  {
+    id: 'can-desparasitacion',
+    name: 'Desparasitación Interna Total Canina',
+    species: 'CANINO',
+    categoryLabel: '🐕 Antiparasitario',
+    type: 'Plan Antiparasitario Trimestral',
+    manufacturer: 'Drontal Plus / Total F / Basken',
+    durationMonths: 3,
+    route: 'Oral',
+    notes: 'Praziquantel + Febantel + Pirantel. Control de nemátodes y céstodes.',
+    badgeColor: 'bg-emerald-50 text-emerald-800 border-emerald-200',
+  },
+
+  // 🐈 FELINOS
+  {
+    id: 'fel-triple',
+    name: 'Triple Felina Trivalente (RCP)',
+    species: 'FELINO',
+    categoryLabel: '🐈 Felino',
+    type: 'Plan Sanitario Anual Felino',
+    manufacturer: 'Felocell 3 / Purevax RCP',
+    durationMonths: 12,
+    route: 'Subcutánea (SC)',
+    notes: 'Inmunización contra Rinotraqueítis, Calicivirus y Panleucopenia felina.',
+    badgeColor: 'bg-purple-50 text-purple-800 border-purple-200',
+  },
+  {
+    id: 'fel-felv',
+    name: 'Leucemia Viral Felina (FeLV)',
+    species: 'FELINO',
+    categoryLabel: '🐈 Felino',
+    type: 'Inmunización Retroviral',
+    manufacturer: 'Purevax FeLV / Leukocell',
+    durationMonths: 12,
+    route: 'Subcutánea (SC)',
+    notes: 'Recomendada en gatos con salida al exterior tras test serológico previo no reactivo.',
+    badgeColor: 'bg-pink-50 text-pink-800 border-pink-200',
+  },
+  {
+    id: 'fel-rabia',
+    name: 'Antirrábica Felina Oficial (Ley 22.953)',
+    species: 'FELINO',
+    categoryLabel: '🐈 Felino Obligatoria',
+    type: 'Vacunación Obligatoria Nacional',
+    manufacturer: 'Nobivac Rabies / Rabisin',
+    durationMonths: 12,
+    route: 'Subcutánea (SC)',
+    notes: 'Inmunización antirrábica obligatoria anual para gatos.',
+    badgeColor: 'bg-rose-50 text-rose-800 border-rose-200',
+  },
+  {
+    id: 'fel-desparasitacion',
+    name: 'Desparasitación Integral Felina Spot-On',
+    species: 'FELINO',
+    categoryLabel: '🐈 Felino Antiparasitario',
+    type: 'Control Endectocida',
+    manufacturer: 'Profender / Revolution Plus / Advocate',
+    durationMonths: 3,
+    route: 'Tópica (Spot-on)',
+    notes: 'Control combinado de parásitos internos y externos (pulgas, ácaros, tenias y nematodos).',
+    badgeColor: 'bg-emerald-50 text-emerald-800 border-emerald-200',
+  },
+
+  // 🐎 ÉQUIDOS
+  {
+    id: 'eq-tetanos',
     name: 'Toxoide Tetánico Equino (Tétanos)',
     species: 'EQUINO',
-    categoryLabel: '🐎 Équidos (Caballo / Burro / Mula)',
-    type: 'Plan Sanitario Militar Obligatorio',
-    manufacturer: 'Laboratorio Biológico Equino',
+    categoryLabel: '🐎 Équidos',
+    type: 'Prevención Clostridial Obligatoria',
+    manufacturer: 'Biológico Equino / Biogénesis Bagó',
     durationMonths: 12,
-    notes: 'Inmunización contra Clostridium tetani. Vital en animales de caballería, trabajo y herrado.',
+    route: 'Intramuscular (IM)',
+    notes: 'Inmunización contra Clostridium tetani. Vital en equinos de trabajo, deporte y reproducción.',
+    badgeColor: 'bg-amber-50 text-amber-800 border-amber-200',
   },
   {
+    id: 'eq-influenza',
     name: 'Influenza Equina Bivalente (Gripe)',
     species: 'EQUINO',
-    categoryLabel: '🐎 Équidos (Caballo / Burro / Mula)',
-    type: 'Sanidad Operativa / Tropilla',
+    categoryLabel: '🐎 Équidos',
+    type: 'Sanidad Operativa / Tránsito',
     manufacturer: 'BioEquus / Boehringer',
     durationMonths: 6,
-    notes: 'Cepa A/Equi 1 y A/Equi 2. Refuerzo semestral para tropillas en actividad y traslado.',
+    route: 'Intramuscular (IM)',
+    notes: 'Cepa A/Equi 1 y 2. Refuerzo semestral obligatorio para equinos en actividad deportiva y traslado.',
+    badgeColor: 'bg-blue-50 text-blue-800 border-blue-200',
   },
   {
-    name: 'Adenitis Equina / Papera (Streptococcus equi)',
-    species: 'EQUINO',
-    categoryLabel: '🐎 Équidos (Caballo / Burro / Mula)',
-    type: 'Prevención de Papera Equina',
-    manufacturer: 'Biogénesis Bagó',
-    durationMonths: 12,
-    notes: 'Prevención de adenitis en potrillos y équidos de escuadrón.',
-  },
-  {
+    id: 'eq-encefalo',
     name: 'Encefalomielitis Equina (Oeste / Este)',
     species: 'EQUINO',
-    categoryLabel: '🐎 Équidos (SENASA Obligatorio)',
+    categoryLabel: '🐎 Équidos (SENASA)',
     type: 'Vacunación Oficial Obligatoria SENASA',
     manufacturer: 'Laboratorio Rosenbusch',
     durationMonths: 12,
-    notes: 'Obligatoria para movimiento de animales y tránsito federal.',
+    route: 'Intramuscular (IM)',
+    notes: 'Obligatoria para movimiento y tránsito interprovincial de equinos.',
+    badgeColor: 'bg-teal-50 text-teal-800 border-teal-200',
   },
   {
-    name: 'Desparasitación Estratégica Équidos (Ivermectina + Praziquantel)',
+    id: 'eq-adenitis',
+    name: 'Adenitis Equina / Papera (Streptococcus equi)',
     species: 'EQUINO',
-    categoryLabel: '🐎 Équidos (Control Antiparasitario)',
-    type: 'Plan Antiparasitario de Tropa',
-    manufacturer: 'Zoetis Equine',
+    categoryLabel: '🐎 Équidos',
+    type: 'Sanidad de Haras y Cabañas',
+    manufacturer: 'Biogénesis Bagó',
+    durationMonths: 12,
+    route: 'Intramuscular (IM)',
+    notes: 'Prevención de papera equina y afecciones respiratorias en potrillos y adultos.',
+    badgeColor: 'bg-purple-50 text-purple-800 border-purple-200',
+  },
+  {
+    id: 'eq-desparasitacion',
+    name: 'Desparasitación Équidos (Ivermectina + Praziquantel)',
+    species: 'EQUINO',
+    categoryLabel: '🐎 Équidos Antiparasitario',
+    type: 'Plan Sanitario Estratégico',
+    manufacturer: 'Equimax / Bimectin / Zoetis',
     durationMonths: 4,
-    notes: 'Control de grandes y pequeños estróngilos, ascárides y tenias.',
+    route: 'Oral (Pasta)',
+    notes: 'Control de grandes y pequeños estróngilos, gasterófilos y tenias.',
+    badgeColor: 'bg-emerald-50 text-emerald-800 border-emerald-200',
   },
   {
-    name: 'Control AIE / Test de Coggins Negativo',
+    id: 'eq-coggins',
+    name: 'Test de Coggins / Certificación Oficial AIE',
     species: 'EQUINO',
-    categoryLabel: '🐎 Équidos (Certificación Sanitaria)',
-    type: 'Libreta Sanitaria / Certificado AIE',
+    categoryLabel: '🐎 SENASA Oficial',
+    type: 'Diagnóstico Serológico Anemia Infecciosa Equina',
     manufacturer: 'Laboratorio de Red Oficial SENASA',
     durationMonths: 6,
-    notes: 'Diagnóstico serológico de Anemia Infecciosa Equina. Validez 60 a 180 días según destino.',
+    route: 'Diagnóstico Serológico',
+    notes: 'Validez legal para tránsito y eventos deportivos según resolución SENASA.',
+    badgeColor: 'bg-slate-100 text-slate-800 border-slate-300',
   },
 
-  // CANINOS (K9 TÁCTICOS Y COMPAÑÍA)
+  // 🐄 BOVINOS / GRANDES ANIMALES
   {
-    name: 'Séxtuple / Óctuple Canina K9',
-    species: 'CANINO',
-    categoryLabel: '🐕 Canino K9 / Patrulla',
-    type: 'Inmunización Completa Táctica',
-    manufacturer: 'Nobivac / Zoetis Vanguard',
+    id: 'bov-mancha',
+    name: 'Vacuna Polivalente Mancha y Gangrena',
+    species: 'BOVINO',
+    categoryLabel: '🐄 Bovinos',
+    type: 'Control Clostridial en Rodeo',
+    manufacturer: 'Biogénesis Bagó',
     durationMonths: 12,
-    notes: 'Parvovirus, Moquillo, Hepatitis, Leptospira 4 serovares, Parainfluenza.',
+    route: 'Subcutánea (SC)',
+    notes: 'Inmunización contra Clostridium chauvoei, septicum y novyi.',
+    badgeColor: 'bg-amber-50 text-amber-800 border-amber-200',
   },
   {
-    name: 'Antirrábica Obligatoria (Cepa Pasteur)',
-    species: 'CANINO',
-    categoryLabel: '🐕 / 🐎 Vacuna Antirrábica',
-    type: 'Vacunación Obligatoria por Ley',
-    manufacturer: 'Laboratorio Pasteur / Nobivac Rabies',
+    id: 'bov-carbuncio',
+    name: 'Carbuncio Bacteridiano (Bacillus anthracis)',
+    species: 'BOVINO',
+    categoryLabel: '🐄 Bovinos (SENASA)',
+    type: 'Vacunación Obligatoria de Primavera',
+    manufacturer: 'Rosenbusch / Biogénesis',
     durationMonths: 12,
-    notes: 'Obligatoria nacional con emisión de certificado oficial y número de oblea.',
-  },
-  {
-    name: 'Tos de las Perreras (Bordetella bronchiseptica)',
-    species: 'CANINO',
-    categoryLabel: '🐕 Canino K9 (Acuartelamiento)',
-    type: 'Complejo Respiratorio Infeccioso',
-    manufacturer: 'Nobivac KC / Bronchicine',
-    durationMonths: 12,
-    notes: 'Fundamental para perros en caniles grupales, patrulla o adiestramiento.',
-  },
-
-  // FELINOS
-  {
-    name: 'Triple Felina + Leucemia (FeLV)',
-    species: 'FELINO',
-    categoryLabel: '🐈 Felino',
-    type: 'Inmunización Felina Completa',
-    manufacturer: 'Felocell / Purevax',
-    durationMonths: 12,
-    notes: 'Rinotraqueítis, Calicivirus, Panleucopenia y Leucemia viral felina.',
+    route: 'Subcutánea (SC)',
+    notes: 'Cepa Sterne viva avirulenta. Obligatoria anual para ganado bovino.',
+    badgeColor: 'bg-rose-50 text-rose-800 border-rose-200',
   },
 ];
 
@@ -151,8 +290,8 @@ export const VaccinationView: React.FC = () => {
   } = useVet();
 
   const [search, setSearch] = useState('');
-  const [speciesFilter, setSpeciesFilter] = useState('TODAS');
-  const [statusFilter, setStatusFilter] = useState('TODOS');
+  const [speciesFilter, setSpeciesFilter] = useState<string>('TODAS');
+  const [statusFilter, setStatusFilter] = useState<'TODOS' | 'VIGENTE' | 'POR_VENCER' | 'VENCIDA'>('TODOS');
   const [selectedCertModal, setSelectedCertModal] = useState<VaccinationRecord | null>(null);
 
   // New Vaccination Form Modal Dual Mode State
@@ -160,7 +299,17 @@ export const VaccinationView: React.FC = () => {
   const [vacMode, setVacMode] = useState<'EXISTING' | 'NEW'>('EXISTING');
   const [formPatientId, setFormPatientId] = useState(patients[0]?.id || '');
   
-  // New Patient & Owner direct on-the-fly fields
+  // Biological fields
+  const [formVaccineName, setFormVaccineName] = useState('Séxtuple Canina (DHPPI-L)');
+  const [formType, setFormType] = useState('Plan Sanitario Anual');
+  const [formManufacturer, setFormManufacturer] = useState('Zoetis Vanguard / Nobivac');
+  const [formBatchNumber, setFormBatchNumber] = useState('LT-VAC-' + Math.floor(1000 + Math.random() * 9000));
+  const [formDurationMonths, setFormDurationMonths] = useState(12);
+  const [formRoute, setFormRoute] = useState('Subcutánea (SC)');
+  const [formDestination, setFormDestination] = useState('');
+  const [formNotes, setFormNotes] = useState('Paciente examinado clínicamente apto para inmunización. Normotérmico y sin signos de enfermedad infecciosa.');
+
+  // New Patient & Owner on-the-fly fields
   const [newPetName, setNewPetName] = useState('');
   const [newPetSpecies, setNewPetSpecies] = useState<Species>('CANINO');
   const [newPetBreed, setNewPetBreed] = useState('');
@@ -170,18 +319,32 @@ export const VaccinationView: React.FC = () => {
   const [newOwnerLastName, setNewOwnerLastName] = useState('');
   const [newOwnerPhone, setNewOwnerPhone] = useState('');
   const [newOwnerDni, setNewOwnerDni] = useState('');
-  const [formVaccineName, setFormVaccineName] = useState('Toxoide Tetánico Equino (Tétanos)');
-  const [formType, setFormType] = useState('Plan Sanitario Militar Obligatorio');
-  const [formManufacturer, setFormManufacturer] = useState('Laboratorio Biológico Equino');
-  const [formBatchNumber, setFormBatchNumber] = useState('LT-EQ-' + Math.floor(1000 + Math.random() * 9000));
-  const [formDurationMonths, setFormDurationMonths] = useState(12);
-  const [formRegimentUnit, setFormRegimentUnit] = useState('Regimiento de Caballería / Escuadrón de Montaña');
-  const [formNotes, setFormNotes] = useState('Animal inspeccionado clínicamente apto para vacunación sin fiebre.');
 
   const today = new Date();
 
+  // Metrics Calculation
+  const totalCount = vaccinations.length;
+  const upcomingCount = vaccinations.filter((v) => {
+    const due = new Date(v.nextDueDate);
+    const diffDays = Math.ceil((due.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+    return diffDays >= 0 && diffDays <= 30;
+  }).length;
+
+  const expiredCount = vaccinations.filter((v) => {
+    const due = new Date(v.nextDueDate);
+    const diffDays = Math.ceil((due.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+    return diffDays < 0;
+  }).length;
+
+  const validCount = vaccinations.filter((v) => {
+    const due = new Date(v.nextDueDate);
+    const diffDays = Math.ceil((due.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+    return diffDays > 30;
+  }).length;
+
+  // Filter List
   const filteredVaccinations = vaccinations.filter((vac) => {
-    const q = (search || '').toLowerCase();
+    const q = (search || '').toLowerCase().trim();
     const patient = patients.find((p) => p.id === vac.patientId);
     const owner = patient ? owners.find((o) => o.id === patient.ownerId) : null;
     const petName = (patient?.name || '').toLowerCase();
@@ -190,23 +353,24 @@ export const VaccinationView: React.FC = () => {
     const chip = (patient?.microchip || '').toLowerCase();
     const vacName = (vac.vaccineName || '').toLowerCase();
     const batch = (vac.batchNumber || '').toLowerCase();
-    const unit = (vac.regimentUnit || '').toLowerCase();
-    const tutor = owner ? (owner.firstName + ' ' + owner.lastName).toLowerCase() : '';
+    const tutor = owner ? `${owner.firstName} ${owner.lastName}`.toLowerCase() : '';
 
     const matchesSearch =
+      !q ||
       petName.includes(q) ||
       hc.includes(q) ||
       passport.includes(q) ||
       chip.includes(q) ||
       vacName.includes(q) ||
       batch.includes(q) ||
-      unit.includes(q) ||
       tutor.includes(q);
 
     let matchesSpecies = true;
     if (speciesFilter !== 'TODAS') {
       if (speciesFilter === 'EQUIDOS') {
         matchesSpecies = patient?.species === 'EQUINO' || (patient?.species as any) === 'ASNAL' || (patient?.species as any) === 'MULAR';
+      } else if (speciesFilter === 'GRANDES') {
+        matchesSpecies = patient?.species === 'EQUINO' || patient?.species === 'BOVINO' || patient?.species === 'OVINO' || patient?.species === 'CAPRINO';
       } else {
         matchesSpecies = patient?.species === speciesFilter;
       }
@@ -230,8 +394,9 @@ export const VaccinationView: React.FC = () => {
     setFormType(preset.type);
     setFormManufacturer(preset.manufacturer);
     setFormDurationMonths(preset.durationMonths);
+    setFormRoute(preset.route);
     setFormNotes(preset.notes);
-    showToast('info', 'Plantilla Aplicada', 'Biológico: ' + preset.name);
+    showToast('info', 'Plantilla Seleccionada', `Biológico: ${preset.name}`);
   };
 
   const handleSaveVaccination = (e: React.FormEvent) => {
@@ -278,6 +443,7 @@ export const VaccinationView: React.FC = () => {
         breed: newPetBreed.trim() || 'Mestizo',
         sex: newPetSex,
         reproductiveStatus: 'ENTERO',
+        color: 'No especificado',
         birthDate: new Date().toISOString(),
         calculatedAge: 'Adulto',
         weight: Number(newPetWeight) || 10,
@@ -292,7 +458,7 @@ export const VaccinationView: React.FC = () => {
       targetPatientId = newPatId;
       registeredPetName = newPetName.trim();
     } else {
-      const foundPat = patients.find(p => p.id === formPatientId);
+      const foundPat = patients.find((p) => p.id === formPatientId);
       registeredPetName = foundPat?.name || 'el paciente';
     }
 
@@ -314,12 +480,15 @@ export const VaccinationView: React.FC = () => {
       vetLicense: 'MP 8412',
       nextDueDate: nextDate.toISOString().split('T')[0],
       certificateGenerated: true,
-      regimentUnit: formRegimentUnit,
-      notes: formNotes,
+      notes: `${formNotes} [Vía: ${formRoute}]${formDestination ? ` [Destino: ${formDestination}]` : ''}`,
     });
 
     setIsNewModalOpen(false);
-    showToast('success', 'Vacunación Registrada', `Inmunización de ${registeredPetName} registrada con éxito. Refuerzo: ${formatDate(nextDate.toISOString().split('T')[0])}`);
+    showToast(
+      'success',
+      'Inmunización Registrada',
+      `Vacunación de ${registeredPetName} asentada con éxito. Próximo refuerzo: ${formatDate(nextDate.toISOString().split('T')[0])}`
+    );
 
     // Reset fields
     setNewPetName('');
@@ -337,143 +506,172 @@ export const VaccinationView: React.FC = () => {
     if (!owner) return;
 
     openWhatsAppHub({
-      patientName: patient?.name || 'su animal',
-      ownerName: owner.firstName + ' ' + owner.lastName,
-      ownerPhone: owner.phone || owner.whatsapp || '',
-      type: 'VACUNACION_RECORDATORIO',
+      patientId: patient?.id,
+      ownerId: owner.id,
+      patientName: patient?.name || 'su mascota',
+      ownerName: `${owner.firstName} ${owner.lastName}`,
+      ownerPhone: owner.whatsapp || owner.phone || '',
+      type: 'VACUNA',
       details: {
         vaccineName: vac.vaccineName,
-        administeredDate: formatDate(vac.administeredDate),
-        nextDueDate: formatDate(vac.nextDueDate),
-        batchNumber: vac.batchNumber,
+        dueDate: formatDate(vac.nextDueDate),
+        vetName: vac.administeredBy || 'Dr. Diego Irusta',
       },
     });
   };
 
-  const speciesFilterOptions = [
-    { id: 'TODAS', label: 'Todas las Especies', badge: vaccinations.length },
-    {
-      id: 'EQUIDOS',
-      label: '🐎 Équidos (Caballo/Burro/Mula)',
-      badge: vaccinations.filter((v) => {
-        const p = patients.find((pt) => pt.id === v.patientId);
-        return p?.species === 'EQUINO' || (p?.species as any) === 'ASNAL' || (p?.species as any) === 'MULAR';
-      }).length,
-    },
-    {
-      id: 'CANINO',
-      label: '🐕 Caninos K9 / Patrulla',
-      badge: vaccinations.filter((v) => {
-        const p = patients.find((pt) => pt.id === v.patientId);
-        return p?.species === 'CANINO';
-      }).length,
-    },
-    {
-      id: 'FELINO',
-      label: '🐈 Felinos',
-      badge: vaccinations.filter((v) => {
-        const p = patients.find((pt) => pt.id === v.patientId);
-        return p?.species === 'FELINO';
-      }).length,
-    },
-  ];
-
-  const statusFilterOptions = [
-    { id: 'TODOS', label: 'Todos los Estados' },
-    { id: 'VIGENTE', label: '🟢 Vigentes (>30d)' },
-    { id: 'POR_VENCER', label: '🟡 Por Vencer (<30d)' },
-    { id: 'VENCIDA', label: '🔴 Vencidas / Alerta' },
-  ];
-
   return (
-    <div className="space-y-5 pb-16 w-full max-w-full">
-      {/* 1. Header */}
+    <div className="space-y-6 pb-12 w-full max-w-full">
+      {/* Header */}
       <PageHeader
-        category="Sanidad Animal, Inmunización & Veterinaria Militar"
-        title="Plan de Vacunación & Sanidad Oficial"
-        description="Control de biológicos, lotes y vencimientos para Équidos (Caballos, Burros, Mulas), Caninos K9 y Pequeños Animales"
+        category="Sanidad, Inmunizaciones & Prevención"
+        title="Plan de Vacunación & Libreta Sanitaria"
+        description="Gestión integral de biológicos, calendarios de revacunación, certificados oficiales y recordatorios automáticos por WhatsApp"
         icon={Syringe}
         actions={[
           {
-            label: 'Registrar Inmunización',
+            label: '+ Registrar Inmunización',
             icon: Plus,
-            onClick: () => setIsNewModalOpen(true),
+            onClick: () => {
+              triggerHaptic('medium');
+              setIsNewModalOpen(true);
+            },
             variant: 'primary',
           },
         ]}
       />
 
-      {/* 2. Military & Veterinary Presets Bar */}
-      <div className="bg-white border border-slate-200 p-4 rounded-2xl shadow-xs space-y-2">
-        <div className="flex items-center gap-2">
-          <Sparkles className="w-4 h-4 text-teal-600" />
-          <span className="text-xs font-bold text-slate-800 uppercase tracking-wider">
-            Planes Sanitarios Frecuentes (Équidos de Tropa / K9 Militar / Clínica):
+      {/* KPI Stat Cards */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+        <StatCard
+          label="Total Aplicaciones"
+          value={totalCount}
+          subtitle="En historial clínico"
+          icon={Syringe}
+          color="teal"
+        />
+        <StatCard
+          label="Inmunidad Vigente"
+          value={validCount}
+          subtitle="Al día y protegidos"
+          icon={ShieldCheck}
+          color="emerald"
+        />
+        <StatCard
+          label="Por Vencer (30 días)"
+          value={upcomingCount}
+          subtitle="Avisar a tutores"
+          icon={Clock}
+          color="amber"
+        />
+        <StatCard
+          label="Revacunación Urgente"
+          value={expiredCount}
+          subtitle="Plan vencido"
+          icon={AlertTriangle}
+          color="rose"
+        />
+      </div>
+
+      {/* Plantillas Rápidas de Vacunación (1-Click Presets) */}
+      <div className="bg-white border border-slate-200 rounded-3xl p-4 sm:p-5 shadow-xs space-y-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Sparkles className="w-4 h-4 text-teal-600" />
+            <h3 className="text-xs font-black text-slate-900 uppercase tracking-wider">
+              Plantillas Rápidas de Inmunización por Especie (1-Click)
+            </h3>
+          </div>
+          <span className="text-[11px] text-slate-400 font-semibold hidden sm:inline">
+            Click para pre-cargar datos y registrar
           </span>
         </div>
-        <div className="flex flex-wrap gap-2">
-          {MILITARY_AND_CLINICAL_PRESETS.map((preset) => (
+
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2">
+          {VACCINE_PRESETS.slice(0, 12).map((preset) => (
             <button
-              key={preset.name}
+              key={preset.id}
               type="button"
               onClick={() => {
                 handleApplyPreset(preset);
                 setIsNewModalOpen(true);
               }}
-              className="px-3 py-1.5 bg-slate-50 hover:bg-teal-50 hover:border-teal-300 text-slate-700 hover:text-teal-900 border border-slate-200 rounded-xl text-xs font-bold transition-all active:scale-95 flex items-center gap-1.5 shadow-2xs"
+              className="p-2.5 rounded-2xl bg-slate-50 hover:bg-teal-50/70 border border-slate-200 hover:border-teal-300 text-left transition-all group flex flex-col justify-between shadow-2xs hover:shadow-xs active:scale-95 cursor-pointer"
             >
-              <span>{preset.species === 'EQUINO' ? '🐎' : preset.species === 'CANINO' ? '🐕' : '🐈'}</span>
-              <span>{preset.name}</span>
+              <div>
+                <span className="text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded-md bg-white border border-slate-200 text-slate-700 block w-max mb-1">
+                  {preset.categoryLabel}
+                </span>
+                <p className="text-xs font-bold text-slate-800 group-hover:text-teal-900 line-clamp-2 leading-tight">
+                  {preset.name}
+                </p>
+              </div>
+              <div className="mt-2 pt-1 border-t border-slate-200/60 flex items-center justify-between text-[10px] text-slate-500 font-mono">
+                <span>Refuerzo: {preset.durationMonths}m</span>
+                <span className="text-teal-600 font-bold group-hover:translate-x-0.5 transition-transform">+</span>
+              </div>
             </button>
           ))}
         </div>
       </div>
 
-      {/* 3. Search & Filter Bar */}
-      <div className="bg-white border border-slate-200 p-3 sm:p-4 rounded-2xl shadow-xs space-y-3 w-full max-w-full">
-        <SearchInput
-          value={search}
-          onChange={setSearch}
-          placeholder="Buscar por biológico, paciente, HC, pasaporte equino, lote o unidad..."
-        />
+      {/* Barra de Búsqueda y Filtros */}
+      <div className="bg-white border border-slate-200 p-3 sm:p-4 rounded-3xl shadow-xs space-y-3">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
+          <div className="w-full flex-1">
+            <SearchInput
+              value={search}
+              onChange={setSearch}
+              placeholder="Buscar por paciente, HC, tutor, vacuna, lote o chip..."
+            />
+          </div>
 
-        <FilterBar
-          options={speciesFilterOptions}
-          activeId={speciesFilter}
-          onSelect={setSpeciesFilter}
-          label="Especie / Categoría"
-        />
-
-        <div className="flex flex-wrap items-center gap-2 text-xs pt-1 border-t border-slate-100">
-          <span className="text-[10px] font-bold text-slate-400 uppercase">Estado Sanitario:</span>
-          {statusFilterOptions.map((opt) => (
-            <button
-              key={opt.id}
-              type="button"
-              onClick={() => setStatusFilter(opt.id)}
-              className={'px-2.5 py-1 rounded-lg font-bold text-xs transition-all ' +
-                (statusFilter === opt.id
-                  ? 'bg-slate-900 text-white shadow-2xs'
-                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200')}
+          <div className="flex items-center gap-2 overflow-x-auto w-full sm:w-auto pb-1 sm:pb-0">
+            <select
+              value={speciesFilter}
+              onChange={(e) => setSpeciesFilter(e.target.value)}
+              className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-teal-500"
             >
-              {opt.label}
-            </button>
-          ))}
+              <option value="TODAS">🐾 Todas las Especies</option>
+              <option value="CANINO">🐕 Caninos</option>
+              <option value="FELINO">🐈 Felinos</option>
+              <option value="EQUINO">🐎 Équidos (Caballos)</option>
+              <option value="BOVINO">🐄 Bovinos</option>
+              <option value="GRANDES">🐎🐄 Grandes Animales</option>
+            </select>
+
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value as any)}
+              className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-teal-500"
+            >
+              <option value="TODOS">📋 Todos los Estados</option>
+              <option value="VIGENTE">🟢 Vigentes (&gt; 30d)</option>
+              <option value="POR_VENCER">⏳ Por Vencer (&lt; 30d)</option>
+              <option value="VENCIDA">🚨 Vencidas</option>
+            </select>
+          </div>
         </div>
       </div>
 
-      {/* 4. Vaccinations List */}
-      <div className="space-y-4 w-full">
+      {/* Lista / Grilla de Registros de Inmunización */}
+      <div className="bg-white border border-slate-200 rounded-3xl p-5 sm:p-6 shadow-xs space-y-4">
+        <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+          <div className="flex items-center gap-2">
+            <ShieldCheck className="w-5 h-5 text-teal-600" />
+            <h3 className="text-sm sm:text-base font-black text-slate-900">
+              Registros de Inmunización & Calendario Sanitario ({filteredVaccinations.length})
+            </h3>
+          </div>
+          <span className="text-xs text-slate-400 font-medium">Veterinaria Irusta</span>
+        </div>
+
         {filteredVaccinations.length === 0 ? (
           <EmptyState
             icon={Syringe}
             title="No se encontraron registros de vacunación"
-            description={
-              search || speciesFilter !== 'TODAS' || statusFilter !== 'TODOS'
-                ? 'No hay biológicos que coincidan con la búsqueda o filtro seleccionado.'
-                : 'No se han registrado aplicaciones biológicas en el sistema aún.'
-            }
-            actionLabel="Registrar Primera Inmunización"
+            description="Utilice las plantillas rápidas o el botón superior para registrar la primera aplicación de biológico."
+            actionLabel="+ Registrar Inmunización"
             onAction={() => setIsNewModalOpen(true)}
           />
         ) : (
@@ -481,160 +679,125 @@ export const VaccinationView: React.FC = () => {
             {filteredVaccinations.map((vac) => {
               const patient = patients.find((p) => p.id === vac.patientId);
               const owner = patient ? owners.find((o) => o.id === patient.ownerId) : null;
-
               const dueDate = new Date(vac.nextDueDate);
               const diffDays = Math.ceil((dueDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
 
-              const isOverdue = diffDays < 0;
-              const isWarning = diffDays >= 0 && diffDays <= 30;
+              let statusBadge = {
+                label: `Vigente (${diffDays}d)`,
+                bg: 'bg-emerald-50 text-emerald-800 border-emerald-200',
+                dot: 'bg-emerald-500',
+              };
 
-              const speciesEmoji =
-                patient?.species === 'EQUINO'
-                  ? '🐎 Caballo'
-                  : (patient?.species as any) === 'ASNAL'
-                  ? '🫏 Burro'
-                  : (patient?.species as any) === 'MULAR'
-                  ? '🐴 Mula'
-                  : patient?.species === 'CANINO'
-                  ? '🐕 Canino K9'
-                  : '🐈 Felino';
-
-              const cardBorder = isOverdue
-                ? 'border-rose-300 ring-2 ring-rose-200/60 bg-rose-50/10'
-                : isWarning
-                ? 'border-amber-300 ring-2 ring-amber-200/50 bg-amber-50/10'
-                : 'border-slate-200/90 hover:border-teal-500/60';
-
-              const statusBadge = isOverdue ? (
-                <span className="text-[10px] font-black px-2.5 py-0.5 rounded-full bg-rose-100 text-rose-800 border border-rose-300 animate-pulse">
-                  ⚠️ VENCIDA ({Math.abs(diffDays)}d)
-                </span>
-              ) : isWarning ? (
-                <span className="text-[10px] font-black px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-300">
-                  ⏳ VENCE EN {diffDays} DÍAS
-                </span>
-              ) : (
-                <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200">
-                  ✓ VIGENTE ({diffDays}d)
-                </span>
-              );
+              if (diffDays < 0) {
+                statusBadge = {
+                  label: `Vencida (${Math.abs(diffDays)}d)`,
+                  bg: 'bg-rose-50 text-rose-800 border-rose-200 font-black',
+                  dot: 'bg-rose-500 animate-ping',
+                };
+              } else if (diffDays <= 30) {
+                statusBadge = {
+                  label: `Por vencer (${diffDays}d)`,
+                  bg: 'bg-amber-50 text-amber-800 border-amber-200 font-bold',
+                  dot: 'bg-amber-500',
+                };
+              }
 
               return (
                 <div
                   key={vac.id}
-                  className={'bg-white border rounded-2xl p-5 shadow-xs transition-all flex flex-col justify-between space-y-4 ' + cardBorder}
+                  className="bg-slate-50/70 border border-slate-200/90 hover:border-teal-400 rounded-3xl p-4 sm:p-5 space-y-3 transition-all hover:shadow-md flex flex-col justify-between group"
                 >
-                  <div className="space-y-3">
-                    {/* Header: Vaccine Name + Status */}
-                    <div className="flex items-start justify-between gap-2 border-b border-slate-100 pb-2.5">
-                      <div className="space-y-0.5">
-                        <div className="flex items-center gap-1.5">
-                          <span className="text-[10px] font-bold px-2 py-0.2 rounded-md bg-slate-100 text-slate-700 border border-slate-200">
-                            {speciesEmoji}
-                          </span>
-                          {vac.type && (
-                            <span className="text-[9px] font-bold text-teal-800 bg-teal-50 px-2 py-0.2 rounded border border-teal-200">
-                              {vac.type}
-                            </span>
-                          )}
+                  <div className="space-y-2.5">
+                    {/* Header Card */}
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-10 h-10 rounded-2xl bg-white border border-slate-200 flex items-center justify-center font-black text-teal-700 shadow-2xs">
+                          {patient?.species === 'CANINO' ? '🐕' : patient?.species === 'FELINO' ? '🐈' : patient?.species === 'EQUINO' ? '🐎' : '🐾'}
                         </div>
-                        <h3 className="text-base font-bold text-slate-900 leading-tight pt-1">
-                          {vac.vaccineName}
-                        </h3>
+                        <div>
+                          <h4
+                            onClick={() => {
+                              if (patient) {
+                                triggerHaptic('light');
+                                setSelectedPatientId(patient.id);
+                                setActivePatientTab('HISTORIA');
+                                setActiveView('PACIENTES');
+                              }
+                            }}
+                            className="text-sm font-black text-slate-900 hover:text-teal-700 cursor-pointer flex items-center gap-1"
+                          >
+                            <span>{patient?.name || 'Paciente'}</span>
+                            <span className="text-[10px] text-slate-400 font-mono font-normal">
+                              ({patient?.clinicalRecordNumber})
+                            </span>
+                          </h4>
+                          <p className="text-[11px] text-slate-500 font-medium">
+                            {patient?.species} • {patient?.breed} • Tutor: <strong className="text-slate-700">{owner ? `${owner.firstName} ${owner.lastName}` : 'N/A'}</strong>
+                          </p>
+                        </div>
                       </div>
-                      {statusBadge}
+
+                      <span
+                        className={`text-[10px] px-2.5 py-1 rounded-xl border flex items-center gap-1.5 font-bold ${statusBadge.bg}`}
+                      >
+                        <span className={`w-1.5 h-1.5 rounded-full ${statusBadge.dot}`} />
+                        {statusBadge.label}
+                      </span>
                     </div>
 
-                    {/* Patient & Identity */}
-                    <div className="space-y-1 text-xs">
+                    {/* Vaccine Info */}
+                    <div className="bg-white p-3 rounded-2xl border border-slate-200/80 space-y-1 text-xs shadow-2xs">
                       <div className="flex items-center justify-between">
-                        <span
-                          onClick={() => {
-                            if (patient) {
-                              setSelectedPatientId(patient.id);
-                              setActivePatientTab('VACUNAS');
-                              setActiveView('PACIENTES');
-                            }
-                          }}
-                          className="font-bold text-slate-900 hover:text-teal-700 cursor-pointer text-sm"
-                        >
-                          {patient?.name || 'Animal / Tropa'}
-                        </span>
-                        <span className="text-[10px] font-mono font-bold bg-slate-100 px-1.5 py-0.2 rounded text-slate-600">
-                          {patient?.clinicalRecordNumber || 'HC-0000'}
+                        <span className="font-extrabold text-slate-900 text-xs">{vac.vaccineName}</span>
+                        <span className="text-[10px] text-teal-700 font-mono font-bold bg-teal-50 px-1.5 py-0.5 rounded border border-teal-200">
+                          {vac.batchNumber}
                         </span>
                       </div>
-
                       <p className="text-[11px] text-slate-500">
-                        {patient?.breed} {patient?.weight ? '• ' + formatWeight(patient.weight) : ''}
-                        {patient?.equinePassport ? ' • Pasaporte: ' + patient.equinePassport : ''}
-                        {patient?.microchip ? ' • Chip: ' + patient.microchip : ''}
+                        Fab: <strong>{vac.manufacturer}</strong> • {vac.type || 'Plan Sanitario'}
                       </p>
-
-                      <p className="text-[11px] text-slate-600">
-                        Responsable / Tutor: <strong>{owner ? (owner.firstName + ' ' + owner.lastName) : 'Comando / Tropa'}</strong>
-                      </p>
-
-                      {vac.regimentUnit && (
-                        <p className="text-[10px] text-slate-500 font-semibold">
-                          Unidad: <span className="text-slate-800">{vac.regimentUnit}</span>
-                        </p>
-                      )}
                     </div>
 
-                    {/* Bio Data: Batch + Manufacturer + Dates */}
-                    <div className="bg-slate-50/90 p-3 rounded-xl border border-slate-200/80 text-xs space-y-1.5">
-                      <div className="flex items-center justify-between text-[11px]">
-                        <span className="text-slate-400 font-bold uppercase text-[9px]">Lote & Fabricante:</span>
-                        <span className="font-mono font-bold text-slate-800">{vac.batchNumber} ({vac.manufacturer})</span>
+                    {/* Dates & Vet in Charge */}
+                    <div className="grid grid-cols-2 gap-2 text-[11px] bg-slate-100/70 p-2.5 rounded-2xl border border-slate-200/60">
+                      <div>
+                        <span className="text-slate-400 block text-[10px] uppercase font-bold">Aplicación:</span>
+                        <strong className="text-slate-800">{formatDate(vac.administeredDate)}</strong>
                       </div>
-                      <div className="flex items-center justify-between text-[11px]">
-                        <span className="text-slate-500">Aplicación:</span>
-                        <span className="font-bold text-slate-900">{formatDate(vac.administeredDate)}</span>
-                      </div>
-                      <div className="flex items-center justify-between text-[11px] pt-1 border-t border-slate-200/60">
-                        <span className="font-bold text-slate-700">Próximo Refuerzo:</span>
-                        <span className={'font-mono font-black ' + (isOverdue ? 'text-rose-600' : 'text-slate-900')}>
-                          {formatDate(vac.nextDueDate)}
-                        </span>
+                      <div>
+                        <span className="text-slate-400 block text-[10px] uppercase font-bold">Próximo Refuerzo:</span>
+                        <strong className="text-teal-900">{formatDate(vac.nextDueDate)}</strong>
                       </div>
                     </div>
 
-                    {vac.notes && (
-                      <p className="text-[10px] text-slate-500 italic bg-white p-2 rounded-lg border border-slate-100">
-                        "{vac.notes}"
-                      </p>
-                    )}
+                    <div className="text-[11px] text-slate-600 flex items-center justify-between px-1">
+                      <span>Prof: <strong>{vac.administeredBy || 'Dr. Diego Irusta'}</strong> ({vac.vetLicense || 'MP 8412'})</span>
+                    </div>
                   </div>
 
-                  {/* Actions Bar */}
-                  <div className="pt-3 border-t border-slate-100 flex items-center justify-between gap-2 text-xs">
-                    <span className="text-slate-500 text-[10px] truncate block">
-                      Vet: <strong>{vac.administeredBy}</strong> ({vac.vetLicense})
-                    </span>
+                  {/* Actions */}
+                  <div className="pt-2 border-t border-slate-200/70 flex items-center justify-between gap-2">
+                    <button
+                      type="button"
+                      onClick={() => handleSendWhatsApp(vac)}
+                      className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-2xs active:scale-95 transition-all cursor-pointer"
+                      title="Enviar recordatorio y constancia de vacunación por WhatsApp"
+                    >
+                      <MessageCircle className="w-3.5 h-3.5" />
+                      <span>WhatsApp</span>
+                    </button>
 
-                    <div className="flex items-center gap-1.5 flex-shrink-0">
-                      {owner && (
-                        <button
-                          type="button"
-                          onClick={() => handleSendWhatsApp(vac)}
-                          className="p-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 rounded-xl transition-all active:scale-95"
-                          title="Enviar aviso de vacunación por WhatsApp"
-                        >
-                          <MessageCircle className="w-4 h-4 text-emerald-600" />
-                        </button>
-                      )}
-
-                      <button
-                        type="button"
-                        onClick={() => setSelectedCertModal(vac)}
-                        className="px-3 py-1.5 bg-teal-50 hover:bg-teal-100 text-teal-800 font-bold rounded-xl border border-teal-200 flex items-center gap-1 transition-all active:scale-95"
-                        title="Ver Certificado Oficial de Vacunación"
-                      >
-                        <Award className="w-3.5 h-3.5 text-teal-600" />
-                        <span>Certificado</span>
-                      </button>
-                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        triggerHaptic('medium');
+                        setSelectedCertModal(vac);
+                      }}
+                      className="px-3.5 py-1.5 bg-white hover:bg-slate-100 text-slate-800 border border-slate-300 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-2xs active:scale-95 transition-all cursor-pointer"
+                    >
+                      <Award className="w-3.5 h-3.5 text-teal-600" />
+                      <span>Certificado</span>
+                    </button>
                   </div>
                 </div>
               );
@@ -660,7 +823,7 @@ export const VaccinationView: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setIsNewModalOpen(false)}
-                className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold flex items-center justify-center"
+                className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold flex items-center justify-center cursor-pointer"
               >
                 ✕
               </button>
@@ -671,8 +834,11 @@ export const VaccinationView: React.FC = () => {
               <div className="p-1 bg-slate-100 rounded-2xl flex items-center gap-1 border border-slate-200">
                 <button
                   type="button"
-                  onClick={() => setVacMode('EXISTING')}
-                  className={`flex-1 py-2 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                  onClick={() => {
+                    triggerHaptic('light');
+                    setVacMode('EXISTING');
+                  }}
+                  className={`flex-1 py-2.5 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
                     vacMode === 'EXISTING'
                       ? 'bg-teal-700 text-white shadow-sm'
                       : 'text-slate-600 hover:text-slate-900'
@@ -682,8 +848,11 @@ export const VaccinationView: React.FC = () => {
                 </button>
                 <button
                   type="button"
-                  onClick={() => setVacMode('NEW')}
-                  className={`flex-1 py-2 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                  onClick={() => {
+                    triggerHaptic('light');
+                    setVacMode('NEW');
+                  }}
+                  className={`flex-1 py-2.5 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
                     vacMode === 'NEW'
                       ? 'bg-teal-700 text-white shadow-sm'
                       : 'text-slate-600 hover:text-slate-900'
@@ -850,107 +1019,123 @@ export const VaccinationView: React.FC = () => {
                 </div>
               )}
 
-              <div>
-                <label className="text-slate-700 block font-bold mb-1">Nombre del Biológico / Vacuna:</label>
-                <input
-                  type="text"
-                  value={formVaccineName}
-                  onChange={(e) => setFormVaccineName(e.target.value)}
-                  required
-                  placeholder="Ej: Toxoide Tetánico Equino, Adenitis, Séxtuple K9..."
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 font-bold text-slate-900 focus:ring-2 focus:ring-teal-500"
-                />
-              </div>
+              {/* SECCIÓN BIOLÓGICO */}
+              <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-3">
+                <div className="flex items-center gap-1.5 border-b border-slate-200 pb-1.5 text-slate-900 font-black uppercase text-[11px] tracking-wide">
+                  <span>💉</span>
+                  <span>Datos del Biológico / Vacuna</span>
+                </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-slate-700 block font-bold mb-1">Nombre del Biológico / Vacuna: *</label>
+                    <input
+                      type="text"
+                      value={formVaccineName}
+                      onChange={(e) => setFormVaccineName(e.target.value)}
+                      required
+                      placeholder="Ej: Séxtuple Canina, Antirrábica, Tétanos..."
+                      className="w-full bg-white border border-slate-300 rounded-xl p-2.5 font-bold text-slate-900 focus:ring-2 focus:ring-teal-500 shadow-2xs"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-slate-700 block font-bold mb-1">Tipo de Plan Sanitario:</label>
+                    <input
+                      type="text"
+                      value={formType}
+                      onChange={(e) => setFormType(e.target.value)}
+                      placeholder="Ej: Plan Anual, Cachorro, Campaña Oficial..."
+                      className="w-full bg-white border border-slate-300 rounded-xl p-2.5 font-medium text-slate-900 shadow-2xs"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-slate-700 block font-bold mb-1">Laboratorio Fabricante: *</label>
+                    <input
+                      type="text"
+                      value={formManufacturer}
+                      onChange={(e) => setFormManufacturer(e.target.value)}
+                      required
+                      placeholder="Ej: Zoetis, Nobivac, Biogénesis Bagó..."
+                      className="w-full bg-white border border-slate-300 rounded-xl p-2.5 font-medium text-slate-900 shadow-2xs"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-slate-700 block font-bold mb-1">Número de Lote: *</label>
+                    <input
+                      type="text"
+                      value={formBatchNumber}
+                      onChange={(e) => setFormBatchNumber(e.target.value)}
+                      required
+                      placeholder="Ej: LT-8841-A"
+                      className="w-full bg-white border border-slate-300 rounded-xl p-2.5 font-mono font-bold text-slate-900 shadow-2xs"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-slate-700 block font-bold mb-1">Vía de Aplicación:</label>
+                    <select
+                      value={formRoute}
+                      onChange={(e) => setFormRoute(e.target.value)}
+                      className="w-full bg-white border border-slate-300 rounded-xl p-2.5 font-bold text-slate-900 shadow-2xs"
+                    >
+                      <option value="Subcutánea (SC)">Subcutánea (SC)</option>
+                      <option value="Intramuscular (IM)">Intramuscular (IM)</option>
+                      <option value="Intranasal (IN)">Intranasal (IN)</option>
+                      <option value="Oral">Oral (Pastas / Comprimidos)</option>
+                      <option value="Tópica (Spot-on)">Tópica (Spot-on / Pipeta)</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="text-slate-700 block font-bold mb-1">Período de Refuerzo (Meses):</label>
+                    <select
+                      value={formDurationMonths}
+                      onChange={(e) => setFormDurationMonths(Number(e.target.value))}
+                      className="w-full bg-white border border-slate-300 rounded-xl p-2.5 font-bold text-teal-900 shadow-2xs"
+                    >
+                      <option value={1}>1 Mes (Refuerzo Cachorro / Primovacunación)</option>
+                      <option value={3}>3 Meses (Desparasitación Trimestral)</option>
+                      <option value={4}>4 Meses (Desparasitación Équidos)</option>
+                      <option value={6}>6 Meses (Influenza Equina / AIE Coggins)</option>
+                      <option value={12}>12 Meses / 1 Año (Séxtuple, Antirrábica, Tétanos)</option>
+                      <option value={24}>24 Meses / 2 Años</option>
+                    </select>
+                  </div>
+                </div>
+
                 <div>
-                  <label className="text-slate-700 block font-bold mb-1">Categoría / Tipo de Plan:</label>
-                  <input
-                    type="text"
-                    value={formType}
-                    onChange={(e) => setFormType(e.target.value)}
-                    placeholder="Ej: Plan Sanitario Militar, SENASA..."
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 font-medium text-slate-900"
+                  <label className="text-slate-700 block font-bold mb-1">Observaciones Clínicas / Tolerancia:</label>
+                  <textarea
+                    rows={2}
+                    value={formNotes}
+                    onChange={(e) => setFormNotes(e.target.value)}
+                    placeholder="Observaciones de la aplicación..."
+                    className="w-full bg-white border border-slate-300 rounded-xl p-2.5 text-slate-900 shadow-2xs"
                   />
                 </div>
-
-                <div>
-                  <label className="text-slate-700 block font-bold mb-1">Laboratorio Fabricante:</label>
-                  <input
-                    type="text"
-                    value={formManufacturer}
-                    onChange={(e) => setFormManufacturer(e.target.value)}
-                    required
-                    placeholder="Ej: Biogénesis Bagó, Zoetis, Rosenbusch..."
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 font-medium text-slate-900"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="text-slate-700 block font-bold mb-1">Número de Lote:</label>
-                  <input
-                    type="text"
-                    value={formBatchNumber}
-                    onChange={(e) => setFormBatchNumber(e.target.value)}
-                    required
-                    placeholder="Ej: LT-8841-A"
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 font-mono font-bold text-slate-900"
-                  />
-                </div>
-
-                <div>
-                  <label className="text-slate-700 block font-bold mb-1">Período de Validez (Meses):</label>
-                  <select
-                    value={formDurationMonths}
-                    onChange={(e) => setFormDurationMonths(Number(e.target.value))}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 font-bold text-slate-900"
-                  >
-                    <option value={3}>3 Meses (Desparasitación intensa)</option>
-                    <option value={4}>4 Meses (Desparasitación estratégica)</option>
-                    <option value={6}>6 Meses (Influenza equina tropa / AIE Coggins)</option>
-                    <option value={12}>12 Meses / 1 Año (Tétanos, Séxtuple, Rabia)</option>
-                    <option value={24}>24 Meses / 2 Años</option>
-                  </select>
-                </div>
-              </div>
-
-              <div>
-                <label className="text-slate-700 block font-bold mb-1">Unidad / Regimiento / Destino Sanitario:</label>
-                <input
-                  type="text"
-                  value={formRegimentUnit}
-                  onChange={(e) => setFormRegimentUnit(e.target.value)}
-                  placeholder="Ej: Regimiento de Granaderos / Escuadrón K9 / Haras..."
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-slate-900"
-                />
-              </div>
-
-              <div>
-                <label className="text-slate-700 block font-bold mb-1">Observaciones Clínicas / Reacción:</label>
-                <textarea
-                  rows={2}
-                  value={formNotes}
-                  onChange={(e) => setFormNotes(e.target.value)}
-                  placeholder="Observaciones de la aplicación..."
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-slate-900"
-                />
               </div>
 
               <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
                 <button
                   type="button"
                   onClick={() => setIsNewModalOpen(false)}
-                  className="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold"
+                  className="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold cursor-pointer"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2.5 rounded-xl bg-teal-600 hover:bg-teal-500 text-white font-bold shadow-md shadow-teal-600/20 active:scale-95 transition-all"
+                  className="px-6 py-2.5 rounded-xl bg-teal-600 hover:bg-teal-500 text-white font-bold shadow-md shadow-teal-600/20 active:scale-95 transition-all cursor-pointer flex items-center gap-2"
                 >
-                  Guardar & Emitir Certificado
+                  <Award className="w-4 h-4" />
+                  <span>Guardar & Emitir Certificado</span>
                 </button>
               </div>
             </form>
@@ -958,32 +1143,33 @@ export const VaccinationView: React.FC = () => {
         </div>
       )}
 
-      {/* 6. Modal Certificado Oficial de Vacunación & Aptitud */}
+      {/* 6. Modal Certificado Oficial de Vacunación & Libreta Digital */}
       {selectedCertModal && (
         <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-lg w-full p-6 space-y-4 shadow-2xl border border-slate-200 max-h-[92vh] overflow-y-auto">
+          <div className="bg-white rounded-3xl max-w-lg w-full p-6 space-y-4 shadow-2xl border border-slate-200 max-h-[92vh] overflow-y-auto custom-scrollbar animate-in zoom-in-95">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <div className="flex items-center gap-2">
                 <Award className="w-5 h-5 text-teal-600" />
-                <h3 className="text-base font-black text-slate-900">Certificado Oficial de Inmunización</h3>
+                <h3 className="text-base font-black text-slate-900">Libreta Sanitaria & Certificado</h3>
               </div>
               <button
                 type="button"
                 onClick={() => setSelectedCertModal(null)}
-                className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold flex items-center justify-center"
+                className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold flex items-center justify-center cursor-pointer"
               >
                 ✕
               </button>
             </div>
 
-            <div className="bg-slate-50 p-5 rounded-2xl border border-slate-200 space-y-3 text-xs text-slate-800">
+            <div className="bg-slate-50 p-5 rounded-3xl border border-slate-200 space-y-3 text-xs text-slate-800">
               <div className="text-center pb-2 border-b border-slate-200">
                 <span className="font-extrabold text-teal-800 uppercase tracking-widest text-[11px] block">
-                  REPÚBLICA ARGENTINA — SANIDAD VETERINARIA MILITAR & OFICIAL
+                  VETERINARIA IRUSTA — CENTRO HOSPITALARIO VETERINARIO
                 </span>
                 <h4 className="font-black text-slate-900 text-sm mt-0.5">
-                  CERTIFICADO DE VACUNACIÓN & APTITUD SANITARIA
+                  CERTIFICADO OFICIAL DE INMUNIZACIÓN & SANIDAD
                 </h4>
+                <p className="text-[10px] text-slate-400 font-medium">Río Cuarto, Córdoba • Tel: +54 9 2942 47-7136</p>
               </div>
 
               {(() => {
@@ -991,44 +1177,52 @@ export const VaccinationView: React.FC = () => {
                 const owner = patient ? owners.find((o) => o.id === patient.ownerId) : null;
 
                 return (
-                  <div className="space-y-2">
-                    <div className="grid grid-cols-2 gap-2 bg-white p-2.5 rounded-xl border border-slate-200/80">
+                  <div className="space-y-2.5">
+                    <div className="grid grid-cols-2 gap-2 bg-white p-3 rounded-2xl border border-slate-200/80">
                       <div>
-                        <span className="text-[10px] text-slate-400 uppercase font-bold block">Paciente / Animal:</span>
-                        <strong className="text-slate-900 text-xs">{patient?.name}</strong> ({patient?.species})
+                        <span className="text-[10px] text-slate-400 uppercase font-bold block">Paciente:</span>
+                        <strong className="text-slate-900 text-sm">{patient?.name || 'Mascota'}</strong>
+                        <span className="text-[11px] text-slate-500 block">
+                          {patient?.species} • {patient?.breed} ({patient?.sex})
+                        </span>
                       </div>
                       <div>
-                        <span className="text-[10px] text-slate-400 uppercase font-bold block">Raza / Pelaje:</span>
-                        <span className="text-slate-800">{patient?.breed} • {patient?.color || 'Zaino'}</span>
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-2 bg-white p-2.5 rounded-xl border border-slate-200/80">
-                      <div>
-                        <span className="text-[10px] text-slate-400 uppercase font-bold block">Identificación Oficial:</span>
-                        <span className="font-mono text-slate-800">{patient?.equinePassport || patient?.microchip || patient?.clinicalRecordNumber}</span>
-                      </div>
-                      <div>
-                        <span className="text-[10px] text-slate-400 uppercase font-bold block">Tutor / Regimiento:</span>
-                        <span className="text-slate-800">{owner ? (owner.firstName + ' ' + owner.lastName) : selectedCertModal.regimentUnit || 'Comando Militar'}</span>
+                        <span className="text-[10px] text-slate-400 uppercase font-bold block">Historia Clínica:</span>
+                        <span className="font-mono font-bold text-teal-800 block text-xs">{patient?.clinicalRecordNumber}</span>
+                        <span className="text-[11px] text-slate-500 block">Peso: {patient?.weight ? `${patient.weight} kg` : 'N/A'}</span>
                       </div>
                     </div>
 
-                    <div className="bg-teal-50/60 p-3 rounded-xl border border-teal-200 space-y-1">
-                      <span className="text-[10px] font-bold text-teal-900 uppercase block">Biológico Administrado:</span>
-                      <p className="text-sm font-bold text-teal-950">{selectedCertModal.vaccineName}</p>
+                    <div className="bg-white p-3 rounded-2xl border border-slate-200/80">
+                      <span className="text-[10px] text-slate-400 uppercase font-bold block">Tutor Responsable:</span>
+                      <strong className="text-slate-800">{owner ? `${owner.firstName} ${owner.lastName}` : 'N/A'}</strong>
+                      <span className="text-[11px] text-slate-500 block">
+                        Tel: {owner?.phone || owner?.whatsapp || 'N/A'} {owner?.dni ? `• DNI: ${owner.dni}` : ''}
+                      </span>
+                    </div>
+
+                    <div className="bg-teal-50/70 p-3.5 rounded-2xl border border-teal-200 space-y-1.5">
+                      <span className="text-[10px] font-bold text-teal-900 uppercase block">Biológico Aplicado:</span>
+                      <p className="text-sm font-black text-teal-950">{selectedCertModal.vaccineName}</p>
                       <p className="text-[11px] text-teal-800">
                         Lote: <strong>{selectedCertModal.batchNumber}</strong> • Fab: {selectedCertModal.manufacturer}
                       </p>
-                      <div className="flex justify-between pt-1 border-t border-teal-200/60 text-[11px]">
-                        <span>Fecha de Aplicación: <strong>{formatDate(selectedCertModal.administeredDate)}</strong></span>
-                        <span>Próximo Refuerzo: <strong>{formatDate(selectedCertModal.nextDueDate)}</strong></span>
+                      <div className="flex justify-between pt-1.5 border-t border-teal-200/80 text-[11px]">
+                        <span>Aplicación: <strong>{formatDate(selectedCertModal.administeredDate)}</strong></span>
+                        <span className="text-teal-900">Próximo Refuerzo: <strong>{formatDate(selectedCertModal.nextDueDate)}</strong></span>
                       </div>
                     </div>
 
+                    {selectedCertModal.notes && (
+                      <div className="bg-white p-2.5 rounded-xl border border-slate-200 text-[11px] text-slate-600">
+                        <span className="font-bold text-slate-400 text-[10px] block">Observaciones:</span>
+                        <p>{selectedCertModal.notes}</p>
+                      </div>
+                    )}
+
                     <div className="pt-2 text-center text-[11px] text-slate-600 border-t border-slate-200">
-                      <p className="font-bold text-slate-900">{selectedCertModal.administeredBy}</p>
-                      <p className="font-mono text-slate-500">Médico Veterinario • Matrícula: {selectedCertModal.vetLicense}</p>
+                      <p className="font-black text-slate-900">{selectedCertModal.administeredBy || 'Dr. Diego Irusta'}</p>
+                      <p className="font-mono text-slate-500">Médico Veterinario • Matrícula: {selectedCertModal.vetLicense || 'MP 8412'}</p>
                     </div>
                   </div>
                 );
@@ -1039,7 +1233,7 @@ export const VaccinationView: React.FC = () => {
               <button
                 type="button"
                 onClick={() => window.print()}
-                className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs flex items-center gap-1.5"
+                className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs flex items-center gap-1.5 cursor-pointer"
               >
                 <Printer className="w-4 h-4" />
                 <span>Imprimir Certificado</span>
@@ -1048,7 +1242,7 @@ export const VaccinationView: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setSelectedCertModal(null)}
-                className="px-5 py-2.5 bg-teal-600 hover:bg-teal-500 text-white font-bold rounded-xl text-xs shadow-md"
+                className="px-5 py-2.5 bg-teal-600 hover:bg-teal-500 text-white font-bold rounded-xl text-xs shadow-md cursor-pointer"
               >
                 Cerrar
               </button>
