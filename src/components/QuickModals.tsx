@@ -52,6 +52,7 @@ import {
   Heart,
   Sparkles,
   CheckCircle2,
+  AlertTriangle,
   Plus,
 } from 'lucide-react';
 import { useVet } from '../context/VetContext';
@@ -84,6 +85,7 @@ export const QuickModals: React.FC = () => {
     addDocument,
     addSurgery,
     setSelectedPatientId,
+    setActivePatientTab,
     setActiveView,
     activeBranch,
     openWhatsAppHub,
@@ -106,6 +108,15 @@ export const QuickModals: React.FC = () => {
   const [patOwnerId, setPatOwnerId] = useState(owners[0]?.id || '');
   const [patAlert, setPatAlert] = useState('');
   const [patPhotoUrl, setPatPhotoUrl] = useState('');
+  
+  // Destination & Immediate Care Action State
+  const [patActionDestination, setPatActionDestination] = useState<
+    'INTERNACION' | 'ATENCION_360' | 'TRIAGE' | 'SOLO_REGISTRAR'
+  >('INTERNACION');
+  const [patHospSector, setPatHospSector] = useState<'UCI_CRITICOS' | 'INTERNACION_GENERAL' | 'AISLAMIENTO' | 'RECUPERACION_QUIRURGICA'>('INTERNACION_GENERAL');
+  const [patHospKennel, setPatHospKennel] = useState('CANIL-01');
+  const [patHospDiagnosis, setPatHospDiagnosis] = useState('');
+  const [patHospPriority, setPatHospPriority] = useState<'CRITICO' | 'URGENTE' | 'PRIORITARIO' | 'ESTABLE'>('PRIORITARIO');
 
   // Owner Form State inside Patient Registration (Manual owner creation)
   const [patOwnerMode, setPatOwnerMode] = useState<'MANUAL' | 'EXISTING'>('MANUAL');
@@ -333,10 +344,58 @@ export const QuickModals: React.FC = () => {
     setPatOwnerEmail('');
     setPatPhotoUrl('');
 
-    setSelectedPatientId(created.id);
-    setActiveView('PACIENTES');
-    setQuickModal(null);
-    showToast('success', 'Paciente Registrado', `${created.name} y los datos de su propietario fueron guardados con éxito en el sistema.`);
+    // Handle immediate care destination workflow
+    if (patActionDestination === 'INTERNACION') {
+      admitPatientToHospital({
+        patientId: created.id,
+        sector: patHospSector,
+        kennelNumber: patHospKennel || 'CANIL-01',
+        primaryDiagnosis: patHospDiagnosis.trim() || patAlert || 'Ingreso directo a internación',
+        priority: patHospPriority,
+      });
+      setSelectedPatientId(created.id);
+      setActiveView('INTERNACION');
+      setQuickModal(null);
+      showToast(
+        'success',
+        'Paciente Internado de Inmediato',
+        `${created.name} fue registrado e ingresado a ${patHospSector === 'UCI_CRITICOS' ? 'Terapia Intensiva / UCI' : 'Caniles Generales'} (${patHospKennel}).`
+      );
+    } else if (patActionDestination === 'ATENCION_360') {
+      setSelectedPatientId(created.id);
+      setActivePatientTab('HISTORIA');
+      setActiveView('PACIENTES');
+      setQuickModal(null);
+      showToast(
+        'success',
+        'Atención Clínica Iniciada',
+        `${created.name} registrado. Abriendo expediente clínico 360° en Evolución Médica.`
+      );
+    } else if (patActionDestination === 'TRIAGE') {
+      addTriageEntry({
+        patientId: created.id,
+        ownerId: ownerIdToUse,
+        priority: 'URGENTE',
+        chiefComplaint: patAlert || patHospDiagnosis || 'Ingreso por guardia y triage',
+      });
+      setSelectedPatientId(created.id);
+      setActiveView('SALA_ESPERA');
+      setQuickModal(null);
+      showToast(
+        'success',
+        'Derivado a Triage',
+        `${created.name} ingresó a la sala de espera y guardia.`
+      );
+    } else {
+      setSelectedPatientId(created.id);
+      setActiveView('PACIENTES');
+      setQuickModal(null);
+      showToast(
+        'success',
+        'Paciente Registrado',
+        `${created.name} y los datos de su tutor fueron guardados con éxito.`
+      );
+    }
   };
 
   const handleCreateOwner = (e: React.FormEvent) => {
@@ -1214,6 +1273,157 @@ export const QuickModals: React.FC = () => {
               </div>
             </div>
 
+            {/* BLOQUE 5: DESTINO INMEDIATO & CUIDADOS CLÍNICOS TRAS EL REGISTRO */}
+            <div className="p-4 bg-teal-50/70 rounded-2xl border-2 border-teal-300 space-y-3.5 shadow-xs">
+              <div className="flex items-center justify-between border-b border-teal-200 pb-2">
+                <div className="flex items-center gap-2">
+                  <span className="text-base">🚀</span>
+                  <span className="font-black text-teal-950 text-xs uppercase tracking-wider">
+                    5. Destino de Atención Inmediata tras el Registro
+                  </span>
+                </div>
+                <span className="text-[10px] text-teal-800 font-bold bg-teal-100/80 px-2 py-0.5 rounded-full">
+                  Agilización de Cuidados
+                </span>
+              </div>
+
+              {/* Selector de Destino */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    triggerHaptic('light');
+                    setPatActionDestination('INTERNACION');
+                  }}
+                  className={`p-2.5 rounded-xl border font-bold text-xs flex flex-col items-center text-center gap-1 transition-all cursor-pointer ${
+                    patActionDestination === 'INTERNACION'
+                      ? 'bg-teal-700 text-white border-teal-800 shadow-sm ring-2 ring-teal-500'
+                      : 'bg-white text-slate-700 border-slate-200 hover:bg-teal-50'
+                  }`}
+                >
+                  <span className="text-base">🏥</span>
+                  <span className="leading-tight">Ingresar a Internación</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    triggerHaptic('light');
+                    setPatActionDestination('ATENCION_360');
+                  }}
+                  className={`p-2.5 rounded-xl border font-bold text-xs flex flex-col items-center text-center gap-1 transition-all cursor-pointer ${
+                    patActionDestination === 'ATENCION_360'
+                      ? 'bg-teal-700 text-white border-teal-800 shadow-sm ring-2 ring-teal-500'
+                      : 'bg-white text-slate-700 border-slate-200 hover:bg-teal-50'
+                  }`}
+                >
+                  <span className="text-base">🩺</span>
+                  <span className="leading-tight">Atención 360° / SOAP</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    triggerHaptic('light');
+                    setPatActionDestination('TRIAGE');
+                  }}
+                  className={`p-2.5 rounded-xl border font-bold text-xs flex flex-col items-center text-center gap-1 transition-all cursor-pointer ${
+                    patActionDestination === 'TRIAGE'
+                      ? 'bg-teal-700 text-white border-teal-800 shadow-sm ring-2 ring-teal-500'
+                      : 'bg-white text-slate-700 border-slate-200 hover:bg-teal-50'
+                  }`}
+                >
+                  <span className="text-base">🚨</span>
+                  <span className="leading-tight">Triage / Guardia</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    triggerHaptic('light');
+                    setPatActionDestination('SOLO_REGISTRAR');
+                  }}
+                  className={`p-2.5 rounded-xl border font-bold text-xs flex flex-col items-center text-center gap-1 transition-all cursor-pointer ${
+                    patActionDestination === 'SOLO_REGISTRAR'
+                      ? 'bg-teal-700 text-white border-teal-800 shadow-sm ring-2 ring-teal-500'
+                      : 'bg-white text-slate-700 border-slate-200 hover:bg-teal-50'
+                  }`}
+                >
+                  <span className="text-base">💾</span>
+                  <span className="leading-tight">Solo Guardar Ficha</span>
+                </button>
+              </div>
+
+              {/* CAMPOS ADICIONALES SI ELIGE INTERNACION */}
+              {patActionDestination === 'INTERNACION' && (
+                <div className="bg-white p-3.5 rounded-xl border border-teal-200 space-y-3 animate-in zoom-in-95 text-xs">
+                  <div className="flex items-center gap-1 text-teal-900 font-black text-[11px] uppercase">
+                    <span>🏨</span>
+                    <span>Asignación de Canil & Parámetros de Internación</span>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-slate-700 block font-bold mb-1">Sector de Internación:</label>
+                      <select
+                        value={patHospSector}
+                        onChange={(e) => setPatHospSector(e.target.value as any)}
+                        className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-slate-900 font-bold focus:ring-2 focus:ring-teal-500 shadow-2xs"
+                      >
+                        <option value="INTERNACION_GENERAL">Caniles Generales / Observación</option>
+                        <option value="UCI_CRITICOS">Terapia Intensiva / UCI</option>
+                        <option value="AISLAMIENTO">Aislamiento Infectocontagioso</option>
+                        <option value="RECUPERACION_QUIRURGICA">Recuperación Quirúrgica</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="text-slate-700 block font-bold mb-1">Número de Canil / Jaula:</label>
+                      <select
+                        value={patHospKennel}
+                        onChange={(e) => setPatHospKennel(e.target.value)}
+                        className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-slate-900 font-bold focus:ring-2 focus:ring-teal-500 shadow-2xs"
+                      >
+                        <option value="CANIL-01">Canil 01 (Mediano)</option>
+                        <option value="CANIL-02">Canil 02 (Grande)</option>
+                        <option value="CANIL-03">Canil 03 (Pequeño)</option>
+                        <option value="CANIL-04">Canil 04 (Aislamiento)</option>
+                        <option value="CANIL-UCI-01">Canil UCI-01 (Monitoreo)</option>
+                        <option value="CANIL-FELINO-01">Canil Felinos 01</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div className="sm:col-span-2">
+                      <label className="text-slate-700 block font-bold mb-1">Diagnóstico Presuntivo / Motivo de Ingreso:</label>
+                      <input
+                        type="text"
+                        value={patHospDiagnosis}
+                        onChange={(e) => setPatHospDiagnosis(e.target.value)}
+                        placeholder="ej: Gastroenteritis hemorrágica, Politraumatismo, Shock..."
+                        className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-slate-900 font-semibold focus:ring-2 focus:ring-teal-500 shadow-2xs"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-slate-700 block font-bold mb-1">Nivel de Prioridad:</label>
+                      <select
+                        value={patHospPriority}
+                        onChange={(e) => setPatHospPriority(e.target.value as any)}
+                        className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-slate-900 font-bold focus:ring-2 focus:ring-teal-500 shadow-2xs"
+                      >
+                        <option value="CRITICO">🚨 Crítico (Rojo)</option>
+                        <option value="URGENTE">⚠️ Urgente (Naranja)</option>
+                        <option value="PRIORITARIO">🟡 Prioritario (Amarillo)</option>
+                        <option value="ESTABLE">🟢 Estable (Verde)</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
             <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-200">
               <button
                 type="button"
@@ -1226,7 +1436,30 @@ export const QuickModals: React.FC = () => {
                 type="submit"
                 className="btn-physical btn-physical-teal px-6 py-2.5 rounded-xl text-white font-extrabold shadow-md flex items-center gap-2 cursor-pointer"
               >
-                <span>🐾 Registrar Paciente</span>
+                {patActionDestination === 'INTERNACION' && (
+                  <>
+                    <BedDouble className="w-4 h-4" />
+                    <span>🏥 Guardar e Ingresar a Internación</span>
+                  </>
+                )}
+                {patActionDestination === 'ATENCION_360' && (
+                  <>
+                    <Stethoscope className="w-4 h-4" />
+                    <span>🩺 Guardar e Iniciar Atención Médica</span>
+                  </>
+                )}
+                {patActionDestination === 'TRIAGE' && (
+                  <>
+                    <AlertTriangle className="w-4 h-4" />
+                    <span>🚨 Guardar y Derivar a Triage</span>
+                  </>
+                )}
+                {patActionDestination === 'SOLO_REGISTRAR' && (
+                  <>
+                    <PawPrint className="w-4 h-4" />
+                    <span>💾 Guardar Ficha del Paciente</span>
+                  </>
+                )}
               </button>
             </div>
           </form>
