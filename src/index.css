@@ -223,3 +223,25 @@
   box-shadow: 0 -8px 24px -4px rgba(0, 0, 0, 0.08);
 }
 
+/* Reglas Globales de Impresión Limpia */
+@media print {
+  body, html {
+    background: #ffffff !important;
+    color: #000000 !important;
+    font-size: 11pt !important;
+  }
+
+  /* Ocultar elementos UI durante la impresión */
+  nav,
+  aside,
+  header,
+  footer,
+  .no-print,
+  button:not(.allow-print),
+  .mobile-bottom-nav,
+  .mobile-action-dock {
+    display: none !important;
+  }
+}
+
+

@@ -756,14 +756,16 @@ export const QuickModals: React.FC = () => {
       totalAmount: Number(invItemAmount),
     });
     setQuickModal(null);
-    setActiveView('CAJA_FACTURAS');
+    setActiveView('CAJA_FACTURACION');
   };
 
   const handleCreateEstimate = (e: React.FormEvent) => {
     e.preventDefault();
+    const pat = patients.find((p) => p.id === estPatId);
+    const ownerId = pat?.ownerId || owners[0]?.id || 'own-gen';
     createEstimate({
       patientId: estPatId,
-      ownerId: owners[0].id,
+      ownerId,
       branchId: activeBranch.id,
       items: [
         {
@@ -778,8 +780,9 @@ export const QuickModals: React.FC = () => {
       notes: estNotes,
       status: 'PENDIENTE',
     });
+    showToast('success', 'Presupuesto Creado', `Se generó el presupuesto clínico por $${Number(estAmount).toLocaleString('es-AR')}.`);
     setQuickModal(null);
-    setActiveView('CAJA_FACTURAS');
+    setActiveView('CAJA_FACTURACION');
   };
 
   const handleCreateConsentDoc = (e: React.FormEvent) => {
