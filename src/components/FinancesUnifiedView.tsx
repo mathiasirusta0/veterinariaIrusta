@@ -1092,21 +1092,32 @@ export const FinancesUnifiedView: React.FC = () => {
 
             {/* Vista Previa del Documento */}
             <div className="bg-slate-50 p-5 rounded-3xl border border-slate-200 space-y-3.5 text-xs text-slate-800">
-              <div className="text-center pb-3 border-b-2 border-slate-200 flex flex-col sm:flex-row items-center justify-center gap-3">
-                <img src="/logo-ranquel.png" alt="Logo Ranquel" className="w-12 h-12 rounded-2xl object-contain bg-white p-1 border border-teal-200 shadow-xs flex-shrink-0" />
-                <div>
-                  <span className="font-extrabold text-teal-800 uppercase tracking-widest text-[11px] block">
-                    VETERINARIA RANQUEL — CENTRO HOSPITALARIO VETERINARIO
-                  </span>
-                  <h4 className="font-black text-slate-900 text-sm mt-0.5 uppercase tracking-wide">
-                    {currentDocument.type === 'PRESUPUESTO' ? 'PRESUPUESTO CLÍNICO' : 'COMPROBANTE DE PAGO & RECIBO'}
-                  </h4>
-                  <p className="text-[10px] text-slate-500 font-medium">
-                    Río Cuarto, Córdoba • Tel/WhatsApp: +54 9 2942 47-7136 • Dirección Médica: Dr. Diego Iván Irusta (M.P. 502)
-                  </p>
-                  <div className="mt-1.5 inline-block px-3 py-0.5 bg-teal-100/80 text-teal-900 font-mono font-black text-[11px] rounded-full border border-teal-300">
-                    Nº {currentDocument.receiptNumber} • {currentDocument.date} {currentDocument.time}
+              <div className="pb-3 border-b-2 border-slate-200 flex flex-col sm:flex-row items-center sm:items-start justify-between gap-3 text-center sm:text-left">
+                <div className="flex items-center gap-3 w-full sm:w-auto">
+                  <img
+                    src="/logo-ranquel.png"
+                    alt="Logo Veterinaria Ranquel"
+                    className="w-14 h-14 rounded-2xl object-contain bg-white p-1 border-2 border-teal-300 shadow-sm flex-shrink-0"
+                  />
+                  <div>
+                    <span className="font-extrabold text-teal-800 uppercase tracking-widest text-[10px] sm:text-[11px] block">
+                      VETERINARIA RANQUEL — CENTRO HOSPITALARIO
+                    </span>
+                    <h4 className="font-black text-slate-900 text-sm sm:text-base uppercase tracking-tight">
+                      {currentDocument.type === 'PRESUPUESTO' ? 'PRESUPUESTO CLÍNICO OFICIAL' : 'COMPROBANTE DE PAGO & RECIBO'}
+                    </h4>
+                    <p className="text-[10px] text-slate-500 font-medium">
+                      Río Cuarto, Córdoba • Tel: +54 9 2942 47-7136 • Dr. Diego Iván Irusta (M.P. 502)
+                    </p>
                   </div>
+                </div>
+                <div className="flex-shrink-0">
+                  <div className="px-3 py-1 bg-teal-100 text-teal-950 font-mono font-black text-xs rounded-full border border-teal-300 shadow-2xs">
+                    Nº {currentDocument.receiptNumber}
+                  </div>
+                  <span className="text-[10px] text-slate-400 font-mono block text-center sm:text-right mt-1">
+                    {currentDocument.date} {currentDocument.time}
+                  </span>
                 </div>
               </div>
 

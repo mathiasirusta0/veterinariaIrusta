@@ -290,130 +290,178 @@ export function printThermalTicket(data: PrintableReceiptData) {
 
 export function printA4Document(data: PrintableReceiptData) {
   const isEstimate = data.type === 'PRESUPUESTO';
-  const title = isEstimate ? 'PRESUPUESTO CLÍNICO VETERINARIO' : 'COMPROBANTE OFICIAL DE PAGO & RECIBO';
+  const title = isEstimate ? 'PRESUPUESTO CLÍNICO OFICIAL' : 'COMPROBANTE OFICIAL DE PAGO & RECIBO';
   const subTitle = isEstimate ? 'VALIDEZ DEL PRESUPUESTO: ' + (data.validityDays || 15) + ' DÍAS' : 'COMPROBANTE NO FISCAL — RECIBO X DE ATENCIÓN MÉDICA';
-
-
 
   const html = `
     <!DOCTYPE html>
     <html>
       <head>
         <meta charset="utf-8" />
-        <title>${data.receiptNumber}</title>
+        <title>${title} - ${data.receiptNumber}</title>
         <style>
           @page {
             size: A4 portrait;
-            margin: 15mm;
+            margin: 14mm 12mm;
+          }
+          * {
+            box-sizing: border-box;
           }
           body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            color: #1e293b;
-            background: #fff;
+            color: #0f172a;
+            background: #ffffff;
             margin: 0;
             padding: 0;
-            font-size: 12px;
-            line-height: 1.5;
+            font-size: 11.5px;
+            line-height: 1.45;
           }
           .header {
-            border-bottom: 2px solid #0f766e;
+            border-bottom: 2.5px solid #0f766e;
             padding-bottom: 12px;
+            margin-bottom: 14px;
             display: flex;
             justify-content: space-between;
-            align-items: flex-start;
+            align-items: center;
+          }
+          .brand-box {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+          }
+          .logo-img {
+            width: 58px;
+            height: 58px;
+            object-fit: contain;
+            border-radius: 12px;
+            border: 1.5px solid #0f766e;
+            background: #ffffff;
+            padding: 2px;
           }
           .clinic-name {
-            font-size: 18px;
+            font-size: 17px;
             font-weight: 900;
             color: #0f766e;
-            letter-spacing: -0.5px;
+            letter-spacing: -0.3px;
+            line-height: 1.1;
           }
           .clinic-sub {
-            font-size: 11px;
-            color: #64748b;
+            font-size: 10.5px;
+            color: #475569;
             font-weight: 600;
+            margin-top: 2px;
           }
           .doc-badge {
             background: #f0fdfa;
-            border: 1px solid #99f6e4;
+            border: 1.5px solid #99f6e4;
             padding: 8px 14px;
-            border-radius: 8px;
+            border-radius: 10px;
             text-align: right;
+            min-width: 170px;
           }
-          .doc-num {
-            font-size: 14px;
-            font-weight: 900;
-            color: #0f766e;
-            font-family: monospace;
-          }
-          .section-title {
+          .doc-title {
             font-size: 11px;
             font-weight: 900;
+            color: #0f766e;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
-            color: #475569;
-            margin-top: 14px;
-            margin-bottom: 6px;
+          }
+          .doc-num {
+            font-size: 13px;
+            font-weight: 900;
+            color: #0f172a;
+            font-family: monospace;
+            margin: 2px 0;
+          }
+          .doc-date {
+            font-size: 9.5px;
+            color: #64748b;
           }
           .grid-2 {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 12px;
+            margin-bottom: 12px;
           }
           .card {
             background: #f8fafc;
             border: 1px solid #e2e8f0;
-            border-radius: 8px;
+            border-radius: 10px;
             padding: 10px 12px;
+          }
+          .section-title {
+            font-size: 10.5px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            color: #0f766e;
+            border-bottom: 1px solid #cbd5e1;
+            padding-bottom: 3px;
+            margin-bottom: 6px;
           }
           .card-row {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 4px;
+            margin-bottom: 3px;
+            font-size: 11px;
           }
           .card-row:last-child { margin-bottom: 0; }
-          .label { color: #64748b; font-size: 11px; font-weight: 600; }
+          .label { color: #64748b; font-weight: 600; }
           .value { font-weight: 700; color: #0f172a; }
           .table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 10px;
+            margin-top: 8px;
+            margin-bottom: 12px;
           }
           .table th {
-            background: #f1f5f9;
-            color: #334155;
+            background: #0f766e;
+            color: #ffffff;
             text-align: left;
-            padding: 8px 10px;
-            font-size: 11px;
+            padding: 7px 10px;
+            font-size: 10.5px;
             font-weight: 800;
-            border-bottom: 1px solid #cbd5e1;
+            border-radius: 0;
           }
           .table td {
-            padding: 8px 10px;
-            border-bottom: 1px solid #f1f5f9;
+            padding: 7px 10px;
+            border-bottom: 1px solid #e2e8f0;
             font-size: 11px;
           }
+          .table tr:nth-child(even) td {
+            background: #f8fafc;
+          }
           .total-container {
-            margin-top: 14px;
+            margin-top: 10px;
             display: flex;
             justify-content: flex-end;
           }
           .total-card {
             background: #f0fdf4;
             border: 2px solid #86efac;
-            border-radius: 8px;
-            padding: 12px 18px;
+            border-radius: 10px;
+            padding: 10px 16px;
             text-align: right;
             min-width: 220px;
           }
+          .total-label {
+            font-size: 10.5px;
+            font-weight: 800;
+            color: #166534;
+          }
           .total-amount {
-            font-size: 20px;
+            font-size: 19px;
             font-weight: 900;
             color: #166534;
             font-family: monospace;
           }
+          .total-sub {
+            font-size: 9.5px;
+            color: #15803d;
+            font-weight: 600;
+            margin-top: 2px;
+          }
           .footer-sign {
-            margin-top: 30px;
+            margin-top: 26px;
             padding-top: 12px;
             border-top: 1px solid #e2e8f0;
             display: flex;
@@ -424,7 +472,7 @@ export function printA4Document(data: PrintableReceiptData) {
             text-align: right;
           }
           .sign-line {
-            width: 180px;
+            width: 170px;
             border-bottom: 1px solid #64748b;
             margin-bottom: 4px;
             margin-left: auto;
@@ -433,51 +481,52 @@ export function printA4Document(data: PrintableReceiptData) {
       </head>
       <body>
         <div class="header">
-          <div style="display: flex; align-items: center; gap: 14px;">
-            <img src="/logo-ranquel.png" style="width: 52px; height: 52px; object-fit: contain; border-radius: 10px; border: 1px solid #cbd5e1; background: #fff; padding: 2px;" alt="Logo Ranquel" />
+          <div class="brand-box">
+            <img src="/logo-ranquel.png" class="logo-img" alt="Logo Ranquel" />
             <div>
-              <div class="clinic-name">VETERINARIA RANQUEL</div>
-            <div class="clinic-sub">Centro Hospitalario Veterinario • Guardia 24 Horas</div>
-            <div class="clinic-sub">Río Cuarto, Córdoba • Tel/WhatsApp: +54 9 2942 47-7136</div>
-            <div class="clinic-sub">Dirección Médica: Dr. Diego Iván Irusta • Matrícula Profesional 502</div>
+              <div class="clinic-name">CLÍNICA VETERINARIA RANQUEL</div>
+              <div class="clinic-sub">Centro Hospitalario Veterinario • Cuidados Críticos 24 Horas</div>
+              <div class="clinic-sub">Río Cuarto, Córdoba • Tel/WhatsApp: +54 9 2942 47-7136</div>
+              <div class="clinic-sub">Dirección Médica: Dr. Diego Iván Irusta • Matrícula Profesional 502</div>
+            </div>
           </div>
           <div class="doc-badge">
-            <div style="font-size: 10px; font-weight: 800; color: #0f766e;">${title}</div>
+            <div class="doc-title">${title}</div>
             <div class="doc-num">${data.receiptNumber}</div>
-            <div style="font-size: 10px; color: #64748b;">Fecha: ${data.date} · ${data.time} hs</div>
+            <div class="doc-date">Fecha: ${data.date} · ${data.time} hs</div>
           </div>
         </div>
 
-        <div class="grid-2" style="margin-top: 12px;">
+        <div class="grid-2">
           <div class="card">
-            <div class="section-title" style="margin-top: 0;">🐾 Datos del Paciente</div>
+            <div class="section-title">DATOS DEL PACIENTE</div>
             <div class="card-row"><span class="label">Nombre:</span><span class="value">${data.patientName}</span></div>
             <div class="card-row"><span class="label">Especie / Raza:</span><span class="value">${data.species} ${data.breed ? '· ' + data.breed : ''}</span></div>
             <div class="card-row"><span class="label">Historia Clínica:</span><span class="value" style="font-family: monospace;">${data.hc || 'HC-2026'}</span></div>
           </div>
 
           <div class="card">
-            <div class="section-title" style="margin-top: 0;">👤 Tutor Responsable</div>
+            <div class="section-title">TUTOR RESPONSABLE</div>
             <div class="card-row"><span class="label">Nombre:</span><span class="value">${data.ownerName}</span></div>
             <div class="card-row"><span class="label">Teléfono:</span><span class="value">${data.ownerPhone || 'S/D'}</span></div>
-            <div class="card-row"><span class="label">Ciudad:</span><span class="value">Río Cuarto, Córdoba</span></div>
+            <div class="card-row"><span class="label">Localidad:</span><span class="value">Río Cuarto, Córdoba</span></div>
           </div>
         </div>
 
-        <div class="section-title">📝 Detalle de Prestaciones Médicas & Medicación</div>
-        <div class="card">
-          <div style="font-size: 12px; font-weight: 700; color: #0f172a;">${data.reason}</div>
-          ${data.notes ? `<div style="font-size: 11px; color: #64748b; margin-top: 4px;"><strong>Observaciones:</strong> ${data.notes}</div>` : ''}
+        <div class="card" style="margin-bottom: 10px;">
+          <div class="section-title">${isEstimate ? 'CONCEPTO DEL PRESUPUESTO' : 'MOTIVO DE CONSULTA / PRESTACIÓN'}</div>
+          <div style="font-size: 11.5px; font-weight: 700; color: #0f172a;">${data.reason}</div>
+          ${data.notes ? `<div style="font-size: 10.5px; color: #64748b; margin-top: 4px;"><strong>Observaciones:</strong> ${data.notes}</div>` : ''}
         </div>
 
         ${data.items && data.items.length > 0 ? `
           <table class="table">
             <thead>
               <tr>
-                <th>Concepto / Procedimiento</th>
+                <th>Concepto / Prestación</th>
                 <th style="text-align: center; width: 60px;">Cant.</th>
-                <th style="text-align: right; width: 100px;">Precio Unit.</th>
-                <th style="text-align: right; width: 100px;">Subtotal</th>
+                <th style="text-align: right; width: 110px;">Precio Unit.</th>
+                <th style="text-align: right; width: 110px;">Subtotal</th>
               </tr>
             </thead>
             <tbody>
@@ -495,23 +544,24 @@ export function printA4Document(data: PrintableReceiptData) {
 
         <div class="total-container">
           <div class="total-card">
-            <div style="font-size: 11px; font-weight: 800; color: #166534;">${isEstimate ? 'TOTAL PRESUPUESTADO' : 'TOTAL ABONADO'}</div>
+            <div class="total-label">${isEstimate ? 'TOTAL PRESUPUESTADO' : 'TOTAL ABONADO'}</div>
             <div class="total-amount">$${data.total.toLocaleString('es-AR')},00</div>
-            <div style="font-size: 10px; color: #15803d; font-weight: 600; margin-top: 2px;">
-              Medio de Pago: <strong>${data.paymentMethod}</strong> · ${isEstimate ? 'Presupuesto' : 'PAGO VERIFICADO'}
+            <div class="total-sub">
+              Medio de Pago: <strong>${data.paymentMethod}</strong> · ${isEstimate ? 'Presupuesto Oficial' : 'PAGO VERIFICADO'}
             </div>
           </div>
         </div>
 
         <div class="footer-sign">
-          <div style="font-size: 10px; color: #64748b; max-width: 320px;">
+          <div style="font-size: 9.5px; color: #64748b; max-width: 330px; line-height: 1.35;">
             Documento emitido por el Sistema de Gestión Hospitalaria de <strong>Veterinaria Ranquel</strong>.<br />
             ${subTitle}
           </div>
           <div class="signature-box">
             <div class="sign-line"></div>
-            <div style="font-weight: 800; font-size: 12px; color: #0f172a;">${data.vetInCharge}</div>
+            <div style="font-weight: 800; font-size: 11.5px; color: #0f172a;">${data.vetInCharge}</div>
             <div style="font-size: 10px; color: #64748b;">Médico Veterinario · ${data.vetLicense}</div>
+            <div style="font-size: 9.5px; font-weight: 700; color: #0f766e;">Dirección Médica • Veterinaria Ranquel</div>
           </div>
         </div>
       </body>
@@ -520,7 +570,6 @@ export function printA4Document(data: PrintableReceiptData) {
 
   triggerIframePrint(html);
 }
-
 
 export function generateReceiptPdfDocument(data: PrintableReceiptData): jsPDF {
   const doc = new jsPDF({
