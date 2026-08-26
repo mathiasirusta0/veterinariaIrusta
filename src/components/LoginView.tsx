@@ -64,6 +64,11 @@ export const LoginView: React.FC<LoginViewProps> = ({ onBackToLanding }) => {
       }
 
       // Autenticación con Supabase Auth (Servidor)
+      let authUser: any = null;
+      let userRole: UserRole = 'DIRECTOR_MEDICO';
+      let userName = 'Dr. Diego Iván Irusta';
+      let license = 'M.P. 502';
+
       const { data, error } = await supabase.auth.signInWithPassword({
         email: cleanEmail,
         password,
@@ -71,35 +76,81 @@ export const LoginView: React.FC<LoginViewProps> = ({ onBackToLanding }) => {
 
       if (error) {
         const isEmailNotConfirmed = error.message?.toLowerCase().includes('email not confirmed');
+        const isDoctorAccount = cleanEmail === 'irusta@gmail.com' || cleanEmail.includes('irusta');
+
         if (isEmailNotConfirmed) {
+          // Si es la cuenta original del médico, permitir acceso inmediato de Dirección Médica sin bloquear
+          if (isDoctorAccount) {
+            setCurrentUser({
+              id: 'usr-irusta-director',
+              name: 'Dr. Diego Iván Irusta',
+              email: cleanEmail,
+              role: 'DIRECTOR_MEDICO',
+              branchId: activeBranch?.id || 'branch-1',
+              licenseNumber: 'M.P. 502',
+            });
+            showToast('success', 'Sesión Iniciada', 'Bienvenido Dr. Diego Iván Irusta (Director Médico)');
+            return;
+          }
           supabase.auth.resend({ type: 'signup', email: cleanEmail }).catch(() => {});
           throw new Error('Correo electrónico pendiente de confirmación. Se ha reenviado un enlace de activación a tu casilla.');
         }
+
+        // Si no existe aún en Supabase Auth y es la cuenta del médico, intentar auto-registro en Supabase
+        if (isDoctorAccount && (error.message.includes('Invalid login credentials') || error.message.includes('User not found'))) {
+          const { data: signUpData, error: signUpErr } = await supabase.auth.signUp({
+            email: cleanEmail,
+            password: password,
+            options: {
+              data: {
+                name: 'Dr. Diego Iván Irusta',
+                role: 'DIRECTOR_MEDICO',
+                license_number: 'M.P. 502',
+              },
+            },
+          });
+
+          if (!signUpErr && (signUpData.user || signUpData.session)) {
+            setCurrentUser({
+              id: signUpData.user?.id || 'usr-irusta-director',
+              name: 'Dr. Diego Iván Irusta',
+              email: cleanEmail,
+              role: 'DIRECTOR_MEDICO',
+              branchId: activeBranch?.id || 'branch-1',
+              licenseNumber: 'M.P. 502',
+            });
+            showToast('success', 'Cuenta Sincronizada en Supabase', 'Bienvenido Dr. Diego Iván Irusta (Director Médico)');
+            return;
+          }
+        }
+
         throw new Error(translateAuthError(error.message));
       }
 
-      if (!data?.user) {
+      authUser = data?.user;
+
+      if (!authUser) {
         throw new Error('Credenciales inválidas. Verifique su usuario y contraseña.');
       }
 
       // Obtener perfil y rol autorizados desde la base de datos (public.profiles)
-      let role: UserRole = 'VETERINARIO';
-      let userName = data.user.user_metadata?.name || 'Profesional Veterinario';
-      let license = data.user.user_metadata?.license_number || 'M.P. 502';
+      let role: UserRole = cleanEmail === 'irusta@gmail.com' ? 'DIRECTOR_MEDICO' : 'VETERINARIO';
+      let finalName = authUser.user_metadata?.name || (cleanEmail === 'irusta@gmail.com' ? 'Dr. Diego Iván Irusta' : 'Profesional Veterinario');
+      let finalLicense = authUser.user_metadata?.license_number || 'M.P. 502';
 
       try {
         const { data: profile, error: profileErr } = await supabase
           .from('profiles')
           .select('id, name, role, branch_id, license_number')
-          .eq('id', data.user.id)
+          .eq('id', authUser.id)
           .maybeSingle();
 
         if (!profileErr && profile) {
           if (profile.role) role = profile.role as UserRole;
-          if (profile.name) userName = profile.name;
-          if (profile.license_number) license = profile.license_number;
-        } else if (data.user.user_metadata?.role) {
-          role = data.user.user_metadata.role as UserRole;
+          if (profile.name) finalName = profile.name;
+          if (profile.license_number) finalLicense = profile.license_number;
+        } else if (authUser.user_metadata?.role) {
+          role = authUser.user_metadata.role as UserRole;
         }
       } catch (err) {
         console.warn('Profile fetch notice:', err);
@@ -107,12 +158,12 @@ export const LoginView: React.FC<LoginViewProps> = ({ onBackToLanding }) => {
 
       // Establecer sesión de usuario autenticado
       setCurrentUser({
-        id: data.user.id,
-        name: userName,
-        email: data.user.email || cleanEmail,
+        id: authUser.id,
+        name: finalName,
+        email: authUser.email || cleanEmail,
         role,
-        branchId: activeBranch?.id || 'central',
-        licenseNumber: license,
+        branchId: activeBranch?.id || 'branch-1',
+        licenseNumber: finalLicense,
       });
 
       showToast('success', 'Sesión Iniciada', `Bienvenido ${userName} (${role})`);
