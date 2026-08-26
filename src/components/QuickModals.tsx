@@ -30,7 +30,7 @@ function computeBirthDateFromAge(val: number, unit: 'AÑOS' | 'MESES'): string {
   return d.toISOString().split('T')[0];
 }
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { processImageFile } from '../utils/imageUploadHelper';
 import {
   X,
@@ -247,6 +247,23 @@ export const QuickModals: React.FC = () => {
 
   // Document State
   const [docPatId, setDocPatId] = useState(patients[0]?.id || '');
+
+  // Sincronización reactiva de selectores cuando los pacientes cargan desde Supabase
+  useEffect(() => {
+    if (patients.length > 0) {
+      const firstId = patients[0].id;
+      if (!aptPatId || !patients.some((p) => p.id === aptPatId)) setAptPatId(firstId);
+      if (!triPatId || !patients.some((p) => p.id === triPatId)) setTriPatId(firstId);
+      if (!consPatId || !patients.some((p) => p.id === consPatId)) setConsPatId(firstId);
+      if (!hospPatId || !patients.some((p) => p.id === hospPatId)) setHospPatId(firstId);
+      if (!surgPatId || !patients.some((p) => p.id === surgPatId)) setSurgPatId(firstId);
+      if (!labPatId || !patients.some((p) => p.id === labPatId)) setLabPatId(firstId);
+      if (!imgPatId || !patients.some((p) => p.id === imgPatId)) setImgPatId(firstId);
+      if (!vacPatId || !patients.some((p) => p.id === vacPatId)) setVacPatId(firstId);
+      if (!estPatId || !patients.some((p) => p.id === estPatId)) setEstPatId(firstId);
+      if (!docPatId || !patients.some((p) => p.id === docPatId)) setDocPatId(firstId);
+    }
+  }, [patients]);
   const [docType, setDocType] = useState<'ANESTESIA' | 'CIRUGIA' | 'INTERNACION' | 'EUTANASIA'>('ANESTESIA');
   const [docTitle, setDocTitle] = useState('Consentimiento Informado para Procedimiento Anestésico');
   const [docContent, setDocContent] = useState(
@@ -1961,21 +1978,44 @@ export const QuickModals: React.FC = () => {
             {/* SELECCIÓN O CARGA DE PACIENTE */}
             {aptMode === 'EXISTING' ? (
               <div className="bg-slate-50/80 p-3.5 rounded-2xl border border-slate-200 space-y-2">
-                <label className="text-slate-800 block font-bold">Seleccionar Paciente de la Clínica *</label>
-                <select
-                  value={aptPatId}
-                  onChange={(e) => setAptPatId(e.target.value)}
-                  className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2.5 text-slate-900 font-bold focus:outline-none focus:ring-2 focus:ring-teal-500 shadow-2xs"
-                >
-                  {patients.map((p) => {
-                    const own = owners.find((o) => o.id === p.ownerId);
-                    return (
-                      <option key={p.id} value={p.id}>
-                        {p.name} ({p.species} • {p.breed}) {own ? `— Tutor: ${own.firstName} ${own.lastName} (${own.phone || 'S/D'})` : ''}
-                      </option>
-                    );
-                  })}
-                </select>
+                <div className="flex items-center justify-between">
+                  <label className="text-slate-800 block font-bold">Seleccionar Paciente de la Clínica *</label>
+                  {patients.length > 0 && (
+                    <span className="text-[11px] font-bold text-teal-800 bg-teal-50 px-2 py-0.5 rounded-full border border-teal-200">
+                      {patients.length} {patients.length === 1 ? 'paciente disponible' : 'pacientes disponibles'}
+                    </span>
+                  )}
+                </div>
+
+                {patients.length === 0 ? (
+                  <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl text-center space-y-2">
+                    <p className="text-amber-900 font-bold text-xs">
+                      ⚠️ Aún no hay pacientes registrados en el sistema.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => setAptMode('NEW')}
+                      className="px-3.5 py-1.5 bg-teal-700 hover:bg-teal-600 text-white font-bold text-xs rounded-lg shadow-sm transition-all cursor-pointer"
+                    >
+                      ✍️ Cargar Paciente y Tutor Nuevos
+                    </button>
+                  </div>
+                ) : (
+                  <select
+                    value={aptPatId || patients[0]?.id || ''}
+                    onChange={(e) => setAptPatId(e.target.value)}
+                    className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2.5 text-slate-900 font-bold focus:outline-none focus:ring-2 focus:ring-teal-500 shadow-2xs cursor-pointer"
+                  >
+                    {patients.map((p) => {
+                      const own = owners.find((o) => o.id === p.ownerId);
+                      return (
+                        <option key={p.id} value={p.id}>
+                          {p.name} ({p.species} • {p.breed}) {own ? `— Tutor: ${own.firstName} ${own.lastName} (${own.phone || 'S/D'})` : ''}
+                        </option>
+                      );
+                    })}
+                  </select>
+                )}
               </div>
             ) : (
               <div className="space-y-3">
