@@ -37,6 +37,7 @@ import {
   printThermalTicket,
   printA4Document,
   downloadHtmlAsPdf,
+  downloadReceiptPdf,
   PrintableReceiptData,
   printDailyCashClose,
 } from '../utils/printDocumentHelper';
@@ -1173,7 +1174,14 @@ export const FinancesUnifiedView: React.FC = () => {
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                 <button
                   type="button"
-                  onClick={() => downloadHtmlAsPdf(currentDocument)}
+                  onClick={async () => {
+                    triggerHaptic('medium');
+                    showToast('info', 'Generando PDF', 'Descargando comprobante oficial...');
+                    const ok = await downloadReceiptPdf(currentDocument);
+                    if (ok) {
+                      showToast('success', 'PDF Descargado', 'Comprobante guardado en su carpeta de descargas.');
+                    }
+                  }}
                   className="px-3 py-2.5 bg-teal-600 hover:bg-teal-500 text-white font-black rounded-xl text-xs flex items-center justify-center gap-1.5 cursor-pointer shadow-md shadow-teal-600/20 active:scale-95"
                   title="Descargar documento oficial en PDF A4"
                 >
@@ -1183,7 +1191,11 @@ export const FinancesUnifiedView: React.FC = () => {
 
                 <button
                   type="button"
-                  onClick={() => printThermalTicket(currentDocument)}
+                  onClick={() => {
+                    triggerHaptic('light');
+                    showToast('info', 'Imprimiendo', 'Abriendo ventana de impresión térmica...');
+                    printThermalTicket(currentDocument);
+                  }}
                   className="px-3 py-2.5 bg-amber-600 hover:bg-amber-500 text-white font-black rounded-xl text-xs flex items-center justify-center gap-1.5 cursor-pointer shadow-md shadow-amber-600/20 active:scale-95"
                   title="Imprimir ticket para impresora térmica de 80mm"
                 >

@@ -1,4 +1,59 @@
 
+export function triggerIframePrint(html: string) {
+  if (typeof document === 'undefined') return;
+
+  const iframe = document.createElement('iframe');
+  iframe.style.position = 'fixed';
+  iframe.style.left = '-9999px';
+  iframe.style.top = '-9999px';
+  iframe.style.width = '800px';
+  iframe.style.height = '600px';
+  iframe.style.border = '0';
+  iframe.style.opacity = '0';
+  iframe.style.pointerEvents = 'none';
+  document.body.appendChild(iframe);
+
+  const doc = iframe.contentWindow?.document;
+  if (!doc) return;
+  doc.open();
+  doc.write(html);
+  doc.close();
+
+  const handlePrint = () => {
+    try {
+      iframe.contentWindow?.focus();
+      iframe.contentWindow?.print();
+    } catch (e) {
+      console.error('Error triggering iframe print:', e);
+      // Fallback: window.open
+      try {
+        const printWindow = window.open('', '_blank');
+        if (printWindow) {
+          printWindow.document.write(html);
+          printWindow.document.close();
+          printWindow.focus();
+          printWindow.print();
+        }
+      } catch (err) {
+        console.error('Fallback window.open failed:', err);
+      }
+    }
+    // Clean up after print dialog finishes
+    setTimeout(() => {
+      try {
+        if (iframe.parentNode) {
+          document.body.removeChild(iframe);
+        }
+      } catch {}
+    }, 60000);
+  };
+
+  if (iframe.contentWindow) {
+    iframe.contentWindow.onload = handlePrint;
+  }
+  setTimeout(handlePrint, 350);
+}
+
 export function normalizeDoctorProfessional(authorName?: string, authorLicense?: string): { name: string; license: string } {
   const nameStr = (authorName || '').trim();
   const licStr = (authorLicense || '').trim();
@@ -48,18 +103,6 @@ export function printThermalTicket(data: PrintableReceiptData) {
   const isEstimate = data.type === 'PRESUPUESTO';
   const title = isEstimate ? 'PRESUPUESTO CLÍNICO' : 'COMPROBANTE DE PAGO';
   const subTitle = isEstimate ? 'VALIDEZ: ' + (data.validityDays || 15) + ' DÍAS' : 'DOCUMENTO NO FISCAL (RECIBO X)';
-
-  const iframe = document.createElement('iframe');
-  iframe.style.position = 'fixed';
-  iframe.style.right = '0';
-  iframe.style.bottom = '0';
-  iframe.style.width = '0';
-  iframe.style.height = '0';
-  iframe.style.border = '0';
-  document.body.appendChild(iframe);
-
-  const doc = iframe.contentWindow?.document;
-  if (!doc) return;
 
   const html = `
     <!DOCTYPE html>
@@ -216,17 +259,7 @@ export function printThermalTicket(data: PrintableReceiptData) {
     </html>
   `;
 
-  doc.open();
-  doc.write(html);
-  doc.close();
-
-  setTimeout(() => {
-    iframe.contentWindow?.focus();
-    iframe.contentWindow?.print();
-    setTimeout(() => {
-      document.body.removeChild(iframe);
-    }, 2000);
-  }, 300);
+  triggerIframePrint(html);
 }
 
 export function printA4Document(data: PrintableReceiptData) {
@@ -234,17 +267,7 @@ export function printA4Document(data: PrintableReceiptData) {
   const title = isEstimate ? 'PRESUPUESTO CLÍNICO VETERINARIO' : 'COMPROBANTE OFICIAL DE PAGO & RECIBO';
   const subTitle = isEstimate ? 'VALIDEZ DEL PRESUPUESTO: ' + (data.validityDays || 15) + ' DÍAS' : 'COMPROBANTE NO FISCAL — RECIBO X DE ATENCIÓN MÉDICA';
 
-  const iframe = document.createElement('iframe');
-  iframe.style.position = 'fixed';
-  iframe.style.right = '0';
-  iframe.style.bottom = '0';
-  iframe.style.width = '0';
-  iframe.style.height = '0';
-  iframe.style.border = '0';
-  document.body.appendChild(iframe);
 
-  const doc = iframe.contentWindow?.document;
-  if (!doc) return;
 
   const html = `
     <!DOCTYPE html>
@@ -467,22 +490,201 @@ export function printA4Document(data: PrintableReceiptData) {
     </html>
   `;
 
-  doc.open();
-  doc.write(html);
-  doc.close();
-
-  setTimeout(() => {
-    iframe.contentWindow?.focus();
-    iframe.contentWindow?.print();
-    setTimeout(() => {
-      document.body.removeChild(iframe);
-    }, 2000);
-  }, 300);
+  triggerIframePrint(html);
 }
 
-export function downloadHtmlAsPdf(data: PrintableReceiptData) {
-  // Triggers clean A4 print with save-as-PDF prompt without web UI baggage
-  printA4Document(data);
+
+export function generateReceiptPdfDocument(data: PrintableReceiptData): jsPDF {
+  const doc = new jsPDF({
+    orientation: 'portrait',
+    unit: 'mm',
+    format: 'a4',
+  });
+
+  const isEstimate = data.type === 'PRESUPUESTO';
+  const title = isEstimate ? 'PRESUPUESTO CLÍNICO OFICIAL' : 'COMPROBANTE OFICIAL DE PAGO & RECIBO';
+  const subtitle = isEstimate
+    ? `VALIDEZ DEL PRESUPUESTO: ${data.validityDays || 15} DÍAS`
+    : 'COMPROBANTE NO FISCAL — RECIBO X DE ATENCIÓN MÉDICA';
+
+  // Institutional Header Banner
+  doc.setFillColor(15, 118, 110);
+  doc.rect(0, 0, 210, 24, 'F');
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(14);
+  doc.setTextColor(255, 255, 255);
+  doc.text('CLÍNICA VETERINARIA RANQUEL', 14, 11);
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(8);
+  doc.setTextColor(204, 251, 241);
+  doc.text('Grandes y Pequeños Animales • Cuidados Críticos & Cirugía 24 Hs • Río Cuarto, Córdoba', 14, 16);
+  doc.text('Dirección Médica: Dr. Diego Iván Irusta — Matrícula Profesional: M.P. 502', 14, 21);
+
+  // Document Badge Right
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(9.5);
+  doc.setTextColor(255, 255, 255);
+  doc.text(title, 196, 11, { align: 'right' });
+  doc.setFontSize(7.5);
+  doc.setFont('helvetica', 'normal');
+  doc.text(`N° ${data.receiptNumber} • ${data.date} ${data.time}`, 196, 17, { align: 'right' });
+
+  // Patient & Owner Info Box
+  autoTable(doc, {
+    startY: 28,
+    margin: { left: 14, right: 14 },
+    head: [['🐾 DATOS DEL PACIENTE', '👤 DATOS DEL TUTOR TITULAR']],
+    body: [
+      [
+        `Paciente: ${data.patientName}\nEspecie/Raza: ${data.species} ${data.breed ? '• ' + data.breed : ''}\nHistoria Clínica: ${data.hc || 'HC-2026'}`,
+        `Tutor: ${data.ownerName}\nTeléfono: ${data.ownerPhone || 'S/D'}\nLocalidad: Río Cuarto, Córdoba\nVeterinario a Cargo: Dr. Diego Iván Irusta (M.P. 502)`,
+      ],
+    ],
+    theme: 'grid',
+    headStyles: { fillColor: [15, 118, 110], textColor: [255, 255, 255], fontSize: 8, fontStyle: 'bold' },
+    bodyStyles: { fontSize: 8, cellPadding: 3 },
+  });
+
+  // Services / Items Breakdown Table
+  let currentY = (doc as any).lastAutoTable.finalY + 4;
+
+  const itemsBody = data.items && data.items.length > 0
+    ? data.items.map((it) => [
+        it.description,
+        String(it.quantity),
+        `$ ${it.unitPrice.toLocaleString('es-AR')}`,
+        `$ ${it.subtotal.toLocaleString('es-AR')}`,
+      ])
+    : [
+        [
+          data.reason,
+          '1',
+          `$ ${data.total.toLocaleString('es-AR')}`,
+          `$ ${data.total.toLocaleString('es-AR')}`,
+        ],
+      ];
+
+  autoTable(doc, {
+    startY: currentY,
+    margin: { left: 14, right: 14 },
+    head: [['DETALLE DE PRESTACIONES & MEDICACIÓN', 'CANT.', 'PRECIO UNIT.', 'SUBTOTAL']],
+    body: itemsBody,
+    theme: 'striped',
+    headStyles: { fillColor: [30, 58, 31], textColor: [255, 255, 255], fontSize: 8, fontStyle: 'bold' },
+    bodyStyles: { fontSize: 8, cellPadding: 2.5 },
+    columnStyles: {
+      0: { cellWidth: 100 },
+      1: { cellWidth: 18, halign: 'center' },
+      2: { cellWidth: 32, halign: 'right' },
+      3: { cellWidth: 32, halign: 'right' },
+    },
+  });
+
+  // Total Summary & Signatures
+  currentY = (doc as any).lastAutoTable.finalY + 6;
+
+  // Total Card Box
+  doc.setFillColor(240, 253, 244);
+  doc.setDrawColor(134, 239, 172);
+  doc.roundedRect(120, currentY, 76, 22, 3, 3, 'FD');
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(8);
+  doc.setTextColor(22, 101, 52);
+  doc.text(isEstimate ? 'TOTAL PRESUPUESTADO:' : 'TOTAL ABONADO:', 124, currentY + 6);
+
+  doc.setFontSize(13);
+  doc.setTextColor(22, 101, 52);
+  doc.text(`$ ${data.total.toLocaleString('es-AR')},00`, 192, currentY + 14, { align: 'right' });
+
+  doc.setFontSize(7);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(21, 128, 61);
+  doc.text(`Medio de Pago: ${data.paymentMethod} • PAGO VERIFICADO`, 124, currentY + 19);
+
+  // Signatures
+  currentY += 32;
+
+  doc.setDrawColor(100, 116, 139);
+  // Left: Tutor
+  doc.line(25, currentY + 12, 85, currentY + 12);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(8);
+  doc.setTextColor(30, 41, 59);
+  doc.text(data.ownerName || 'Tutor Responsable', 55, currentY + 17, { align: 'center' });
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(7);
+  doc.setTextColor(100, 116, 139);
+  doc.text('Firma del Tutor Titular', 55, currentY + 21, { align: 'center' });
+
+  // Right: Doctor
+  doc.line(125, currentY + 12, 185, currentY + 12);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(8);
+  doc.setTextColor(30, 41, 59);
+  doc.text('Dr. Diego Iván Irusta', 155, currentY + 17, { align: 'center' });
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(7);
+  doc.setTextColor(100, 116, 139);
+  doc.text('Médico Veterinario • M.P. 502', 155, currentY + 21, { align: 'center' });
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(15, 118, 110);
+  doc.text('Dirección Médica • Veterinaria Ranquel', 155, currentY + 25, { align: 'center' });
+
+  // Footer note
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(6.5);
+  doc.setTextColor(148, 163, 184);
+  doc.text(
+    'Comprobante emitido por el Sistema Hospitalario de Veterinaria Ranquel (Río Cuarto, Córdoba) • Tel/WhatsApp +54 9 2942 47-7136',
+    14,
+    286
+  );
+
+  return doc;
+}
+
+export async function downloadReceiptPdf(data: PrintableReceiptData, customFileName?: string): Promise<boolean> {
+  try {
+    const doc = generateReceiptPdfDocument(data);
+    const petName = (data.patientName || 'Paciente').replace(/[^a-zA-Z0-9_-]/g, '_');
+    const recNum = (data.receiptNumber || 'REC').replace(/[^a-zA-Z0-9_-]/g, '_');
+    const fileName = customFileName || `${data.type === 'PRESUPUESTO' ? 'Presupuesto' : 'Comprobante_Pago'}_${recNum}_${petName}.pdf`;
+
+    // 1. Direct jsPDF save
+    doc.save(fileName);
+
+    // 2. Blob fallback for universal browser / mobile compatibility
+    if (typeof window !== 'undefined' && typeof document !== 'undefined') {
+      try {
+        const pdfBlob = doc.output('blob');
+        const blobUrl = URL.createObjectURL(pdfBlob);
+        const link = document.createElement('a');
+        link.href = blobUrl;
+        link.download = fileName;
+        link.style.display = 'none';
+        document.body.appendChild(link);
+        link.click();
+        setTimeout(() => {
+          document.body.removeChild(link);
+          URL.revokeObjectURL(blobUrl);
+        }, 1500);
+      } catch {}
+    }
+
+    return true;
+  } catch (err) {
+    console.error('Error in downloadReceiptPdf:', err);
+    printA4Document(data);
+    return false;
+  }
+}
+
+
+export async function downloadHtmlAsPdf(data: PrintableReceiptData): Promise<boolean> {
+  return downloadReceiptPdf(data);
 }
 
 
