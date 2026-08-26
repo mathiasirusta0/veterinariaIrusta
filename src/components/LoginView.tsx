@@ -177,14 +177,14 @@ export const LoginView: React.FC<LoginViewProps> = ({ onBackToLanding }) => {
   };
 
   return (
-    <div className="min-h-screen min-h-[100dvh] w-full max-w-full overflow-x-hidden overflow-y-auto bg-[#F9F8F5] text-[#1C2B1D] flex flex-col lg:flex-row items-stretch justify-center selection:bg-[#5F7359] selection:text-white font-sans">
+    <div className="min-h-screen min-h-[100dvh] w-full max-w-full overflow-x-hidden overflow-y-auto bg-[#FDF8F9] text-[#1C2B1D] flex flex-col lg:flex-row items-stretch justify-center selection:bg-[#7E3A4D] selection:text-white font-sans">
       {/* 🌟 LEFT SIDE: BRANDING & PHOTO */}
-      <div className="lg:w-1/2 p-6 sm:p-10 lg:p-14 flex flex-col justify-between bg-[#EFECE3] border-b lg:border-b-0 lg:border-r border-[#E8E3D9] relative overflow-hidden">
+      <div className="lg:w-1/2 p-6 sm:p-10 lg:p-14 flex flex-col justify-between bg-[#F9F0F3] border-b lg:border-b-0 lg:border-r border-[#E8E3D9] relative overflow-hidden">
         <div className="relative z-10 space-y-4">
           {onBackToLanding && (
             <button
               onClick={onBackToLanding}
-              className="inline-flex items-center gap-1.5 text-xs font-bold text-[#5F7359] hover:text-[#1C2B1D] transition-colors cursor-pointer bg-white/80 px-3 py-1.5 rounded-full border border-[#DDD7C8] shadow-2xs"
+              className="inline-flex items-center gap-1.5 text-xs font-bold text-[#7E3A4D] hover:text-[#1C2B1D] transition-colors cursor-pointer bg-white/80 px-3 py-1.5 rounded-full border border-[#EEDCE2] shadow-2xs"
             >
               <ArrowLeft className="w-3.5 h-3.5" />
               <span>← Volver a la Página Principal</span>
@@ -192,13 +192,13 @@ export const LoginView: React.FC<LoginViewProps> = ({ onBackToLanding }) => {
           )}
 
           <div className="space-y-2">
-            <div className="inline-flex items-center gap-2 bg-[#E3DEC3] text-[#6E502B] px-3 py-1 rounded-2xl text-xs font-bold">
-              <Sparkles className="w-3.5 h-3.5 text-[#8C6B43]" />
+            <div className="inline-flex items-center gap-2 bg-[#E3DEC3] text-[#6B4D56] px-3 py-1 rounded-2xl text-xs font-bold">
+              <Sparkles className="w-3.5 h-3.5 text-[#94465B]" />
               <span>Veterinaria Ranquel • Acceso Restringido</span>
             </div>
 
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black font-serif tracking-tight text-[#162217]">
-              Portal <span className="text-[#5F7359]">Profesional</span>
+              Portal <span className="text-[#7E3A4D]">Profesional</span>
             </h1>
             <p className="text-sm text-[#4A5D4B] font-medium">
               Clínica Veterinaria para Grandes y Pequeños Animales • Dirección Dr. Diego Iván Irusta
@@ -217,7 +217,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ onBackToLanding }) => {
             <div className="p-4 bg-white flex items-center justify-between">
               <div>
                 <h4 className="text-sm font-bold font-serif text-[#162217]">VET SYSTEM • Gestión Médica</h4>
-                <p className="text-xs text-[#6E502B]">Río Cuarto • Buenos Aires</p>
+                <p className="text-xs text-[#6B4D56]">Río Cuarto • Buenos Aires</p>
               </div>
               <span className="text-xs font-black bg-amber-100 text-amber-900 px-2.5 py-1 rounded-full border border-amber-200">
                 Guardia 24hs
@@ -232,19 +232,19 @@ export const LoginView: React.FC<LoginViewProps> = ({ onBackToLanding }) => {
             <span className="w-2.5 h-2.5 rounded-full bg-emerald-600 animate-pulse" />
             <span className="font-bold text-[#1C2B1D]">Autenticación Segura & Supabase RLS</span>
           </div>
-          <span className="font-mono text-[11px] text-[#6E502B]">Dirección Médica: Dr. Diego Iván Irusta</span>
+          <span className="font-mono text-[11px] text-[#6B4D56]">Dirección Médica: Dr. Diego Iván Irusta</span>
         </div>
       </div>
 
       {/* 🔐 RIGHT SIDE: SECURE LOGIN FORM */}
-      <div className="lg:w-1/2 p-6 sm:p-10 lg:p-14 flex items-center justify-center bg-[#F9F8F5]">
+      <div className="lg:w-1/2 p-6 sm:p-10 lg:p-14 flex items-center justify-center bg-[#FDF8F9]">
         <div className="w-full max-w-md space-y-6">
           <div className="bg-white border border-[#E8E3D9] rounded-3xl p-6 sm:p-8 shadow-xl space-y-5">
             <div className="border-b border-[#F3EFEA] pb-4">
               <h2 className="text-2xl font-black font-serif text-[#162217]">
                 Ingreso al Sistema
               </h2>
-              <p className="text-xs text-[#6E502B] mt-1 font-medium">
+              <p className="text-xs text-[#6B4D56] mt-1 font-medium">
                 Ingresá tus credenciales autorizadas para acceder a la historia clínica y gestión hospitalaria.
               </p>
             </div>
@@ -262,7 +262,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ onBackToLanding }) => {
               {/* Sede */}
               <div>
                 <label className="text-[#1C2B1D] font-bold block mb-1 flex items-center gap-1.5">
-                  <Building className="w-3.5 h-3.5 text-[#5F7359]" />
+                  <Building className="w-3.5 h-3.5 text-[#7E3A4D]" />
                   <span>Sede / Sucursal Hospitalaria:</span>
                 </label>
                 <select
@@ -271,7 +271,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ onBackToLanding }) => {
                     const sel = branches.find((b) => b.id === e.target.value);
                     if (sel) setActiveBranch(sel);
                   }}
-                  className="w-full bg-[#FAF8F5] border border-[#DDD7C8] rounded-xl p-3 text-[#1C2B1D] font-bold focus:outline-none focus:ring-2 focus:ring-[#5F7359]"
+                  className="w-full bg-[#FDF8F9] border border-[#EEDCE2] rounded-xl p-3 text-[#1C2B1D] font-bold focus:outline-none focus:ring-2 focus:ring-[#7E3A4D]"
                 >
                   {branches.map((b) => (
                     <option key={b.id} value={b.id}>
@@ -284,7 +284,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ onBackToLanding }) => {
               {/* Email */}
               <div>
                 <label className="text-[#1C2B1D] font-bold block mb-1 flex items-center gap-1.5">
-                  <Mail className="w-3.5 h-3.5 text-[#5F7359]" />
+                  <Mail className="w-3.5 h-3.5 text-[#7E3A4D]" />
                   <span>Correo Electrónico Institucional:</span>
                 </label>
                 <input
@@ -294,14 +294,14 @@ export const LoginView: React.FC<LoginViewProps> = ({ onBackToLanding }) => {
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="irusta@gmail.com"
                   autoComplete="username"
-                  className="w-full bg-[#FAF8F5] border border-[#DDD7C8] rounded-xl p-3 text-[#1C2B1D] font-bold focus:outline-none focus:ring-2 focus:ring-[#5F7359]"
+                  className="w-full bg-[#FDF8F9] border border-[#EEDCE2] rounded-xl p-3 text-[#1C2B1D] font-bold focus:outline-none focus:ring-2 focus:ring-[#7E3A4D]"
                 />
               </div>
 
               {/* Password */}
               <div>
                 <label className="text-[#1C2B1D] font-bold block mb-1 flex items-center gap-1.5">
-                  <Lock className="w-3.5 h-3.5 text-[#5F7359]" />
+                  <Lock className="w-3.5 h-3.5 text-[#7E3A4D]" />
                   <span>Contraseña de Acceso:</span>
                 </label>
                 <input
@@ -311,7 +311,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ onBackToLanding }) => {
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
                   autoComplete="current-password"
-                  className="w-full bg-[#FAF8F5] border border-[#DDD7C8] rounded-xl p-3 text-[#1C2B1D] font-bold focus:outline-none focus:ring-2 focus:ring-[#5F7359]"
+                  className="w-full bg-[#FDF8F9] border border-[#EEDCE2] rounded-xl p-3 text-[#1C2B1D] font-bold focus:outline-none focus:ring-2 focus:ring-[#7E3A4D]"
                 />
               </div>
 
@@ -319,7 +319,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ onBackToLanding }) => {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full py-3.5 bg-[#5F7359] hover:bg-[#4D5E48] active:scale-98 text-white font-bold text-sm rounded-xl transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 border border-[#4D5E48]"
+                className="w-full py-3.5 bg-[#7E3A4D] hover:bg-[#682E3E] active:scale-98 text-white font-bold text-sm rounded-xl transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 border border-[#5C2433]"
               >
                 {isLoading ? (
                   <span>Verificando credenciales en servidor...</span>
@@ -337,7 +337,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ onBackToLanding }) => {
               <button
                 type="button"
                 onClick={() => setShowAccessHelp(!showAccessHelp)}
-                className="text-xs text-[#5F7359] hover:text-[#4D5E48] font-bold flex items-center gap-1 cursor-pointer mx-auto"
+                className="text-xs text-[#7E3A4D] hover:text-[#4D5E48] font-bold flex items-center gap-1 cursor-pointer mx-auto"
               >
                 <Info className="w-3.5 h-3.5" />
                 <span>¿Necesitas una cuenta profesional o recuperar acceso?</span>
@@ -354,7 +354,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ onBackToLanding }) => {
             </div>
           </div>
 
-          <p className="text-center text-[11px] text-[#6E502B]">
+          <p className="text-center text-[11px] text-[#6B4D56]">
             Veterinaria Ranquel • Gestión Hospitalaria con Seguridad Supabase Auth & RLS
           </p>
         </div>
