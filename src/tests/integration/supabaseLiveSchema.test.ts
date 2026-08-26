@@ -5,32 +5,37 @@ describe('Supabase Live Schema & Connectivity Verification', () => {
   it('debe conectar exitosamente con el proyecto de Supabase', async () => {
     const conn = await checkSupabaseConnection();
     expect(conn.connected).toBe(true);
+    expect(conn.message).toContain('Conectado');
   });
 
-  it('debe verificar la existencia y operatividad de todas las tablas requeridas', async () => {
-    const tables = [
+  it('debe verificar la existencia y operatividad de todas las 22 tablas del sistema en Supabase Cloud', async () => {
+    const all22Tables = [
+      'branches',
+      'users',
       'profiles',
       'owners',
       'patients',
       'vital_signs',
       'patient_problems',
-      'encounters',
-      'procedures',
-      'encounter_consumptions',
       'consultations',
       'hospitalizations',
       'surgeries',
+      'laboratory_orders',
+      'imaging_studies',
+      'vaccinations',
       'products',
-      'financial_transactions',
+      'inventory_movements',
+      'appointments',
+      'triage_entries',
       'invoices',
-      'prescriptions',
-      'account_debts',
+      'estimates',
       'clinical_documents',
       'audit_logs',
+      'cash_sessions',
     ];
 
     const results = await Promise.all(
-      tables.map(async (table) => {
+      all22Tables.map(async (table) => {
         const res = await supabase.from(table).select('*').limit(1);
         return { table, error: res.error, data: res.data };
       })
@@ -40,5 +45,5 @@ describe('Supabase Live Schema & Connectivity Verification', () => {
       expect(r.error, `Error en tabla ${r.table}`).toBeNull();
       expect(Array.isArray(r.data)).toBe(true);
     }
-  }, 15000);
+  }, 20000);
 });
