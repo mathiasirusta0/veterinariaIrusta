@@ -40,6 +40,7 @@ import {
   Scale,
   Camera,
   Upload,
+  Paperclip,
   X,
   Check,
 } from 'lucide-react';
@@ -194,6 +195,62 @@ export const Patient360View: React.FC = () => {
   // Direct Lab Order State
   const [newLabTestType, setNewLabTestType] = useState('Hemograma Completo');
   const [newLabReport, setNewLabReport] = useState('');
+  const [attachedLabFile, setAttachedLabFile] = useState<{
+    name: string;
+    size: string;
+    type: 'pdf' | 'image' | 'document';
+    dataUrl: string;
+  } | null>(null);
+  const [isReadingLabFile, setIsReadingLabFile] = useState(false);
+
+  const handleLabFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      setIsReadingLabFile(true);
+      triggerHaptic('light');
+
+      const sizeFormatted = file.size > 1024 * 1024
+        ? (file.size / (1024 * 1024)).toFixed(1) + ' MB'
+        : Math.round(file.size / 1024) + ' KB';
+
+      if (file.type.startsWith('image/')) {
+        const dataUrl = await processImageFile(file, 1600, 0.9);
+        setAttachedLabFile({
+          name: file.name,
+          size: sizeFormatted,
+          type: 'image',
+          dataUrl,
+        });
+        if (!newLabReport.trim()) {
+          setNewLabReport('Estudio / Imagen adjunta: ' + file.name);
+        }
+      } else {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const dataUrl = reader.result as string;
+          setAttachedLabFile({
+            name: file.name,
+            size: sizeFormatted,
+            type: file.type.includes('pdf') ? 'pdf' : 'document',
+            dataUrl,
+          });
+          if (!newLabReport.trim()) {
+            setNewLabReport('Informe / PDF de laboratorio adjunto: ' + file.name);
+          }
+        };
+        reader.readAsDataURL(file);
+      }
+
+      showToast('success', 'Archivo Seleccionado', file.name + ' listo para guardar.');
+    } catch (err: any) {
+      showToast('error', 'Error al cargar', err.message || 'No se pudo leer el archivo seleccionado.');
+    } finally {
+      setIsReadingLabFile(false);
+      e.target.value = '';
+    }
+  };
   const [showWeightModal, setShowWeightModal] = useState(false);
   const [newWeightValue, setNewWeightValue] = useState<string>('');
 
@@ -1736,15 +1793,30 @@ export const Patient360View: React.FC = () => {
             <form
               onSubmit={(e) => {
                 e.preventDefault();
+                const reportContent = newLabReport.trim() || (attachedLabFile ? `Archivo adjunto: ${attachedLabFile.name}` : 'Estudio completado satisfactoriamente.');
+                
                 addLabOrder({
                   patientId: patient.id,
                   testType: newLabTestType as any,
-                  status: 'LISTO',
-                  results: { informe: newLabReport || 'Estudio completado satisfactoriamente.' },
-                  diagnosticReport: newLabReport,
+                  status: 'FINALIZADO',
+                  results: [
+                    {
+                      parameter: 'Informe General',
+                      value: reportContent,
+                      unit: '',
+                      referenceRange: 'Normal',
+                      isAbnormal: false,
+                    },
+                  ],
+                  diagnosticReport: reportContent,
+                  conclusions: reportContent,
+                  requestedBy: currentUser?.name || 'Dr. Diego Iván Irusta',
+                  attachedPdfUrl: attachedLabFile?.dataUrl,
                 });
-                showToast('success', 'Estudio Cargado', `Se registró el estudio ${newLabTestType} para ${patient.name}.`);
+
+                showToast('success', 'Estudio Guardado', `Se registró el estudio ${newLabTestType} para ${patient.name}.`);
                 setNewLabReport('');
+                setAttachedLabFile(null);
               }}
               className="space-y-4 text-xs"
             >
@@ -1754,13 +1826,16 @@ export const Patient360View: React.FC = () => {
                   <select
                     value={newLabTestType}
                     onChange={(e) => setNewLabTestType(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 font-bold text-slate-900"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 font-bold text-slate-900 focus:ring-2 focus:ring-blue-500"
                   >
                     <option value="HEMOGRAMA_COMPLETO">Hemograma Completo</option>
                     <option value="PERFIL_BIOQUIMICO">Perfil Bioquímico Sanguíneo</option>
                     <option value="URIANALISIS">Urianálisis & Sedimento</option>
                     <option value="ECOGRAFIA_ABDOMINAL">Ecografía Abdominal</option>
                     <option value="RADIOGRAFIA_DIGITAL">Radiografía Digital</option>
+                    <option value="COPROLOGICO">Análisis Coprológico / Parasitológico</option>
+                    <option value="CITOLOGIA">Citología / Biopsia</option>
+                    <option value="TEST_RAPIDO_INFECCIOSAS">Test Rápido Infecciosas (VIF/VILeF, Parvo, Giardia)</option>
                   </select>
                 </div>
 
@@ -1768,23 +1843,78 @@ export const Patient360View: React.FC = () => {
                   <label className="font-bold text-slate-700 block mb-1">Informe / Resultados del Estudio:</label>
                   <input
                     type="text"
-                    required
                     value={newLabReport}
                     onChange={(e) => setNewLabReport(e.target.value)}
-                    placeholder="ej: Hematocrito 38%, Leucocitos 11.500/uL, Plaquetas normales. Sin signos de anemia."
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-slate-900 font-medium"
+                    placeholder="ej: Hematocrito 38%, Leucocitos 11.500/uL, Plaquetas normales. O cargue el archivo PDF/imagen..."
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-slate-900 font-medium focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
               </div>
 
-              <div className="flex items-center justify-end pt-2">
+              {/* 📁 Selector de Archivo Local desde la Computadora */}
+              <div className="p-3.5 bg-gradient-to-r from-blue-50/70 via-indigo-50/40 to-slate-50 border border-blue-200/80 rounded-2xl space-y-2.5">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div className="space-y-0.5">
+                    <span className="font-black text-slate-900 text-xs flex items-center gap-1.5">
+                      <Paperclip className="w-3.5 h-3.5 text-blue-600" />
+                      <span>Cargar Archivo / Pedido desde tu Computadora:</span>
+                    </span>
+                    <p className="text-[11px] text-slate-500">
+                      Haz clic para buscar en las carpetas de tu equipo el archivo PDF, informe escaneado o imagen de laboratorio.
+                    </p>
+                  </div>
+
+                  {attachedLabFile ? (
+                    <div className="flex items-center gap-2 bg-white px-3.5 py-2 rounded-xl border border-blue-300 shadow-2xs">
+                      <span className="text-base">{attachedLabFile.type === 'pdf' ? '📄' : attachedLabFile.type === 'image' ? '🖼️' : '📎'}</span>
+                      <div className="text-left">
+                        <p className="font-black text-xs text-blue-950 max-w-[220px] truncate">{attachedLabFile.name}</p>
+                        <span className="text-[10px] text-slate-500 font-mono font-bold">{attachedLabFile.size}</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setAttachedLabFile(null)}
+                        className="p-1 text-red-500 hover:bg-red-50 rounded-lg transition-colors cursor-pointer ml-1"
+                        title="Quitar archivo adjunto"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  ) : (
+                    <label className="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-black text-xs rounded-xl shadow-sm transition-all cursor-pointer">
+                      <Upload className="w-4 h-4" />
+                      <span>Examinar en la Computadora...</span>
+                      <input
+                        type="file"
+                        accept=".pdf,image/*,.doc,.docx"
+                        className="hidden"
+                        onChange={handleLabFileSelect}
+                      />
+                    </label>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between pt-2 border-t border-slate-100">
+                <span className="text-[11px] text-slate-500 font-medium">
+                  {attachedLabFile ? (
+                    <span className="text-emerald-700 font-bold flex items-center gap-1">
+                      <CheckCircle2 className="w-3.5 h-3.5" />
+                      <span>Documento local listo para asociar a la historia clínica</span>
+                    </span>
+                  ) : (
+                    'Puede ingresar texto manual, adjuntar un archivo local de la PC o ambos.'
+                  )}
+                </span>
+
                 <button
                   type="submit"
+                  disabled={isReadingLabFile}
                   onClick={() => triggerHaptic('success')}
-                  className="btn-physical btn-physical-dark px-6 py-2.5 text-white font-black text-xs rounded-xl shadow-md flex items-center gap-2"
+                  className="btn-physical btn-physical-dark px-6 py-2.5 text-white font-black text-xs rounded-xl shadow-md flex items-center gap-2 disabled:opacity-50"
                 >
                   <Plus className="w-4 h-4 stroke-[3]" />
-                  <span>✓ Cargar Estudio / Resultado</span>
+                  <span>{isReadingLabFile ? 'Procesando Archivo...' : '✓ Guardar Estudio en Historia Clínica'}</span>
                 </button>
               </div>
             </form>
@@ -1809,19 +1939,50 @@ export const Patient360View: React.FC = () => {
             ) : (
               <div className="max-h-[520px] overflow-y-auto pr-1.5 space-y-3 custom-scrollbar">
                 {patientLabs.map((lab) => (
-                  <div key={lab.id} className="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-2 text-xs">
+                  <div key={lab.id} className="p-4 bg-slate-50/80 border border-slate-200 rounded-2xl space-y-2.5 text-xs shadow-2xs hover:bg-slate-50 transition-colors">
                     <div className="flex items-center justify-between">
-                      <span className="font-bold text-slate-900 text-sm">{lab.testType}</span>
+                      <div className="flex items-center gap-2">
+                        <span className="w-7 h-7 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-xs">
+                          🧪
+                        </span>
+                        <span className="font-black text-slate-900 text-sm">{lab.testType}</span>
+                      </div>
                       <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200">
                         {lab.status}
                       </span>
                     </div>
-                    <p className="text-slate-700 bg-white p-3 rounded-xl border border-slate-200">
-                      {lab.diagnosticReport || 'Estudio procesado sin anomalías.'}
-                    </p>
-                    <span className="text-[10px] text-slate-400 font-mono block">
-                      Fecha: {formatDate(lab.date)} • Solicitado en Sede Central
-                    </span>
+
+                    <div className="text-slate-800 bg-white p-3.5 rounded-xl border border-slate-200/80 font-medium whitespace-pre-line leading-relaxed">
+                      {lab.diagnosticReport || lab.conclusions || 'Estudio procesado sin anomalías.'}
+                    </div>
+
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-1 border-t border-slate-200/60">
+                      <span className="text-[10px] text-slate-500 font-mono block">
+                        🗓️ Fecha: {formatDate(lab.requestedAt || (lab as any).date)} • 👨‍⚕️ Solicitado por: {lab.requestedBy || 'Dr. Diego Iván Irusta'}
+                      </span>
+
+                      {lab.attachedPdfUrl && (
+                        <div className="flex items-center gap-2">
+                          <a
+                            href={lab.attachedPdfUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-900 font-black text-xs rounded-xl border border-blue-300 transition-all shadow-2xs cursor-pointer active:scale-95"
+                          >
+                            <Eye className="w-3.5 h-3.5 text-blue-700" />
+                            <span>👁️ Ver / Abrir Archivo</span>
+                          </a>
+                          <a
+                            href={lab.attachedPdfUrl}
+                            download={`Laboratorio_${lab.testType}_${patient.name}`}
+                            className="inline-flex items-center gap-1 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs rounded-xl transition-all shadow-2xs cursor-pointer active:scale-95"
+                            title="Descargar archivo a la computadora"
+                          >
+                            <span>📥 Descargar</span>
+                          </a>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 ))}
               </div>

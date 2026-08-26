@@ -437,6 +437,20 @@ export const LaboratoryView: React.FC = () => {
                       <span>{lab.results && lab.results.length > 0 ? 'Editar Resultados' : 'Cargar Resultados'}</span>
                     </button>
 
+                    {/* View Attached File */}
+                    {lab.attachedPdfUrl && (
+                      <a
+                        href={lab.attachedPdfUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="min-h-[38px] px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-900 font-bold text-xs rounded-xl border border-blue-300 flex items-center gap-1.5 transition-all active:scale-95 touch-manipulation cursor-pointer"
+                        title="Ver o abrir archivo local adjunto (PDF / Imagen)"
+                      >
+                        <FileText className="w-3.5 h-3.5 text-blue-700" />
+                        <span>Ver Archivo</span>
+                      </a>
+                    )}
+
                     {/* WhatsApp Report */}
                     {owner && (
                       <button
