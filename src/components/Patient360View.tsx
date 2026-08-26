@@ -1,3 +1,4 @@
+import { PatientInformedConsentModal } from './PatientInformedConsentModal';
 import { LabDocumentViewerModal } from './LabDocumentViewerModal';
 import React, { useState } from 'react';
 import { processImageFile } from '../utils/imageUploadHelper';
@@ -108,6 +109,7 @@ export const Patient360View: React.FC = () => {
 
   const [isDischargeModalOpen, setIsDischargeModalOpen] = useState(false);
   const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
+  const [isConsentModalOpen, setIsConsentModalOpen] = useState(false);
   const patient = patients.find((p) => p.id === selectedPatientId) || patients[0];
   const owner = owners.find((o) => o.id === patient?.ownerId);
 

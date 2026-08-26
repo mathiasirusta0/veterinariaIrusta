@@ -1,3 +1,4 @@
+import { PatientInformedConsentModal } from './PatientInformedConsentModal';
 import React, { useState } from 'react';
 import {
   PawPrint,
@@ -58,6 +59,7 @@ export const PatientsListView: React.FC = () => {
   const [activeSubTab, setActiveSubTab] = useState<'PACIENTES' | 'TUTORES'>('PACIENTES');
   const [dischargeModalPatient, setDischargeModalPatient] = useState<Patient | null>(null);
   const [historyDownloadModalPatient, setHistoryDownloadModalPatient] = useState<Patient | null>(null);
+  const [selectedConsentPatient, setSelectedConsentPatient] = useState<Patient | null>(null);
 
   // Filter logic
   const filteredPatients = patients
@@ -709,6 +711,17 @@ export const PatientsListView: React.FC = () => {
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
+                        setSelectedConsentPatient(patient);
+                      }}
+                      className="px-2 py-1 rounded-lg bg-teal-50 hover:bg-teal-100 text-teal-900 font-bold text-[10px] transition-colors border border-teal-300 flex items-center gap-1 shadow-2xs"
+                      title="Generar y firmar consentimiento informado"
+                    >
+                      <FileText className="w-3 h-3 text-teal-700" />
+                      <span>Consentimiento</span>
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
                         setDischargeModalPatient(patient);
                       }}
                       className="px-2 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-bold text-[10px] transition-colors border border-emerald-300 flex items-center gap-1 shadow-2xs"
@@ -895,6 +908,14 @@ export const PatientsListView: React.FC = () => {
                                 <MessageSquare className="w-3.5 h-3.5" />
                               </button>
                             )}
+                            <button
+                              onClick={() => setSelectedConsentPatient(patient)}
+                              className="px-2.5 py-1.5 rounded-lg bg-teal-50 hover:bg-teal-100 text-teal-900 font-bold text-xs border border-teal-300 transition-colors flex items-center gap-1 shadow-2xs"
+                              title="Generar, visualizar y firmar consentimiento informado oficial (Digital o Papel PDF)"
+                            >
+                              <FileText className="w-3.5 h-3.5 text-teal-700" />
+                              <span>Consentimiento</span>
+                            </button>
                             <button
                               onClick={() => setDischargeModalPatient(patient)}
                               className="px-2.5 py-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-bold text-xs border border-emerald-300 transition-colors flex items-center gap-1 shadow-2xs"

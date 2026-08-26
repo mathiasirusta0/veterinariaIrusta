@@ -962,9 +962,167 @@ export function printA4ClinicalDocument(data: PrintableClinicalDocumentData) {
   }, 300);
 }
 
-export function downloadClinicalDocumentPdf(data: PrintableClinicalDocumentData) {
-  printA4ClinicalDocument(data);
+
+export function generateClinicalDocumentPdf(data: PrintableClinicalDocumentData): jsPDF {
+  const doc = new jsPDF({
+    orientation: 'portrait',
+    unit: 'mm',
+    format: 'a4',
+  });
+
+  // Header Banner
+  doc.setFillColor(15, 118, 110);
+  doc.rect(0, 0, 210, 24, 'F');
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(14);
+  doc.setTextColor(255, 255, 255);
+  doc.text('CLÍNICA VETERINARIA RANQUEL', 14, 11);
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(8);
+  doc.setTextColor(204, 251, 241);
+  doc.text('Grandes y Pequeños Animales • Cuidados Críticos & Cirugía 24 Hs • Río Cuarto, Córdoba', 14, 16);
+  doc.text('Dirección Médica: Dr. Diego Iván Irusta — Matrícula Profesional: M.P. 502', 14, 21);
+
+  // Document Title Badge Right
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(9);
+  doc.setTextColor(255, 255, 255);
+  doc.text(data.title.toUpperCase(), 196, 11, { align: 'right' });
+  doc.setFontSize(7.5);
+  doc.setFont('helvetica', 'normal');
+  doc.text(`Fecha: ${data.date} ${data.time || ''}`, 196, 17, { align: 'right' });
+
+  // Patient & Owner Info Box
+  autoTable(doc, {
+    startY: 28,
+    margin: { left: 14, right: 14 },
+    head: [['DATOS DEL PACIENTE', 'DATOS DEL TUTOR TITULAR']],
+    body: [
+      [
+        `Paciente: ${data.patientName}\nEspecie/Raza: ${data.species} ${data.breed ? '• ' + data.breed : ''}\nHistoria Clínica: ${data.hc || 'HC-2026'}`,
+        `Tutor: ${data.ownerName}\nDNI: ${data.ownerDni || 'No registrado'}\nTeléfono: ${data.ownerPhone || 'S/D'}\nVeterinario a Cargo: Dr. Diego Iván Irusta (M.P. 502)`,
+      ],
+    ],
+    theme: 'grid',
+    headStyles: { fillColor: [15, 118, 110], textColor: [255, 255, 255], fontSize: 8, fontStyle: 'bold' },
+    bodyStyles: { fontSize: 8, cellPadding: 3 },
+  });
+
+  let currentY = (doc as any).lastAutoTable.finalY + 6;
+
+  // Document Title Header
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(11);
+  doc.setTextColor(15, 23, 42);
+  doc.text(data.title, 14, currentY);
+
+  currentY += 6;
+
+  // Document Body Paragraphs
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(9);
+  doc.setTextColor(51, 65, 85);
+
+  const cleanContent = data.content.replace(/<[^>]+>/g, '');
+  const splitText = doc.splitTextToSize(cleanContent, 182);
+  doc.text(splitText, 14, currentY);
+
+  currentY += splitText.length * 4.5 + 12;
+
+  if (currentY > 230) {
+    doc.addPage();
+    currentY = 30;
+  }
+
+  // Legal Disclaimer Box
+  doc.setFillColor(248, 250, 252);
+  doc.setDrawColor(203, 213, 225);
+  doc.roundedRect(14, currentY, 182, 18, 2, 2, 'FD');
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(7.5);
+  doc.setTextColor(71, 85, 105);
+  doc.text('DECLARACIÓN Y CONFORMIDAD:', 18, currentY + 5);
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(6.8);
+  doc.setTextColor(100, 116, 139);
+  doc.text(
+    'El tutor declara haber sido informado verbalmente y por escrito de los riesgos, beneficios y alternativas terapéuticas, autorizando libremente las prácticas médicas descriptas.',
+    18,
+    currentY + 10,
+    { maxWidth: 174 }
+  );
+
+  currentY += 28;
+
+  // Signatures
+  doc.setDrawColor(100, 116, 139);
+
+  // Left Signature: Tutor
+  doc.line(25, currentY + 14, 85, currentY + 14);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(8);
+  doc.setTextColor(30, 41, 59);
+  doc.text(data.isSigned ? (data.signedByOwnerName || data.ownerName) : data.ownerName, 55, currentY + 19, { align: 'center' });
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(7);
+  doc.setTextColor(100, 116, 139);
+  doc.text(`Firma del Tutor (DNI ${data.ownerDni || '___'})`, 55, currentY + 23, { align: 'center' });
+  if (data.isSigned) {
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(22, 101, 52);
+    doc.text(`[FIRMADO DIGITALMENTE ${data.signedAt || ''}]`, 55, currentY + 27, { align: 'center' });
+  } else {
+    doc.setTextColor(148, 163, 184);
+    doc.text('(Firma en papel / Manuscrita)', 55, currentY + 27, { align: 'center' });
+  }
+
+  // Right Signature: Doctor
+  doc.line(125, currentY + 14, 185, currentY + 14);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(8);
+  doc.setTextColor(30, 41, 59);
+  doc.text('Dr. Diego Iván Irusta', 155, currentY + 19, { align: 'center' });
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(7);
+  doc.setTextColor(100, 116, 139);
+  doc.text('Médico Veterinario • M.P. 502', 155, currentY + 23, { align: 'center' });
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(15, 118, 110);
+  doc.text('Dirección Médica • Veterinaria Ranquel', 155, currentY + 27, { align: 'center' });
+
+  // Footer Note
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(6.5);
+  doc.setTextColor(148, 163, 184);
+  doc.text(
+    'Documento legal emitido por el Sistema Hospitalario de Veterinaria Ranquel (Río Cuarto, Córdoba) • Tel/WhatsApp +54 9 2942 47-7136',
+    14,
+    286
+  );
+
+  return doc;
 }
+
+export async function downloadClinicalDocumentPdf(data: PrintableClinicalDocumentData, customFileName?: string): Promise<boolean> {
+  try {
+    const doc = generateClinicalDocumentPdf(data);
+    const petName = (data.patientName || 'Paciente').replace(/[^a-zA-Z0-9_-]/g, '_');
+    const docTitle = (data.title || 'Consentimiento').replace(/[^a-zA-Z0-9_-]/g, '_');
+    const fileName = customFileName || `${docTitle}_${petName}.pdf`;
+
+    doc.save(fileName);
+    return true;
+  } catch (err) {
+    console.error('Error in downloadClinicalDocumentPdf:', err);
+    printA4ClinicalDocument(data);
+    return false;
+  }
+}
+
 
 
 // ==========================================
