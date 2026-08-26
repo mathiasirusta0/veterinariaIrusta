@@ -1,5 +1,7 @@
 // Helper para Impresión Aislada y Descarga Limpia de Comprobantes, Tickets y Presupuestos
 // Evita fondos oscuros de modales, bordes de navegador y recortes de página.
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 export interface PrintableReceiptData {
   receiptNumber: string;
@@ -1245,8 +1247,313 @@ export function printA4MedicalHistory(data: PrintableMedicalHistoryData) {
   }, 300);
 }
 
-export function downloadMedicalHistoryPdf(data: PrintableMedicalHistoryData) {
-  printA4MedicalHistory(data);
+export function generateMedicalHistoryPdfDocument(data: PrintableMedicalHistoryData): jsPDF {
+  const doc = new jsPDF({
+    orientation: 'portrait',
+    unit: 'mm',
+    format: 'a4',
+  });
+
+  const emDate = data.emissionDate || new Date().toLocaleDateString('es-AR');
+  const emTime = data.emissionTime || new Date().toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
+
+  // 1. Top Decorative Bar & Header
+  doc.setFillColor(15, 118, 110);
+  doc.rect(14, 10, 182, 1.5, 'F');
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(13);
+  doc.setTextColor(22, 43, 29);
+  doc.text('CLÍNICA VETERINARIA IRUSTA', 14, 18);
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(8);
+  doc.setTextColor(71, 85, 105);
+  doc.text('Grandes y Pequeños Animales • Cuidados Críticos & Cirugía 24 Hs', 14, 23);
+  doc.text('Río Cuarto, Córdoba • Tel/WhatsApp: +54 9 2942 47-7136', 14, 27);
+
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(15, 118, 110);
+  doc.text(`Dirección Médica: ${data.doctor.name} — Matrícula Profesional: ${data.doctor.license}`, 14, 31);
+
+  // Right Badge Box
+  doc.setFillColor(248, 250, 252);
+  doc.setDrawColor(226, 232, 240);
+  doc.roundedRect(132, 13, 64, 20, 2, 2, 'FD');
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(8.5);
+  doc.setTextColor(15, 118, 110);
+  doc.text('HISTORIA CLÍNICA OFICIAL', 135, 19);
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(7);
+  doc.setTextColor(100, 116, 139);
+  doc.text(`Emisión: ${emDate} ${emTime} hs`, 135, 24);
+
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(15, 118, 110);
+  doc.text(`Estado Clínico: ${data.patient.status || 'ACTIVO'}`, 135, 29);
+
+  // 2. Patient & Owner Summary Table
+  const patientDetails = [
+    `Nombre: ${data.patient.name}`,
+    `Especie / Raza: ${data.patient.species} • ${data.patient.breed || 'Mestizo'}`,
+    `Sexo / Edad: ${data.patient.sex || 'S/D'} • ${data.patient.age || 'No reg.'}`,
+    `Peso Actual: ${data.patient.weight ? data.patient.weight + ' kg' : 'S/D'}`,
+    `Pelaje / Color: ${data.patient.color || 'No reg.'}`,
+    `Microchip ISO: ${data.patient.microchip || 'Sin chip'}`,
+    `N° Ficha Clínica: ${data.patient.hc || 'HC-2026'}`,
+  ].join('\n');
+
+  const ownerDetails = [
+    `Nombre: ${data.owner?.name || 'Sin tutor asignado'}`,
+    `Teléfono / WhatsApp: ${data.owner?.phone || 'S/D'}`,
+    `DNI / CUIT: ${data.owner?.dni || 'S/D'}`,
+    `Dirección: ${data.owner?.address || 'Río Cuarto, Córdoba'}`,
+    `Cuenta Corriente: ${data.owner?.balance !== undefined ? '$ ' + Number(data.owner.balance).toLocaleString('es-AR', { minimumFractionDigits: 2 }) : '$ 0,00'}`,
+    `Veterinario a Cargo: ${data.doctor.name} (${data.doctor.license})`,
+  ].join('\n');
+
+  autoTable(doc, {
+    startY: 36,
+    margin: { left: 14, right: 14 },
+    head: [['🐾 DATOS DEL PACIENTE', '👤 DATOS DEL TUTOR TITULAR']],
+    body: [[patientDetails, ownerDetails]],
+    theme: 'grid',
+    headStyles: { fillColor: [15, 118, 110], textColor: [255, 255, 255], fontSize: 8, fontStyle: 'bold' },
+    bodyStyles: { fontSize: 7, textColor: [30, 41, 59], cellPadding: 3 },
+    columnStyles: { 0: { cellWidth: 91 }, 1: { cellWidth: 91 } },
+  });
+
+  // 3. Hospitalization Section
+  if (data.hospitalizations && data.hospitalizations.length > 0) {
+    const hospBody = data.hospitalizations.map((h) => [
+      `Canil ${h.kennelNumber || '01'} (${h.sector || 'GENERAL'})`,
+      h.admittedAt,
+      h.dischargedAt || 'En curso',
+      `${h.status} (${h.daysCount})`,
+      `${h.primaryDiagnosis || 'Tratamiento Médico'}${h.dischargeSummary ? '\nEpicrisis: ' + h.dischargeSummary : ''}`,
+    ]);
+    autoTable(doc, {
+      startY: (doc as any).lastAutoTable.finalY + 4,
+      margin: { left: 14, right: 14 },
+      head: [['1. REGISTRO DE INTERNACIÓN', 'INGRESO', 'EGRESO', 'ESTADO & DÍAS', 'DIAGNÓSTICO & EPICRISIS']],
+      body: hospBody,
+      theme: 'striped',
+      headStyles: { fillColor: [30, 58, 31], textColor: [255, 255, 255], fontSize: 7.5, fontStyle: 'bold' },
+      bodyStyles: { fontSize: 6.8, cellPadding: 2 },
+    });
+  }
+
+  // 4. Vital Signs Section
+  if (data.vitals && data.vitals.length > 0) {
+    const vitalsBody = data.vitals.map((v) => [
+      `${v.dayOfWeek} ${v.date} ${v.time}`,
+      v.temp ? `${v.temp} °C` : '-',
+      v.hr ? `${v.hr} lpm` : '-',
+      v.rr ? `${v.rr} rpm` : '-',
+      v.bp || '-',
+      v.spo2Glucose || '-',
+      v.pain !== undefined ? `${v.pain}/10` : '-',
+      v.recordedBy || data.doctor.name,
+    ]);
+    autoTable(doc, {
+      startY: (doc as any).lastAutoTable.finalY + 4,
+      margin: { left: 14, right: 14 },
+      head: [['2. SIGNOS VITALES', 'TEMP', 'FC', 'FR', 'P. ART.', 'SpO2 / GLUC.', 'DOLOR', 'PROFESIONAL']],
+      body: vitalsBody,
+      theme: 'striped',
+      headStyles: { fillColor: [15, 118, 110], textColor: [255, 255, 255], fontSize: 7.5, fontStyle: 'bold' },
+      bodyStyles: { fontSize: 6.8, cellPadding: 1.8 },
+    });
+  }
+
+  // 5. Evolutions Section
+  if (data.evolutions && data.evolutions.length > 0) {
+    const evoBody = data.evolutions.map((e) => [
+      `${e.dayOfWeek} ${e.date} ${e.time} hs\n(${e.type || 'Médica'})`,
+      e.content,
+      `${e.author}\n${e.license || data.doctor.license}`,
+    ]);
+    autoTable(doc, {
+      startY: (doc as any).lastAutoTable.finalY + 4,
+      margin: { left: 14, right: 14 },
+      head: [['3. EVOLUCIÓN CLÍNICA', 'CONTENIDO / NOTA MÉDICA', 'PROFESIONAL']],
+      body: evoBody,
+      theme: 'grid',
+      headStyles: { fillColor: [30, 58, 31], textColor: [255, 255, 255], fontSize: 7.5, fontStyle: 'bold' },
+      bodyStyles: { fontSize: 7, cellPadding: 2.5 },
+      columnStyles: { 0: { cellWidth: 32 }, 1: { cellWidth: 110 }, 2: { cellWidth: 40 } },
+    });
+  }
+
+  // 6. Medications Administered Section
+  if (data.medications && data.medications.length > 0) {
+    const medBody = data.medications.map((m) => [
+      `${m.dayOfWeek} ${m.date}`,
+      `${m.time} hs`,
+      m.drugName,
+      m.dose,
+      m.route,
+      m.administeredBy,
+    ]);
+    autoTable(doc, {
+      startY: (doc as any).lastAutoTable.finalY + 4,
+      margin: { left: 14, right: 14 },
+      head: [['4. MEDICACIÓN ADMINISTRADA', 'HORA', 'FÁRMACO / ACTIVO', 'DOSIS', 'VÍA', 'ADMINISTRADO POR']],
+      body: medBody,
+      theme: 'striped',
+      headStyles: { fillColor: [15, 118, 110], textColor: [255, 255, 255], fontSize: 7.5, fontStyle: 'bold' },
+      bodyStyles: { fontSize: 6.8, cellPadding: 1.8 },
+    });
+  }
+
+  // 7. Studies & Surgeries Section
+  if (data.studies && data.studies.length > 0) {
+    const studyBody = data.studies.map((s) => [
+      s.date,
+      s.type,
+      s.title,
+      s.details,
+    ]);
+    autoTable(doc, {
+      startY: (doc as any).lastAutoTable.finalY + 4,
+      margin: { left: 14, right: 14 },
+      head: [['5. ESTUDIOS & CIRUGÍAS', 'TIPO', 'ESTUDIO / PROCEDIMIENTO', 'DETALLE & CONCLUSIONES']],
+      body: studyBody,
+      theme: 'grid',
+      headStyles: { fillColor: [30, 58, 31], textColor: [255, 255, 255], fontSize: 7.5, fontStyle: 'bold' },
+      bodyStyles: { fontSize: 6.8, cellPadding: 2 },
+      columnStyles: { 0: { cellWidth: 24 }, 1: { cellWidth: 26 }, 2: { cellWidth: 48 }, 3: { cellWidth: 84 } },
+    });
+  }
+
+  // 8. Financials & Liquidation Section
+  if (data.financials && data.financials.items && data.financials.items.length > 0) {
+    const finBody: any[] = data.financials.items.map((it) => [
+      it.category,
+      it.description,
+      String(it.quantity),
+      `$ ${Number(it.unitPrice).toLocaleString('es-AR', { minimumFractionDigits: 2 })}`,
+      `$ ${Number(it.subtotal).toLocaleString('es-AR', { minimumFractionDigits: 2 })}`,
+    ]);
+
+    finBody.push([
+      'TOTALES',
+      `Total Gastado: $ ${Number(data.financials.totalSpent).toLocaleString('es-AR', { minimumFractionDigits: 2 })}   |   Total Abonado: $ ${Number(data.financials.totalPaid).toLocaleString('es-AR', { minimumFractionDigits: 2 })}`,
+      '',
+      'SALDO PENDIENTE:',
+      `$ ${Number(data.financials.balanceDue).toLocaleString('es-AR', { minimumFractionDigits: 2 })}`,
+    ]);
+
+    autoTable(doc, {
+      startY: (doc as any).lastAutoTable.finalY + 4,
+      margin: { left: 14, right: 14 },
+      head: [['6. LIQUIDACIÓN DE GASTOS', 'DESCRIPCIÓN DEL INSUMO / SERVICIO', 'CANT.', 'P. UNITARIO', 'SUBTOTAL']],
+      body: finBody,
+      theme: 'striped',
+      headStyles: { fillColor: [15, 118, 110], textColor: [255, 255, 255], fontSize: 7.5, fontStyle: 'bold' },
+      bodyStyles: { fontSize: 6.8, cellPadding: 1.8 },
+      columnStyles: {
+        0: { cellWidth: 28 },
+        1: { cellWidth: 86 },
+        2: { cellWidth: 14, halign: 'center' },
+        3: { cellWidth: 27, halign: 'right' },
+        4: { cellWidth: 27, halign: 'right' },
+      },
+    });
+  }
+
+  // 9. Signatures Block
+  let finalY = (doc as any).lastAutoTable ? (doc as any).lastAutoTable.finalY + 12 : 220;
+  if (finalY > 245) {
+    doc.addPage();
+    finalY = 25;
+  }
+
+  doc.setDrawColor(100, 116, 139);
+  // Signature Left: Tutor
+  doc.line(25, finalY + 16, 85, finalY + 16);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(8);
+  doc.setTextColor(30, 41, 59);
+  doc.text(data.owner?.name || 'Tutor Responsable', 55, finalY + 21, { align: 'center' });
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(6.8);
+  doc.setTextColor(100, 116, 139);
+  doc.text(`Firma del Tutor / Titular · DNI ${data.owner?.dni || 'S/D'}`, 55, finalY + 25, { align: 'center' });
+
+  // Signature Right: Doctor
+  doc.line(125, finalY + 16, 185, finalY + 16);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(8);
+  doc.setTextColor(30, 41, 59);
+  doc.text(data.doctor.name, 155, finalY + 21, { align: 'center' });
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(6.8);
+  doc.setTextColor(100, 116, 139);
+  doc.text(`Médico Veterinario · ${data.doctor.license}`, 155, finalY + 25, { align: 'center' });
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(15, 118, 110);
+  doc.text('Dirección Médica • Veterinaria Irusta', 155, finalY + 29, { align: 'center' });
+
+  // 10. Page Numbers & Legal Footer
+  const pageCount = (doc as any).internal.getNumberOfPages();
+  for (let i = 1; i <= pageCount; i++) {
+    doc.setPage(i);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(6.5);
+    doc.setTextColor(148, 163, 184);
+    doc.text(
+      'Historia clínica oficial expedida bajo secreto médico veterinario · Clínica Veterinaria Irusta (Río Cuarto / Buenos Aires)',
+      14,
+      290
+    );
+    doc.text(`Página ${i} de ${pageCount}`, 196, 290, { align: 'right' });
+  }
+
+  return doc;
+}
+
+export async function downloadMedicalHistoryPdf(
+  data: PrintableMedicalHistoryData,
+  customFileName?: string
+): Promise<boolean> {
+  try {
+    const doc = generateMedicalHistoryPdfDocument(data);
+    const petName = (data.patient.name || 'Paciente').replace(/[^a-zA-Z0-9_-]/g, '_');
+    const hcCode = (data.patient.hc || 'HC').replace(/[^a-zA-Z0-9_-]/g, '_');
+    const fileName = customFileName || `Historia_Clinica_${petName}_${hcCode}.pdf`;
+
+    // 1. Trigger Direct Download with jsPDF
+    doc.save(fileName);
+
+    // 2. Blob fallback for universal mobile & web compatibility
+    if (typeof window !== 'undefined' && typeof document !== 'undefined') {
+      try {
+        const pdfBlob = doc.output('blob');
+        const blobUrl = URL.createObjectURL(pdfBlob);
+        const link = document.createElement('a');
+        link.href = blobUrl;
+        link.download = fileName;
+        link.style.display = 'none';
+        document.body.appendChild(link);
+        link.click();
+        setTimeout(() => {
+          document.body.removeChild(link);
+          URL.revokeObjectURL(blobUrl);
+        }, 1500);
+      } catch {}
+    }
+
+    return true;
+  } catch (err) {
+    console.error('Error generating and downloading medical history PDF:', err);
+    // Fallback to print if browser canvas/PDF fails
+    printA4MedicalHistory(data);
+    return false;
+  }
 }
 
 export interface PrintableDailyCashCloseData {

@@ -66,6 +66,8 @@ export const PatientMedicalHistoryDownloadModal: React.FC<PatientMedicalHistoryD
     showToast,
   } = useVet();
 
+  const [isGeneratingPdf, setIsGeneratingPdf] = React.useState(false);
+
   if (!isOpen || !patient) return null;
 
   // Filter items for this patient
@@ -382,10 +384,22 @@ export const PatientMedicalHistoryDownloadModal: React.FC<PatientMedicalHistoryD
     showToast('info', 'Impresión A4 Lista', 'Generando vista de impresión oficial...');
   };
 
-  const handleDownloadPdf = () => {
-    triggerHaptic('light');
-    downloadMedicalHistoryPdf(printableData);
-    showToast('success', 'Descarga PDF', 'Generando PDF oficial con membrete...');
+  const handleDownloadPdf = async () => {
+    triggerHaptic('medium');
+    setIsGeneratingPdf(true);
+    showToast('info', 'Generando PDF Oficial...', 'Construyendo documento membretado con gráficos vectoriales...');
+    try {
+      const ok = await downloadMedicalHistoryPdf(printableData);
+      if (ok) {
+        showToast('success', 'PDF Descargado', 'Historia clínica guardada en la carpeta de descargas.');
+      } else {
+        showToast('warning', 'Descarga', 'Abriendo vista de impresión para guardar como PDF.');
+      }
+    } catch {
+      showToast('error', 'Error al Descargar', 'No se pudo generar el archivo PDF.');
+    } finally {
+      setIsGeneratingPdf(false);
+    }
   };
 
   const handleCopyText = () => {
@@ -513,12 +527,22 @@ ${financialItems.map((it) => `• ${it.description} x${it.quantity} = ${formatCu
 
             <button
               type="button"
+              disabled={isGeneratingPdf}
               onClick={handleDownloadPdf}
-              className="px-3 py-2 bg-teal-50 hover:bg-teal-100 text-teal-800 border border-teal-300 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all shadow-2xs cursor-pointer active:scale-95"
+              className="px-3 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all shadow-xs cursor-pointer active:scale-95 disabled:opacity-50 border border-teal-700"
               title="Descargar en PDF A4 membretado"
             >
-              <Download className="w-3.5 h-3.5 text-teal-700" />
-              <span>Descargar PDF</span>
+              {isGeneratingPdf ? (
+                <>
+                  <span className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  <span>Generando PDF...</span>
+                </>
+              ) : (
+                <>
+                  <Download className="w-3.5 h-3.5" />
+                  <span>Descargar PDF</span>
+                </>
+              )}
             </button>
 
             <button
