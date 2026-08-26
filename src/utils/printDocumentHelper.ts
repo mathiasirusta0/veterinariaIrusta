@@ -2868,3 +2868,388 @@ export function printA4VaccineCertificate(data: PrintableVaccineCertificateData)
     }, 2000);
   }, 300);
 }
+
+export interface PrintableCompleteVaccineBookletData {
+  patient: {
+    name: string;
+    species: string;
+    breed: string;
+    weight: string;
+    age: string;
+    hc: string;
+    sex?: string;
+    microchip?: string;
+    color?: string;
+  };
+  owner: {
+    name: string;
+    dni: string;
+    phone: string;
+    address: string;
+  };
+  doctor: {
+    name: string;
+    license: string;
+  };
+  branch: {
+    name: string;
+    address: string;
+    phone: string;
+  };
+  vaccines: {
+    id: string;
+    vaccineName: string;
+    type?: string;
+    batchNumber: string;
+    manufacturer?: string;
+    expirationDate?: string;
+    administeredDate: string;
+    nextDueDate: string;
+    doseVolume?: string;
+    route?: string;
+    administeredBy: string;
+    vetLicense?: string;
+    notes?: string;
+  }[];
+}
+
+/**
+ * Genera el documento PDF con jsPDF para el Certificado Individual de Vacunación
+ */
+export function generateVaccineCertificatePdf(data: PrintableVaccineCertificateData): jsPDF {
+  const doc = new jsPDF({
+    orientation: 'portrait',
+    unit: 'mm',
+    format: 'a4',
+  });
+
+  // 1. Top Decorative Bar & Header
+  doc.setFillColor(15, 118, 110);
+  doc.rect(14, 10, 182, 2.5, 'F');
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(14);
+  doc.setTextColor(15, 118, 110);
+  doc.text('CLÍNICA VETERINARIA IRUSTA', 14, 19);
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(8.5);
+  doc.setTextColor(71, 85, 105);
+  doc.text('Centro Hospitalario Veterinario • Guardia 24 Hs & Inmunizaciones', 14, 24);
+  doc.text(`${data.branch.name || 'Sede Central'} • ${data.branch.address || 'Río Cuarto, Córdoba'} • Tel: ${data.branch.phone || '+54 9 2942 47-7136'}`, 14, 28);
+
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(15, 118, 110);
+  doc.text(`Dirección Médica: ${data.doctor.name} — ${data.doctor.license}`, 14, 33);
+
+  // Right Badge Box
+  doc.setFillColor(240, 253, 250);
+  doc.setDrawColor(15, 118, 110);
+  doc.setLineWidth(0.5);
+  doc.roundedRect(130, 14, 66, 21, 2, 2, 'FD');
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(8);
+  doc.setTextColor(15, 118, 110);
+  doc.text('CERTIFICADO DE VACUNACIÓN', 133, 19);
+
+  doc.setFont('courier', 'bold');
+  doc.setFontSize(11);
+  doc.setTextColor(15, 118, 110);
+  doc.text(data.certificateNumber, 133, 25);
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(7.5);
+  doc.setTextColor(100, 116, 139);
+  doc.text(`Fecha Emisión: ${data.administeredDate}`, 133, 31);
+
+  // 2. Patient & Owner Summary Table
+  const patientDetails = [
+    `Nombre: ${data.patient.name}`,
+    `Especie / Raza: ${data.patient.species} • ${data.patient.breed}`,
+    `Sexo / Edad: ${data.patient.sex || 'S/D'} • ${data.patient.age || 'S/D'}`,
+    `Peso: ${data.patient.weight}`,
+    `Historia Clínica: ${data.patient.hc}`,
+    data.patient.microchip ? `Microchip: ${data.patient.microchip}` : 'Microchip: No registrado',
+  ].join('\n');
+
+  const ownerDetails = [
+    `Tutor: ${data.owner.name}`,
+    `DNI / CUIT: ${data.owner.dni}`,
+    `Teléfono: ${data.owner.phone}`,
+    `Domicilio: ${data.owner.address || 'Río Cuarto, Córdoba'}`,
+    `Veterinario: ${data.doctor.name}`,
+    `Matrícula: ${data.doctor.license}`,
+  ].join('\n');
+
+  autoTable(doc, {
+    startY: 38,
+    margin: { left: 14, right: 14 },
+    theme: 'grid',
+    styles: { fontSize: 8.5, cellPadding: 3.5, textColor: [15, 23, 42] },
+    headStyles: { fillColor: [241, 245, 249], textColor: [15, 118, 110], fontStyle: 'bold' },
+    head: [['DATOS DEL PACIENTE INMUNIZADO', 'DATOS DEL TUTOR RESPONSABLE']],
+    body: [[patientDetails, ownerDetails]],
+  });
+
+  let currentY = (doc as any).lastAutoTable.finalY + 6;
+
+  // 3. Vaccine Details Table
+  doc.setFillColor(15, 118, 110);
+  doc.rect(14, currentY, 182, 7, 'F');
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(9.5);
+  doc.setTextColor(255, 255, 255);
+  doc.text(`BIOLÓGICO APLICADO: ${data.vaccineName.toUpperCase()} (${data.type || 'INMUNIZACIÓN OFICIAL'})`, 17, currentY + 5);
+
+  currentY += 9;
+
+  const vaccineDetails = [
+    ['Laboratorio / Fabricante:', data.manufacturer || 'S/D', 'Número de Lote:', data.batchNumber || 'S/D'],
+    ['Fecha de Aplicación:', data.administeredDate, 'Vencimiento Biológico:', data.expirationDate || 'S/D'],
+    ['Próximo Refuerzo Sugerido:', data.nextDueDate, 'Dosis / Vía:', `${data.doseVolume || '1 dosis'} • ${data.route || 'Subcutánea (SC)'}`],
+  ];
+
+  autoTable(doc, {
+    startY: currentY,
+    margin: { left: 14, right: 14 },
+    theme: 'grid',
+    styles: { fontSize: 8.5, cellPadding: 3, textColor: [15, 23, 42] },
+    columnStyles: {
+      0: { fontStyle: 'bold', textColor: [71, 85, 105], cellWidth: 45 },
+      1: { fontStyle: 'bold', textColor: [15, 118, 110], cellWidth: 45 },
+      2: { fontStyle: 'bold', textColor: [71, 85, 105], cellWidth: 45 },
+      3: { fontStyle: 'bold', textColor: [15, 23, 42], cellWidth: 47 },
+    },
+    body: vaccineDetails,
+  });
+
+  currentY = (doc as any).lastAutoTable.finalY + 6;
+
+  // 4. Observations if any
+  if (data.notes) {
+    autoTable(doc, {
+      startY: currentY,
+      margin: { left: 14, right: 14 },
+      theme: 'grid',
+      styles: { fontSize: 8, cellPadding: 3, textColor: [51, 65, 85] },
+      headStyles: { fillColor: [248, 250, 252], textColor: [71, 85, 105], fontStyle: 'bold' },
+      head: [['OBSERVACIONES & PAUTAS CLÍNICAS']],
+      body: [[data.notes]],
+    });
+    currentY = (doc as any).lastAutoTable.finalY + 12;
+  } else {
+    currentY += 15;
+  }
+
+  // 5. Signature & Stamp Box
+  if (currentY > 235) {
+    doc.addPage();
+    currentY = 30;
+  }
+
+  const sigX = 120;
+  doc.setDrawColor(15, 23, 42);
+  doc.setLineWidth(0.5);
+  doc.line(sigX, currentY + 18, sigX + 65, currentY + 18);
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(9.5);
+  doc.setTextColor(15, 23, 42);
+  doc.text(data.doctor.name, sigX + 32.5, currentY + 23, { align: 'center' });
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(8);
+  doc.setTextColor(71, 85, 105);
+  doc.text(`Médico Veterinario • ${data.doctor.license}`, sigX + 32.5, currentY + 27, { align: 'center' });
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(15, 118, 110);
+  doc.text('Dirección Médica • Veterinaria Irusta', sigX + 32.5, currentY + 31, { align: 'center' });
+
+  // Footer note
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(7);
+  doc.setTextColor(148, 163, 184);
+  doc.text(
+    'Certificado oficial de vacunación e inmunización animal emitido por Veterinaria Irusta con valor de constancia médico-sanitaria.',
+    105,
+    285,
+    { align: 'center' }
+  );
+
+  return doc;
+}
+
+/**
+ * Descarga directa en archivo PDF del Certificado Individual de Vacunación
+ */
+export function downloadVaccineCertificatePdf(data: PrintableVaccineCertificateData, customFilename?: string): void {
+  try {
+    const doc = generateVaccineCertificatePdf(data);
+    const cleanPatient = (data.patient.name || 'Paciente').replace(/[^a-zA-Z0-9_-]/g, '_');
+    const cleanVaccine = (data.vaccineName || 'Vacuna').replace(/[^a-zA-Z0-9_-]/g, '_');
+    const fileName = customFilename || `Certificado_Vacunacion_${cleanPatient}_${cleanVaccine}.pdf`;
+    doc.save(fileName);
+  } catch (error) {
+    console.error('Error al descargar certificado de vacunación PDF:', error);
+    // Fallback to print method
+    printA4VaccineCertificate(data);
+  }
+}
+
+/**
+ * Genera el documento PDF con jsPDF para la Libreta Sanitaria Completa del Paciente
+ */
+export function generateCompleteVaccinationBookletPdf(data: PrintableCompleteVaccineBookletData): jsPDF {
+  const doc = new jsPDF({
+    orientation: 'portrait',
+    unit: 'mm',
+    format: 'a4',
+  });
+
+  // 1. Top Decorative Banner & Header
+  doc.setFillColor(15, 118, 110);
+  doc.rect(14, 10, 182, 3, 'F');
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(15);
+  doc.setTextColor(15, 118, 110);
+  doc.text('CLÍNICA VETERINARIA IRUSTA', 14, 19);
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(8.5);
+  doc.setTextColor(71, 85, 105);
+  doc.text('Centro Hospitalario Veterinario • Pasaporte Sanitario & Plan de Inmunizaciones', 14, 24);
+  doc.text(`${data.branch.name || 'Sede Central'} • ${data.branch.address || 'Río Cuarto, Córdoba'} • Tel: ${data.branch.phone || '+54 9 2942 47-7136'}`, 14, 28);
+
+  // Badge
+  doc.setFillColor(240, 253, 250);
+  doc.setDrawColor(15, 118, 110);
+  doc.setLineWidth(0.5);
+  doc.roundedRect(125, 13, 71, 20, 2, 2, 'FD');
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(9);
+  doc.setTextColor(15, 118, 110);
+  doc.text('LIBRETA SANITARIA OFICIAL', 128, 19);
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(7.5);
+  doc.setTextColor(100, 116, 139);
+  doc.text(`Ficha HC: ${data.patient.hc}`, 128, 24);
+  doc.text(`Emisión: ${new Date().toLocaleDateString('es-AR')}`, 128, 29);
+
+  // 2. Patient & Owner Summary
+  const patientDetails = [
+    `Nombre: ${data.patient.name}`,
+    `Especie / Raza: ${data.patient.species} • ${data.patient.breed}`,
+    `Sexo / Edad: ${data.patient.sex || 'S/D'} • ${data.patient.age || 'S/D'}`,
+    `Peso: ${data.patient.weight}`,
+    data.patient.color ? `Color / Pelaje: ${data.patient.color}` : 'Color: No reg.',
+    data.patient.microchip ? `Microchip ISO: ${data.patient.microchip}` : 'Microchip: No registrado',
+  ].join('\n');
+
+  const ownerDetails = [
+    `Tutor: ${data.owner.name}`,
+    `DNI / CUIT: ${data.owner.dni}`,
+    `Teléfono: ${data.owner.phone}`,
+    `Domicilio: ${data.owner.address || 'Río Cuarto, Córdoba'}`,
+    `Dirección Médica: ${data.doctor.name}`,
+    `Matrícula Profesional: ${data.doctor.license}`,
+  ].join('\n');
+
+  autoTable(doc, {
+    startY: 36,
+    margin: { left: 14, right: 14 },
+    theme: 'grid',
+    styles: { fontSize: 8.5, cellPadding: 3.5, textColor: [15, 23, 42] },
+    headStyles: { fillColor: [241, 245, 249], textColor: [15, 118, 110], fontStyle: 'bold' },
+    head: [['DATOS DEL PACIENTE', 'DATOS DEL TUTOR']],
+    body: [[patientDetails, ownerDetails]],
+  });
+
+  let currentY = (doc as any).lastAutoTable.finalY + 6;
+
+  // 3. Table of all historical vaccines
+  doc.setFillColor(15, 118, 110);
+  doc.rect(14, currentY, 182, 7, 'F');
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(9.5);
+  doc.setTextColor(255, 255, 255);
+  doc.text(`HISTORIAL DE INMUNIZACIONES & VACUNAS (${data.vaccines.length} REGISTRADAS)`, 17, currentY + 5);
+
+  currentY += 9;
+
+  const tableRows = data.vaccines.map((v) => [
+    v.administeredDate,
+    v.vaccineName,
+    v.manufacturer || 'S/D',
+    v.batchNumber || 'S/D',
+    `${v.doseVolume || '1 dosis'} (${v.route || 'SC'})`,
+    v.nextDueDate,
+    `${v.administeredBy || data.doctor.name} (${v.vetLicense || 'M.P. 502'})`,
+  ]);
+
+  autoTable(doc, {
+    startY: currentY,
+    margin: { left: 14, right: 14 },
+    theme: 'striped',
+    styles: { fontSize: 8, cellPadding: 3, textColor: [15, 23, 42] },
+    headStyles: { fillColor: [241, 245, 249], textColor: [15, 118, 110], fontStyle: 'bold' },
+    head: [['Fecha', 'Vacuna / Biológico', 'Laboratorio', 'Lote', 'Dosis / Vía', 'Próximo Refuerzo', 'Profesional']],
+    body: tableRows.length > 0 ? tableRows : [['-', 'No hay vacunas registradas aún', '-', '-', '-', '-', '-']],
+  });
+
+  currentY = (doc as any).lastAutoTable.finalY + 10;
+
+  // 4. Signature & Stamp Box
+  if (currentY > 235) {
+    doc.addPage();
+    currentY = 30;
+  }
+
+  const sigX = 120;
+  doc.setDrawColor(15, 23, 42);
+  doc.setLineWidth(0.5);
+  doc.line(sigX, currentY + 18, sigX + 65, currentY + 18);
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(9.5);
+  doc.setTextColor(15, 23, 42);
+  doc.text(data.doctor.name, sigX + 32.5, currentY + 23, { align: 'center' });
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(8);
+  doc.setTextColor(71, 85, 105);
+  doc.text(`Médico Veterinario • ${data.doctor.license}`, sigX + 32.5, currentY + 27, { align: 'center' });
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(15, 118, 110);
+  doc.text('Dirección Médica • Veterinaria Irusta', sigX + 32.5, currentY + 31, { align: 'center' });
+
+  // Footer note
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(7);
+  doc.setTextColor(148, 163, 184);
+  doc.text(
+    'Libreta Sanitaria y Pasaporte Oficial de Vacunación emitido por Veterinaria Irusta conforme a reglamentaciones sanitarias vigentes.',
+    105,
+    285,
+    { align: 'center' }
+  );
+
+  return doc;
+}
+
+/**
+ * Descarga directa en archivo PDF de la Libreta Sanitaria Completa
+ */
+export function downloadCompleteVaccinationBookletPdf(data: PrintableCompleteVaccineBookletData, customFilename?: string): void {
+  try {
+    const doc = generateCompleteVaccinationBookletPdf(data);
+    const cleanPatient = (data.patient.name || 'Paciente').replace(/[^a-zA-Z0-9_-]/g, '_');
+    const fileName = customFilename || `Libreta_Sanitaria_${cleanPatient}.pdf`;
+    doc.save(fileName);
+  } catch (error) {
+    console.error('Error al descargar libreta sanitaria PDF:', error);
+  }
+}

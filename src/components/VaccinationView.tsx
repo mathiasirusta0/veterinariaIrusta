@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import {
   Syringe,
+  Download,
+  BookOpen,
+  FileText,
   Plus,
   Printer,
   Calendar,
@@ -31,7 +34,7 @@ import {
 import { useVet } from '../context/VetContext';
 import { VaccinationRecord, Patient, Species, Sex } from '../types';
 import { formatDate, formatWeight } from '../utils/formatters';
-import { printA4VaccineCertificate } from '../utils/printDocumentHelper';
+import { printA4VaccineCertificate, downloadVaccineCertificatePdf, downloadCompleteVaccinationBookletPdf } from '../utils/printDocumentHelper';
 import { triggerHaptic } from '../utils/haptics';
 import { PageHeader, EmptyState, SearchInput, StatCard } from './ui';
 
@@ -550,6 +553,105 @@ export const VaccinationView: React.FC = () => {
     setNewOwnerDni('');
   };
 
+
+  const handleDownloadVaccineCertificatePdf = (vac: VaccinationRecord) => {
+    triggerHaptic('medium');
+    const pat = patients.find((p) => p.id === vac.patientId);
+    const ow = pat ? owners.find((o) => o.id === pat.ownerId) : null;
+
+    downloadVaccineCertificatePdf({
+      certificateNumber: `CERT-${vac.id.slice(-6).toUpperCase()}`,
+      vaccineName: vac.vaccineName,
+      type: vac.type,
+      manufacturer: vac.manufacturer,
+      batchNumber: vac.batchNumber,
+      expirationDate: formatDate(vac.expirationDate),
+      administeredDate: formatDate(vac.administeredDate),
+      nextDueDate: formatDate(vac.nextDueDate),
+      doseVolume: vac.doseVolume,
+      route: vac.route,
+      notes: vac.notes,
+      doctor: {
+        name: vac.administeredBy || currentUser?.name || 'Dr. Diego Iván Irusta',
+        license: vac.vetLicense || 'M.P. 502',
+      },
+      branch: {
+        name: activeBranch?.name || 'Clínica Veterinaria Irusta',
+        address: activeBranch?.address || 'Río Cuarto, Córdoba',
+        phone: activeBranch?.phone || '+54 9 2942 47-7136',
+      },
+      patient: {
+        name: pat?.name || 'Paciente',
+        species: pat?.species || 'CANINO',
+        breed: pat?.breed || 'Mestizo',
+        weight: pat?.weight ? `${pat.weight} kg` : 'N/A',
+        age: pat?.calculatedAge || 'Adulto',
+        hc: pat?.clinicalRecordNumber || 'HC-000',
+        sex: pat?.sex,
+        microchip: pat?.microchipNumber,
+      },
+      owner: {
+        name: ow ? `${ow.firstName} ${ow.lastName}` : 'Tutor Responsable',
+        dni: ow?.dni || 'N/A',
+        phone: ow?.phone || ow?.whatsapp || 'N/A',
+        address: ow?.address || 'Río Cuarto',
+      },
+    });
+    showToast('success', 'Certificado Descargado', `Se descargó el certificado en PDF de ${vac.vaccineName}.`);
+  };
+
+  const handleDownloadCompleteBookletPdf = (patientId: string) => {
+    triggerHaptic('medium');
+    const pat = patients.find((p) => p.id === patientId);
+    if (!pat) return;
+    const ow = owners.find((o) => o.id === pat.ownerId) || null;
+    const patientVacs = vaccinations.filter((v) => v.patientId === pat.id);
+
+    downloadCompleteVaccinationBookletPdf({
+      patient: {
+        name: pat.name,
+        species: pat.species,
+        breed: pat.breed,
+        weight: pat.weight ? `${pat.weight} kg` : 'N/A',
+        age: pat.calculatedAge || 'Adulto',
+        hc: pat.clinicalRecordNumber || 'HC-000',
+        sex: pat.sex,
+        microchip: pat.microchipNumber,
+        color: pat.color,
+      },
+      owner: {
+        name: ow ? `${ow.firstName} ${ow.lastName}` : 'Tutor Responsable',
+        dni: ow?.dni || 'N/A',
+        phone: ow?.phone || ow?.whatsapp || 'N/A',
+        address: ow?.address || 'Río Cuarto',
+      },
+      doctor: {
+        name: currentUser?.name || 'Dr. Diego Iván Irusta',
+        license: 'M.P. 502',
+      },
+      branch: {
+        name: activeBranch?.name || 'Clínica Veterinaria Irusta',
+        address: activeBranch?.address || 'Río Cuarto, Córdoba',
+        phone: activeBranch?.phone || '+54 9 2942 47-7136',
+      },
+      vaccines: patientVacs.map((v) => ({
+        id: v.id,
+        vaccineName: v.vaccineName,
+        type: v.type,
+        batchNumber: v.batchNumber,
+        manufacturer: v.manufacturer,
+        expirationDate: formatDate(v.expirationDate),
+        administeredDate: formatDate(v.administeredDate),
+        nextDueDate: formatDate(v.nextDueDate),
+        doseVolume: v.doseVolume,
+        route: v.route,
+        administeredBy: v.administeredBy || 'Dr. Diego Iván Irusta',
+        vetLicense: v.vetLicense || 'M.P. 502',
+        notes: v.notes,
+      })),
+    });
+    showToast('success', 'Libreta Sanitaria Descargada', `Se descargó la libreta sanitaria en PDF de ${pat.name}.`);
+  };
 
   const handlePrintVaccineCertificate = (vac: VaccinationRecord) => {
     triggerHaptic('medium');
@@ -1454,20 +1556,43 @@ export const VaccinationView: React.FC = () => {
               })()}
             </div>
 
-            <div className="flex items-center justify-between pt-2 border-t border-slate-100">
-              <button
-                type="button"
-                onClick={() => selectedCertModal && handlePrintVaccineCertificate(selectedCertModal)}
-                className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs flex items-center gap-1.5 cursor-pointer"
-              >
-                <Printer className="w-4 h-4" />
-                <span>Imprimir Certificado</span>
-              </button>
+            <div className="flex flex-wrap items-center justify-between gap-2.5 pt-3 border-t border-slate-100">
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => selectedCertModal && handleDownloadVaccineCertificatePdf(selectedCertModal)}
+                  className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs flex items-center gap-1.5 shadow-md shadow-emerald-600/20 active:scale-95 transition-all cursor-pointer"
+                  title="Descargar certificado oficial en archivo PDF"
+                >
+                  <Download className="w-4 h-4" />
+                  <span>Descargar Certificado (PDF)</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => selectedCertModal && handleDownloadCompleteBookletPdf(selectedCertModal.patientId)}
+                  className="px-3.5 py-2.5 bg-teal-50 hover:bg-teal-100 text-teal-800 border border-teal-200 font-bold rounded-xl text-xs flex items-center gap-1.5 active:scale-95 transition-all cursor-pointer"
+                  title="Descargar libreta sanitaria completa con todas las vacunas del paciente"
+                >
+                  <BookOpen className="w-4 h-4 text-teal-700" />
+                  <span>Libreta Completa (PDF)</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => selectedCertModal && handlePrintVaccineCertificate(selectedCertModal)}
+                  className="px-3.5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs flex items-center gap-1.5 cursor-pointer active:scale-95 transition-all"
+                  title="Enviar a impresión"
+                >
+                  <Printer className="w-4 h-4" />
+                  <span>Imprimir</span>
+                </button>
+              </div>
 
               <button
                 type="button"
                 onClick={() => setSelectedCertModal(null)}
-                className="px-5 py-2.5 bg-teal-600 hover:bg-teal-500 text-white font-bold rounded-xl text-xs shadow-md cursor-pointer"
+                className="px-5 py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold rounded-xl text-xs cursor-pointer"
               >
                 Cerrar
               </button>
