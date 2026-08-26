@@ -1629,18 +1629,59 @@ export const Patient360View: React.FC = () => {
               className="space-y-4 text-xs"
             >
               <div>
-                <label className="font-black text-slate-800 text-xs block mb-1.5 flex items-center justify-between">
-                  <span>Evolución Médica del Paciente:</span>
-                  <span className="text-slate-400 font-normal">Especifique cuadro clínico, motivo de atención/internación y conducta terapéutica</span>
-                </label>
-                <textarea
-                  rows={5}
-                  required
-                  value={unifiedEvoText}
-                  onChange={(e) => setUnifiedEvoText(e.target.value)}
-                  placeholder="Escriba la evolución médica completa: lo que tiene el paciente, motivo de internación o consulta, su evolución clínica actual y el plan terapéutico a seguir..."
-                  className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-3.5 text-slate-900 font-medium text-xs leading-relaxed focus:ring-2 focus:ring-purple-500 focus:bg-white transition-all"
-                />
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
+                  <label className="font-black text-slate-900 text-sm flex items-center gap-1.5">
+                    <span>🩺 Redacción de Evolución Médica del Paciente:</span>
+                  </label>
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const template = `**Cuadro Clínico & Evaluación:** 
+
+**Evolución:** 
+
+**Plan Terapéutico:** 
+
+**Pronóstico:** `;
+                        setUnifiedEvoText((prev) => (prev ? prev + '\n\n' + template : template));
+                      }}
+                      className="px-3 py-1 bg-purple-50 hover:bg-purple-100 text-purple-900 font-bold text-xs rounded-xl border border-purple-200 transition-colors cursor-pointer shadow-2xs"
+                      title="Insertar plantilla clínica estructurada"
+                    >
+                      📋 + Plantilla Estructurada
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setUnifiedEvoText((prev) => (prev ? prev + '\n\n**Plan:** ' : '**Plan:** '));
+                      }}
+                      className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition-colors cursor-pointer"
+                    >
+                      + Plan
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setUnifiedEvoText((prev) => (prev ? prev + '\n\n**Pronóstico:** ' : '**Pronóstico:** '));
+                      }}
+                      className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition-colors cursor-pointer"
+                    >
+                      + Pronóstico
+                    </button>
+                  </div>
+                </div>
+
+                <div className="relative">
+                  <textarea
+                    rows={8}
+                    required
+                    value={unifiedEvoText}
+                    onChange={(e) => setUnifiedEvoText(e.target.value)}
+                    placeholder="Escriba aquí la evolución médica: estado clínico del paciente, hallazgos del examen físico, evolución de la patología, respuesta a la medicación y conducta terapéutica..."
+                    className="w-full bg-white border-2 border-slate-300 hover:border-purple-400 focus:border-purple-600 rounded-2xl p-4 sm:p-5 text-slate-900 font-medium text-sm sm:text-base leading-relaxed focus:ring-4 focus:ring-purple-100 transition-all shadow-xs custom-scrollbar min-h-[200px]"
+                  />
+                </div>
               </div>
 
               {/* Mensaje de Ayuda & Enlace a Medicación */}
@@ -1716,8 +1757,25 @@ export const Patient360View: React.FC = () => {
                         </span>
                       </div>
 
-                      <div className="p-3 bg-white rounded-xl border border-slate-100 text-slate-800 text-xs leading-relaxed whitespace-pre-line font-normal">
-                        {fullText}
+                      <div className="p-4 sm:p-5 bg-white rounded-2xl border border-slate-200 text-slate-900 text-sm sm:text-[15px] leading-relaxed shadow-2xs">
+                        {fullText.split('\n').map((line: string, lIdx: number) => {
+                          if (!line.trim()) return <div key={lIdx} className="h-2.5" />;
+                          const parts = line.split(/(\*\*.*?\*\*)/g);
+                          return (
+                            <p key={lIdx} className="mb-1 text-slate-900 font-normal">
+                              {parts.map((part, pIdx) => {
+                                if (part.startsWith('**') && part.endsWith('**')) {
+                                  return (
+                                    <strong key={pIdx} className="font-black text-purple-950">
+                                      {part.slice(2, -2)}
+                                    </strong>
+                                  );
+                                }
+                                return <span key={pIdx}>{part}</span>;
+                              })}
+                            </p>
+                          );
+                        })}
                       </div>
                     </div>
                   );
