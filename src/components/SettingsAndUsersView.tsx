@@ -35,7 +35,26 @@ export const SettingsAndUsersView: React.FC = () => {
     showToast,
   } = useVet();
 
-  const [activeTab, setActiveTab] = useState<'AUDITORIA' | 'PRODUCCION' | 'USUARIOS' | 'SUCURSALES' | 'ROLES'>('PRODUCCION');
+  const [activeTab, setActiveTab] = useState<'AUDITORIA' | 'PRODUCCION' | 'USUARIOS' | 'SUCURSALES' | 'ROLES'>(() => {
+    const hash = (typeof window !== 'undefined' ? window.location.hash : '').toLowerCase();
+    if (hash.includes('sedes') || hash.includes('sucursales')) return 'SUCURSALES';
+    if (hash.includes('usuarios')) return 'USUARIOS';
+    if (hash.includes('auditoria')) return 'AUDITORIA';
+    if (hash.includes('roles')) return 'ROLES';
+    return 'PRODUCCION';
+  });
+
+  React.useEffect(() => {
+    const handleHash = () => {
+      const hash = (window.location.hash || '').toLowerCase();
+      if (hash.includes('sedes') || hash.includes('sucursales')) setActiveTab('SUCURSALES');
+      else if (hash.includes('usuarios')) setActiveTab('USUARIOS');
+      else if (hash.includes('auditoria')) setActiveTab('AUDITORIA');
+      else if (hash.includes('roles')) setActiveTab('ROLES');
+    };
+    window.addEventListener('hashchange', handleHash);
+    return () => window.removeEventListener('hashchange', handleHash);
+  }, []);
   
   // Cleanup Workflow States
   const [showCleanupModal, setShowCleanupModal] = useState(false);

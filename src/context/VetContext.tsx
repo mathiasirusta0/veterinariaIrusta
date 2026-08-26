@@ -394,22 +394,15 @@ export const VetProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (saved) {
       try {
         const u = JSON.parse(saved);
-        if (u) {
-          if (
-            u.id === 'user-irusta-superadmin' ||
-            u.email === 'irusta@gmail.com' ||
-            (u.name && u.name.toLowerCase().includes('mat')) ||
-            (u.name && u.name.toLowerCase().includes('irusta'))
-          ) {
-            u.name = 'Dr. Diego Iván Irusta';
-            u.email = 'irusta@gmail.com';
-            u.role = 'SUPERADMIN';
-            u.licenseNumber = 'M.P. 502 - Dirección Médica';
-            try {
-              localStorage.setItem('vetsys_auth_user', JSON.stringify(u));
-            } catch {}
-          }
-          return u;
+        if (u && typeof u === 'object' && u.id && u.email && u.role) {
+          return {
+            id: String(u.id),
+            name: String(u.name || 'Profesional'),
+            email: String(u.email),
+            role: u.role,
+            branchId: u.branchId || 'branch-1',
+            licenseNumber: u.licenseNumber,
+          };
         }
       } catch {}
     }

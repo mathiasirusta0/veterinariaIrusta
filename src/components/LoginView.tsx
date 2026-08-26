@@ -71,32 +71,10 @@ export const LoginView: React.FC<LoginViewProps> = ({ onBackToLanding }) => {
 
       if (error) {
         const isEmailNotConfirmed = error.message?.toLowerCase().includes('email not confirmed');
-
-        // Si la contraseña es correcta pero Supabase tiene el correo sin confirmar en su servidor
         if (isEmailNotConfirmed) {
-          // Reenviar email de confirmación en segundo plano
           supabase.auth.resend({ type: 'signup', email: cleanEmail }).catch(() => {});
-
-          const isSuperAdmin = cleanEmail === 'irusta@gmail.com' || cleanEmail.includes('irusta');
-          const authenticatedUser: User = {
-            id: isSuperAdmin ? 'user-irusta-superadmin' : `user-${Date.now()}`,
-            name: isSuperAdmin ? 'Dr. Diego Iván Irusta' : 'Profesional Veterinario',
-            email: cleanEmail,
-            role: isSuperAdmin ? 'SUPERADMIN' : 'VETERINARIO',
-            branchId: activeBranch?.id || 'branch-1',
-            licenseNumber: isSuperAdmin ? 'M.P. 502 - Dirección Médica' : 'M.P. 502',
-          };
-
-          setCurrentUser(authenticatedUser);
-          showToast(
-            'success',
-            'Sesión Iniciada con Éxito',
-            `Bienvenido ${authenticatedUser.name} (${authenticatedUser.role})`
-          );
-          return;
+          throw new Error('Correo electrónico pendiente de confirmación. Se ha reenviado un enlace de activación a tu casilla.');
         }
-
-        // Si la contraseña es incorrecta o el usuario no existe, rechazar con error
         throw new Error(translateAuthError(error.message));
       }
 
@@ -108,12 +86,6 @@ export const LoginView: React.FC<LoginViewProps> = ({ onBackToLanding }) => {
       let role: UserRole = 'VETERINARIO';
       let userName = data.user.user_metadata?.name || 'Profesional Veterinario';
       let license = data.user.user_metadata?.license_number || 'M.P. 502';
-
-      if (cleanEmail === 'irusta@gmail.com' || userName.toLowerCase().includes('irusta')) {
-        role = 'SUPERADMIN';
-        userName = 'Dr. Diego Iván Irusta';
-        license = 'M.P. 502 - Dirección Médica';
-      }
 
       try {
         const { data: profile, error: profileErr } = await supabase

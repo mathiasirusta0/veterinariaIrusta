@@ -105,6 +105,42 @@ const MainLayout: React.FC = () => {
 
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
+  // Sincronización bidireccional de rutas y URL Hash para enlaces profundos
+  React.useEffect(() => {
+    const syncViewFromHash = () => {
+      const hash = (window.location.hash || '').toLowerCase();
+      if (!hash) return;
+
+      if (hash.includes('sedes') || hash.includes('sucursales') || hash.includes('configuracion') || hash.includes('usuarios') || hash.includes('auditoria')) {
+        setActiveView('CONFIGURACION');
+      } else if (hash.includes('paciente')) {
+        setActiveView('PACIENTES');
+      } else if (hash.includes('agenda') || hash.includes('turno')) {
+        setActiveView('AGENDA');
+      } else if (hash.includes('cirugia') || hash.includes('quirofano')) {
+        setActiveView('CIRUGIAS');
+      } else if (hash.includes('vital') || hash.includes('signos')) {
+        setActiveView('SIGNOS_VITALES');
+      } else if (hash.includes('farmacia') || hash.includes('inventario') || hash.includes('stock')) {
+        setActiveView('INVENTARIO');
+      } else if (hash.includes('caja') || hash.includes('finanzas') || hash.includes('factura')) {
+        setActiveView('CAJA_FACTURACION');
+      } else if (hash.includes('documento')) {
+        setActiveView('DOCUMENTOS');
+      } else if (hash.includes('vacuna')) {
+        setActiveView('VACUNAS');
+      } else if (hash.includes('receta')) {
+        setActiveView('RECETAS_OFICIALES');
+      } else if (hash.includes('qa') || hash.includes('test')) {
+        setActiveView('CENTRO_QA');
+      }
+    };
+
+    syncViewFromHash();
+    window.addEventListener('hashchange', syncViewFromHash);
+    return () => window.removeEventListener('hashchange', syncViewFromHash);
+  }, [setActiveView]);
+
   const activeHospitalCount = (hospitalizations || []).filter((h) => h.status === 'ACTIVA').length;
   const waitingTriageCount = (triageList || []).filter((t) => t.status === 'EN_ESPERA').length;
 
