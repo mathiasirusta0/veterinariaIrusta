@@ -1172,21 +1172,48 @@ export const FinancesUnifiedView: React.FC = () => {
               </div>
             </div>
 
-            {/* BOTONES DE ACCIÓN: DESCARGA PDF, TICKET TÉRMICO, A4, WHATSAPP */}
-            <div className="space-y-2 pt-2 border-t border-slate-100">
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+            {/* BOTONES DE ACCIÓN: DESCARGA PDF, TICKET TÉRMICO, A4, WHATSAPP & CONVERSIÓN */}
+            <div className="space-y-2.5 pt-2 border-t border-slate-100">
+              {/* Botón de alternancia Presupuesto / Recibo */}
+              <div className="flex items-center justify-between bg-slate-100/80 p-2 rounded-2xl border border-slate-200 text-xs">
+                <span className="text-slate-600 font-bold">
+                  {currentDocument.type === 'PRESUPUESTO' ? '¿Desea facturar este presupuesto?' : '¿Desea generar un presupuesto clínico?'}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    triggerHaptic('medium');
+                    const newType = currentDocument.type === 'PRESUPUESTO' ? 'COMPROBANTE' : 'PRESUPUESTO';
+                    const newNum = newType === 'PRESUPUESTO' 
+                      ? (currentDocument.receiptNumber.startsWith('PRES') ? currentDocument.receiptNumber : `PRES-2026-${Math.floor(100 + Math.random() * 900)}`)
+                      : (currentDocument.receiptNumber.startsWith('REC') ? currentDocument.receiptNumber : `REC-2026-${Math.floor(1000 + Math.random() * 9000)}`);
+                    
+                    setCurrentDocument({
+                      ...currentDocument,
+                      type: newType,
+                      receiptNumber: newNum,
+                    });
+                    showToast('info', 'Formato Actualizado', `Cambiado a ${newType === 'PRESUPUESTO' ? 'Presupuesto Clínico' : 'Comprobante de Pago'}`);
+                  }}
+                  className="px-3 py-1 bg-white hover:bg-slate-50 text-teal-800 font-black rounded-xl border border-slate-300 shadow-2xs transition-all active:scale-95 cursor-pointer"
+                >
+                  {currentDocument.type === 'PRESUPUESTO' ? '💳 Cambiar a Comprobante de Pago' : '📋 Convertir a Presupuesto Oficial'}
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-4 gap-2">
                 <button
                   type="button"
                   onClick={async () => {
                     triggerHaptic('medium');
-                    showToast('info', 'Generando PDF', 'Descargando comprobante oficial...');
+                    showToast('info', 'Generando PDF', `Descargando ${currentDocument.type === 'PRESUPUESTO' ? 'presupuesto oficial' : 'comprobante de pago'}...`);
                     const ok = await downloadReceiptPdf(currentDocument);
                     if (ok) {
-                      showToast('success', 'PDF Descargado', 'Comprobante guardado en su carpeta de descargas.');
+                      showToast('success', 'PDF Descargado', `${currentDocument.type === 'PRESUPUESTO' ? 'Presupuesto' : 'Comprobante'} guardado en su carpeta de descargas.`);
                     }
                   }}
                   className="px-3 py-2.5 bg-teal-600 hover:bg-teal-500 text-white font-black rounded-xl text-xs flex items-center justify-center gap-1.5 cursor-pointer shadow-md shadow-teal-600/20 active:scale-95"
-                  title="Descargar documento oficial en PDF A4"
+                  title="Descargar documento oficial en PDF A4 limpio y membretado"
                 >
                   <Download className="w-4 h-4" />
                   <span>Descargar PDF</span>
@@ -1196,7 +1223,21 @@ export const FinancesUnifiedView: React.FC = () => {
                   type="button"
                   onClick={() => {
                     triggerHaptic('light');
-                    showToast('info', 'Imprimiendo', 'Abriendo ventana de impresión térmica...');
+                    showToast('info', 'Impresión A4', 'Abriendo vista de impresión A4 membretada...');
+                    printA4Document(currentDocument);
+                  }}
+                  className="px-3 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-black rounded-xl text-xs flex items-center justify-center gap-1.5 cursor-pointer shadow-md shadow-blue-600/20 active:scale-95"
+                  title="Imprimir documento membretado en hoja A4"
+                >
+                  <FileText className="w-4 h-4" />
+                  <span>Imprimir A4</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    triggerHaptic('light');
+                    showToast('info', 'Ticket Térmico', 'Abriendo diálogo para ticketera de 80mm...');
                     printThermalTicket(currentDocument);
                   }}
                   className="px-3 py-2.5 bg-amber-600 hover:bg-amber-500 text-white font-black rounded-xl text-xs flex items-center justify-center gap-1.5 cursor-pointer shadow-md shadow-amber-600/20 active:scale-95"

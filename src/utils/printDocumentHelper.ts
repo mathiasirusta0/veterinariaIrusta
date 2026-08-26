@@ -2,56 +2,81 @@
 export function triggerIframePrint(html: string) {
   if (typeof document === 'undefined') return;
 
-  const iframe = document.createElement('iframe');
-  iframe.style.position = 'fixed';
-  iframe.style.left = '-9999px';
-  iframe.style.top = '-9999px';
-  iframe.style.width = '800px';
-  iframe.style.height = '600px';
-  iframe.style.border = '0';
-  iframe.style.opacity = '0';
-  iframe.style.pointerEvents = 'none';
-  document.body.appendChild(iframe);
+  try {
+    const iframe = document.createElement('iframe');
+    iframe.style.position = 'fixed';
+    iframe.style.left = '-9999px';
+    iframe.style.top = '-9999px';
+    iframe.style.width = '800px';
+    iframe.style.height = '600px';
+    iframe.style.border = '0';
+    iframe.style.opacity = '0';
+    iframe.style.pointerEvents = 'none';
+    document.body.appendChild(iframe);
 
-  const doc = iframe.contentWindow?.document;
-  if (!doc) return;
-  doc.open();
-  doc.write(html);
-  doc.close();
-
-  const handlePrint = () => {
-    try {
-      iframe.contentWindow?.focus();
-      iframe.contentWindow?.print();
-    } catch (e) {
-      console.error('Error triggering iframe print:', e);
-      // Fallback: window.open
-      try {
-        const printWindow = window.open('', '_blank');
-        if (printWindow) {
-          printWindow.document.write(html);
-          printWindow.document.close();
-          printWindow.focus();
-          printWindow.print();
-        }
-      } catch (err) {
-        console.error('Fallback window.open failed:', err);
+    const doc = iframe.contentWindow?.document;
+    if (!doc) {
+      // Direct popup fallback
+      const printWin = window.open('', '_blank');
+      if (printWin) {
+        printWin.document.write(html);
+        printWin.document.close();
+        printWin.focus();
+        printWin.print();
       }
+      return;
     }
-    // Clean up after print dialog finishes
-    setTimeout(() => {
-      try {
-        if (iframe.parentNode) {
-          document.body.removeChild(iframe);
-        }
-      } catch {}
-    }, 60000);
-  };
 
-  if (iframe.contentWindow) {
-    iframe.contentWindow.onload = handlePrint;
+    doc.open();
+    doc.write(html);
+    doc.close();
+
+    let hasPrinted = false;
+    const handlePrint = () => {
+      if (hasPrinted) return;
+      hasPrinted = true;
+      try {
+        iframe.contentWindow?.focus();
+        iframe.contentWindow?.print();
+      } catch (e) {
+        console.error('Error triggering iframe print:', e);
+        try {
+          const printWindow = window.open('', '_blank');
+          if (printWindow) {
+            printWindow.document.write(html);
+            printWindow.document.close();
+            printWindow.focus();
+            printWindow.print();
+          }
+        } catch (err) {
+          console.error('Fallback window.open failed:', err);
+        }
+      }
+      setTimeout(() => {
+        try {
+          if (iframe.parentNode) {
+            document.body.removeChild(iframe);
+          }
+        } catch {}
+      }, 60000);
+    };
+
+    if (iframe.contentWindow) {
+      iframe.contentWindow.onload = handlePrint;
+    }
+    setTimeout(handlePrint, 400);
+  } catch (err) {
+    console.error('Fatal print error, using direct window fallback:', err);
+    try {
+      const printWin = window.open('', '_blank');
+      if (printWin) {
+        printWin.document.write(html);
+        printWin.document.close();
+        printWin.focus();
+        printWin.print();
+      }
+    } catch {}
   }
-  setTimeout(handlePrint, 350);
 }
 
 export function normalizeDoctorProfessional(authorName?: string, authorLicense?: string): { name: string; license: string } {
@@ -538,7 +563,7 @@ export function generateReceiptPdfDocument(data: PrintableReceiptData): jsPDF {
   autoTable(doc, {
     startY: 28,
     margin: { left: 14, right: 14 },
-    head: [['🐾 DATOS DEL PACIENTE', '👤 DATOS DEL TUTOR TITULAR']],
+    head: [['DATOS DEL PACIENTE', 'DATOS DEL TUTOR TITULAR']],
     body: [
       [
         `Paciente: ${data.patientName}\nEspecie/Raza: ${data.species} ${data.breed ? '• ' + data.breed : ''}\nHistoria Clínica: ${data.hc || 'HC-2026'}`,
@@ -653,35 +678,37 @@ export async function downloadReceiptPdf(data: PrintableReceiptData, customFileN
   try {
     const doc = generateReceiptPdfDocument(data);
     const petName = (data.patientName || 'Paciente').replace(/[^a-zA-Z0-9_-]/g, '_');
-    const recNum = (data.receiptNumber || 'REC').replace(/[^a-zA-Z0-9_-]/g, '_');
-    const fileName = customFileName || `${data.type === 'PRESUPUESTO' ? 'Presupuesto' : 'Comprobante_Pago'}_${recNum}_${petName}.pdf`;
+    const recNum = (data.receiptNumber || 'DOC').replace(/[^a-zA-Z0-9_-]/g, '_');
+    const fileName = customFileName || `${data.type === 'PRESUPUESTO' ? 'Presupuesto_Oficial' : 'Comprobante_Pago'}_${recNum}_${petName}.pdf`;
 
-    // 1. Direct jsPDF save
+    // Clean direct save without duplicate click events
     doc.save(fileName);
-
-    // 2. Blob fallback for universal browser / mobile compatibility
-    if (typeof window !== 'undefined' && typeof document !== 'undefined') {
-      try {
-        const pdfBlob = doc.output('blob');
-        const blobUrl = URL.createObjectURL(pdfBlob);
-        const link = document.createElement('a');
-        link.href = blobUrl;
-        link.download = fileName;
-        link.style.display = 'none';
-        document.body.appendChild(link);
-        link.click();
-        setTimeout(() => {
-          document.body.removeChild(link);
-          URL.revokeObjectURL(blobUrl);
-        }, 1500);
-      } catch {}
-    }
-
     return true;
   } catch (err) {
     console.error('Error in downloadReceiptPdf:', err);
-    printA4Document(data);
-    return false;
+    // Fallback: try blob download
+    try {
+      const doc = generateReceiptPdfDocument(data);
+      const petName = (data.patientName || 'Paciente').replace(/[^a-zA-Z0-9_-]/g, '_');
+      const recNum = (data.receiptNumber || 'DOC').replace(/[^a-zA-Z0-9_-]/g, '_');
+      const fileName = customFileName || `${data.type === 'PRESUPUESTO' ? 'Presupuesto_Oficial' : 'Comprobante_Pago'}_${recNum}_${petName}.pdf`;
+      const blob = doc.output('blob');
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = fileName;
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(() => {
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }, 1000);
+      return true;
+    } catch (e2) {
+      console.error('Blob fallback failed:', e2);
+      printA4Document(data);
+      return false;
+    }
   }
 }
 
