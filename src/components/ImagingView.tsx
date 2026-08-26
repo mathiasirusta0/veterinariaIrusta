@@ -125,7 +125,7 @@ export const ImagingView: React.FC = () => {
         license: currentUser?.licenseNumber || 'M.P. 502',
       },
       branch: {
-        name: activeBranch?.name || 'Clínica Veterinaria Irusta',
+        name: activeBranch?.name || 'Clínica Veterinaria Ranquel',
         address: activeBranch?.address || 'Río Cuarto, Córdoba',
         phone: activeBranch?.phone || '+54 9 2942 47-7136',
       },

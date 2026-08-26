@@ -8,11 +8,11 @@ describe('WhatsApp Hub Modal & Communication Templates', () => {
     expect(formatPhoneNumberE164('+54 9 2942 47-7136')).toBe('5492942477136');
   });
 
-  it('verifies institutional messaging includes Dr. Diego Iván Irusta and Veterinaria Irusta', () => {
+  it('verifies institutional messaging includes Dr. Diego Iván Irusta and Veterinaria Ranquel', () => {
     const ownerName = 'Enzo Girardi';
     const petName = 'Duque';
     const vetName = 'Dr. Diego Iván Irusta';
-    const clinicName = 'Veterinaria Irusta';
+    const clinicName = 'Veterinaria Ranquel';
     const emergencyPhone = '+54 9 2942 47-7136';
 
     const msg = `Estimado/a ${ownerName} 👋:
@@ -26,7 +26,7 @@ Paciente hemodinámicamente estable con buena tolerancia.
 
     expect(msg).toContain('Enzo Girardi');
     expect(msg).toContain('Duque');
-    expect(msg).toContain('Veterinaria Irusta');
+    expect(msg).toContain('Veterinaria Ranquel');
     expect(msg).toContain('Dr. Diego Iván Irusta');
     expect(msg).toContain('+54 9 2942 47-7136');
     expect(msg).not.toContain('VET SYSTEM Hospital');

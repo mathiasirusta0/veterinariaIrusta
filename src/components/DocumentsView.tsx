@@ -65,7 +65,7 @@ export const DOCUMENT_TEMPLATES: {
     badgeColor: 'bg-rose-50 text-rose-800 border-rose-200',
     icon: Activity,
     defaultContent: (p) =>
-      `Por la presente, yo ${p.ownerName} (DNI ${p.ownerDni}), en mi carácter de tutor/responsable del paciente ${p.name} (${p.species} ${p.breed}, HC ${p.hc}), autorizo al equipo médico de Veterinaria Irusta bajo la dirección de ${p.vetName} (${p.vetLicense}) a realizar los procedimientos quirúrgicos y anestésicos necesarios.\n\nHe sido plenamente informado/a sobre la naturaleza de la intervención, los estudios prequirúrgicos requeridos, los riesgos inherentes a todo acto anestésico y las posibles complicaciones, asumiendo libre y conscientemente las decisiones terapéuticas.`,
+      `Por la presente, yo ${p.ownerName} (DNI ${p.ownerDni}), en mi carácter de tutor/responsable del paciente ${p.name} (${p.species} ${p.breed}, HC ${p.hc}), autorizo al equipo médico de Veterinaria Ranquel bajo la dirección de ${p.vetName} (${p.vetLicense}) a realizar los procedimientos quirúrgicos y anestésicos necesarios.\n\nHe sido plenamente informado/a sobre la naturaleza de la intervención, los estudios prequirúrgicos requeridos, los riesgos inherentes a todo acto anestésico y las posibles complicaciones, asumiendo libre y conscientemente las decisiones terapéuticas.`,
   },
   {
     type: 'CONSENTIMIENTO_INTERNACION_UCI',
@@ -74,7 +74,7 @@ export const DOCUMENT_TEMPLATES: {
     badgeColor: 'bg-purple-50 text-purple-800 border-purple-200',
     icon: ShieldCheck,
     defaultContent: (p) =>
-      `Yo, ${p.ownerName} (DNI ${p.ownerDni}), autorizo la internación y hospitalización de urgencia de ${p.name} (HC ${p.hc}) en el sector de Cuidados Críticos / UCI de Veterinaria Irusta.\n\nAutorizo la colocación de accesos vasculares, fluidoterapia endovenosa continua, administración de fármacos de urgencia, oxigenoterapia y monitoreo hemodinámico según criterio profesional del equipo de guardia.`,
+      `Yo, ${p.ownerName} (DNI ${p.ownerDni}), autorizo la internación y hospitalización de urgencia de ${p.name} (HC ${p.hc}) en el sector de Cuidados Críticos / UCI de Veterinaria Ranquel.\n\nAutorizo la colocación de accesos vasculares, fluidoterapia endovenosa continua, administración de fármacos de urgencia, oxigenoterapia y monitoreo hemodinámico según criterio profesional del equipo de guardia.`,
   },
   {
     type: 'CONSENTIMIENTO_EUTANASIA',
@@ -438,7 +438,7 @@ export const DocumentsView: React.FC = () => {
           <span className="text-[10px] uppercase font-black tracking-widest text-slate-400 block">
             Plantillas Oficiales de Emisión Rápida:
           </span>
-          <span className="text-[11px] font-bold text-teal-700">Veterinaria Irusta</span>
+          <span className="text-[11px] font-bold text-teal-700">Veterinaria Ranquel</span>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-2.5 text-xs">
@@ -725,7 +725,7 @@ export const DocumentsView: React.FC = () => {
               {/* Membrete */}
               <div className="border-b-2 border-teal-700 pb-3 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                 <div>
-                  <div className="text-lg font-black text-teal-800">VETERINARIA IRUSTA</div>
+                  <div className="text-lg font-black text-teal-800">VETERINARIA RANQUEL</div>
                   <div className="text-[11px] text-slate-600 font-bold">Centro Hospitalario Veterinario • Guardia 24 Horas</div>
                   <div className="text-[10px] text-slate-500">Río Cuarto, Córdoba • Tel/WhatsApp: +54 9 2942 47-7136</div>
                   <div className="text-[10px] text-slate-500 font-medium">Dirección Médica: Dr. Diego Iván Irusta • M.P. 502</div>

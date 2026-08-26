@@ -379,7 +379,7 @@ export const SettingsAndUsersView: React.FC = () => {
                 <AlertTriangle className="w-6 h-6 flex-shrink-0" />
                 <div>
                   <h3 className="text-base font-black text-slate-900">Limpieza Transaccional de Datos Demo</h3>
-                  <p className="text-[11px] text-slate-500">Pase a producción limpia de Veterinaria Irusta</p>
+                  <p className="text-[11px] text-slate-500">Pase a producción limpia de Veterinaria Ranquel</p>
                 </div>
               </div>
               <button

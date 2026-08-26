@@ -6,7 +6,7 @@ describe('Real SHA-256 Cryptographic Digital Signatures', () => {
     const docData = {
       documentId: 'doc-101',
       title: 'Consentimiento Informado para Anestesia General',
-      content: 'Autorizo al equipo de Veterinaria Irusta a realizar el procedimiento.',
+      content: 'Autorizo al equipo de Veterinaria Ranquel a realizar el procedimiento.',
       signerName: 'Juan Pablo Pérez Rossi',
       signerDni: '32.458.912',
       timestamp: '2026-08-24T10:00:00Z',

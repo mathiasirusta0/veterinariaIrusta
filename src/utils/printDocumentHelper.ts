@@ -114,7 +114,7 @@ export function printThermalTicket(data: PrintableReceiptData) {
       </head>
       <body>
         <div class="text-center">
-          <div class="title">VETERINARIA IRUSTA</div>
+          <div class="title">VETERINARIA RANQUEL</div>
           <div class="subtitle">Centro Hospitalario Veterinario</div>
           <div class="subtitle">Río Cuarto, Córdoba • Tel: +54 9 2942 47-7136</div>
           <div class="subtitle">Dr. Diego Iván Irusta • M.P. 502</div>
@@ -189,7 +189,7 @@ export function printThermalTicket(data: PrintableReceiptData) {
           <div style="font-size: 10px; font-weight: bold;">${data.vetInCharge}</div>
           <div style="font-size: 9px;">Médico Veterinario • ${data.vetLicense}</div>
           <div class="footer">
-            ¡Gracias por confiar en Veterinaria Irusta!<br />
+            ¡Gracias por confiar en Veterinaria Ranquel!<br />
             Guardia y Urgencias 24 hs
           </div>
         </div>
@@ -366,7 +366,7 @@ export function printA4Document(data: PrintableReceiptData) {
       <body>
         <div class="header">
           <div>
-            <div class="clinic-name">VETERINARIA IRUSTA</div>
+            <div class="clinic-name">VETERINARIA RANQUEL</div>
             <div class="clinic-sub">Centro Hospitalario Veterinario • Guardia 24 Horas</div>
             <div class="clinic-sub">Río Cuarto, Córdoba • Tel/WhatsApp: +54 9 2942 47-7136</div>
             <div class="clinic-sub">Dirección Médica: Dr. Diego Iván Irusta • Matrícula Profesional 502</div>
@@ -435,7 +435,7 @@ export function printA4Document(data: PrintableReceiptData) {
 
         <div class="footer-sign">
           <div style="font-size: 10px; color: #64748b; max-width: 320px;">
-            Documento emitido por el Sistema de Gestión Hospitalaria de <strong>Veterinaria Irusta</strong>.<br />
+            Documento emitido por el Sistema de Gestión Hospitalaria de <strong>Veterinaria Ranquel</strong>.<br />
             ${subTitle}
           </div>
           <div class="signature-box">
@@ -641,7 +641,7 @@ export function printA4ClinicalDocument(data: PrintableClinicalDocumentData) {
       <body>
         <div class="header">
           <div>
-            <div class="clinic-name">VETERINARIA IRUSTA</div>
+            <div class="clinic-name">VETERINARIA RANQUEL</div>
             <div class="clinic-sub">Centro Hospitalario Veterinario • Guardia 24 Horas</div>
             <div class="clinic-sub">Río Cuarto, Córdoba • Tel/WhatsApp: +54 9 2942 47-7136</div>
             <div class="clinic-sub">Dirección Médica: Dr. Diego Iván Irusta • Matrícula Profesional 502</div>
@@ -687,12 +687,12 @@ export function printA4ClinicalDocument(data: PrintableClinicalDocumentData) {
             <div class="sig-line"></div>
             <div style="font-weight: 800; font-size: 11px;">${data.vetName || 'Dr. Diego Iván Irusta'}</div>
             <div style="font-size: 10px; color: #64748b;">Médico Veterinario Actuante · ${data.vetLicense || 'M.P. 502'}</div>
-            <div style="font-size: 9px; color: #0f766e; font-weight: bold; margin-top: 2px;">Dirección Médica • Veterinaria Irusta</div>
+            <div style="font-size: 9px; color: #0f766e; font-weight: bold; margin-top: 2px;">Dirección Médica • Veterinaria Ranquel</div>
           </div>
         </div>
 
         <div class="footer-note">
-          Documento expedido y validado digitalmente por el Sistema Hospitalario de <strong>Veterinaria Irusta</strong>. Válido como instrumento legal y sanitario.
+          Documento expedido y validado digitalmente por el Sistema Hospitalario de <strong>Veterinaria Ranquel</strong>. Válido como instrumento legal y sanitario.
         </div>
       </body>
     </html>
@@ -1016,7 +1016,7 @@ export function printA4MedicalHistory(data: PrintableMedicalHistoryData) {
       <body>
         <div class="header">
           <div>
-            <div class="clinic-name">CLÍNICA VETERINARIA IRUSTA</div>
+            <div class="clinic-name">CLÍNICA VETERINARIA RANQUEL</div>
             <div class="clinic-sub">Grandes y Pequeños Animales • Cuidados Críticos & Cirugía 24 Hs</div>
             <div class="clinic-sub">Río Cuarto, Córdoba • Tel/WhatsApp: +54 9 2942 47-7136</div>
             <div class="clinic-sub">Dirección Médica: <strong>${data.doctor.name}</strong> — Matrícula Profesional: <strong>${data.doctor.license}</strong></div>
@@ -1223,7 +1223,7 @@ export function printA4MedicalHistory(data: PrintableMedicalHistoryData) {
             <div class="sig-line"></div>
             <div style="font-weight: 800; font-size: 11px;">${data.doctor.name}</div>
             <div style="font-size: 9.5px; color: #64748b;">Médico Veterinario · ${data.doctor.license}</div>
-            <div style="font-size: 9px; color: #0f766e; font-weight: bold; margin-top: 2px;">Dirección Médica • Veterinaria Irusta</div>
+            <div style="font-size: 9px; color: #0f766e; font-weight: bold; margin-top: 2px;">Dirección Médica • Veterinaria Ranquel</div>
           </div>
         </div>
 
@@ -1264,7 +1264,7 @@ export function generateMedicalHistoryPdfDocument(data: PrintableMedicalHistoryD
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(13);
   doc.setTextColor(22, 43, 29);
-  doc.text('CLÍNICA VETERINARIA IRUSTA', 14, 18);
+  doc.text('CLÍNICA VETERINARIA RANQUEL', 14, 18);
 
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(8);
@@ -1497,7 +1497,7 @@ export function generateMedicalHistoryPdfDocument(data: PrintableMedicalHistoryD
   doc.text(`Médico Veterinario · ${data.doctor.license}`, 155, finalY + 25, { align: 'center' });
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(15, 118, 110);
-  doc.text('Dirección Médica • Veterinaria Irusta', 155, finalY + 29, { align: 'center' });
+  doc.text('Dirección Médica • Veterinaria Ranquel', 155, finalY + 29, { align: 'center' });
 
   // 10. Page Numbers & Legal Footer
   const pageCount = (doc as any).internal.getNumberOfPages();
@@ -1507,7 +1507,7 @@ export function generateMedicalHistoryPdfDocument(data: PrintableMedicalHistoryD
     doc.setFontSize(6.5);
     doc.setTextColor(148, 163, 184);
     doc.text(
-      'Historia clínica oficial expedida bajo secreto médico veterinario · Clínica Veterinaria Irusta (Río Cuarto, Córdoba)',
+      'Historia clínica oficial expedida bajo secreto médico veterinario · Clínica Veterinaria Ranquel (Río Cuarto, Córdoba)',
       14,
       290
     );
@@ -1719,7 +1719,7 @@ export function printDailyCashClose(data: PrintableDailyCashCloseData) {
       <body>
         <div class="header">
           <div>
-            <div class="logo-title">CLÍNICA VETERINARIA IRUSTA</div>
+            <div class="logo-title">CLÍNICA VETERINARIA RANQUEL</div>
             <div class="logo-sub">Dirección Médica: Dr. Diego Iván Irusta • M.P. 502</div>
             <div class="logo-sub">${data.branchName} · ${data.branchAddress} · Río Cuarto, Cba.</div>
           </div>
@@ -2004,7 +2004,7 @@ export function printA4Prescription(data: PrintablePrescriptionData) {
       <body>
         <div class="header">
           <div>
-            <div class="clinic-name">CLÍNICA VETERINARIA IRUSTA</div>
+            <div class="clinic-name">CLÍNICA VETERINARIA RANQUEL</div>
             <div class="clinic-sub">Dirección Médica: ${data.doctor.name} · ${data.doctor.license}</div>
             <div class="clinic-sub">${data.branch.name} · ${data.branch.address} · Tel: ${data.branch.phone} · Río Cuarto, Córdoba</div>
           </div>
@@ -2066,7 +2066,7 @@ export function printA4Prescription(data: PrintablePrescriptionData) {
             <div class="sig-line"></div>
             <div style="font-weight: 800; font-size: 11px;">${data.doctor.name}</div>
             <div style="font-size: 9.5px; color: #475569;">Médico Veterinario · ${data.doctor.license}</div>
-            <div style="font-size: 8.5px; color: #0f766e; font-weight: bold; margin-top: 2px;">Dirección Médica • Veterinaria Irusta</div>
+            <div style="font-size: 8.5px; color: #0f766e; font-weight: bold; margin-top: 2px;">Dirección Médica • Veterinaria Ranquel</div>
           </div>
         </div>
 
@@ -2266,7 +2266,7 @@ export function printA4LabReport(data: PrintableLabReportData) {
       <body>
         <div class="header">
           <div>
-            <div class="clinic-name">CLÍNICA VETERINARIA IRUSTA</div>
+            <div class="clinic-name">CLÍNICA VETERINARIA RANQUEL</div>
             <div class="clinic-sub">Dirección Médica: ${data.doctor.name} · ${data.doctor.license}</div>
             <div class="clinic-sub">${data.branch.name} · ${data.branch.address} · Tel: ${data.branch.phone} · Río Cuarto, Córdoba</div>
           </div>
@@ -2339,7 +2339,7 @@ export function printA4LabReport(data: PrintableLabReportData) {
             <div class="sig-line"></div>
             <div style="font-weight: 800; font-size: 11px;">${data.doctor.name}</div>
             <div style="font-size: 9.5px; color: #475569;">Bioquímico / Médico Veterinario · ${data.doctor.license}</div>
-            <div style="font-size: 8.5px; color: #0f766e; font-weight: bold; margin-top: 2px;">Dirección Médica • Veterinaria Irusta</div>
+            <div style="font-size: 8.5px; color: #0f766e; font-weight: bold; margin-top: 2px;">Dirección Médica • Veterinaria Ranquel</div>
           </div>
         </div>
 
@@ -2521,7 +2521,7 @@ export function printA4ImagingReport(data: PrintableImagingReportData) {
       <body>
         <div class="header">
           <div>
-            <div class="clinic-name">CLÍNICA VETERINARIA IRUSTA</div>
+            <div class="clinic-name">CLÍNICA VETERINARIA RANQUEL</div>
             <div class="clinic-sub">Dirección Médica: ${data.doctor.name} · ${data.doctor.license}</div>
             <div class="clinic-sub">${data.branch.name} · ${data.branch.address} · Tel: ${data.branch.phone} · Río Cuarto, Córdoba</div>
           </div>
@@ -2563,7 +2563,7 @@ export function printA4ImagingReport(data: PrintableImagingReportData) {
             <div class="sig-line"></div>
             <div style="font-weight: 800; font-size: 11px;">${data.radiologistName || data.doctor.name}</div>
             <div style="font-size: 9.5px; color: #475569;">Especialista en Diagnóstico por Imágenes · ${data.doctor.license}</div>
-            <div style="font-size: 8.5px; color: #0f766e; font-weight: bold; margin-top: 2px;">Dirección Médica • Veterinaria Irusta</div>
+            <div style="font-size: 8.5px; color: #0f766e; font-weight: bold; margin-top: 2px;">Dirección Médica • Veterinaria Ranquel</div>
           </div>
         </div>
 
@@ -2771,7 +2771,7 @@ export function printA4VaccineCertificate(data: PrintableVaccineCertificateData)
       <body>
         <div class="header">
           <div>
-            <div class="clinic-name">CLÍNICA VETERINARIA IRUSTA</div>
+            <div class="clinic-name">CLÍNICA VETERINARIA RANQUEL</div>
             <div class="clinic-sub">Dirección Médica: ${data.doctor.name} · ${data.doctor.license}</div>
             <div class="clinic-sub">${data.branch.name} · ${data.branch.address} · Tel: ${data.branch.phone} · Río Cuarto, Córdoba</div>
           </div>
@@ -2845,7 +2845,7 @@ export function printA4VaccineCertificate(data: PrintableVaccineCertificateData)
             <div class="sig-line"></div>
             <div style="font-weight: 800; font-size: 11px;">${data.doctor.name}</div>
             <div style="font-size: 9.5px; color: #475569;">Médico Veterinario · ${data.doctor.license}</div>
-            <div style="font-size: 8.5px; color: #0f766e; font-weight: bold; margin-top: 2px;">Dirección Médica • Veterinaria Irusta</div>
+            <div style="font-size: 8.5px; color: #0f766e; font-weight: bold; margin-top: 2px;">Dirección Médica • Veterinaria Ranquel</div>
           </div>
         </div>
 
@@ -2930,7 +2930,7 @@ export function generateVaccineCertificatePdf(data: PrintableVaccineCertificateD
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(14);
   doc.setTextColor(15, 118, 110);
-  doc.text('CLÍNICA VETERINARIA IRUSTA', 14, 19);
+  doc.text('CLÍNICA VETERINARIA RANQUEL', 14, 19);
 
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(8.5);
@@ -3064,14 +3064,14 @@ export function generateVaccineCertificatePdf(data: PrintableVaccineCertificateD
   doc.text(`Médico Veterinario • ${data.doctor.license}`, sigX + 32.5, currentY + 27, { align: 'center' });
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(15, 118, 110);
-  doc.text('Dirección Médica • Veterinaria Irusta', sigX + 32.5, currentY + 31, { align: 'center' });
+  doc.text('Dirección Médica • Veterinaria Ranquel', sigX + 32.5, currentY + 31, { align: 'center' });
 
   // Footer note
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(7);
   doc.setTextColor(148, 163, 184);
   doc.text(
-    'Certificado oficial de vacunación e inmunización animal emitido por Veterinaria Irusta con valor de constancia médico-sanitaria.',
+    'Certificado oficial de vacunación e inmunización animal emitido por Veterinaria Ranquel con valor de constancia médico-sanitaria.',
     105,
     285,
     { align: 'center' }
@@ -3114,7 +3114,7 @@ export function generateCompleteVaccinationBookletPdf(data: PrintableCompleteVac
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(15);
   doc.setTextColor(15, 118, 110);
-  doc.text('CLÍNICA VETERINARIA IRUSTA', 14, 19);
+  doc.text('CLÍNICA VETERINARIA RANQUEL', 14, 19);
 
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(8.5);
@@ -3224,14 +3224,14 @@ export function generateCompleteVaccinationBookletPdf(data: PrintableCompleteVac
   doc.text(`Médico Veterinario • ${data.doctor.license}`, sigX + 32.5, currentY + 27, { align: 'center' });
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(15, 118, 110);
-  doc.text('Dirección Médica • Veterinaria Irusta', sigX + 32.5, currentY + 31, { align: 'center' });
+  doc.text('Dirección Médica • Veterinaria Ranquel', sigX + 32.5, currentY + 31, { align: 'center' });
 
   // Footer note
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(7);
   doc.setTextColor(148, 163, 184);
   doc.text(
-    'Libreta Sanitaria y Pasaporte Oficial de Vacunación emitido por Veterinaria Irusta conforme a reglamentaciones sanitarias vigentes.',
+    'Libreta Sanitaria y Pasaporte Oficial de Vacunación emitido por Veterinaria Ranquel conforme a reglamentaciones sanitarias vigentes.',
     105,
     285,
     { align: 'center' }

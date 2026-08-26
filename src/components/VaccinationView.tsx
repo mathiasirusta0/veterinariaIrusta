@@ -576,7 +576,7 @@ export const VaccinationView: React.FC = () => {
         license: vac.vetLicense || 'M.P. 502',
       },
       branch: {
-        name: activeBranch?.name || 'Clínica Veterinaria Irusta',
+        name: activeBranch?.name || 'Clínica Veterinaria Ranquel',
         address: activeBranch?.address || 'Río Cuarto, Córdoba',
         phone: activeBranch?.phone || '+54 9 2942 47-7136',
       },
@@ -630,7 +630,7 @@ export const VaccinationView: React.FC = () => {
         license: 'M.P. 502',
       },
       branch: {
-        name: activeBranch?.name || 'Clínica Veterinaria Irusta',
+        name: activeBranch?.name || 'Clínica Veterinaria Ranquel',
         address: activeBranch?.address || 'Río Cuarto, Córdoba',
         phone: activeBranch?.phone || '+54 9 2942 47-7136',
       },
@@ -675,7 +675,7 @@ export const VaccinationView: React.FC = () => {
         license: vac.vetLicense || 'M.P. 502',
       },
       branch: {
-        name: activeBranch?.name || 'Clínica Veterinaria Irusta',
+        name: activeBranch?.name || 'Clínica Veterinaria Ranquel',
         address: activeBranch?.address || 'Río Cuarto, Córdoba',
         phone: activeBranch?.phone || '+54 9 2942 47-7136',
       },
@@ -822,7 +822,7 @@ export const VaccinationView: React.FC = () => {
               Registros de Inmunización & Calendario Sanitario ({filteredVaccinations.length})
             </h3>
           </div>
-          <span className="text-xs text-slate-400 font-medium">Veterinaria Irusta</span>
+          <span className="text-xs text-slate-400 font-medium">Veterinaria Ranquel</span>
         </div>
 
         {filteredVaccinations.length === 0 ? (
@@ -1486,7 +1486,7 @@ export const VaccinationView: React.FC = () => {
             <div className="bg-slate-50 p-5 rounded-3xl border border-slate-200 space-y-3 text-xs text-slate-800">
               <div className="text-center pb-2 border-b border-slate-200">
                 <span className="font-extrabold text-teal-800 uppercase tracking-widest text-[11px] block">
-                  VETERINARIA IRUSTA — CENTRO HOSPITALARIO VETERINARIO
+                  VETERINARIA RANQUEL — CENTRO HOSPITALARIO VETERINARIO
                 </span>
                 <h4 className="font-black text-slate-900 text-sm mt-0.5">
                   CERTIFICADO OFICIAL DE INMUNIZACIÓN & SANIDAD

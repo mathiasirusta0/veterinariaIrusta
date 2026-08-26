@@ -81,7 +81,7 @@ const ViewLoadingFallback: React.FC = () => (
       <Loader2 className="w-6 h-6 animate-spin" />
     </div>
     <p className="text-xs font-bold text-slate-700">Cargando módulo hospitalario...</p>
-    <span className="text-[11px] text-slate-400 font-mono mt-0.5">Veterinaria Irusta • M.P. 502</span>
+    <span className="text-[11px] text-slate-400 font-mono mt-0.5">Veterinaria Ranquel • M.P. 502</span>
   </div>
 );
 

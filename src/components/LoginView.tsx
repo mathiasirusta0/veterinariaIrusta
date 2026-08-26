@@ -194,7 +194,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ onBackToLanding }) => {
           <div className="space-y-2">
             <div className="inline-flex items-center gap-2 bg-[#E3DEC3] text-[#6E502B] px-3 py-1 rounded-2xl text-xs font-bold">
               <Sparkles className="w-3.5 h-3.5 text-[#8C6B43]" />
-              <span>Veterinaria Irusta • Acceso Restringido</span>
+              <span>Veterinaria Ranquel • Acceso Restringido</span>
             </div>
 
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black font-serif tracking-tight text-[#162217]">
@@ -355,7 +355,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ onBackToLanding }) => {
           </div>
 
           <p className="text-center text-[11px] text-[#6E502B]">
-            Veterinaria Irusta • Gestión Hospitalaria con Seguridad Supabase Auth & RLS
+            Veterinaria Ranquel • Gestión Hospitalaria con Seguridad Supabase Auth & RLS
           </p>
         </div>
       </div>

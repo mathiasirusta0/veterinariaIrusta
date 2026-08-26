@@ -34,7 +34,7 @@ describe('Finanzas — Módulo Simplificado de Cobro Rápido y Emisión de Compr
     expect(movement.concept).toContain('Consulta clínica');
   });
 
-  it('debe generar el comprobante oficial no fiscal REC-2026 con los datos de Veterinaria Irusta', () => {
+  it('debe generar el comprobante oficial no fiscal REC-2026 con los datos de Veterinaria Ranquel', () => {
     const receipt: Invoice = {
       id: 'inv-simple-101',
       patientId: 'pat-1',

@@ -125,7 +125,7 @@ export const WhatsAppHubModal: React.FC<WhatsAppHubModalProps> = ({
         const vetStr = initialData?.details?.vetName || nextApt?.vetName || vetInCharge;
         const reasonStr = initialData?.details?.supplyName || nextApt?.reason || 'Consulta médica general';
 
-        return `🐾 *CLÍNICA VETERINARIA IRUSTA* 🏥
+        return `🐾 *CLÍNICA VETERINARIA RANQUEL* 🏥
 *Recordatorio de Cita Médica* ✨
 
 Hola *${ownerName}*, ¡esperamos que estés muy bien! Te recordamos el turno médico programado para *${petName}*:
@@ -135,7 +135,7 @@ Hola *${ownerName}*, ¡esperamos que estés muy bien! Te recordamos el turno mé
 ⏰ *Horario:* ${timeStr} hs
 👨‍⚕️ *Profesional Asignado:* ${vetStr} (M.P. 502)
 🩺 *Motivo:* ${reasonStr}
-📍 *Ubicación:* Clínica Veterinaria Irusta — Río Cuarto, Córdoba
+📍 *Ubicación:* Clínica Veterinaria Ranquel — Río Cuarto, Córdoba
 
 ⚠️ *Recomendaciones para la visita:*
 • Por favor concurrir 5 a 10 minutos antes del horario pactado.
@@ -159,7 +159,7 @@ Hola *${ownerName}*, ¡esperamos que estés muy bien! Te recordamos el turno mé
           .map((m) => `• ${m.drugName} (${m.dose} ${m.route}) c/${m.frequency}`)
           .join('\n');
 
-        return `🐾 *CLÍNICA VETERINARIA IRUSTA* 🏥
+        return `🐾 *CLÍNICA VETERINARIA RANQUEL* 🏥
 *Reporte Médico de Internación & UCI* 🩺
 
 Estimado/a *${ownerName}*, le compartimos el informe de estado clínico y novedades de *${petName}*:
@@ -200,7 +200,7 @@ ${activeMeds || '• Medicación y fluidoterapia administradas según prescripci
 
         const rxNotes = latestRx?.generalInstructions || latestRx?.notes || 'Cumplir estrictamente la duración completa del tratamiento prescripto.';
 
-        return `🐾 *CLÍNICA VETERINARIA IRUSTA* 🏥
+        return `🐾 *CLÍNICA VETERINARIA RANQUEL* 🏥
 *Plan de Medicación & Prescripción Oficial* 💊
 
 Hola *${ownerName}*, le enviamos las indicaciones farmacológicas detalladas para *${petName}*:
@@ -227,9 +227,9 @@ Ante cualquier efecto adverso o duda sobre la administración, comuníquese con 
 
         const amount = initialData?.details?.supplyAmount || (latestInvoice ? latestInvoice.totalAmount : (owner?.balance && owner.balance > 0 ? owner.balance : 18500));
         const concept = initialData?.details?.supplyName || (latestInvoice ? latestInvoice.items.map((it) => it.description).join(', ') : 'Prestaciones médicas, honorarios e insumos aplicados');
-        const bankAlias = initialData?.details?.bankAlias || 'VET.IRUSTA.PAGOS';
+        const bankAlias = initialData?.details?.bankAlias || 'VET.RANQUEL.PAGOS';
 
-        return `🐾 *CLÍNICA VETERINARIA IRUSTA* 🏥
+        return `🐾 *CLÍNICA VETERINARIA RANQUEL* 🏥
 *Comprobante de Prestaciones & Detalle de Saldo* 🧾
 
 Hola *${ownerName}*, le enviamos el detalle de tratamientos e insumos médicos realizados a *${petName}*:
@@ -258,7 +258,7 @@ Hola *${ownerName}*, le enviamos el detalle de tratamientos e insumos médicos r
         const dischargeSummary = lastHosp?.dischargeSummary || lastCons?.soap?.plan || 'Paciente clínicamente compensado con excelente evolución post-tratamiento.';
         const doctor = lastHosp?.vetInChargeName || lastCons?.vetName || vetInCharge;
 
-        return `🐾 *CLÍNICA VETERINARIA IRUSTA* 🏥
+        return `🐾 *CLÍNICA VETERINARIA RANQUEL* 🏥
 *¡Alta Médica & Egreso Clínico!* 🎉
 
 ¡Excelentes noticias *${ownerName}*! Nos alegra informarle que *${petName}* ha evolucionado favorablemente y recibió el *Alta Médica*:
@@ -288,7 +288,7 @@ ${dischargeSummary}
         const procedureName = initialData?.details?.supplyName || pendingSurgery?.procedureName || (pendingLab ? `Análisis de Laboratorio (${pendingLab.testType})` : pendingImg ? `Estudio de Imagen (${pendingImg.modality} - ${pendingImg.region})` : 'Procedimiento diagnóstico / quirúrgico de urgencia');
         const surgeon = pendingSurgery?.surgeonName || vetInCharge;
 
-        return `🐾 *CLÍNICA VETERINARIA IRUSTA* 🏥
+        return `🐾 *CLÍNICA VETERINARIA RANQUEL* 🏥
 *Solicitud de Autorización Médica & Consentimiento* 📋
 
 Estimado/a *${ownerName}*, desde la dirección médica le solicitamos su consentimiento informado para realizar un procedimiento a *${petName}*:
@@ -316,7 +316,7 @@ Ante cualquier consulta sobre el procedimiento, nuestro equipo médico está a s
         const vacDueDate = initialData?.details?.dueDate || (latestVac?.nextDueDate ? formatDate(latestVac.nextDueDate) : 'este mes');
         const vacBatch = latestVac?.batchNumber ? `(Lote: ${latestVac.batchNumber})` : '';
 
-        return `🐾 *CLÍNICA VETERINARIA IRUSTA* 🏥
+        return `🐾 *CLÍNICA VETERINARIA RANQUEL* 🏥
 *Aviso de Vencimiento de Vacunación* 💉
 
 Hola *${ownerName}*, esperamos que estés muy bien. Te escribimos para recordarte la próxima vacuna de *${petName}*:
@@ -324,7 +324,7 @@ Hola *${ownerName}*, esperamos que estés muy bien. Te escribimos para recordart
 🐶 *Paciente:* ${petName} ${petDesc}
 💉 *Vacuna:* ${vacName} ${vacBatch}
 🗓️ *Fecha Sugerida / Vencimiento:* ${vacDueDate}
-📍 *Lugar:* Clínica Veterinaria Irusta — Río Cuarto, Córdoba
+📍 *Lugar:* Clínica Veterinaria Ranquel — Río Cuarto, Córdoba
 
 ⚠️ *¿Por qué es importante?*
 Mantener el plan sanitario al día genera anticuerpos esenciales para prevenir enfermedades infecciosas graves.
@@ -351,7 +351,7 @@ Mantener el plan sanitario al día genera anticuerpos esenciales para prevenir e
         const totalEst = latestEst ? latestEst.totalAmount : (initialData?.details?.estimateTotal || 45000);
         const estNum = latestEst?.estimateNumber ? ` (${latestEst.estimateNumber})` : '';
 
-        return `🐾 *CLÍNICA VETERINARIA IRUSTA* 🏥
+        return `🐾 *CLÍNICA VETERINARIA RANQUEL* 🏥
 *Presupuesto Médico Estimado* 📋${estNum}
 
 Hola *${ownerName}*, le enviamos la estimación presupuestaria para el tratamiento médico de *${petName}*:
@@ -370,7 +370,7 @@ Quedamos a su entera disposición para coordinar turnos o resolver cualquier dud
       }
 
       default:
-        return `Hola ${ownerName}, le escribimos de Veterinaria Irusta respecto a ${petName}.`;
+        return `Hola ${ownerName}, le escribimos de Veterinaria Ranquel respecto a ${petName}.`;
     }
   };
 
@@ -490,7 +490,7 @@ Quedamos a su entera disposición para coordinar turnos o resolver cualquier dud
                 <span>Centro de Comunicación & WhatsApp con Tutores</span>
               </h2>
               <p className="text-xs text-emerald-100 font-medium">
-                Veterinaria Irusta • Novedades médicas, reportes clínicos, recetas, turnos y avisos
+                Veterinaria Ranquel • Novedades médicas, reportes clínicos, recetas, turnos y avisos
               </p>
             </div>
           </div>

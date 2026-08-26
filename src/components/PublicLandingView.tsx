@@ -13,11 +13,20 @@ import {
   Building2,
   Lock,
   ChevronRight,
+  ChevronDown,
   Compass,
   X,
   Send,
   Calendar,
   AlertCircle,
+  Award,
+  Activity,
+  Scissors,
+  BedDouble,
+  Microscope,
+  Pill,
+  Star,
+  HelpCircle,
 } from 'lucide-react';
 import { triggerHaptic } from '../utils/haptics';
 
@@ -29,39 +38,64 @@ interface PublicLandingViewProps {
 export const WHATSAPP_NUMBER = '5492942477136';
 export const WHATSAPP_DISPLAY = '+54 9 2942 47-7136';
 
-export const WA_TURNO_MSG = 'Hola Veterinaria Irusta, quisiera solicitar un turno o consulta médica para mi mascota.';
-export const WA_GUARDIA_MSG = 'Hola Veterinaria Irusta, tengo una urgencia veterinaria y necesito atención médica de guardia inmediata.';
-export const WA_CAMPO_MSG = 'Hola Veterinaria Irusta, quisiera coordinar una visita a campo o consulta para equinos / animales de producción.';
-export const WA_CONSULTA_MSG = 'Hola Veterinaria Irusta, quisiera hacer una consulta sobre sus servicios veterinarios.';
+export const WA_TURNO_MSG = 'Hola Veterinaria Ranquel, quisiera solicitar un turno o consulta médica para mi mascota.';
+export const WA_GUARDIA_MSG = 'Hola Veterinaria Ranquel, tengo una urgencia veterinaria y necesito atención médica de guardia inmediata.';
+export const WA_CAMPO_MSG = 'Hola Veterinaria Ranquel, quisiera coordinar una visita a campo o consulta para equinos / animales de producción.';
+export const WA_CONSULTA_MSG = 'Hola Veterinaria Ranquel, quisiera hacer una consulta sobre sus servicios veterinarios.';
 
 export const getWhatsAppLink = (message: string = WA_TURNO_MSG) => {
-  return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
+  return 'https://wa.me/' + WHATSAPP_NUMBER + '?text=' + encodeURIComponent(message);
 };
 
 export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onOpenLogin, onGoToLogin }) => {
   const [showWaModal, setShowWaModal] = useState(false);
+  const [openFaq, setOpenFaq] = useState<number | null>(null);
 
   const handleOpenLogin = () => {
-    triggerHaptic('light');
+    triggerHaptic('medium');
     if (onOpenLogin) onOpenLogin();
     if (onGoToLogin) onGoToLogin();
   };
 
+  const toggleFaq = (index: number) => {
+    triggerHaptic('light');
+    setOpenFaq(openFaq === index ? null : index);
+  };
+
+  const faqs = [
+    {
+      q: '¿Cómo puedo agendar un turno o consulta programada?',
+      a: 'Puedes solicitar tu turno directamente a través de nuestro botón de WhatsApp oficial seleccionando la opción "Turno Clínico", o comunicándote al +54 9 2942 47-7136. Nuestro equipo coordinará el día y horario más conveniente.',
+    },
+    {
+      q: '¿Cómo funciona la Guardia de Emergencias Médicas 24 Horas?',
+      a: 'Contamos con médico veterinario activo y quirófano de urgencias disponible las 24 horas, los 365 días del año. Ante una urgencia o descompensación, puedes acudir de inmediato a nuestra clínica o contactar a la línea prioritaria de guardia por WhatsApp.',
+    },
+    {
+      q: '¿Realizan atención y visitas a campo para equinos y hacienda?',
+      a: 'Sí, disponemos de unidades móviles equipadas con ecografía musculoesquelética portátil, radiología digital, instrumental quirúrgico y odontológico para brindar atención a campo en cabañas de polo, haras, centros hípicos y establecimientos rurales.',
+    },
+    {
+      q: '¿Qué equipamiento poseen para cirugías y cuidados críticos (UCI)?',
+      a: 'Disponemos de quirófano de alta complejidad con máquina de anestesia inhalatoria, monitoreo multiparamétrico continuo (ECG, capnografía, presión arterial, oximetría), electrobisturí, boxes equinos acondicionados y caniles climatizados para internación con oxigenoterapia y fluidoterapia continua.',
+    },
+  ];
+
   return (
-    <div className="min-h-screen min-h-[100dvh] w-full max-w-full overflow-x-hidden overflow-y-auto bg-[#F9F8F5] text-[#1C2B1D] font-sans antialiased selection:bg-[#5F7359] selection:text-white relative">
-      {/* 🌾 TOP BANNER VINTAGE */}
-      <div className="bg-[#5F7359] text-[#F9F8F5] py-2 px-4 sm:px-8 text-xs tracking-wide font-medium flex flex-wrap items-center justify-between gap-2 border-b border-[#4D5E48]">
+    <div className="min-h-screen min-h-[100dvh] w-full max-w-full overflow-x-hidden overflow-y-auto bg-[#FBF9F5] text-[#1A261B] font-sans antialiased selection:bg-[#4E674A] selection:text-white relative">
+      {/* TOP BANNER DE GUARDIA 24HS */}
+      <div className="bg-[#3D523A] text-[#F9F8F5] py-2 px-4 sm:px-8 text-xs tracking-wide font-medium flex flex-wrap items-center justify-between gap-2 border-b border-[#2F402D]">
         <div className="flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-amber-300 animate-pulse" />
-          <span className="font-serif italic font-semibold">Guardia Veterinaria & Emergencias Médicas 24 Horas</span>
+          <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse shadow-xs" />
+          <span className="font-serif italic font-semibold">Guardia Veterinaria & Emergencias Médicas 24 Horas Activa</span>
         </div>
         <div className="flex items-center gap-4 text-[11px]">
-          <span className="hidden sm:inline opacity-90">Río Cuarto • Buenos Aires</span>
+          <span className="hidden sm:inline opacity-90">Río Cuarto, Córdoba • Buenos Aires</span>
           <a
             href={getWhatsAppLink(WA_GUARDIA_MSG)}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 text-amber-200 hover:text-white underline font-bold transition-colors"
+            className="inline-flex items-center gap-1.5 text-amber-200 hover:text-white font-bold transition-colors underline"
           >
             <Phone className="w-3.5 h-3.5" />
             <span>WhatsApp Guardia: {WHATSAPP_DISPLAY}</span>
@@ -69,49 +103,48 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onOpenLogi
         </div>
       </div>
 
-      {/* 🏛️ HEADER INSTITUCIONAL ELEGANTE */}
-      <header className="sticky top-0 z-40 bg-[#F9F8F5]/95 backdrop-blur-md border-b border-[#E8E3D9] px-4 sm:px-8 py-4 transition-all">
+      {/* HEADER INSTITUCIONAL ELEGANTE */}
+      <header className="sticky top-0 z-40 bg-[#FBF9F5]/95 backdrop-blur-md border-b border-[#E7E2D6] px-4 sm:px-8 py-3.5 transition-all shadow-xs">
         <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
           <div className="flex items-center gap-3.5">
-            <div className="w-11 h-11 rounded-full bg-[#5F7359] text-white flex items-center justify-center text-xl shadow-xs border-2 border-[#4D5E48]">
+            <div className="w-11 h-11 rounded-2xl bg-[#4E674A] text-white flex items-center justify-center text-xl shadow-md border-2 border-[#3D523A]">
               🐴
             </div>
             <div>
-              <span className="text-[10px] tracking-[0.2em] uppercase font-bold text-[#8C6B43] block">
-                Tradición & Medicina de Vanguardia
+              <span className="text-[10px] tracking-[0.22em] uppercase font-black text-[#8C6B43] block">
+                Grandes y Pequeños Animales
               </span>
-              <h1 className="text-xl sm:text-2xl font-black font-serif tracking-tight text-[#1C2B1D]">
-                Veterinaria <span className="text-[#5F7359]">Irusta</span>
+              <h1 className="text-xl sm:text-2xl font-black font-serif tracking-tight text-[#162417]">
+                Veterinaria <span className="text-[#4E674A]">Ranquel</span>
               </h1>
             </div>
           </div>
 
-          {/* Quick Nav */}
-          <nav className="hidden md:flex items-center gap-7 text-xs font-bold text-[#556956] tracking-wider uppercase">
-            <a href="#servicios" className="hover:text-[#1C2B1D] transition-colors">Especialidades</a>
-            <a href="#equipo" className="hover:text-[#1C2B1D] transition-colors">Dirección Médica</a>
-            <a href="#sedes" className="hover:text-[#1C2B1D] transition-colors">Sedes & Contacto</a>
+          {/* Nav Links */}
+          <nav className="hidden lg:flex items-center gap-6 text-xs font-bold text-[#4E674A] tracking-wider uppercase">
+            <a href="#especialidades" className="hover:text-[#162417] transition-colors">Especialidades</a>
+            <a href="#equinos" className="hover:text-[#162417] transition-colors">Equinos & Campo</a>
+            <a href="#hospital" className="hover:text-[#162417] transition-colors">Hospital & UCI</a>
+            <a href="#direccion" className="hover:text-[#162417] transition-colors">Dirección Médica</a>
+            <a href="#faq" className="hover:text-[#162417] transition-colors">Preguntas</a>
+            <a href="#sedes" className="hover:text-[#162417] transition-colors">Sedes</a>
           </nav>
 
-          {/* Header Action Buttons */}
+          {/* Action Buttons */}
           <div className="flex items-center gap-2.5">
             <a
               href={getWhatsAppLink(WA_TURNO_MSG)}
               target="_blank"
               rel="noopener noreferrer"
-              className="hidden sm:inline-flex items-center gap-1.5 px-3.5 py-2 bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs rounded-xl shadow-xs transition-all border border-emerald-800"
+              className="hidden sm:inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs rounded-xl shadow-xs transition-all border border-emerald-800 active:scale-95"
             >
               <MessageCircle className="w-3.5 h-3.5" />
               <span>Pedir Turno</span>
             </a>
 
-            {/* CTA System Access */}
             <button
-              onClick={() => {
-                triggerHaptic('medium');
-                handleOpenLogin();
-              }}
-              className="px-4 py-2 bg-[#5F7359] hover:bg-[#4D5E48] active:scale-98 text-white text-xs font-bold rounded-xl transition-all shadow-sm flex items-center gap-2 cursor-pointer border border-[#4D5E48]"
+              onClick={handleOpenLogin}
+              className="px-4 py-2 bg-[#4E674A] hover:bg-[#3D523A] active:scale-95 text-white text-xs font-bold rounded-xl transition-all shadow-sm flex items-center gap-2 cursor-pointer border border-[#3D523A]"
             >
               <Lock className="w-3.5 h-3.5 text-amber-200" />
               <span>Acceso al Sistema</span>
@@ -121,32 +154,29 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onOpenLogi
         </div>
       </header>
 
-      {/* 🌟 HERO SECTION: VINTAGE CAMPO PREMIUM */}
+      {/* HERO SECTION: VETERINARIA RANQUEL */}
       <section className="relative px-4 sm:px-8 pt-10 pb-16 max-w-7xl mx-auto">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
-          {/* Main Copy Column */}
+          {/* Main Copy */}
           <div className="lg:col-span-7 space-y-6">
-            <div className="inline-flex items-center gap-2 bg-[#EFECE3] text-[#6E502B] px-3.5 py-1.5 rounded-full text-xs font-bold border border-[#E0D9C8]">
+            <div className="inline-flex items-center gap-2 bg-[#EFECE3] text-[#6E502B] px-4 py-1.5 rounded-full text-xs font-bold border border-[#E0D9C8]">
               <Sparkles className="w-3.5 h-3.5 text-[#8C6B43]" />
-              <span>Medicina Veterinaria de Excelencia • Río Cuarto & CABA</span>
+              <span>Centro Médico Veterinario de Excelencia • Río Cuarto & CABA</span>
             </div>
 
-            <h2 className="text-3xl sm:text-5xl lg:text-6xl font-serif font-black tracking-tight text-[#162217] leading-[1.12]">
-              Clínica Veterinaria para Grandes y Pequeños Animales
+            <h2 className="text-3xl sm:text-5xl lg:text-6xl font-serif font-black tracking-tight text-[#162417] leading-[1.12]">
+              Clínica Veterinaria Ranquel
             </h2>
 
-            <p className="text-base sm:text-lg text-[#4A5D4B] font-medium leading-relaxed max-w-2xl">
-              Medicina de alta complejidad a campo y hospital de urgencias 24 horas. Cuidado experto y compasivo para equinos, animales de producción y pequeños animales.
+            <p className="text-base sm:text-lg text-[#3D523A] font-medium leading-relaxed max-w-2xl">
+              Medicina de alta complejidad para <strong>Grandes y Pequeños Animales</strong>. Especialistas en clínica y cirugía equina a campo, cuidados críticos 24 horas, diagnóstico por imágenes y atención compasiva para cada paciente.
             </p>
 
             {/* CTAs */}
             <div className="flex flex-wrap items-center gap-3.5 pt-2">
               <button
-                onClick={() => {
-                  triggerHaptic('medium');
-                  handleOpenLogin();
-                }}
-                className="px-6 py-3.5 bg-[#5F7359] hover:bg-[#4D5E48] active:scale-98 text-white font-bold text-sm rounded-2xl transition-all shadow-md flex items-center gap-2 cursor-pointer border border-[#4D5E48]"
+                onClick={handleOpenLogin}
+                className="px-6 py-3.5 bg-[#4E674A] hover:bg-[#3D523A] active:scale-95 text-white font-bold text-sm rounded-2xl transition-all shadow-md flex items-center gap-2 cursor-pointer border border-[#3D523A]"
               >
                 <span>Ingresar al Sistema Hospitalario</span>
                 <ArrowRight className="w-4 h-4" />
@@ -155,16 +185,16 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onOpenLogi
               <button
                 type="button"
                 onClick={() => setShowWaModal(true)}
-                className="px-5 py-3.5 bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-sm rounded-2xl transition-all shadow-md flex items-center gap-2 cursor-pointer border border-emerald-800 active:scale-98"
+                className="px-5 py-3.5 bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-sm rounded-2xl transition-all shadow-md flex items-center gap-2 cursor-pointer border border-emerald-800 active:scale-95"
               >
                 <MessageCircle className="w-4 h-4 text-emerald-200" />
                 <span>Solicitar Turno / Consulta (WhatsApp)</span>
               </button>
             </div>
 
-            {/* Quick Access Badges for WhatsApp */}
+            {/* Quick Access Badges */}
             <div className="flex flex-wrap items-center gap-2 pt-1">
-              <span className="text-[11px] font-bold text-[#6E502B]">Contacto Inmediato:</span>
+              <span className="text-[11px] font-bold text-[#6E502B]">Atención Rápida:</span>
               <a
                 href={getWhatsAppLink(WA_TURNO_MSG)}
                 target="_blank"
@@ -185,40 +215,40 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onOpenLogi
                 href={getWhatsAppLink(WA_CAMPO_MSG)}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="px-3 py-1 bg-[#EFECE3] hover:bg-[#E2DDD0] border border-[#DDD7C8] text-[#5F7359] font-bold text-[11px] rounded-xl transition-colors shadow-2xs flex items-center gap-1"
+                className="px-3 py-1 bg-[#EFECE3] hover:bg-[#E2DDD0] border border-[#DDD7C8] text-[#4E674A] font-bold text-[11px] rounded-xl transition-colors shadow-2xs flex items-center gap-1"
               >
                 <span>🐴 Equinos & Campo</span>
               </a>
             </div>
 
-            {/* Heritage Highlights */}
-            <div className="grid grid-cols-3 gap-3 pt-6 border-t border-[#E8E3D9]">
+            {/* Stats Metrics */}
+            <div className="grid grid-cols-3 gap-4 pt-6 border-t border-[#E7E2D6]">
               <div>
-                <span className="text-2xl font-black font-serif text-[#1C2B1D] block">+15.000</span>
-                <span className="text-[11px] text-[#6E502B] font-semibold uppercase tracking-wider">Atenciones Médicas</span>
+                <span className="text-2xl sm:text-3xl font-black font-serif text-[#162417] block">+15.000</span>
+                <span className="text-[11px] text-[#6E502B] font-bold uppercase tracking-wider">Atenciones Médicas</span>
               </div>
               <div>
-                <span className="text-2xl font-black font-serif text-[#1C2B1D] block">24 / 7</span>
-                <span className="text-[11px] text-[#6E502B] font-semibold uppercase tracking-wider">Guardia Ininterrumpida</span>
+                <span className="text-2xl sm:text-3xl font-black font-serif text-[#162417] block">24 / 7</span>
+                <span className="text-[11px] text-[#6E502B] font-bold uppercase tracking-wider">Guardia Médica Activa</span>
               </div>
               <div>
-                <span className="text-2xl font-black font-serif text-[#1C2B1D] block">100%</span>
-                <span className="text-[11px] text-[#6E502B] font-semibold uppercase tracking-wider">Cuidado a Campo y Hospital</span>
+                <span className="text-2xl sm:text-3xl font-black font-serif text-[#162417] block">100%</span>
+                <span className="text-[11px] text-[#6E502B] font-bold uppercase tracking-wider">Equipamiento Propio</span>
               </div>
             </div>
           </div>
 
-          {/* Gallery Column: Warm Rustic Elegance */}
+          {/* Photo Gallery Grid */}
           <div className="lg:col-span-5 space-y-4">
             <div className="relative rounded-3xl overflow-hidden shadow-2xl border-4 border-white group">
               <img
                 src="https://images.unsplash.com/photo-1553284965-83fd3e82fa5a?auto=format&fit=crop&w=800&q=80"
-                alt="Caballos al atardecer en el campo - Veterinaria Irusta"
+                alt="Caballos en el campo - Veterinaria Ranquel"
                 className="w-full h-64 sm:h-72 object-cover group-hover:scale-105 transition-transform duration-500"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-transparent to-transparent flex flex-col justify-end p-5 text-white">
-                <span className="text-[10px] font-bold uppercase tracking-widest text-amber-200">Especialidad en Equinos & Campo</span>
-                <h3 className="text-lg font-serif font-bold">Clínica, Traumatología & Rendimiento Deportivo</h3>
+              <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent flex flex-col justify-end p-5 text-white">
+                <span className="text-[10px] font-bold uppercase tracking-widest text-amber-300">Especialidad en Equinos & Producción</span>
+                <h3 className="text-lg font-serif font-bold">Medicina Deportiva, Claudicaciones & Cirugía a Campo</h3>
               </div>
             </div>
 
@@ -226,22 +256,22 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onOpenLogi
               <div className="relative rounded-2xl overflow-hidden shadow-md border-3 border-white group">
                 <img
                   src="https://images.unsplash.com/photo-1543466835-00a7907e9de1?auto=format&fit=crop&w=500&q=80"
-                  alt="Perros en consulta veterinaria"
+                  alt="Perros en consulta médica - Veterinaria Ranquel"
                   className="w-full h-36 object-cover group-hover:scale-105 transition-transform duration-500"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-transparent to-transparent flex flex-col justify-end p-3 text-white">
-                  <span className="text-[10px] font-bold">Pequeños Animales</span>
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent flex flex-col justify-end p-3 text-white">
+                  <span className="text-[11px] font-bold">Pequeños Animales</span>
                 </div>
               </div>
 
               <div className="relative rounded-2xl overflow-hidden shadow-md border-3 border-white group">
                 <img
                   src="https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&w=500&q=80"
-                  alt="Quirófano e imágenes veterinarias"
+                  alt="Quirófano e imágenes - Veterinaria Ranquel"
                   className="w-full h-36 object-cover group-hover:scale-105 transition-transform duration-500"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-transparent to-transparent flex flex-col justify-end p-3 text-white">
-                  <span className="text-[10px] font-bold">Quirófano & UCI 24hs</span>
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent flex flex-col justify-end p-3 text-white">
+                  <span className="text-[11px] font-bold">Quirófano & UCI 24hs</span>
                 </div>
               </div>
             </div>
@@ -249,93 +279,136 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onOpenLogi
         </div>
       </section>
 
-      {/* 🌿 3 GRANDES PILARES DE ATENCIÓN */}
-      <section id="servicios" className="py-14 px-4 sm:px-8 max-w-7xl mx-auto space-y-8">
-        <div className="text-center space-y-1.5 max-w-2xl mx-auto">
-          <span className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#8C6B43]">Nuestros 3 Pilares Médicos</span>
-          <h2 className="text-3xl sm:text-4xl font-serif font-black text-[#162217]">Cuidado Integral para Todo Tipo de Animales</h2>
+      {/* SERVICIOS & ESPECIALIDADES CLÍNICAS */}
+      <section id="especialidades" className="py-16 px-4 sm:px-8 max-w-7xl mx-auto space-y-10">
+        <div className="text-center space-y-2 max-w-2xl mx-auto">
+          <span className="text-[11px] font-bold uppercase tracking-[0.22em] text-[#8C6B43]">Excelencia Médica Multidisciplinaria</span>
+          <h2 className="text-3xl sm:text-4xl font-serif font-black text-[#162417]">Servicios y Especialidades de Veterinaria Ranquel</h2>
+          <p className="text-xs sm:text-sm text-[#4E674A] font-medium">Infraestructura hospitalaria de avanzada y atención médica integral para cada necesidad.</p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* Pilar 1: Grandes Animales */}
-          <div className="bg-white rounded-3xl p-7 border border-[#E8E3D9] shadow-sm hover:border-[#5F7359] transition-all space-y-4">
-            <div className="w-12 h-12 rounded-2xl bg-[#EFECE3] text-[#5F7359] flex items-center justify-center text-2xl border border-[#DDD7C8]">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {/* Card 1 */}
+          <div className="bg-white rounded-3xl p-7 border border-[#E7E2D6] shadow-sm hover:border-[#4E674A] hover:shadow-md transition-all space-y-3.5">
+            <div className="w-12 h-12 rounded-2xl bg-[#EFECE3] text-[#4E674A] flex items-center justify-center text-2xl border border-[#DDD7C8]">
               🐴
             </div>
-            <h3 className="text-xl font-serif font-bold text-[#162217]">Grandes Animales & Equinos</h3>
-            <p className="text-xs text-[#556956] leading-relaxed">
-              Atención a campo para caballos de deporte, polo y producción. Diagnóstico de claudicaciones, ecografía musculoesquelética, cirugía de cólicos, odontología y manejo reproductivo.
+            <h3 className="text-lg font-serif font-bold text-[#162417]">Grandes Animales & Equinos</h3>
+            <p className="text-xs text-[#4E674A] leading-relaxed">
+              Atención a campo para caballos de polo, salto, carrera y trabajo. Diagnóstico de claudicaciones, ecografía musculoesquelética, cirugía de cólicos, odontología y manejo reproductivo.
             </p>
-            <div className="pt-2 border-t border-[#F3EFEA] text-xs text-[#5F7359] font-bold flex items-center gap-1.5">
-              <CheckCircle2 className="w-3.5 h-3.5" />
+            <div className="pt-2 border-t border-[#F3EFEA] text-xs text-[#3D523A] font-bold flex items-center gap-1.5">
+              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
               <span>Traslado e internación en boxes UCI</span>
             </div>
           </div>
 
-          {/* Pilar 2: Pequeños Animales */}
-          <div className="bg-white rounded-3xl p-7 border border-[#E8E3D9] shadow-sm hover:border-[#5F7359] transition-all space-y-4">
-            <div className="w-12 h-12 rounded-2xl bg-[#EFECE3] text-[#5F7359] flex items-center justify-center text-2xl border border-[#DDD7C8]">
+          {/* Card 2 */}
+          <div className="bg-white rounded-3xl p-7 border border-[#E7E2D6] shadow-sm hover:border-[#4E674A] hover:shadow-md transition-all space-y-3.5">
+            <div className="w-12 h-12 rounded-2xl bg-[#EFECE3] text-[#4E674A] flex items-center justify-center text-2xl border border-[#DDD7C8]">
               🐕
             </div>
-            <h3 className="text-xl font-serif font-bold text-[#162217]">Pequeños Animales</h3>
-            <p className="text-xs text-[#556956] leading-relaxed">
-              Consultorios equipados para caninos y felinos. Planes de vacunación oficial, dermatología, cardiología, diagnóstico por imágenes y medicina preventiva personalizada.
+            <h3 className="text-lg font-serif font-bold text-[#162417]">Clínica de Pequeños Animales</h3>
+            <p className="text-xs text-[#4E674A] leading-relaxed">
+              Consultorios equipados para caninos y felinos. Planes de vacunación oficial, desparasitación, dermatología, cardiología, gastroenterología y medicina preventiva integral.
             </p>
-            <div className="pt-2 border-t border-[#F3EFEA] text-xs text-[#5F7359] font-bold flex items-center gap-1.5">
-              <CheckCircle2 className="w-3.5 h-3.5" />
+            <div className="pt-2 border-t border-[#F3EFEA] text-xs text-[#3D523A] font-bold flex items-center gap-1.5">
+              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
               <span>Caniles climatizados y cuidados intensivos</span>
             </div>
           </div>
 
-          {/* Pilar 3: Hospital & Urgencias */}
-          <div className="bg-white rounded-3xl p-7 border border-[#E8E3D9] shadow-sm hover:border-[#5F7359] transition-all space-y-4">
-            <div className="w-12 h-12 rounded-2xl bg-[#EFECE3] text-[#5F7359] flex items-center justify-center text-2xl border border-[#DDD7C8]">
-              🏥
+          {/* Card 3 */}
+          <div className="bg-white rounded-3xl p-7 border border-[#E7E2D6] shadow-sm hover:border-[#4E674A] hover:shadow-md transition-all space-y-3.5">
+            <div className="w-12 h-12 rounded-2xl bg-[#EFECE3] text-[#4E674A] flex items-center justify-center text-2xl border border-[#DDD7C8]">
+              ✂️
             </div>
-            <h3 className="text-xl font-serif font-bold text-[#162217]">Hospital & Cirugía 24hs</h3>
-            <p className="text-xs text-[#556956] leading-relaxed">
-              Quirófano de urgencia con anestesia inhalatoria, radiología digital directa, ecografía Doppler y laboratorio bioquímico in situ con resultados en 20 minutos.
+            <h3 className="text-lg font-serif font-bold text-[#162417]">Quirófano & Cirugía Compleja</h3>
+            <p className="text-xs text-[#4E674A] leading-relaxed">
+              Cirugía general, traumatología y ortopedia, tejidos blandos y urgencias. Anestesia inhalatoria con monitoreo multiparamétrico y recuperación supervisada.
             </p>
-            <div className="pt-2 border-t border-[#F3EFEA] text-xs text-[#5F7359] font-bold flex items-center gap-1.5">
-              <CheckCircle2 className="w-3.5 h-3.5" />
+            <div className="pt-2 border-t border-[#F3EFEA] text-xs text-[#3D523A] font-bold flex items-center gap-1.5">
+              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
               <span>Monitoreo multiparamétrico continuo</span>
+            </div>
+          </div>
+
+          {/* Card 4 */}
+          <div className="bg-white rounded-3xl p-7 border border-[#E7E2D6] shadow-sm hover:border-[#4E674A] hover:shadow-md transition-all space-y-3.5">
+            <div className="w-12 h-12 rounded-2xl bg-[#EFECE3] text-[#4E674A] flex items-center justify-center text-2xl border border-[#DDD7C8]">
+              🛏️
+            </div>
+            <h3 className="text-lg font-serif font-bold text-[#162417]">Internación & Guardia UCI 24hs</h3>
+            <p className="text-xs text-[#4E674A] leading-relaxed">
+              Atención médica continua y monitoreo intensivo las 24 horas. Terapia de fluidos endovenosa, oxigenoterapia, analgesia multimodal y cuidados postquirúrgicos.
+            </p>
+            <div className="pt-2 border-t border-[#F3EFEA] text-xs text-[#3D523A] font-bold flex items-center gap-1.5">
+              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+              <span>Presencia médica ininterrumpida</span>
+            </div>
+          </div>
+
+          {/* Card 5 */}
+          <div className="bg-white rounded-3xl p-7 border border-[#E7E2D6] shadow-sm hover:border-[#4E674A] hover:shadow-md transition-all space-y-3.5">
+            <div className="w-12 h-12 rounded-2xl bg-[#EFECE3] text-[#4E674A] flex items-center justify-center text-2xl border border-[#DDD7C8]">
+              🔬
+            </div>
+            <h3 className="text-lg font-serif font-bold text-[#162417]">Imágenes & Laboratorio Propio</h3>
+            <p className="text-xs text-[#4E674A] leading-relaxed">
+              Radiología digital directa de alta definición, ecografía Doppler color y análisis bioquímicos de urgencia con resultados en minutos para diagnóstico certero.
+            </p>
+            <div className="pt-2 border-t border-[#F3EFEA] text-xs text-[#3D523A] font-bold flex items-center gap-1.5">
+              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+              <span>Informes digitales inmediatos</span>
+            </div>
+          </div>
+
+          {/* Card 6 */}
+          <div className="bg-white rounded-3xl p-7 border border-[#E7E2D6] shadow-sm hover:border-[#4E674A] hover:shadow-md transition-all space-y-3.5">
+            <div className="w-12 h-12 rounded-2xl bg-[#EFECE3] text-[#4E674A] flex items-center justify-center text-2xl border border-[#DDD7C8]">
+              💊
+            </div>
+            <h3 className="text-lg font-serif font-bold text-[#162417]">Farmacia Veterinaria Oficial</h3>
+            <p className="text-xs text-[#4E674A] leading-relaxed">
+              Dispensación de medicamentos veterinarios, biológicos bajo cadena de frío, psicotrópicos controlados, antiparasitarios y alimentos terapéuticos formulados.
+            </p>
+            <div className="pt-2 border-t border-[#F3EFEA] text-xs text-[#3D523A] font-bold flex items-center gap-1.5">
+              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+              <span>Trazabilidad y seguridad farmacológica</span>
             </div>
           </div>
         </div>
       </section>
 
-      {/* 👨‍⚕️ DIRECCIÓN MÉDICA: DR. DIEGO IRUSTA */}
-      <section id="equipo" className="bg-[#EFECE3] py-14 px-4 sm:px-8 border-y border-[#DDD7C8]">
+      {/* DIRECCIÓN MÉDICA: DR. DIEGO IRUSTA */}
+      <section id="direccion" className="bg-[#EFECE3] py-16 px-4 sm:px-8 border-y border-[#DDD7C8]">
         <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
           <div className="lg:col-span-4">
             <div className="rounded-3xl overflow-hidden shadow-xl border-4 border-white">
               <img
                 src="https://images.unsplash.com/photo-1628009368231-7bb7cfcb0def?auto=format&fit=crop&w=600&q=80"
-                alt="Dr. Diego Iván Irusta - Dirección Médica"
-                className="w-full h-72 object-cover"
+                alt="Dr. Diego Iván Irusta - Dirección Médica Veterinaria Ranquel"
+                className="w-full h-80 object-cover"
               />
               <div className="p-4 bg-white">
-                <h4 className="text-base font-serif font-bold text-[#162217]">Dr. Diego Iván Irusta</h4>
-                <p className="text-xs text-[#8C6B43] font-bold">Director Médico • M.P. 502</p>
+                <h4 className="text-base font-serif font-bold text-[#162417]">Dr. Diego Iván Irusta</h4>
+                <p className="text-xs text-[#8C6B43] font-bold">Director Médico • Matrícula Profesional: M.P. 502</p>
               </div>
             </div>
           </div>
 
           <div className="lg:col-span-8 space-y-4">
-            <span className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#8C6B43]">Compromiso & Tradición Médica</span>
-            <h2 className="text-2xl sm:text-3xl font-serif font-black text-[#162217]">
-              "Unimos la pasión del campo con la más alta rigurosidad hospitalaria"
+            <span className="text-[11px] font-bold uppercase tracking-[0.22em] text-[#8C6B43]">Compromiso & Tradición Médica</span>
+            <h2 className="text-2xl sm:text-3xl font-serif font-black text-[#162417] leading-snug">
+              "En Veterinaria Ranquel unimos la pasión y la experiencia del campo con la más alta rigurosidad hospitalaria"
             </h2>
-            <p className="text-sm text-[#4A5D4B] leading-relaxed">
-              En Veterinaria Irusta acompañamos a cada criador, propietario y familia con diagnósticos precisos, tecnología de avanzada y una atención compasiva e ininterrumpida las 24 horas del día.
+            <p className="text-sm text-[#3D523A] leading-relaxed">
+              Acompañamos a cada criador, propietario y familia con diagnósticos precisos, tecnología de avanzada y una atención médica compasiva e ininterrumpida las 24 horas del día.
             </p>
             <div className="pt-2 flex flex-wrap items-center gap-3">
               <button
-                onClick={() => {
-                  triggerHaptic('medium');
-                  handleOpenLogin();
-                }}
-                className="px-5 py-3 bg-[#5F7359] hover:bg-[#4D5E48] text-white text-xs font-bold rounded-xl transition-all shadow-xs flex items-center gap-2 cursor-pointer border border-[#4D5E48]"
+                onClick={handleOpenLogin}
+                className="px-5 py-3 bg-[#4E674A] hover:bg-[#3D523A] text-white text-xs font-bold rounded-xl transition-all shadow-xs flex items-center gap-2 cursor-pointer border border-[#3D523A] active:scale-95"
               >
                 <span>Acceder a Historias Clínicas en VET SYSTEM</span>
                 <ArrowRight className="w-3.5 h-3.5" />
@@ -355,14 +428,48 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onOpenLogi
         </div>
       </section>
 
-      {/* 📍 SEDES & CONTACTO */}
+      {/* PREGUNTAS FRECUENTES (FAQ) */}
+      <section id="faq" className="py-16 px-4 sm:px-8 max-w-4xl mx-auto space-y-8">
+        <div className="text-center space-y-2">
+          <span className="text-[11px] font-bold uppercase tracking-[0.22em] text-[#8C6B43]">Respuestas a tus Consultas</span>
+          <h2 className="text-3xl font-serif font-black text-[#162417]">Preguntas Frecuentes</h2>
+        </div>
+
+        <div className="space-y-3">
+          {faqs.map((faq, idx) => {
+            const isOpen = openFaq === idx;
+            return (
+              <div
+                key={idx}
+                className="bg-white rounded-2xl border border-[#E7E2D6] overflow-hidden shadow-2xs transition-all"
+              >
+                <button
+                  type="button"
+                  onClick={() => toggleFaq(idx)}
+                  className="w-full p-4 text-left flex items-center justify-between gap-3 font-bold text-xs sm:text-sm text-[#162417] cursor-pointer hover:bg-slate-50 transition-colors"
+                >
+                  <span>{faq.q}</span>
+                  <ChevronDown className={'w-4 h-4 text-[#4E674A] transition-transform duration-200 ' + (isOpen ? 'rotate-180' : '')} />
+                </button>
+                {isOpen && (
+                  <div className="p-4 pt-0 text-xs text-[#3D523A] leading-relaxed border-t border-[#F3EFEA] animate-in fade-in-50">
+                    {faq.a}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </section>
+
+      {/* SEDES & CONTACTO */}
       <section id="sedes" className="py-14 px-4 sm:px-8 max-w-7xl mx-auto space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="bg-white rounded-3xl p-6 border border-[#E8E3D9] shadow-xs space-y-3">
-            <h3 className="text-base font-serif font-bold text-[#162217]">Sede Matriz Río Cuarto (Córdoba)</h3>
-            <p className="text-xs text-[#556956]">Atención a campo, boxes de internación y clínica general.</p>
-            <div className="space-y-1.5 text-xs text-[#4A5D4B] pt-2 border-t border-[#F3EFEA]">
-              <div className="flex items-center gap-2"><MapPin className="w-3.5 h-3.5 text-[#5F7359]" /> <span>Río Cuarto, Córdoba (CP 5800)</span></div>
+          <div className="bg-white rounded-3xl p-6 border border-[#E7E2D6] shadow-xs space-y-3">
+            <h3 className="text-base font-serif font-bold text-[#162417]">Sede Matriz Río Cuarto (Córdoba)</h3>
+            <p className="text-xs text-[#4E674A]">Atención médica a campo, boxes de internación y clínica general.</p>
+            <div className="space-y-1.5 text-xs text-[#3D523A] pt-2 border-t border-[#F3EFEA]">
+              <div className="flex items-center gap-2"><MapPin className="w-3.5 h-3.5 text-[#4E674A]" /> <span>Río Cuarto, Córdoba (CP 5800)</span></div>
               <div className="flex items-center gap-2">
                 <MessageCircle className="w-3.5 h-3.5 text-emerald-600" />
                 <a href={getWhatsAppLink(WA_TURNO_MSG)} target="_blank" rel="noopener noreferrer" className="text-emerald-800 font-bold hover:underline">
@@ -372,12 +479,12 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onOpenLogi
             </div>
           </div>
 
-          <div className="bg-white rounded-3xl p-6 border border-[#E8E3D9] shadow-xs space-y-3">
-            <h3 className="text-base font-serif font-bold text-[#162217]">Hospital Central 24hs (Buenos Aires)</h3>
-            <p className="text-xs text-[#556956]">Centro de alta complejidad, quirófano de urgencias y UCI continua.</p>
-            <div className="space-y-1.5 text-xs text-[#4A5D4B] pt-2 border-t border-[#F3EFEA]">
-              <div className="flex items-center gap-2"><MapPin className="w-3.5 h-3.5 text-[#5F7359]" /> <span>Av. Corrientes 4550, CABA / Av. Maipú 2140, Olivos</span></div>
-              <div className="flex items-center gap-2"><Clock className="w-3.5 h-3.5 text-[#5F7359]" /> <span>Guardia Médica 24 Horas Activa</span></div>
+          <div className="bg-white rounded-3xl p-6 border border-[#E7E2D6] shadow-xs space-y-3">
+            <h3 className="text-base font-serif font-bold text-[#162417]">Hospital Central 24hs (Buenos Aires)</h3>
+            <p className="text-xs text-[#4E674A]">Centro de alta complejidad, quirófano de urgencias y UCI continua.</p>
+            <div className="space-y-1.5 text-xs text-[#3D523A] pt-2 border-t border-[#F3EFEA]">
+              <div className="flex items-center gap-2"><MapPin className="w-3.5 h-3.5 text-[#4E674A]" /> <span>Av. Corrientes 4550, CABA / Av. Maipú 2140, Olivos</span></div>
+              <div className="flex items-center gap-2"><Clock className="w-3.5 h-3.5 text-[#4E674A]" /> <span>Guardia Médica 24 Horas Activa</span></div>
               <div className="flex items-center gap-2">
                 <Phone className="w-3.5 h-3.5 text-emerald-600" />
                 <a href={getWhatsAppLink(WA_GUARDIA_MSG)} target="_blank" rel="noopener noreferrer" className="text-emerald-800 font-bold hover:underline">
@@ -389,16 +496,19 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onOpenLogi
         </div>
       </section>
 
-      {/* 📜 FOOTER VINTAGE */}
-      <footer className="bg-[#1C2B1D] text-[#F9F8F5] py-10 px-4 sm:px-8 border-t border-[#121D13]">
+      {/* FOOTER INSTITUCIONAL */}
+      <footer className="bg-[#162417] text-[#F9F8F5] py-10 px-4 sm:px-8 border-t border-[#0F1A10]">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-6">
           <div className="space-y-1 text-center sm:text-left">
             <div className="flex items-center justify-center sm:justify-start gap-2">
               <span className="text-xl">🐴</span>
-              <span className="text-base font-serif font-bold text-white">Veterinaria Irusta</span>
+              <span className="text-base font-serif font-bold text-white">Veterinaria Ranquel</span>
             </div>
             <p className="text-xs text-slate-300">
               Clínica Veterinaria para Grandes y Pequeños Animales • Río Cuarto & Buenos Aires
+            </p>
+            <p className="text-[11px] text-[#A7BFA3] font-mono">
+              Dirección Médica: Dr. Diego Iván Irusta (M.P. 502)
             </p>
             <div className="pt-1 flex items-center justify-center sm:justify-start gap-2 text-xs text-emerald-400 font-bold">
               <MessageCircle className="w-3.5 h-3.5" />
@@ -409,10 +519,7 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onOpenLogi
           </div>
 
           <button
-            onClick={() => {
-              triggerHaptic('medium');
-              handleOpenLogin();
-            }}
+            onClick={handleOpenLogin}
             className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white text-xs font-bold rounded-xl border border-white/20 transition-all flex items-center gap-1.5 cursor-pointer"
           >
             <Lock className="w-3.5 h-3.5" />
@@ -420,13 +527,12 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onOpenLogi
           </button>
         </div>
         <div className="max-w-7xl mx-auto mt-6 pt-4 border-t border-white/10 text-center text-[11px] text-slate-400">
-          © 2026 Veterinaria Irusta • VET SYSTEM — Todos los derechos reservados.
+          © 2026 Veterinaria Ranquel • VET SYSTEM — Todos los derechos reservados.
         </div>
       </footer>
 
-      {/* 💬 BOTÓN FLOTANTE WHATSAPP 24HS (ESQUINA INFERIOR DERECHA) */}
+      {/* BOTÓN FLOTANTE WHATSAPP 24HS */}
       <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-2">
-        {/* Popover / Menú Rápido */}
         {showWaModal && (
           <div className="bg-white rounded-3xl p-5 border border-slate-200 shadow-2xl w-80 sm:w-96 space-y-3.5 animate-scale-up border-t-4 border-t-emerald-600">
             <div className="flex items-start justify-between border-b border-slate-100 pb-3">
@@ -435,7 +541,7 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onOpenLogi
                   💬
                 </div>
                 <div>
-                  <h4 className="text-sm font-black text-slate-900">Veterinaria Irusta</h4>
+                  <h4 className="text-sm font-black text-slate-900">Veterinaria Ranquel</h4>
                   <p className="text-[11px] text-emerald-700 font-bold flex items-center gap-1">
                     <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
                     <span>WhatsApp Oficial en Línea</span>
@@ -534,7 +640,6 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onOpenLogi
           </div>
         )}
 
-        {/* Botón Principal Flotante */}
         <button
           type="button"
           onClick={() => {

@@ -417,7 +417,7 @@ export const PatientMedicalHistoryDownloadModal: React.FC<PatientMedicalHistoryD
 
   const handleCopyText = () => {
     triggerHaptic('light');
-    const text = `CLÍNICA VETERINARIA IRUSTA — HISTORIA CLÍNICA INTEGRAL
+    const text = `CLÍNICA VETERINARIA RANQUEL — HISTORIA CLÍNICA INTEGRAL
 Dirección Médica: Dr. Diego Iván Irusta (M.P. 502)
 Fecha de Emisión: ${new Date().toLocaleDateString('es-AR')} ${new Date().toLocaleTimeString('es-AR')}
 
@@ -584,7 +584,7 @@ ${financialItems.map((it) => `• ${it.description} x${it.quantity} = ${formatCu
             <div>
               <div className="flex items-center gap-2">
                 <span className="text-xl font-serif font-black tracking-tight text-teal-900">
-                  CLÍNICA VETERINARIA IRUSTA
+                  CLÍNICA VETERINARIA RANQUEL
                 </span>
               </div>
               <p className="text-xs text-teal-700 font-bold">
@@ -915,7 +915,7 @@ ${financialItems.map((it) => `• ${it.description} x${it.quantity} = ${formatCu
           {/* Institutional Signature Footer */}
           <div className="pt-8 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-6 text-[11px] text-slate-600">
             <div className="space-y-0.5">
-              <p className="font-bold text-slate-900">Veterinaria Irusta • Gestión Médica Hospitalaria</p>
+              <p className="font-bold text-slate-900">Veterinaria Ranquel • Gestión Médica Hospitalaria</p>
               <p className="text-[10px] text-slate-500">Documento clínico generado y auditado mediante firma digital y Supabase Cloud.</p>
             </div>
             <div className="text-center sm:text-right border-t sm:border-t-0 pt-3 sm:pt-0">

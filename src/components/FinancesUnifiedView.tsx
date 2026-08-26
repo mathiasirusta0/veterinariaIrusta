@@ -848,7 +848,7 @@ export const FinancesUnifiedView: React.FC = () => {
                     time: '12:00',
                     patientName: patName,
                     species: 'Canino/Felino',
-                    breed: 'Veterinaria Irusta',
+                    breed: 'Veterinaria Ranquel',
                     hc: 'HC-2026',
                     ownerName: mov.clientName || 'Tutor Responsable',
                     ownerPhone: '+54 9 2942 47-7136',
@@ -1093,7 +1093,7 @@ export const FinancesUnifiedView: React.FC = () => {
             <div className="bg-slate-50 p-5 rounded-3xl border border-slate-200 space-y-3.5 text-xs text-slate-800">
               <div className="text-center pb-3 border-b-2 border-slate-200">
                 <span className="font-extrabold text-teal-800 uppercase tracking-widest text-[11px] block">
-                  VETERINARIA IRUSTA — CENTRO HOSPITALARIO VETERINARIO
+                  VETERINARIA RANQUEL — CENTRO HOSPITALARIO VETERINARIO
                 </span>
                 <h4 className="font-black text-slate-900 text-sm mt-0.5 uppercase tracking-wide">
                   {currentDocument.type === 'PRESUPUESTO' ? 'PRESUPUESTO CLÍNICO' : 'COMPROBANTE DE PAGO & RECIBO'}

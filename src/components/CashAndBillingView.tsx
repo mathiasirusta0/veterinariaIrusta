@@ -71,7 +71,7 @@ export interface FiscalConfig {
 
 const DEFAULT_FISCAL_CONFIG: FiscalConfig = {
   cuit: '30-71829384-8',
-  businessName: 'Veterinaria Irusta S.R.L.',
+  businessName: 'Veterinaria Ranquel S.R.L.',
   fantasyName: 'Hospital Veterinario Irusta',
   taxCondition: 'IVA Responsable Inscripto',
   fiscalAddress: 'Av. San Martín 1420, Río Cuarto, Córdoba',

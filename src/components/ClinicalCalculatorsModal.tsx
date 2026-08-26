@@ -259,7 +259,7 @@ export const ClinicalCalculatorsModal: React.FC<ClinicalCalculatorsModalProps> =
           : '';
 
       return [
-        '📋 PROTOCOLO DE INDICACIÓN MÉDICA — CLÍNICA VETERINARIA IRUSTA',
+        '📋 PROTOCOLO DE INDICACIÓN MÉDICA — CLÍNICA VETERINARIA RANQUEL',
         'Paciente: ' + patName + ' (' + species + ' • ' + weightKg + ' kg) | Emisión: ' + dateStr + ' ' + timeStr + ' hs',
         '--------------------------------------------------',
         '• Medicación: ' + (drugName || 'Fármaco Prescrito') + concText,
@@ -284,7 +284,7 @@ export const ClinicalCalculatorsModal: React.FC<ClinicalCalculatorsModalProps> =
     }
 
     return [
-      '💧 PROTOCOLO DE INFUSIÓN CONTINUA (CRI) — CLÍNICA VETERINARIA IRUSTA',
+      '💧 PROTOCOLO DE INFUSIÓN CONTINUA (CRI) — CLÍNICA VETERINARIA RANQUEL',
       'Paciente: ' + patName + ' (' + species + ' • ' + weightKg + ' kg) | Emisión: ' + dateStr + ' ' + timeStr + ' hs',
       '--------------------------------------------------',
       '• Fármaco / Principio Activo: ' + (drugName || 'Fármaco CRI') + ' (Conc: ' + criConcMgMl + ' mg/ml)',
@@ -1152,7 +1152,7 @@ export const ClinicalCalculatorsModal: React.FC<ClinicalCalculatorsModalProps> =
 
         {/* 🌟 6. FOOTER */}
         <div className="p-3.5 bg-white border-t border-[#E8E3D9] flex items-center justify-between text-xs text-slate-500">
-          <span>Clínica Veterinaria Irusta • Módulo de Cálculo Farmacológico & Protocolos Institucionales</span>
+          <span>Clínica Veterinaria Ranquel • Módulo de Cálculo Farmacológico & Protocolos Institucionales</span>
           <button
             type="button"
             onClick={onClose}
