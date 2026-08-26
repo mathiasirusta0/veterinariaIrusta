@@ -146,7 +146,7 @@ export const QuickModals: React.FC = () => {
   const [aptReason, setAptReason] = useState('Consulta clínica general');
   const [aptType, setAptType] = useState<any>('CONSULTA');
   const [aptVetId, setAptVetId] = useState(users.find((u) => u.name?.includes('Irusta'))?.id || users[0]?.id || 'usr-1');
-  const [aptSendWhatsApp, setAptSendWhatsApp] = useState(true);
+  const [aptSendWhatsApp, setAptSendWhatsApp] = useState(false);
 
   // Triage Form State
   const [triPatId, setTriPatId] = useState(patients[0]?.id || '');
@@ -393,8 +393,9 @@ export const QuickModals: React.FC = () => {
     setQuickModal(null);
   };
 
-  const handleCreateAppointment = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleCreateAppointment = (e?: React.FormEvent, forceWhatsApp?: boolean) => {
+    if (e && e.preventDefault) e.preventDefault();
+    const shouldSendWhatsApp = forceWhatsApp !== undefined ? forceWhatsApp : aptSendWhatsApp;
     let targetPatientId = aptPatId;
     let targetOwnerId = '';
     let petDisplayName = '';
@@ -486,12 +487,13 @@ export const QuickModals: React.FC = () => {
     setAptNewOwnerPhone('');
     setAptNewOwnerDni('');
     setAptMode('EXISTING');
+    setAptSendWhatsApp(false);
 
     setQuickModal(null);
     setActiveView('AGENDA');
-    showToast('success', 'Turno Agendado', `Turno reservado para ${petDisplayName} (${ownerDisplayName}) el ${aptDate} a las ${aptTime} hs con ${vetName}.`);
+    showToast('success', 'Turno Agendado con Éxito', `Turno reservado para ${petDisplayName} (${ownerDisplayName}) el ${aptDate} a las ${aptTime} hs con ${vetName}.`);
 
-    if (aptSendWhatsApp && ownerPhone) {
+    if (shouldSendWhatsApp && ownerPhone) {
       openWhatsAppHub({
         patientId: targetPatientId,
         ownerId: targetOwnerId,
@@ -2187,21 +2189,35 @@ export const QuickModals: React.FC = () => {
               </label>
             </div>
 
-            {/* Action Buttons */}
-            <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
+            {/* Action Buttons: Guardar Turno (Solo Registrar) y Guardar y Avisar por WhatsApp */}
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 pt-3 border-t border-slate-100">
               <button
                 type="button"
                 onClick={() => setQuickModal(null)}
-                className="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold transition-colors"
+                className="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold transition-colors text-xs text-center"
               >
                 Cancelar
               </button>
-              <button
-                type="submit"
-                className="px-6 py-2.5 rounded-xl bg-teal-700 hover:bg-teal-600 text-white font-black text-xs shadow-md shadow-teal-700/20 active:scale-95 transition-all flex items-center gap-1.5"
-              >
-                <span>🗓️ Agendar Turno</span>
-              </button>
+
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                <button
+                  type="button"
+                  onClick={(e) => handleCreateAppointment(e, true)}
+                  className="px-4 py-2.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 font-bold text-xs shadow-2xs active:scale-95 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                  title="Guarda el turno y abre WhatsApp para notificar al tutor"
+                >
+                  <span>💬 Guardar y Avisar por WhatsApp</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={(e) => handleCreateAppointment(e, false)}
+                  className="px-5 py-2.5 rounded-xl bg-teal-700 hover:bg-teal-600 text-white font-black text-xs shadow-md shadow-teal-700/20 active:scale-95 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                  title="Guarda y reserva el turno en el sistema sin enviar mensaje"
+                >
+                  <span>🗓️ Guardar Turno (Solo Registrar)</span>
+                </button>
+              </div>
             </div>
           </form>
         )}

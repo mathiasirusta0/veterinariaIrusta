@@ -409,16 +409,16 @@ export const AppointmentsView: React.FC = () => {
                     <option value="AUSENTE">Ausente</option>
                   </select>
 
-                  {/* WhatsApp Reminder */}
-                  {owner?.phone && (
+                  {/* WhatsApp Reminder independiente */}
+                  {(owner?.phone || owner?.whatsapp) && (
                     <button
                       type="button"
                       onClick={() => handleSendWhatsAppReminder(apt)}
-                      className="min-h-[40px] px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-bold text-xs rounded-xl border border-emerald-200 flex items-center gap-1.5 transition-all active:scale-95 touch-manipulation"
-                      title="Enviar recordatorio de turno por WhatsApp"
+                      className="min-h-[40px] px-3.5 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-bold text-xs rounded-xl border border-emerald-300 flex items-center gap-1.5 transition-all active:scale-95 touch-manipulation shadow-2xs cursor-pointer"
+                      title="Enviar recordatorio o aviso de turno por WhatsApp al tutor"
                     >
                       <MessageCircle className="w-3.5 h-3.5 text-emerald-600" />
-                      <span className="hidden sm:inline">WhatsApp</span>
+                      <span>Avisar por WhatsApp</span>
                     </button>
                   )}
 
