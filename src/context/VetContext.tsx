@@ -4,13 +4,13 @@ function sanitizeCleanArray<T>(key: string, fallback: T[]): T[] {
     const raw = localStorage.getItem(key);
     if (!raw) return fallback;
     const parsed = JSON.parse(raw);
-    if (!Array.isArray(parsed)) return fallback;
+    if (!Array.isArray(parsed) || parsed.length === 0) return fallback;
     // Filter out old demo entities with dummy IDs
     const clean = parsed.filter((item: any) => {
       const id = item?.id || '';
       return !['pat-1', 'pat-2', 'pat-3', 'pat-4', 'pat-thor', 'pat-luna', 'pat-simba', 'pat-rocky', 'own-1', 'own-2', 'own-3', 'own-4'].includes(id);
     });
-    return clean;
+    return clean.length > 0 ? clean : fallback;
   } catch {
     return fallback;
   }

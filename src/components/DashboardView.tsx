@@ -576,7 +576,7 @@ export const DashboardView: React.FC = () => {
                 {waitingTriage.length} Paciente{waitingTriage.length > 1 ? 's' : ''} esperando atención médica en Triage
               </h4>
               <p className="text-[11px] text-amber-800">
-                Próximo: <span className="font-bold">{patients.find(p => p.id === waitingTriage[0]?.patientId)?.name || 'Paciente en Triage'}</span> ({patients.find(p => p.id === waitingTriage[0]?.patientId)?.species || 'Canino'} / {waitingTriage[0]?.chiefComplaint || 'Urgencia'}) • Prioridad: <span className="font-bold text-amber-900">{waitingTriage[0]?.priority}</span>
+                Próximo: <span className="font-bold">{waitingTriage[0] ? (patients.find(p => p.id === waitingTriage[0]?.patientId)?.name || 'Paciente en Triage') : 'Sin urgencias'}</span> ({waitingTriage[0] ? (patients.find(p => p.id === waitingTriage[0]?.patientId)?.species || 'Canino') : '-'} / {waitingTriage[0]?.chiefComplaint || 'Control general'}) • Prioridad: <span className="font-bold text-amber-900">{waitingTriage[0]?.priority || 'NORMAL'}</span>
               </p>
             </div>
           </div>

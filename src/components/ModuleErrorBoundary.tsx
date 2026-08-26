@@ -29,6 +29,14 @@ export class ModuleErrorBoundary extends React.Component<Props, State> {
 
   componentDidCatch(error: Error, errorInfo: any) {
     console.error(`[ModuleErrorBoundary] Error en módulo "${this.props.moduleName || 'Desconocido'}":`, error, errorInfo);
+    // Si es un error transitorio de carga de chunk o react hook, permitir reintento automático no invasivo
+    if (error?.message?.includes('Loading chunk') || error?.message?.includes('dynamically imported')) {
+      setTimeout(() => {
+        if (this.state.hasError) {
+          (this as any).setState({ hasError: false, error: null });
+        }
+      }, 1000);
+    }
   }
 
   handleRetry = () => {
