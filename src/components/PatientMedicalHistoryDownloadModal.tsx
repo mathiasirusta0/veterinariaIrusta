@@ -107,9 +107,10 @@ export const PatientMedicalHistoryDownloadModal: React.FC<PatientMedicalHistoryD
     .filter((p) => p.patientId === patient.id)
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
-  // 1. Collect all administered medication records
-  const administeredMedications: {
+  // 1. Collect all administered medication records (strictly sorted chronologically)
+  interface AdministeredMedRecord {
     id: string;
+    isoTime: string;
     date: string;
     dayOfWeek: string;
     time: string;
@@ -118,21 +119,27 @@ export const PatientMedicalHistoryDownloadModal: React.FC<PatientMedicalHistoryD
     route: string;
     administeredBy: string;
     notes?: string;
-  }[] = [];
+  }
+
+  const rawAdministeredMedications: AdministeredMedRecord[] = [];
 
   patientHosps.forEach((hosp) => {
     (hosp.medications || []).forEach((med) => {
       (med.doseSlots || []).forEach((slot, sIdx) => {
         if (slot.status === 'REALIZADA' || slot.administeredAt) {
-          const dObj = slot.administeredAt ? new Date(slot.administeredAt) : new Date();
-          administeredMedications.push({
+          const dObj = slot.administeredAt ? new Date(slot.administeredAt) : new Date(hosp.admittedAt || Date.now());
+          const timeFormatted = slot.time
+            ? (slot.time.includes(':') ? slot.time : `${slot.time}:00`)
+            : dObj.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit', hour12: false });
+          rawAdministeredMedications.push({
             id: `${med.id}-slot-${slot.time}-${sIdx}`,
+            isoTime: dObj.toISOString(),
             date: dObj.toLocaleDateString('es-AR'),
             dayOfWeek: getDayName(dObj),
-            time: slot.time || dObj.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' }),
+            time: timeFormatted,
             drugName: med.drugName,
-            dose: `${med.dose || ''} (${med.route})`.trim(),
-            route: med.route,
+            dose: med.dose || '1 dosis',
+            route: med.route || 'IV',
             administeredBy: slot.administeredBy || 'Dr. Diego Iván Irusta',
             notes: slot.notes || `Toma de las ${slot.time} hs`,
           });
@@ -140,21 +147,22 @@ export const PatientMedicalHistoryDownloadModal: React.FC<PatientMedicalHistoryD
       });
 
       (med.administeredDoses || []).forEach((dose, idx) => {
-        const dObj = new Date(dose.administeredAt);
+        const dObj = new Date(dose.administeredAt || Date.now());
         const dateStr = dObj.toLocaleDateString('es-AR');
-        const timeStr = dObj.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
-        const exists = administeredMedications.some(
+        const timeStr = dObj.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit', hour12: false });
+        const exists = rawAdministeredMedications.some(
           (m) => m.drugName === med.drugName && m.date === dateStr && m.time.startsWith(timeStr.slice(0, 2))
         );
         if (!exists) {
-          administeredMedications.push({
+          rawAdministeredMedications.push({
             id: `${med.id}-dose-${idx}`,
+            isoTime: dObj.toISOString(),
             date: dateStr,
             dayOfWeek: getDayName(dObj),
             time: timeStr,
             drugName: med.drugName,
-            dose: `${med.dose || ''}`.trim(),
-            route: med.route,
+            dose: med.dose || '1 dosis',
+            route: med.route || 'IV',
             administeredBy: dose.administeredBy || 'Dr. Diego Iván Irusta',
             notes: dose.notes,
           });
@@ -162,6 +170,11 @@ export const PatientMedicalHistoryDownloadModal: React.FC<PatientMedicalHistoryD
       });
     });
   });
+
+  // Sort chronologically
+  const administeredMedications = rawAdministeredMedications.sort(
+    (a, b) => new Date(a.isoTime).getTime() - new Date(b.isoTime).getTime()
+  );
 
   // 2. Financial Breakdown: Supplies, Meds, Consultations, Hospital stay, and Invoices
   interface FinancialItem {
@@ -273,7 +286,7 @@ export const PatientMedicalHistoryDownloadModal: React.FC<PatientMedicalHistoryD
 
   const totalSpent = financialItems.reduce((sum, item) => sum + (item.subtotal || 0), 0);
   const totalPaid = patientInvoices.reduce((sum, inv) => sum + (inv.totalAmount || 0), 0);
-  const balanceDue = owner?.balance !== undefined ? Math.abs(owner.balance < 0 ? owner.balance : 0) : Math.max(0, totalSpent - totalPaid);
+  const balanceDue = Math.max(0, totalSpent - totalPaid);
 
   // Prepare Printable Data for PDF / A4 Print
   const printableData = {
@@ -303,7 +316,7 @@ export const PatientMedicalHistoryDownloadModal: React.FC<PatientMedicalHistoryD
       license: 'M.P. 502',
     },
     emissionDate: new Date().toLocaleDateString('es-AR'),
-    emissionTime: new Date().toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' }),
+    emissionTime: new Date().toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit', hour12: false }),
     hospitalizations: patientHosps.map((h) => {
       const start = new Date(h.admittedAt).getTime();
       const end = h.dischargedAt ? new Date(h.dischargedAt).getTime() : Date.now();
@@ -326,7 +339,7 @@ export const PatientMedicalHistoryDownloadModal: React.FC<PatientMedicalHistoryD
       return {
         date: dObj.toLocaleDateString('es-AR'),
         dayOfWeek: getDayName(dObj),
-        time: dObj.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' }) + ' hs',
+        time: dObj.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit', hour12: false }) + ' hs',
         temp: v.temperature,
         hr: v.heartRate,
         rr: v.respiratoryRate,
@@ -341,7 +354,7 @@ export const PatientMedicalHistoryDownloadModal: React.FC<PatientMedicalHistoryD
       return {
         date: dObj.toLocaleDateString('es-AR'),
         dayOfWeek: getDayName(dObj),
-        time: dObj.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' }),
+        time: dObj.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit', hour12: false }),
         author: e.authorName || 'Dr. Diego Iván Irusta',
         license: e.authorLicense || 'M.P. 502',
         type: e.type || 'Médica',

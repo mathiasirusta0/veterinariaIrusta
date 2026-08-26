@@ -1318,7 +1318,7 @@ export function generateMedicalHistoryPdfDocument(data: PrintableMedicalHistoryD
   autoTable(doc, {
     startY: 36,
     margin: { left: 14, right: 14 },
-    head: [['🐾 DATOS DEL PACIENTE', '👤 DATOS DEL TUTOR TITULAR']],
+    head: [['DATOS DEL PACIENTE', 'DATOS DEL TUTOR TITULAR']],
     body: [[patientDetails, ownerDetails]],
     theme: 'grid',
     headStyles: { fillColor: [15, 118, 110], textColor: [255, 255, 255], fontSize: 8, fontStyle: 'bold' },
@@ -1326,6 +1326,7 @@ export function generateMedicalHistoryPdfDocument(data: PrintableMedicalHistoryD
     columnStyles: { 0: { cellWidth: 91 }, 1: { cellWidth: 91 } },
   });
 
+  let sectionNum = 1;
   // 3. Hospitalization Section
   if (data.hospitalizations && data.hospitalizations.length > 0) {
     const hospBody = data.hospitalizations.map((h) => [
@@ -1338,7 +1339,7 @@ export function generateMedicalHistoryPdfDocument(data: PrintableMedicalHistoryD
     autoTable(doc, {
       startY: (doc as any).lastAutoTable.finalY + 4,
       margin: { left: 14, right: 14 },
-      head: [['1. REGISTRO DE INTERNACIÓN', 'INGRESO', 'EGRESO', 'ESTADO & DÍAS', 'DIAGNÓSTICO & EPICRISIS']],
+      head: [[`${sectionNum++}. REGISTRO DE INTERNACIÓN`, 'INGRESO', 'EGRESO', 'ESTADO & DÍAS', 'DIAGNÓSTICO & EPICRISIS']],
       body: hospBody,
       theme: 'striped',
       headStyles: { fillColor: [30, 58, 31], textColor: [255, 255, 255], fontSize: 7.5, fontStyle: 'bold' },
@@ -1361,7 +1362,7 @@ export function generateMedicalHistoryPdfDocument(data: PrintableMedicalHistoryD
     autoTable(doc, {
       startY: (doc as any).lastAutoTable.finalY + 4,
       margin: { left: 14, right: 14 },
-      head: [['2. SIGNOS VITALES', 'TEMP', 'FC', 'FR', 'P. ART.', 'SpO2 / GLUC.', 'DOLOR', 'PROFESIONAL']],
+      head: [[`${sectionNum++}. SIGNOS VITALES`, 'TEMP', 'FC', 'FR', 'P. ART.', 'SpO2 / GLUC.', 'DOLOR', 'PROFESIONAL']],
       body: vitalsBody,
       theme: 'striped',
       headStyles: { fillColor: [15, 118, 110], textColor: [255, 255, 255], fontSize: 7.5, fontStyle: 'bold' },
@@ -1379,7 +1380,7 @@ export function generateMedicalHistoryPdfDocument(data: PrintableMedicalHistoryD
     autoTable(doc, {
       startY: (doc as any).lastAutoTable.finalY + 4,
       margin: { left: 14, right: 14 },
-      head: [['3. EVOLUCIÓN CLÍNICA', 'CONTENIDO / NOTA MÉDICA', 'PROFESIONAL']],
+      head: [[`${sectionNum++}. EVOLUCIÓN CLÍNICA`, 'CONTENIDO / NOTA MÉDICA', 'PROFESIONAL']],
       body: evoBody,
       theme: 'grid',
       headStyles: { fillColor: [30, 58, 31], textColor: [255, 255, 255], fontSize: 7.5, fontStyle: 'bold' },
@@ -1401,7 +1402,7 @@ export function generateMedicalHistoryPdfDocument(data: PrintableMedicalHistoryD
     autoTable(doc, {
       startY: (doc as any).lastAutoTable.finalY + 4,
       margin: { left: 14, right: 14 },
-      head: [['4. MEDICACIÓN ADMINISTRADA', 'HORA', 'FÁRMACO / ACTIVO', 'DOSIS', 'VÍA', 'ADMINISTRADO POR']],
+      head: [[`${sectionNum++}. MEDICACIÓN ADMINISTRADA`, 'HORA', 'FÁRMACO / ACTIVO', 'DOSIS', 'VÍA', 'ADMINISTRADO POR']],
       body: medBody,
       theme: 'striped',
       headStyles: { fillColor: [15, 118, 110], textColor: [255, 255, 255], fontSize: 7.5, fontStyle: 'bold' },
@@ -1420,7 +1421,7 @@ export function generateMedicalHistoryPdfDocument(data: PrintableMedicalHistoryD
     autoTable(doc, {
       startY: (doc as any).lastAutoTable.finalY + 4,
       margin: { left: 14, right: 14 },
-      head: [['5. ESTUDIOS & CIRUGÍAS', 'TIPO', 'ESTUDIO / PROCEDIMIENTO', 'DETALLE & CONCLUSIONES']],
+      head: [[`${sectionNum++}. ESTUDIOS & CIRUGÍAS`, 'TIPO', 'ESTUDIO / PROCEDIMIENTO', 'DETALLE & CONCLUSIONES']],
       body: studyBody,
       theme: 'grid',
       headStyles: { fillColor: [30, 58, 31], textColor: [255, 255, 255], fontSize: 7.5, fontStyle: 'bold' },
@@ -1450,7 +1451,7 @@ export function generateMedicalHistoryPdfDocument(data: PrintableMedicalHistoryD
     autoTable(doc, {
       startY: (doc as any).lastAutoTable.finalY + 4,
       margin: { left: 14, right: 14 },
-      head: [['6. LIQUIDACIÓN DE GASTOS', 'DESCRIPCIÓN DEL INSUMO / SERVICIO', 'CANT.', 'P. UNITARIO', 'SUBTOTAL']],
+      head: [[`${sectionNum++}. LIQUIDACIÓN DE GASTOS`, 'DESCRIPCIÓN DEL INSUMO / SERVICIO', 'CANT.', 'P. UNITARIO', 'SUBTOTAL']],
       body: finBody,
       theme: 'striped',
       headStyles: { fillColor: [15, 118, 110], textColor: [255, 255, 255], fontSize: 7.5, fontStyle: 'bold' },
@@ -1506,7 +1507,7 @@ export function generateMedicalHistoryPdfDocument(data: PrintableMedicalHistoryD
     doc.setFontSize(6.5);
     doc.setTextColor(148, 163, 184);
     doc.text(
-      'Historia clínica oficial expedida bajo secreto médico veterinario · Clínica Veterinaria Irusta (Río Cuarto / Buenos Aires)',
+      'Historia clínica oficial expedida bajo secreto médico veterinario · Clínica Veterinaria Irusta (Río Cuarto, Córdoba)',
       14,
       290
     );

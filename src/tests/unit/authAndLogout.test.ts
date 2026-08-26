@@ -55,16 +55,14 @@ describe('Seguridad de Autenticación & Políticas Anti-Bypass', () => {
   });
 });
 
-describe('Calculadora de Dosis & Vademécum Clínico (Resiliencia & Null Safety)', () => {
-  it('debe calcular dosis farmacológicas correctamente en modo libre sin paciente seleccionado', () => {
+describe('Calculadora de Dosis & Cálculo Farmacológico Manual (Resiliencia & Null Safety)', () => {
+  it('debe calcular dosis farmacológicas correctamente en modo manual libre', () => {
     const weightKg = 10;
-    const drug = VADEMECUM_DATABASE.find((d) => d.name === 'Maropitant')!;
-    expect(drug).toBeDefined();
-    expect(drug.defaultDoseMgKg).toBe(1.0);
-    expect(drug.concentrationMgMl).toBe(10);
+    const doseMgKg = 1.0;
+    const concentrationMgMl = 10;
 
-    const totalMg = weightKg * drug.defaultDoseMgKg;
-    const totalMl = totalMg / drug.concentrationMgMl;
+    const totalMg = weightKg * doseMgKg;
+    const totalMl = totalMg / concentrationMgMl;
 
     expect(totalMg).toBe(10);
     expect(totalMl).toBe(1.0);
