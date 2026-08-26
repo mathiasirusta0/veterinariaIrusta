@@ -997,9 +997,9 @@ export const Patient360View: React.FC = () => {
                 No hay signos vitales registrados para este paciente. Use el formulario superior para cargar el primer control.
               </div>
             ) : (
-              <div className="overflow-x-auto">
+              <div className="overflow-x-auto max-h-[420px] overflow-y-auto custom-scrollbar rounded-xl border border-slate-100">
                 <table className="w-full text-xs text-left">
-                  <thead className="bg-slate-50 text-slate-500 font-bold border-b border-slate-200">
+                  <thead className="bg-slate-50 text-slate-600 font-bold border-b border-slate-200 sticky top-0 z-10 shadow-2xs">
                     <tr>
                       <th className="p-3">Fecha / Hora</th>
                       <th className="p-3">Temperatura</th>
@@ -1305,7 +1305,7 @@ export const Patient360View: React.FC = () => {
                   No hay planes de medicación activos para este paciente. Ingrese una indicación en el formulario superior para generar la sábana de tomas.
                 </div>
               ) : (
-                <div className="space-y-4">
+                <div className="max-h-[540px] overflow-y-auto pr-1.5 space-y-3.5 custom-scrollbar">
                   {activeMeds.map((med) => {
                     const displayedSlots = med.effectiveSlots.filter((s) => filterSlotByShift(s.time));
 
@@ -1453,9 +1453,9 @@ export const Patient360View: React.FC = () => {
                   Aún no se han registrado aplicaciones de fármacos para este paciente.
                 </div>
               ) : (
-                <div className="overflow-x-auto">
+                <div className="overflow-x-auto max-h-[340px] overflow-y-auto custom-scrollbar rounded-xl border border-slate-100">
                   <table className="w-full text-xs text-left">
-                    <thead className="bg-slate-50 text-slate-500 font-bold border-b border-slate-200">
+                    <thead className="bg-slate-50 text-slate-600 font-bold border-b border-slate-200 sticky top-0 z-10 shadow-2xs">
                       <tr>
                         <th className="p-3">Horario de Toma</th>
                         <th className="p-3">Fecha & Hora Real</th>
@@ -1637,7 +1637,7 @@ export const Patient360View: React.FC = () => {
                 Aún no hay evoluciones médicas registradas para este paciente. Complete el formulario superior para asentar la primera nota.
               </div>
             ) : (
-              <div className="space-y-3.5">
+              <div className="max-h-[580px] overflow-y-auto pr-1.5 space-y-3.5 custom-scrollbar">
                 {clinicalEvolutions?.filter(e => e.patientId === patient.id).map((evo) => {
                   const fullText = evo.assessment || evo.plan || (typeof (evo as any).content === 'string' ? (evo as any).content : 'Evolución registrada.');
                   const dateStr = evo.createdAt ? new Date(evo.createdAt).toLocaleDateString('es-AR') : new Date().toLocaleDateString('es-AR');
@@ -1807,7 +1807,7 @@ export const Patient360View: React.FC = () => {
                 No hay estudios registrados aún. Use el formulario superior para cargar el primer análisis.
               </div>
             ) : (
-              <div className="space-y-3">
+              <div className="max-h-[520px] overflow-y-auto pr-1.5 space-y-3 custom-scrollbar">
                 {patientLabs.map((lab) => (
                   <div key={lab.id} className="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-2 text-xs">
                     <div className="flex items-center justify-between">
