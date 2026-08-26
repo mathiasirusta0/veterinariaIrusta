@@ -20,7 +20,7 @@ import {
   HeartPulse,
 } from 'lucide-react';
 import { useVet } from '../context/VetContext';
-import { formatPhoneNumberE164 } from '../utils/formatters';
+import { formatPhoneNumberE164, formatDate } from '../utils/formatters';
 import { triggerHaptic } from '../utils/haptics';
 
 export interface WhatsAppData {
@@ -29,7 +29,7 @@ export interface WhatsAppData {
   patientName?: string;
   patientId?: string;
   ownerId?: string;
-  type?: 'TURNO' | 'VACUNA' | 'INTERNACION' | 'RECETA' | 'PRESUPUESTO' | 'COBRO_INSUMO' | 'ALTA_MEDICA' | 'AUTORIZACION_ESTUDIO';
+  type?: 'TURNO' | 'RECORDATORIO_TURNO' | 'VACUNA' | 'INTERNACION' | 'RECETA' | 'PRESUPUESTO' | 'COBRO_INSUMO' | 'ALTA_MEDICA' | 'AUTORIZACION_ESTUDIO';
   details?: {
     date?: string;
     time?: string;
@@ -62,8 +62,14 @@ export const WhatsAppHubModal: React.FC<WhatsAppHubModalProps> = ({
     hospitalizations,
     clinicalEvolutions,
     prescriptions,
-    encounterConsumptions,
     appointments,
+    vaccinations,
+    estimates,
+    invoices,
+    surgeries,
+    labOrders,
+    imagingStudies,
+    consultations,
     currentUser,
     showToast,
     logAudit,
@@ -76,7 +82,9 @@ export const WhatsAppHubModal: React.FC<WhatsAppHubModalProps> = ({
   // Custom phone number state
   const [customPhone, setCustomPhone] = useState<string>('');
   // Template type state
-  const [templateType, setTemplateType] = useState<NonNullable<WhatsAppData['type']>>('INTERNACION');
+  const [templateType, setTemplateType] = useState<
+    'INTERNACION' | 'RECETA' | 'TURNO' | 'COBRO_INSUMO' | 'ALTA_MEDICA' | 'AUTORIZACION_ESTUDIO' | 'VACUNA' | 'PRESUPUESTO'
+  >('TURNO');
   // Message body state
   const [messageBody, setMessageBody] = useState<string>('');
 
@@ -87,56 +95,46 @@ export const WhatsAppHubModal: React.FC<WhatsAppHubModalProps> = ({
 
   // Helper to generate dynamic message based on actual patient, owner and clinical data
   const generateTemplateMessage = (
-    type: NonNullable<WhatsAppData['type']>,
+    type: 'INTERNACION' | 'RECETA' | 'TURNO' | 'COBRO_INSUMO' | 'ALTA_MEDICA' | 'AUTORIZACION_ESTUDIO' | 'VACUNA' | 'PRESUPUESTO',
     owner = currentOwner,
     patient = currentPatient
   ): string => {
     const ownerName = owner ? `${owner.firstName} ${owner.lastName || ''}`.trim() : 'Tutor';
     const petName = patient ? patient.name : 'su mascota';
+    const petDesc = patient ? `(${patient.species} • ${patient.breed})` : '';
     const vetInCharge = currentUser?.name || 'Dr. Diego Iván Irusta';
 
-    // Fetch latest clinical data for this patient
-    const patientHosp = hospitalizations.find((h) => h.patientId === patient?.id && h.status === 'ACTIVA');
-    const patientEvos = clinicalEvolutions
-      .filter((e) => e.patientId === patient?.id)
-      .sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
-    const latestEvo = patientEvos[0];
-    const latestEvoText = latestEvo
-      ? latestEvo.assessment || latestEvo.plan || latestEvo.evolutionText || 'Paciente estable con monitoreo continuo.'
-      : 'Paciente hemodinámicamente estable, afebril y con buena tolerancia.';
-
-    // Active meds
-    const activeMeds = (patientHosp?.medications || [])
-      .filter((m) => m.status !== 'SUSPENDIDA')
-      .map((m) => `• ${m.drugName} (${m.dose} ${m.route}) c/${m.frequency}`)
-      .join('\n');
-
     switch (type) {
-      case 'INTERNACION':
-        return `Estimado/a ${ownerName} 👋:
-Le enviamos el *Reporte Médico & Novedades* de *${petName}* de *Veterinaria Irusta*.
+      // 1. TURNO AGENDADO / RECORDATORIO DE CITA
+      case 'TURNO': {
+        // Query patient upcoming appointments
+        const patientApts = appointments
+          .filter((a) => a.patientId === patient?.id && a.status !== 'CANCELADO')
+          .sort((a, b) => a.date.localeCompare(b.date));
+        const nextApt = patientApts[0];
 
-📋 *Estado Clínico & Evolución:*
-${latestEvoText}
+        let dateStr = initialData?.details?.date;
+        if (!dateStr && nextApt?.date) {
+          dateStr = formatDate(nextApt.date, 'Próximamente', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+        }
+        if (!dateStr) {
+          dateStr = 'Próximamente';
+        }
 
-💊 *Tratamiento & Medicaciones:*
-${activeMeds || '• Medicación y plan terapéutico reglado según indicación.'}
+        const timeStr = initialData?.details?.time || nextApt?.time || '10:00';
+        const vetStr = initialData?.details?.vetName || nextApt?.vetName || vetInCharge;
+        const reasonStr = initialData?.details?.supplyName || nextApt?.reason || 'Consulta médica general';
 
-🩺 *Monitoreo:* Cuidados intensivos y control de constantes bajo supervisión del *${vetInCharge}* (M.P. 502).
-⏰ *Horario de Visitas de Internación:* Hoy de 16:00 a 18:00 hs.
-📱 *WhatsApp de Guardia:* +54 9 2942 47-7136. ¡Cuidamos de ${petName} con el mayor compromiso! 🐾❤️`;
-
-      case 'TURNO':
         return `🐾 *CLÍNICA VETERINARIA IRUSTA* 🏥
 *Recordatorio de Cita Médica* ✨
 
 Hola *${ownerName}*, ¡esperamos que estés muy bien! Te recordamos el turno médico programado para *${petName}*:
 
-🐶 *Paciente:* ${petName} ${patient ? `(${patient.species} • ${patient.breed})` : ''}
-🗓️ *Fecha:* ${initialData?.details?.date || 'Próximamente'}
-⏰ *Horario:* ${initialData?.details?.time || '10:00'} hs
-👨‍⚕️ *Profesional Asignado:* ${initialData?.details?.vetName || vetInCharge} (M.P. 502)
-🩺 *Motivo:* ${initialData?.details?.supplyName || 'Consulta médica general'}
+🐶 *Paciente:* ${petName} ${petDesc}
+🗓️ *Fecha:* ${dateStr}
+⏰ *Horario:* ${timeStr} hs
+👨‍⚕️ *Profesional Asignado:* ${vetStr} (M.P. 502)
+🩺 *Motivo:* ${reasonStr}
 📍 *Ubicación:* Clínica Veterinaria Irusta — Río Cuarto, Córdoba
 
 ⚠️ *Recomendaciones para la visita:*
@@ -145,58 +143,231 @@ Hola *${ownerName}*, ¡esperamos que estés muy bien! Te recordamos el turno mé
 • Si necesitas reprogramar o cancelar, avísanos respondiendo a este mensaje con anticipación.
 
 ¡Te esperamos para cuidar la salud y bienestar de ${petName}! 🐾❤️`;
+      }
 
-      case 'RECETA':
-        return `Hola ${ownerName}! 👋 Adjuntamos las indicaciones médicas y receta para *${petName}* prescripta por *${vetInCharge}* de *Veterinaria Irusta*:
+      // 2. REPORTE UCI / INTERNACIÓN
+      case 'INTERNACION': {
+        const patientHosp = hospitalizations.find((h) => h.patientId === patient?.id && h.status === 'ACTIVA');
+        const patientEvos = clinicalEvolutions
+          .filter((e) => e.patientId === patient?.id)
+          .sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
+        const latestEvo = patientEvos[0];
+        const evoText = latestEvo?.assessment || latestEvo?.plan || latestEvo?.evolutionText || (patientHosp ? `Diagnóstico: ${patientHosp.primaryDiagnosis}. Monitoreo continuo y estabilidad hemodinámica.` : 'Paciente con monitoreo clínico y evolución favorable.');
 
-📋 *Plan Farmacológico:*
-${initialData?.details?.prescriptionText || activeMeds || '1. Protector gástrico y antiemético según indicación.\n2. Dieta blanda gastrointestinal fraccionada.\n3. Reposo y control de hidratación.'}
+        const activeMeds = (patientHosp?.medications || [])
+          .filter((m) => m.status !== 'SUSPENDIDA')
+          .map((m) => `• ${m.drugName} (${m.dose} ${m.route}) c/${m.frequency}`)
+          .join('\n');
 
-⚠️ Ante cualquier duda o síntoma de alarma, contáctenos a nuestra guardia: *+54 9 2942 47-7136*. ¡Pronta recuperación para ${petName}! 🐾`;
+        return `🐾 *CLÍNICA VETERINARIA IRUSTA* 🏥
+*Reporte Médico de Internación & UCI* 🩺
 
-      case 'COBRO_INSUMO':
-        return `Hola ${ownerName}! 👋 Le informamos desde administración de *Veterinaria Irusta* sobre los insumos médicos y tratamientos realizados a *${petName}*:
+Estimado/a *${ownerName}*, le compartimos el informe de estado clínico y novedades de *${petName}*:
 
-🧾 *Detalle de Prestaciones / Insumos:* ${initialData?.details?.supplyName || 'Tratamiento médico de guardia, descartables y medicación aplicada'}
-💵 *Total a Abonar:* $${(initialData?.details?.supplyAmount || 18500).toLocaleString('es-AR')}
-🏦 *Alias de Pago / Transferencia:* ` + (initialData?.details?.bankAlias || 'VET.IRUSTA.PAGOS') + `
-Titular: Dr. Diego Iván Irusta
+🐶 *Paciente:* ${petName} ${petDesc}
+🏥 *Sector:* ${patientHosp ? `${patientHosp.sector} (Canil ${patientHosp.kennelNumber})` : 'Área de Cuidados Clínicos'}
+👨‍⚕️ *Veterinario a Cargo:* ${patientHosp?.vetInChargeName || vetInCharge} (M.P. 502)
 
-Agradecemos enviar el comprobante por este medio para asentar en la cuenta de ${petName}. ¡Muchas gracias! 🐾`;
+📋 *Estado Clínico & Evolución:*
+${evoText}
 
-      case 'ALTA_MEDICA':
-        return `¡Excelentes noticias ${ownerName}! 🎉
-*${petName}* ha respondido muy favorablemente al tratamiento y ha recibido el *Alta Médica* en *Veterinaria Irusta* por indicación del *${vetInCharge}*.
+💊 *Plan Terapéutico & Medicaciones:*
+${activeMeds || '• Medicación y fluidoterapia administradas según prescripción médica.'}
 
-⏰ Pueden pasar a retirarlo/a hoy por la clínica.
-📄 Les entregaremos el resumen de historia clínica, indicaciones de medicación ambulatoria y pautas de control.
+⏰ *Horario de Visitas de Internación:* Hoy de 16:00 a 18:00 hs.
+📱 *WhatsApp de Guardia 24hs:* +54 9 2942 47-7136
 
-¡Los esperamos para el reencuentro con ${petName}! 🐶🐱❤️`;
+¡Estamos acompañando y cuidando a ${petName} con la máxima dedicación! 🐾❤️`;
+      }
 
-      case 'AUTORIZACION_ESTUDIO':
-        return `Estimado/a ${ownerName} ⚠️:
-Desde el equipo médico de *Veterinaria Irusta*, le solicitamos autorización para realizar un procedimiento / estudio complementario a *${petName}*:
+      // 3. PLAN DE MEDICACIÓN / RECETA
+      case 'RECETA': {
+        const patientRxs = prescriptions
+          .filter((p) => p.patientId === patient?.id)
+          .sort((a, b) => new Date(b.date || 0).getTime() - new Date(a.date || 0).getTime());
+        const latestRx = patientRxs[0];
 
-🔬 *Procedimiento:* ${initialData?.details?.supplyName || 'Ecografía abdominal y panel bioquímico de urgencia'}
-💡 *Motivo:* Valoración diagnóstica inmediata para definir el tratamiento médico adecuado.
-👨‍⚕️ *Profesional Responsable:* ${vetInCharge}
+        let rxText = '';
+        if (latestRx && latestRx.medications && latestRx.medications.length > 0) {
+          rxText = latestRx.medications
+            .map((m, idx) => `${idx + 1}. *${m.drugName}*: ${m.dose} (${m.route}) cada ${m.frequency} durante ${m.duration}.${m.instructions ? `\n   ↳ _Indicación:_ ${m.instructions}` : ''}`)
+            .join('\n\n');
+        } else if (initialData?.details?.prescriptionText) {
+          rxText = initialData.details.prescriptionText;
+        } else {
+          rxText = '1. Continuar con la medicación según pauta horaria indicada.\n2. Administrar con alimento para protección gástrica.\n3. Dieta blanda e hidratación permanente.';
+        }
 
-Por favor, responda *AUTORIZO* para proceder de inmediato. Quedamos a su entera disposición. 🩺`;
+        const rxNotes = latestRx?.generalInstructions || latestRx?.notes || 'Cumplir estrictamente la duración completa del tratamiento prescripto.';
 
-      case 'VACUNA':
-        return `Hola ${ownerName}! 👋 Le recordamos desde *Veterinaria Irusta* que *${petName}* tiene próxima la aplicación de su vacuna *${initialData?.details?.vaccineName || 'Antirrábica / Séxtuple'}* (Vencimiento: *${initialData?.details?.dueDate || 'en los próximos días'}*).
+        return `🐾 *CLÍNICA VETERINARIA IRUSTA* 🏥
+*Plan de Medicación & Prescripción Oficial* 💊
 
-Mantener su plan sanitario al día es fundamental para proteger su salud.
-¿Desea que le reservemos un turno esta semana? 💉🐾`;
+Hola *${ownerName}*, le enviamos las indicaciones farmacológicas detalladas para *${petName}*:
 
-      case 'PRESUPUESTO':
-        return `Hola ${ownerName}! 👋 Le enviamos el presupuesto médico estimado para *${petName}* de *Veterinaria Irusta*:
+🐶 *Paciente:* ${petName} ${petDesc}
+👨‍⚕️ *Profesional Prescriptor:* ${latestRx?.vetName || vetInCharge} (M.P. 502)
+🗓️ *Fecha de Emisión:* ${latestRx?.date ? formatDate(latestRx.date) : formatDate(new Date().toISOString())}
 
-🧾 *Total Estimado:* $${(initialData?.details?.estimateTotal || 45000).toLocaleString('es-AR')}
-Incluye honorarios médicos, monitoreo y medicación correspondiente.
+📋 *Medicamentos Indicados:*
+${rxText}
+
+⚠️ *Instrucciones Generales:*
+${rxNotes}
+
+Ante cualquier efecto adverso o duda sobre la administración, comuníquese con nosotros. ¡Pronta recuperación para ${petName}! 🐾✨`;
+      }
+
+      // 4. PAGO DE INSUMO / SALDO DE CUENTA
+      case 'COBRO_INSUMO': {
+        const patientInvoices = invoices
+          .filter((i) => i.patientId === patient?.id || i.ownerId === owner?.id)
+          .sort((a, b) => new Date(b.date || 0).getTime() - new Date(a.date || 0).getTime());
+        const latestInvoice = patientInvoices[0];
+
+        const amount = initialData?.details?.supplyAmount || (latestInvoice ? latestInvoice.totalAmount : (owner?.balance && owner.balance > 0 ? owner.balance : 18500));
+        const concept = initialData?.details?.supplyName || (latestInvoice ? latestInvoice.items.map((it) => it.description).join(', ') : 'Prestaciones médicas, honorarios e insumos aplicados');
+        const bankAlias = initialData?.details?.bankAlias || 'VET.IRUSTA.PAGOS';
+
+        return `🐾 *CLÍNICA VETERINARIA IRUSTA* 🏥
+*Comprobante de Prestaciones & Detalle de Saldo* 🧾
+
+Hola *${ownerName}*, le enviamos el detalle de tratamientos e insumos médicos realizados a *${petName}*:
+
+🐶 *Paciente:* ${petName} ${petDesc}
+📄 *Detalle:* ${concept}
+💵 *Monto Total:* $${amount.toLocaleString('es-AR')}
+
+🏦 *Datos para Transferencia Bancaria:*
+• *Alias:* ${bankAlias}
+• *Titular:* Dr. Diego Iván Irusta
+• *Banco:* Banco de la Provincia de Córdoba / Mercado Pago
+
+⚠️ Por favor, envíe el comprobante de transferencia a este WhatsApp para asentar el pago en la ficha médica de ${petName}. ¡Muchas gracias! 🐾`;
+      }
+
+      // 5. ALTA MÉDICA & EGRESO
+      case 'ALTA_MEDICA': {
+        const lastHosp = hospitalizations
+          .filter((h) => h.patientId === patient?.id)
+          .sort((a, b) => new Date(b.admittedAt || 0).getTime() - new Date(a.admittedAt || 0).getTime())[0];
+        const lastCons = consultations
+          .filter((c) => c.patientId === patient?.id)
+          .sort((a, b) => new Date(b.dateTime || 0).getTime() - new Date(a.dateTime || 0).getTime())[0];
+
+        const dischargeSummary = lastHosp?.dischargeSummary || lastCons?.soap?.plan || 'Paciente clínicamente compensado con excelente evolución post-tratamiento.';
+        const doctor = lastHosp?.vetInChargeName || lastCons?.vetName || vetInCharge;
+
+        return `🐾 *CLÍNICA VETERINARIA IRUSTA* 🏥
+*¡Alta Médica & Egreso Clínico!* 🎉
+
+¡Excelentes noticias *${ownerName}*! Nos alegra informarle que *${petName}* ha evolucionado favorablemente y recibió el *Alta Médica*:
+
+🐶 *Paciente:* ${petName} ${petDesc}
+👨‍⚕️ *Médico que otorga el Alta:* ${doctor} (M.P. 502)
+🗓️ *Fecha:* ${formatDate(new Date().toISOString())}
+
+📋 *Resumen de Egreso & Pautas de Cuidado:*
+${dischargeSummary}
+
+⏰ Ya pueden coordinar para retirar a ${petName} por la clínica. En recepción les entregaremos el certificado de alta y las pautas de control ambulatorio.
+
+¡Los esperamos con mucha alegría para el reencuentro con ${petName}! 🐶🐱❤️`;
+      }
+
+      // 6. AUTORIZACIÓN MÉDICA / CONSENTIMIENTO
+      case 'AUTORIZACION_ESTUDIO': {
+        const pendingSurgery = surgeries
+          .filter((s) => s.patientId === patient?.id && s.status === 'PROGRAMADA')
+          .sort((a, b) => a.date.localeCompare(b.date))[0];
+        const pendingLab = labOrders
+          .filter((l) => l.patientId === patient?.id && l.status === 'SOLICITADO')[0];
+        const pendingImg = imagingStudies
+          .filter((img) => img.patientId === patient?.id)[0];
+
+        const procedureName = initialData?.details?.supplyName || pendingSurgery?.procedureName || (pendingLab ? `Análisis de Laboratorio (${pendingLab.testType})` : pendingImg ? `Estudio de Imagen (${pendingImg.modality} - ${pendingImg.region})` : 'Procedimiento diagnóstico / quirúrgico de urgencia');
+        const surgeon = pendingSurgery?.surgeonName || vetInCharge;
+
+        return `🐾 *CLÍNICA VETERINARIA IRUSTA* 🏥
+*Solicitud de Autorización Médica & Consentimiento* 📋
+
+Estimado/a *${ownerName}*, desde la dirección médica le solicitamos su consentimiento informado para realizar un procedimiento a *${petName}*:
+
+🐶 *Paciente:* ${petName} ${petDesc}
+🔬 *Procedimiento Solicitado:* ${procedureName}
+👨‍⚕️ *Profesional Responsable:* ${surgeon} (M.P. 502)
+💡 *Finalidad:* Diagnóstico certero y tratamiento oportuno para salvaguardar la salud del paciente.
+
+⚠️ *¿Cómo confirmar?*
+Por favor, responda a este mensaje con la palabra:
+👉 *AUTORIZO*
+
+Ante cualquier consulta sobre el procedimiento, nuestro equipo médico está a su total disposición. 🩺🐾`;
+      }
+
+      // 7. AVISO DE VACUNACIÓN
+      case 'VACUNA': {
+        const patientVacs = vaccinations
+          .filter((v) => v.patientId === patient?.id)
+          .sort((a, b) => new Date(b.nextDueDate || 0).getTime() - new Date(a.nextDueDate || 0).getTime());
+        const latestVac = patientVacs[0];
+
+        const vacName = initialData?.details?.vaccineName || latestVac?.vaccineName || 'Antirrábica / Séxtuple Canina / Triple Felina';
+        const vacDueDate = initialData?.details?.dueDate || (latestVac?.nextDueDate ? formatDate(latestVac.nextDueDate) : 'este mes');
+        const vacBatch = latestVac?.batchNumber ? `(Lote: ${latestVac.batchNumber})` : '';
+
+        return `🐾 *CLÍNICA VETERINARIA IRUSTA* 🏥
+*Aviso de Vencimiento de Vacunación* 💉
+
+Hola *${ownerName}*, esperamos que estés muy bien. Te escribimos para recordarte la próxima vacuna de *${petName}*:
+
+🐶 *Paciente:* ${petName} ${petDesc}
+💉 *Vacuna:* ${vacName} ${vacBatch}
+🗓️ *Fecha Sugerida / Vencimiento:* ${vacDueDate}
+📍 *Lugar:* Clínica Veterinaria Irusta — Río Cuarto, Córdoba
+
+⚠️ *¿Por qué es importante?*
+Mantener el plan sanitario al día genera anticuerpos esenciales para prevenir enfermedades infecciosas graves.
+
+¿Deseas que te reservemos un turno para la aplicación esta semana? ¡Respondemos por este medio para agendarlo! 🐾❤️`;
+      }
+
+      // 8. PRESUPUESTO ESTIMADO
+      case 'PRESUPUESTO': {
+        const patientEstimates = estimates
+          .filter((e) => e.patientId === patient?.id || e.ownerId === owner?.id)
+          .sort((a, b) => new Date(b.date || 0).getTime() - new Date(a.date || 0).getTime());
+        const latestEst = patientEstimates[0];
+
+        let itemsList = '';
+        if (latestEst && latestEst.items && latestEst.items.length > 0) {
+          itemsList = latestEst.items
+            .map((it) => `• ${it.description}: $${it.total.toLocaleString('es-AR')}`)
+            .join('\n');
+        } else {
+          itemsList = '• Consulta clínica de especialidad\n• Procedimiento y material descartable\n• Medicación intraoperatoria y monitoreo';
+        }
+
+        const totalEst = latestEst ? latestEst.totalAmount : (initialData?.details?.estimateTotal || 45000);
+        const estNum = latestEst?.estimateNumber ? ` (${latestEst.estimateNumber})` : '';
+
+        return `🐾 *CLÍNICA VETERINARIA IRUSTA* 🏥
+*Presupuesto Médico Estimado* 📋${estNum}
+
+Hola *${ownerName}*, le enviamos la estimación presupuestaria para el tratamiento médico de *${petName}*:
+
+🐶 *Paciente:* ${petName} ${petDesc}
+🗓️ *Fecha de Cotización:* ${latestEst?.date ? formatDate(latestEst.date) : formatDate(new Date().toISOString())}
 👨‍⚕️ *Dirección Médica:* Dr. Diego Iván Irusta (M.P. 502)
 
-Este presupuesto tiene validez por 15 días. Quedamos a su disposición para coordinar. 🐾`;
+📋 *Detalle de Prestaciones Incluidas:*
+${itemsList}
+
+💵 *Total Estimado:* $${totalEst.toLocaleString('es-AR')}
+⏳ *Validez:* 15 días corridos a partir de la fecha de emisión.
+
+Quedamos a su entera disposición para coordinar turnos o resolver cualquier duda. ¡Muchas gracias! 🐾`;
+      }
 
       default:
         return `Hola ${ownerName}, le escribimos de Veterinaria Irusta respecto a ${petName}.`;
@@ -225,15 +396,24 @@ Este presupuesto tiene validez por 15 días. Quedamos a su disposición para coo
 
     const newOwnerId = targetOwner?.id || '';
     const newPatientId = targetPatient?.id || '';
-    const newPhone = initialData?.ownerPhone || targetOwner?.whatsapp || targetOwner?.phone || '+5493584362824';
-    const newType = initialData?.type || 'INTERNACION';
+    const newPhone = initialData?.ownerPhone || targetOwner?.whatsapp || targetOwner?.phone || '';
+    
+    // Normalize type (handles 'RECORDATORIO_TURNO' -> 'TURNO')
+    let newType: 'INTERNACION' | 'RECETA' | 'TURNO' | 'COBRO_INSUMO' | 'ALTA_MEDICA' | 'AUTORIZACION_ESTUDIO' | 'VACUNA' | 'PRESUPUESTO' = 'TURNO';
+    if (initialData?.type) {
+      if (initialData.type === 'RECORDATORIO_TURNO' || initialData.type === 'TURNO') {
+        newType = 'TURNO';
+      } else {
+        newType = initialData.type as any;
+      }
+    }
 
     setSelectedOwnerId(newOwnerId);
     setSelectedPatientId(newPatientId);
     setCustomPhone(newPhone);
     setTemplateType(newType);
     setMessageBody(generateTemplateMessage(newType, targetOwner, targetPatient));
-  }, [isOpen, initialData]);
+  }, [isOpen, initialData, owners, patients, appointments, hospitalizations, prescriptions, vaccinations, estimates]);
 
   if (!isOpen) return null;
 
@@ -262,7 +442,7 @@ Este presupuesto tiene validez por 15 días. Quedamos a su disposición para coo
     }
   };
 
-  const handleTemplateChange = (type: NonNullable<WhatsAppData['type']>) => {
+  const handleTemplateChange = (type: 'INTERNACION' | 'RECETA' | 'TURNO' | 'COBRO_INSUMO' | 'ALTA_MEDICA' | 'AUTORIZACION_ESTUDIO' | 'VACUNA' | 'PRESUPUESTO') => {
     setTemplateType(type);
     setMessageBody(generateTemplateMessage(type, currentOwner, currentPatient));
   };
@@ -332,7 +512,7 @@ Este presupuesto tiene validez por 15 días. Quedamos a su disposición para coo
               <select
                 value={selectedOwnerId}
                 onChange={(e) => handleOwnerChange(e.target.value)}
-                className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 font-bold text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 font-bold text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 cursor-pointer"
               >
                 {owners.map((o) => (
                   <option key={o.id} value={o.id}>
@@ -347,7 +527,7 @@ Este presupuesto tiene validez por 15 días. Quedamos a su disposición para coo
               <select
                 value={selectedPatientId}
                 onChange={(e) => handlePatientChange(e.target.value)}
-                className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 font-bold text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 font-bold text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 cursor-pointer"
               >
                 {patients.map((p) => {
                   const o = owners.find((own) => own.id === p.ownerId);
@@ -368,8 +548,7 @@ Este presupuesto tiene validez por 15 días. Quedamos a su disposición para coo
                 onChange={(e) => setCustomPhone(e.target.value)}
                 placeholder="+54 9 358 436-2824"
                 className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 font-bold font-mono text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-              >
-              </input>
+              />
             </div>
           </div>
 
@@ -392,9 +571,9 @@ Este presupuesto tiene validez por 15 días. Quedamos a su disposición para coo
 
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
               {[
+                { id: 'TURNO', label: 'Turno Agendado', icon: Calendar, color: 'text-blue-600' },
                 { id: 'INTERNACION', label: 'Reporte UCI / Novedades', icon: BedDouble, color: 'text-teal-600' },
                 { id: 'RECETA', label: 'Plan de Medicación', icon: FileText, color: 'text-purple-600' },
-                { id: 'TURNO', label: 'Turno Agendado', icon: Calendar, color: 'text-blue-600' },
                 { id: 'COBRO_INSUMO', label: 'Pago de Insumo / Saldo', icon: CreditCard, color: 'text-amber-600' },
                 { id: 'ALTA_MEDICA', label: 'Alta Médica & Egreso', icon: CheckCheck, color: 'text-emerald-600' },
                 { id: 'AUTORIZACION_ESTUDIO', label: 'Autorización Médica', icon: ShieldAlert, color: 'text-rose-600' },
@@ -435,7 +614,7 @@ Este presupuesto tiene validez por 15 días. Quedamos a su disposición para coo
               </span>
             </div>
             <textarea
-              rows={7}
+              rows={8}
               value={messageBody}
               onChange={(e) => setMessageBody(e.target.value)}
               className="w-full bg-slate-50 border border-slate-300 rounded-2xl p-3.5 text-xs text-slate-900 font-mono focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white leading-relaxed transition-all"

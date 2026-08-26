@@ -1,3 +1,4 @@
+import { formatDate } from '../utils/formatters';
 import { triggerHaptic } from '../utils/haptics';
 // Age calculation helper functions
 function computeAgeFromBirthDate(birthDateStr: string): string {
@@ -511,15 +512,25 @@ export const QuickModals: React.FC = () => {
     showToast('success', 'Turno Agendado con Éxito', `Turno reservado para ${petDisplayName} (${ownerDisplayName}) el ${aptDate} a las ${aptTime} hs con ${vetName}.`);
 
     if (shouldSendWhatsApp && ownerPhone) {
+      const formattedFullDate = formatDate(aptDate, 'Fecha no registrada', {
+        weekday: 'long',
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+      });
+
       openWhatsAppHub({
         patientId: targetPatientId,
         ownerId: targetOwnerId,
         patientName: petDisplayName,
         ownerName: ownerDisplayName,
         ownerPhone: ownerPhone,
-        type: 'RECORDATORIO_TURNO',
+        type: 'TURNO',
         details: {
-          supplyName: `Turno agendado el ${aptDate} a las ${aptTime} hs con ${vetName}`,
+          date: formattedFullDate.charAt(0).toUpperCase() + formattedFullDate.slice(1),
+          time: aptTime,
+          vetName: vetName,
+          supplyName: aptReason || 'Consulta médica general',
         },
       });
     }

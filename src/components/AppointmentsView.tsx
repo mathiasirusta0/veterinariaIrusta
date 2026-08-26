@@ -217,15 +217,22 @@ export const AppointmentsView: React.FC = () => {
     const own = owners.find((o) => o.id === apt.ownerId);
     if (!own) return;
 
+    const formattedFullDate = formatDate(apt.date, 'Fecha no registrada', {
+      weekday: 'long',
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    });
+
     openWhatsAppHub({
       patientId: pat?.id,
       ownerId: own.id,
       patientName: pat?.name || 'su mascota',
       ownerName: `${own.firstName} ${own.lastName}`.trim(),
       ownerPhone: own.whatsapp || own.phone || '',
-      type: 'RECORDATORIO_TURNO',
+      type: 'TURNO',
       details: {
-        date: formatDate(apt.date),
+        date: formattedFullDate.charAt(0).toUpperCase() + formattedFullDate.slice(1),
         time: apt.time,
         vetName: apt.vetName || 'Dr. Diego Iván Irusta',
         supplyName: apt.reason || 'Consulta médica general',
