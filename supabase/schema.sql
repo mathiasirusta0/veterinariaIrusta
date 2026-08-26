@@ -437,19 +437,26 @@ ALTER TABLE IF EXISTS public.clinical_documents ENABLE ROW LEVEL SECURITY;
 ALTER TABLE IF EXISTS public.audit_logs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE IF EXISTS public.cash_sessions ENABLE ROW LEVEL SECURITY;
 
--- Limpiar políticas anteriores
-DO $$
+-- ==============================================================================
+-- REVOCAR ACCESO ANÓNIMO EN TABLAS CLÍNICAS (DENY-BY-DEFAULT PARA ANON)
+-- ==============================================================================
+DO $
 DECLARE
     t text;
-    all_tables text[] := ARRAY[
-        'branches', 'users', 'profiles', 'owners', 'patients', 'vital_signs',
+    clinical_tables text[] := ARRAY[
+        'users', 'profiles', 'owners', 'patients', 'vital_signs',
         'patient_problems', 'consultations', 'hospitalizations', 'surgeries',
         'laboratory_orders', 'imaging_studies', 'vaccinations', 'products',
         'inventory_movements', 'appointments', 'triage_entries', 'invoices',
         'estimates', 'clinical_documents', 'audit_logs', 'cash_sessions'
     ];
 BEGIN
-    FOREACH t IN ARRAY all_tables LOOP
+    -- 1. Tablas clínicas: Revocar permisos de anon y otorgar a authenticated
+    FOREACH t IN ARRAY clinical_tables LOOP
+        EXECUTE format('REVOKE ALL ON public.%I FROM anon', t);
+        EXECUTE format('GRANT SELECT, INSERT, UPDATE, DELETE ON public.%I TO authenticated', t);
+        
+        -- Limpiar políticas anteriores
         EXECUTE format('DROP POLICY IF EXISTS "Clinic full access for %I" ON public.%I', t, t);
         EXECUTE format('DROP POLICY IF EXISTS "Authenticated users access for %I" ON public.%I', t, t);
         EXECUTE format('DROP POLICY IF EXISTS "Public access policy for %I" ON public.%I', t, t);
@@ -459,7 +466,17 @@ BEGIN
         EXECUTE format('DROP POLICY IF EXISTS "Authenticated insert for %I" ON public.%I', t, t);
         EXECUTE format('DROP POLICY IF EXISTS "Authorized select for %I" ON public.%I', t, t);
         
-        -- Crear política que permite lectura y escritura a la clínica (anon y authenticated)
-        EXECUTE format('CREATE POLICY "Clinic full access for %I" ON public.%I FOR ALL TO anon, authenticated USING (true) WITH CHECK (true)', t, t);
+        -- Política estricta: SOLO usuarios autenticados
+        EXECUTE format('CREATE POLICY "Authenticated full access for %I" ON public.%I FOR ALL TO authenticated USING (true) WITH CHECK (true)', t, t);
     END LOOP;
-END $$;
+
+    -- 2. Sucursales (branches): Lectura pública para landing/selector de sedes
+    REVOKE INSERT, UPDATE, DELETE ON public.branches FROM anon;
+    GRANT SELECT ON public.branches TO anon, authenticated;
+    GRANT INSERT, UPDATE, DELETE ON public.branches TO authenticated;
+    
+    DROP POLICY IF EXISTS "Public read for branches" ON public.branches;
+    DROP POLICY IF EXISTS "Clinic full access for branches" ON public.branches;
+    CREATE POLICY "Public read for branches" ON public.branches FOR SELECT TO anon, authenticated USING (true);
+    CREATE POLICY "Authenticated write for branches" ON public.branches FOR ALL TO authenticated USING (true) WITH CHECK (true);
+END $;

@@ -2217,15 +2217,42 @@ export const VetProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   // Appointments & Triage
   const addAppointment = (data: Omit<Appointment, 'id' | 'branchId'>) => {
+    // Validar colisión / doble reserva por profesional y consultorio
+    const hasCollision = appointments.some(
+      (a) =>
+        a.date === data.date &&
+        a.time === data.time &&
+        a.status !== 'CANCELADO' &&
+        a.status !== 'NO_ASISTIO' &&
+        ((data.vetName && a.vetName === data.vetName) ||
+         (data.consultingRoom && a.consultingRoom === data.consultingRoom))
+    );
+
     const newApt: Appointment = {
       ...data,
       id: `app-${Date.now()}`,
       branchId: activeBranch.id,
     };
+
     setAppointments((prev) => [newApt, ...prev]);
     syncAppointmentToSupabase(newApt);
-    showToast('success', 'Turno Agendado', `Cita para ${newApt.date} a las ${newApt.time} hs.`);
-    logAudit('NUEVO_TURNO', 'Appointment', newApt.id, `Turno agendado: ${newApt.type} para fecha ${newApt.date} ${newApt.time}`);
+
+    if (hasCollision) {
+      showToast(
+        'warning',
+        'Sobreturno / Conflicto Detectado',
+        `Existe otra cita registrada a las ${newApt.time} hs del ${newApt.date}. Se registró como sobreturno.`
+      );
+    } else {
+      showToast('success', 'Turno Agendado', `Cita para ${newApt.date} a las ${newApt.time} hs.`);
+    }
+
+    logAudit(
+      'NUEVO_TURNO',
+      'Appointment',
+      newApt.id,
+      `Turno agendado: ${newApt.type} para fecha ${newApt.date} ${newApt.time}${hasCollision ? ' (SOBRETURNO)' : ''}`
+    );
   };
 
   const updateAppointmentStatus = (id: string, status: Appointment['status']) => {

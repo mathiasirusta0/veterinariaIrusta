@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   CalendarDays,
   Plus,
@@ -48,6 +48,24 @@ export const AppointmentsView: React.FC = () => {
   const [viewMode, setViewMode] = useState<'TODOS' | 'CALENDARIO' | 'HOY' | 'SEMANAL'>('TODOS');
   const [currentCalendarMonth, setCurrentCalendarMonth] = useState<Date>(new Date());
   const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().split('T')[0]);
+
+  // Deep-linking hash synchronization
+  useEffect(() => {
+    try {
+      const hash = window.location.hash;
+      if (hash.includes('agenda')) {
+        const urlParams = new URLSearchParams(hash.split('?')[1] || '');
+        const dateParam = urlParams.get('date');
+        const viewParam = urlParams.get('view');
+        if (dateParam && /^\d{4}-\d{2}-\d{2}$/.test(dateParam)) {
+          setSelectedDate(dateParam);
+        }
+        if (viewParam && ['TODOS', 'CALENDARIO', 'HOY', 'SEMANAL'].includes(viewParam)) {
+          setViewMode(viewParam as any);
+        }
+      }
+    } catch {}
+  }, []);
   const [filterVet, setFilterVet] = useState<string>('TODOS');
   const [filterStatus, setFilterStatus] = useState<string>('TODOS');
   const [filterType, setFilterType] = useState<string>('TODOS');

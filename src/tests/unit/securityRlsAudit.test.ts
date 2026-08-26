@@ -59,7 +59,8 @@ describe('Auditoría de Seguridad, RLS y Persistencia en Supabase', () => {
     const migrationSql = fs.readFileSync(migrationPath, 'utf8');
 
     expect(migrationSql).toContain('ENABLE ROW LEVEL SECURITY');
-    expect(migrationSql).toContain('CREATE POLICY "Clinic full access for');
+    expect(migrationSql).toContain('CREATE POLICY "Authenticated full access for');
+    expect(migrationSql).toContain('REVOKE ALL ON public.');
   });
 
   it('4. Verifica que exista el documento de remediación docs/audit-remediation.md con el mapa de confianza', () => {
