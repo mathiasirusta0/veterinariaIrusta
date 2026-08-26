@@ -127,13 +127,24 @@ ${activeMeds || '• Medicación y plan terapéutico reglado según indicación.
 📱 *WhatsApp de Guardia:* +54 9 2942 47-7136. ¡Cuidamos de ${petName} con el mayor compromiso! 🐾❤️`;
 
       case 'TURNO':
-        return `Hola ${ownerName}! 👋 Le recordamos desde *Veterinaria Irusta*.
-*${petName}* tiene una consulta / turno programado para el día *${initialData?.details?.date || 'Mañana'}* a las *${initialData?.details?.time || '15:30'} hs* con el/la profesional *${initialData?.details?.vetName || vetInCharge}* (M.P. 502).
+        return `🐾 *CLÍNICA VETERINARIA IRUSTA* 🏥
+*Recordatorio de Cita Médica* ✨
 
-📍 *Sede:* Veterinaria Irusta
-⚠️ *Indicaciones:* Concurrir con collar y correa o transportadora. Cumplir ayuno si fue indicado previamente.
+Hola *${ownerName}*, ¡esperamos que estés muy bien! Te recordamos el turno médico programado para *${petName}*:
 
-Por favor, responda *CONFIRMAR* para agendar su horario. ¡Muchas gracias! 🐾`;
+🐶 *Paciente:* ${petName} ${patient ? `(${patient.species} • ${patient.breed})` : ''}
+🗓️ *Fecha:* ${initialData?.details?.date || 'Próximamente'}
+⏰ *Horario:* ${initialData?.details?.time || '10:00'} hs
+👨‍⚕️ *Profesional Asignado:* ${initialData?.details?.vetName || vetInCharge} (M.P. 502)
+🩺 *Motivo:* ${initialData?.details?.supplyName || 'Consulta médica general'}
+📍 *Ubicación:* Clínica Veterinaria Irusta — Río Cuarto, Córdoba
+
+⚠️ *Recomendaciones para la visita:*
+• Por favor concurrir 5 a 10 minutos antes del horario pactado.
+• Traer a perros con collar y correa, y a gatos o animales pequeños en transportadora segura.
+• Si necesitas reprogramar o cancelar, avísanos respondiendo a este mensaje con anticipación.
+
+¡Te esperamos para cuidar la salud y bienestar de ${petName}! 🐾❤️`;
 
       case 'RECETA':
         return `Hola ${ownerName}! 👋 Adjuntamos las indicaciones médicas y receta para *${petName}* prescripta por *${vetInCharge}* de *Veterinaria Irusta*:

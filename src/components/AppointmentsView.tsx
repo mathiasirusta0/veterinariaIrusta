@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   CalendarDays,
   Plus,
@@ -13,12 +13,14 @@ import {
   AlertTriangle,
   ChevronLeft,
   ChevronRight,
-  Calendar,
+  Calendar as CalendarIcon,
   Layers,
   MapPin,
   Check,
   RotateCcw,
   DoorOpen,
+  Search,
+  Sparkles,
 } from 'lucide-react';
 import { useVet } from '../context/VetContext';
 import { Appointment, AppointmentStatus, AppointmentType } from '../types';
@@ -42,7 +44,9 @@ export const AppointmentsView: React.FC = () => {
     showToast,
   } = useVet();
 
-  const [viewMode, setViewMode] = useState<'DIARIO' | 'SEMANAL' | 'MENSUAL' | 'LISTA'>('DIARIO');
+  // Mode defaults to 'TODOS' so all appointments are immediately visible without missing any date
+  const [viewMode, setViewMode] = useState<'TODOS' | 'CALENDARIO' | 'HOY' | 'SEMANAL'>('TODOS');
+  const [currentCalendarMonth, setCurrentCalendarMonth] = useState<Date>(new Date());
   const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().split('T')[0]);
   const [filterVet, setFilterVet] = useState<string>('TODOS');
   const [filterStatus, setFilterStatus] = useState<string>('TODOS');
@@ -51,35 +55,139 @@ export const AppointmentsView: React.FC = () => {
 
   const todayStr = new Date().toISOString().split('T')[0];
 
-  const filteredAppointments = appointments
-    .filter((a) => {
-      const pat = patients.find((p) => p.id === a.patientId);
-      const own = owners.find((o) => o.id === a.ownerId);
-      const q = search.toLowerCase();
+  // Helper date calculations
+  const isDateInThisWeek = (dateStr: string) => {
+    try {
+      const today = new Date();
+      const target = new Date(dateStr + 'T00:00:00');
+      const startOfWeek = new Date(today);
+      const day = today.getDay() || 7;
+      startOfWeek.setDate(today.getDate() - day + 1);
+      startOfWeek.setHours(0, 0, 0, 0);
 
-      const matchesSearch =
-        (pat?.name || '').toLowerCase().includes(q) ||
-        (pat?.clinicalRecordNumber || '').toLowerCase().includes(q) ||
-        (own?.firstName || '').toLowerCase().includes(q) ||
-        (own?.lastName || '').toLowerCase().includes(q) ||
-        (a.reason || '').toLowerCase().includes(q) ||
-        (a.notes || '').toLowerCase().includes(q);
+      const endOfWeek = new Date(startOfWeek);
+      endOfWeek.setDate(startOfWeek.getDate() + 6);
+      endOfWeek.setHours(23, 59, 59, 999);
 
-      const matchesVet = filterVet === 'TODOS' || a.vetId === filterVet;
-      const matchesStatus = filterStatus === 'TODOS' || a.status === filterStatus;
-      const matchesType = filterType === 'TODOS' || a.type === filterType;
+      return target >= startOfWeek && target <= endOfWeek;
+    } catch {
+      return false;
+    }
+  };
 
-      let matchesDate = true;
-      if (viewMode === 'DIARIO') {
-        matchesDate = a.date === selectedDate;
+  // Filtered Appointments
+  const filteredAppointments = useMemo(() => {
+    return appointments
+      .filter((a) => {
+        const pat = patients.find((p) => p.id === a.patientId);
+        const own = owners.find((o) => o.id === a.ownerId);
+        const q = search.toLowerCase().trim();
+
+        const matchesSearch =
+          !q ||
+          (pat?.name || '').toLowerCase().includes(q) ||
+          (pat?.clinicalRecordNumber || '').toLowerCase().includes(q) ||
+          (own?.firstName || '').toLowerCase().includes(q) ||
+          (own?.lastName || '').toLowerCase().includes(q) ||
+          (own?.phone || '').toLowerCase().includes(q) ||
+          (own?.whatsapp || '').toLowerCase().includes(q) ||
+          (a.reason || '').toLowerCase().includes(q) ||
+          (a.vetName || '').toLowerCase().includes(q) ||
+          (a.notes || '').toLowerCase().includes(q);
+
+        const matchesVet = filterVet === 'TODOS' || a.vetId === filterVet;
+        const matchesStatus = filterStatus === 'TODOS' || a.status === filterStatus;
+        const matchesType = filterType === 'TODOS' || a.type === filterType;
+
+        // If there is an active search query, match across ALL dates seamlessly
+        if (q) {
+          return matchesSearch && matchesVet && matchesStatus && matchesType;
+        }
+
+        let matchesDate = true;
+        if (viewMode === 'HOY') {
+          matchesDate = a.date === todayStr;
+        } else if (viewMode === 'SEMANAL') {
+          matchesDate = isDateInThisWeek(a.date);
+        } else if (viewMode === 'CALENDARIO') {
+          matchesDate = a.date === selectedDate;
+        }
+
+        return matchesSearch && matchesVet && matchesStatus && matchesType && matchesDate;
+      })
+      .sort((a, b) => {
+        if (a.date !== b.date) return a.date.localeCompare(b.date);
+        return a.time.localeCompare(b.time);
+      });
+  }, [appointments, patients, owners, search, filterVet, filterStatus, filterType, viewMode, selectedDate, todayStr]);
+
+  // Group appointments by date
+  const appointmentsByDate = useMemo(() => {
+    const groups: Record<string, Appointment[]> = {};
+    filteredAppointments.forEach((apt) => {
+      if (!groups[apt.date]) {
+        groups[apt.date] = [];
       }
-
-      return matchesSearch && matchesVet && matchesStatus && matchesType && matchesDate;
-    })
-    .sort((a, b) => {
-      if (a.date !== b.date) return a.date.localeCompare(b.date);
-      return a.time.localeCompare(b.time);
+      groups[apt.date].push(apt);
     });
+    return groups;
+  }, [filteredAppointments]);
+
+  // Calendar matrix calculations
+  const calendarDays = useMemo(() => {
+    const year = currentCalendarMonth.getFullYear();
+    const month = currentCalendarMonth.getMonth();
+
+    const firstDayOfMonth = new Date(year, month, 1);
+    const lastDayOfMonth = new Date(year, month + 1, 0);
+
+    // Monday as 1st day (0 is Sun in JS, let's normalize: Mon=0, Sun=6)
+    let startDay = firstDayOfMonth.getDay() - 1;
+    if (startDay === -1) startDay = 6;
+
+    const days: { dateStr: string; dayNum: number; isCurrentMonth: boolean; apts: Appointment[] }[] = [];
+
+    // Previous month padding
+    const prevMonthLastDay = new Date(year, month, 0).getDate();
+    for (let i = startDay - 1; i >= 0; i--) {
+      const dayNum = prevMonthLastDay - i;
+      const prevDate = new Date(year, month - 1, dayNum);
+      const dateStr = prevDate.toISOString().split('T')[0];
+      days.push({
+        dateStr,
+        dayNum,
+        isCurrentMonth: false,
+        apts: appointments.filter((a) => a.date === dateStr),
+      });
+    }
+
+    // Current month days
+    for (let i = 1; i <= lastDayOfMonth.getDate(); i++) {
+      const curDate = new Date(year, month, i);
+      const dateStr = curDate.toISOString().split('T')[0];
+      days.push({
+        dateStr,
+        dayNum: i,
+        isCurrentMonth: true,
+        apts: appointments.filter((a) => a.date === dateStr),
+      });
+    }
+
+    // Next month padding to complete 35 or 42 cells
+    const remaining = (7 - (days.length % 7)) % 7;
+    for (let i = 1; i <= remaining; i++) {
+      const nextDate = new Date(year, month + 1, i);
+      const dateStr = nextDate.toISOString().split('T')[0];
+      days.push({
+        dateStr,
+        dayNum: i,
+        isCurrentMonth: false,
+        apts: appointments.filter((a) => a.date === dateStr),
+      });
+    }
+
+    return days;
+  }, [currentCalendarMonth, appointments]);
 
   // Actions
   const handlePassToConsultation = (apt: Appointment) => {
@@ -113,11 +221,14 @@ export const AppointmentsView: React.FC = () => {
       patientId: pat?.id,
       ownerId: own.id,
       patientName: pat?.name || 'su mascota',
-      ownerName: `${own.firstName} ${own.lastName}`,
+      ownerName: `${own.firstName} ${own.lastName}`.trim(),
       ownerPhone: own.whatsapp || own.phone || '',
       type: 'RECORDATORIO_TURNO',
       details: {
-        supplyName: `Recordatorio de turno agendado el ${formatDate(apt.date)} a las ${apt.time} hs con ${(apt as any).vetName || 'Dr. Diego Iván Irusta'}`,
+        date: formatDate(apt.date),
+        time: apt.time,
+        vetName: apt.vetName || 'Dr. Diego Iván Irusta',
+        supplyName: apt.reason || 'Consulta médica general',
       },
     });
   };
@@ -144,12 +255,9 @@ export const AppointmentsView: React.FC = () => {
     AUSENTE: 'bg-gray-100 text-gray-500 border-gray-200',
   };
 
-  // Date Navigation Helpers
-  const changeDateByDays = (days: number) => {
-    const d = new Date(selectedDate);
-    d.setDate(d.getDate() + days);
-    setSelectedDate(d.toISOString().split('T')[0]);
-  };
+  const totalAppointmentsCount = appointments.length;
+  const todayAppointmentsCount = appointments.filter((a) => a.date === todayStr).length;
+  const weekAppointmentsCount = appointments.filter((a) => isDateInThisWeek(a.date)).length;
 
   return (
     <div className="space-y-5 pb-12 w-full max-w-full">
@@ -157,7 +265,7 @@ export const AppointmentsView: React.FC = () => {
       <PageHeader
         category="Agenda Médica, Quirófano & Citas"
         title="Agenda de Turnos & Consultorios"
-        description="Planificación de consultas, vacunaciones, cirugías, ecografías y visitas con recordatorios por WhatsApp"
+        description="Planificación integral de turnos médicos, cirugías y visitas con vista de calendario y recordatorios por WhatsApp"
         icon={CalendarDays}
         actions={[
           {
@@ -169,45 +277,94 @@ export const AppointmentsView: React.FC = () => {
         ]}
       />
 
-      {/* 2. Top View Mode Tabs & Date Navigator */}
+      {/* 2. Top View Mode Tabs & Stats */}
       <div className="bg-white border border-slate-200 p-4 rounded-2xl shadow-xs flex flex-col md:flex-row items-center justify-between gap-4 w-full">
         {/* View mode selector */}
-        <div className="flex items-center gap-1.5 bg-slate-100 p-1 rounded-xl border border-slate-200 w-full sm:w-auto overflow-x-auto no-scrollbar">
-          {(['DIARIO', 'SEMANAL', 'MENSUAL', 'LISTA'] as const).map((mode) => (
-            <button
-              key={mode}
-              type="button"
-              onClick={() => {
-                triggerHaptic('light');
-                setViewMode(mode);
-              }}
-              className={'px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex-1 sm:flex-initial text-center ' +
-                (viewMode === mode
-                  ? 'bg-white text-teal-800 shadow-2xs'
-                  : 'text-slate-600 hover:text-slate-900')
-              }
-            >
-              {mode === 'DIARIO' ? 'Diario' : mode === 'SEMANAL' ? 'Semanal' : mode === 'MENSUAL' ? 'Mensual' : 'Todos'}
-            </button>
-          ))}
-        </div>
-
-        {/* Date Navigator */}
-        <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end">
+        <div className="flex items-center gap-1.5 bg-slate-100 p-1.5 rounded-xl border border-slate-200 w-full sm:w-auto overflow-x-auto no-scrollbar">
           <button
             type="button"
-            onClick={() => changeDateByDays(-1)}
-            className="p-2 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 transition-colors"
-            title="Día anterior"
+            onClick={() => {
+              triggerHaptic('light');
+              setViewMode('TODOS');
+            }}
+            className={`px-3.5 py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
+              viewMode === 'TODOS'
+                ? 'bg-teal-700 text-white shadow-sm'
+                : 'text-slate-600 hover:text-slate-900'
+            }`}
           >
-            <ChevronLeft className="w-4 h-4" />
+            <span>🌟 Todos los Turnos</span>
+            <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono ${viewMode === 'TODOS' ? 'bg-teal-800 text-teal-100' : 'bg-slate-200 text-slate-700'}`}>
+              {totalAppointmentsCount}
+            </span>
           </button>
 
-          <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => {
+              triggerHaptic('light');
+              setViewMode('CALENDARIO');
+            }}
+            className={`px-3.5 py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
+              viewMode === 'CALENDARIO'
+                ? 'bg-teal-700 text-white shadow-sm'
+                : 'text-slate-600 hover:text-slate-900'
+            }`}
+          >
+            <CalendarIcon className="w-3.5 h-3.5" />
+            <span>Vista Calendario</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              triggerHaptic('light');
+              setViewMode('HOY');
+            }}
+            className={`px-3.5 py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
+              viewMode === 'HOY'
+                ? 'bg-teal-700 text-white shadow-sm'
+                : 'text-slate-600 hover:text-slate-900'
+            }`}
+          >
+            <span>📌 Hoy</span>
+            <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono ${viewMode === 'HOY' ? 'bg-teal-800 text-teal-100' : 'bg-slate-200 text-slate-700'}`}>
+              {todayAppointmentsCount}
+            </span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              triggerHaptic('light');
+              setViewMode('SEMANAL');
+            }}
+            className={`px-3.5 py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
+              viewMode === 'SEMANAL'
+                ? 'bg-teal-700 text-white shadow-sm'
+                : 'text-slate-600 hover:text-slate-900'
+            }`}
+          >
+            <span>📆 Esta Semana</span>
+            <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono ${viewMode === 'SEMANAL' ? 'bg-teal-800 text-teal-100' : 'bg-slate-200 text-slate-700'}`}>
+              {weekAppointmentsCount}
+            </span>
+          </button>
+        </div>
+
+        {/* Date Selector / Quick Jump */}
+        <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end">
+          <div className="flex items-center gap-1.5">
+            <span className="text-xs font-bold text-slate-500 hidden sm:inline">Fecha seleccionada:</span>
             <input
               type="date"
               value={selectedDate}
-              onChange={(e) => setSelectedDate(e.target.value)}
+              onChange={(e) => {
+                setSelectedDate(e.target.value);
+                if (viewMode === 'CALENDARIO' || viewMode === 'HOY') {
+                  // Keep focused
+                }
+              }}
               className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-900 font-bold focus:ring-2 focus:ring-teal-500 cursor-pointer"
             />
             {selectedDate === todayStr && (
@@ -216,34 +373,134 @@ export const AppointmentsView: React.FC = () => {
               </span>
             )}
           </div>
-
-          <button
-            type="button"
-            onClick={() => changeDateByDays(1)}
-            className="p-2 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 transition-colors"
-            title="Día siguiente"
-          >
-            <ChevronRight className="w-4 h-4" />
-          </button>
-
-          {selectedDate !== todayStr && (
-            <button
-              type="button"
-              onClick={() => setSelectedDate(todayStr)}
-              className="px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl border border-slate-200 transition-colors"
-            >
-              Hoy
-            </button>
-          )}
         </div>
       </div>
 
-      {/* 3. Search & Filter Bar */}
+      {/* 3. CALENDAR VIEW GRID MODE */}
+      {viewMode === 'CALENDARIO' && (
+        <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5 shadow-xs space-y-4">
+          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+            <div className="flex items-center gap-2">
+              <CalendarIcon className="w-5 h-5 text-teal-700" />
+              <h3 className="font-extrabold text-slate-900 text-sm sm:text-base capitalize">
+                {currentCalendarMonth.toLocaleDateString('es-AR', { month: 'long', year: 'numeric' })}
+              </h3>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  const m = new Date(currentCalendarMonth);
+                  m.setMonth(m.getMonth() - 1);
+                  setCurrentCalendarMonth(m);
+                }}
+                className="p-2 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 transition-colors"
+                title="Mes anterior"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+              <button
+                type="button"
+                onClick={() => setCurrentCalendarMonth(new Date())}
+                className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition-colors"
+              >
+                Mes Actual
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  const m = new Date(currentCalendarMonth);
+                  m.setMonth(m.getMonth() + 1);
+                  setCurrentCalendarMonth(m);
+                }}
+                className="p-2 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 transition-colors"
+                title="Mes siguiente"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+
+          {/* Day of week headers */}
+          <div className="grid grid-cols-7 gap-1 text-center font-bold text-xs text-slate-500 py-1">
+            <span>Lun</span>
+            <span>Mar</span>
+            <span>Mié</span>
+            <span>Jue</span>
+            <span>Vie</span>
+            <span>Sáb</span>
+            <span>Dom</span>
+          </div>
+
+          {/* Calendar Grid Cells */}
+          <div className="grid grid-cols-7 gap-1.5 sm:gap-2">
+            {calendarDays.map((cell, idx) => {
+              const isToday = cell.dateStr === todayStr;
+              const isSelected = cell.dateStr === selectedDate;
+              const hasApts = cell.apts.length > 0;
+
+              return (
+                <div
+                  key={idx}
+                  onClick={() => {
+                    setSelectedDate(cell.dateStr);
+                    triggerHaptic('light');
+                  }}
+                  className={`min-h-[90px] sm:min-h-[110px] p-2 rounded-xl border transition-all flex flex-col justify-between cursor-pointer ${
+                    !cell.isCurrentMonth
+                      ? 'bg-slate-50/50 text-slate-300 border-slate-100'
+                      : isSelected
+                      ? 'bg-teal-50/40 border-teal-500 ring-2 ring-teal-500/20 text-slate-900 shadow-xs'
+                      : isToday
+                      ? 'bg-amber-50/40 border-amber-300 text-slate-900'
+                      : 'bg-white border-slate-200/90 hover:border-teal-400 hover:bg-slate-50/80 text-slate-800'
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <span className={`text-xs font-bold ${isToday ? 'bg-amber-500 text-white w-5 h-5 rounded-full flex items-center justify-center' : ''}`}>
+                      {cell.dayNum}
+                    </span>
+                    {hasApts && (
+                      <span className="text-[10px] font-black px-1.5 py-0.2 rounded-full bg-teal-100 text-teal-800">
+                        {cell.apts.length} {cell.apts.length === 1 ? 'turno' : 'turnos'}
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="space-y-1 overflow-y-auto max-h-[65px] no-scrollbar">
+                    {cell.apts.slice(0, 3).map((apt) => {
+                      const p = patients.find((pat) => pat.id === apt.patientId);
+                      return (
+                        <div
+                          key={apt.id}
+                          className="text-[10px] leading-tight px-1.5 py-0.5 rounded bg-teal-50 text-teal-900 font-bold border border-teal-200/70 truncate flex items-center gap-1"
+                          title={`${apt.time} - ${p?.name || 'Paciente'} (${apt.reason})`}
+                        >
+                          <span className="font-mono text-teal-700">{apt.time}</span>
+                          <span className="truncate">🐾 {p?.name || 'Paciente'}</span>
+                        </div>
+                      );
+                    })}
+                    {cell.apts.length > 3 && (
+                      <span className="text-[9px] text-teal-700 font-bold block text-center">
+                        +{cell.apts.length - 3} más
+                      </span>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* 4. Search & Filter Bar */}
       <div className="bg-white border border-slate-200 p-3 sm:p-4 rounded-2xl shadow-xs space-y-3 w-full max-w-full">
         <SearchInput
           value={search}
           onChange={setSearch}
-          placeholder="Buscar por paciente, HC, tutor, motivo o profesional..."
+          placeholder="Buscar por paciente, HC, tutor, teléfono, motivo o profesional en todos los turnos..."
         />
 
         <div className="flex flex-wrap items-center gap-2 text-xs">
@@ -304,147 +561,171 @@ export const AppointmentsView: React.FC = () => {
         </div>
       </div>
 
-      {/* 4. Appointments List / Cards */}
-      <div className="space-y-3.5 w-full">
+      {/* 5. Appointments List Grouped By Date */}
+      <div className="space-y-6 w-full">
         {filteredAppointments.length === 0 ? (
           <EmptyState
             icon={CalendarDays}
             title="No hay turnos registrados"
             description={
               search || filterVet !== 'TODOS' || filterType !== 'TODOS' || filterStatus !== 'TODOS'
-                ? 'No se encontraron turnos con los filtros o fecha seleccionados.'
-                : 'No hay turnos agendados para la fecha seleccionada.'
+                ? 'No se encontraron turnos con los filtros de búsqueda aplicados.'
+                : 'Aún no hay turnos agendados en la clínica.'
             }
             actionLabel="Agendar Nuevo Turno"
             onAction={() => setQuickModal('NUEVO_TURNO')}
           />
         ) : (
-          filteredAppointments.map((apt) => {
-            const patient = patients.find((p) => p.id === apt.patientId);
-            const owner = owners.find((o) => o.id === apt.ownerId);
-            const typeInfo = typeBadges[apt.type] || { label: apt.type, bg: 'bg-slate-100 text-slate-700', icon: '📅' };
-            const statusClass = statusColors[apt.status] || 'bg-slate-100 text-slate-700';
+          Object.keys(appointmentsByDate).map((dateKey) => {
+            const dateApts = appointmentsByDate[dateKey];
+            const isToday = dateKey === todayStr;
 
             return (
-              <div
-                key={apt.id}
-                className="bg-white border border-slate-200/90 hover:border-teal-500/60 rounded-2xl p-4 sm:p-5 shadow-xs transition-all flex flex-col lg:flex-row lg:items-center justify-between gap-4 w-full"
-              >
-                {/* Left: Time badge + Patient & Owner Info */}
-                <div className="flex items-start gap-3.5 min-w-0 flex-1">
-                  {/* Time Badge */}
-                  <div className="w-14 h-14 rounded-2xl bg-teal-50/80 border border-teal-200/80 flex flex-col items-center justify-center flex-shrink-0 shadow-2xs">
-                    <Clock className="w-3.5 h-3.5 text-teal-700 mb-0.5" />
-                    <span className="text-sm font-black text-slate-900 font-mono leading-none">{apt.time}</span>
-                    <span className="text-[9px] text-teal-800 font-bold mt-0.5">{apt.durationMinutes || 30}m</span>
+              <div key={dateKey} className="space-y-3">
+                {/* Date Group Header */}
+                <div className="flex items-center justify-between bg-slate-100/90 border border-slate-200/80 px-4 py-2.5 rounded-xl sticky top-2 z-10 backdrop-blur-xs shadow-2xs">
+                  <div className="flex items-center gap-2">
+                    <CalendarDays className={`w-4 h-4 ${isToday ? 'text-emerald-600' : 'text-teal-700'}`} />
+                    <span className="font-extrabold text-xs text-slate-900 capitalize">
+                      {formatDate(dateKey, 'Fecha no registrada', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+                    </span>
+                    {isToday && (
+                      <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300">
+                        HOY
+                      </span>
+                    )}
                   </div>
-
-                  {/* Patient Identity */}
-                  <div className="min-w-0 flex-1 space-y-1">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <h3
-                        onClick={() => {
-                          if (patient) {
-                            setSelectedPatientId(patient.id);
-                            setActivePatientTab('SIGNOS');
-                            setActiveView('PACIENTES');
-                          }
-                        }}
-                        className="text-base font-bold text-slate-900 hover:text-teal-700 cursor-pointer transition-colors leading-tight"
-                      >
-                        {patient?.name || 'Paciente'}
-                      </h3>
-                      <span className="text-[10px] font-mono font-bold bg-slate-100 px-2 py-0.5 rounded-md text-slate-600 border border-slate-200">
-                        {patient?.clinicalRecordNumber || 'HC-0000'}
-                      </span>
-                      <span className={'text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase border ' + typeInfo.bg}>
-                        {typeInfo.icon} {typeInfo.label}
-                      </span>
-                      <span className={'text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase border ' + statusClass}>
-                        {apt.status}
-                      </span>
-                    </div>
-
-                    <p className="text-xs text-slate-700 font-medium">
-                      Motivo: <strong className="text-slate-900">{apt.reason || 'Sin motivo detallado'}</strong>
-                    </p>
-
-                    <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500 pt-0.5">
-                      <span>
-                        Tutor: <strong className="text-slate-700">{owner ? (owner.firstName + ' ' + owner.lastName) : 'N/A'}</strong>
-                      </span>
-                      {owner?.phone && (
-                        <span className="font-mono text-slate-500 text-[11px]">({owner.phone})</span>
-                      )}
-                      <span>•</span>
-                      <span>
-                        Profesional: <strong className="text-slate-800">{(apt as any).vetName || 'Dr. Diego Iván Irusta'}</strong>
-                      </span>
-                      {apt.consultingRoom && (
-                        <>
-                          <span>•</span>
-                          <span className="font-bold text-teal-700 bg-teal-50 px-2 py-0.2 rounded border border-teal-200 text-[11px]">
-                            {apt.consultingRoom}
-                          </span>
-                        </>
-                      )}
-                    </div>
-                  </div>
+                  <span className="text-xs font-bold text-slate-500">
+                    {dateApts.length} {dateApts.length === 1 ? 'Turno' : 'Turnos'}
+                  </span>
                 </div>
 
-                {/* Right: Fast Clinical Actions */}
-                <div className="flex items-center gap-1.5 flex-wrap justify-end border-t lg:border-t-0 pt-3 lg:pt-0 border-slate-100 flex-shrink-0">
-                  {/* Status quick select */}
-                  <select
-                    value={apt.status}
-                    onChange={(e) => updateAppointmentStatus(apt.id, e.target.value as AppointmentStatus)}
-                    className="min-h-[40px] px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 focus:ring-2 focus:ring-teal-500 cursor-pointer"
-                  >
-                    <option value="RESERVADO">Reservado</option>
-                    <option value="CONFIRMADO">Confirmado</option>
-                    <option value="ESPERANDO">En Espera</option>
-                    <option value="EN_CONSULTA">En Consulta</option>
-                    <option value="FINALIZADO">Finalizado</option>
-                    <option value="CANCELADO">Cancelado</option>
-                    <option value="AUSENTE">Ausente</option>
-                  </select>
+                {/* Cards for this date */}
+                <div className="space-y-3">
+                  {dateApts.map((apt) => {
+                    const patient = patients.find((p) => p.id === apt.patientId);
+                    const owner = owners.find((o) => o.id === apt.ownerId);
+                    const typeInfo = typeBadges[apt.type] || { label: apt.type, bg: 'bg-slate-100 text-slate-700', icon: '📅' };
+                    const statusClass = statusColors[apt.status] || 'bg-slate-100 text-slate-700';
 
-                  {/* WhatsApp Reminder independiente */}
-                  {(owner?.phone || owner?.whatsapp) && (
-                    <button
-                      type="button"
-                      onClick={() => handleSendWhatsAppReminder(apt)}
-                      className="min-h-[40px] px-3.5 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-bold text-xs rounded-xl border border-emerald-300 flex items-center gap-1.5 transition-all active:scale-95 touch-manipulation shadow-2xs cursor-pointer"
-                      title="Enviar recordatorio o aviso de turno por WhatsApp al tutor"
-                    >
-                      <MessageCircle className="w-3.5 h-3.5 text-emerald-600" />
-                      <span>Avisar por WhatsApp</span>
-                    </button>
-                  )}
+                    return (
+                      <div
+                        key={apt.id}
+                        className="bg-white border border-slate-200/90 hover:border-teal-500/60 rounded-2xl p-4 sm:p-5 shadow-xs transition-all flex flex-col lg:flex-row lg:items-center justify-between gap-4 w-full"
+                      >
+                        {/* Left: Time badge + Patient & Owner Info */}
+                        <div className="flex items-start gap-3.5 min-w-0 flex-1">
+                          {/* Time & Date Badge */}
+                          <div className="w-16 h-16 rounded-2xl bg-teal-50/90 border border-teal-200 flex flex-col items-center justify-center flex-shrink-0 shadow-2xs">
+                            <Clock className="w-3.5 h-3.5 text-teal-700 mb-0.5" />
+                            <span className="text-sm font-black text-slate-900 font-mono leading-none">{apt.time}</span>
+                            <span className="text-[9px] text-teal-800 font-bold mt-0.5 font-mono">{formatDate(apt.date)}</span>
+                          </div>
 
-                  {/* Pass to Triage / Waiting Room */}
-                  {apt.status !== 'ESPERANDO' && apt.status !== 'EN_CONSULTA' && apt.status !== 'FINALIZADO' && (
-                    <button
-                      type="button"
-                      onClick={() => handlePassToTriage(apt, patient?.name || 'Paciente')}
-                      className="min-h-[40px] px-3 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-800 font-bold text-xs rounded-xl border border-amber-200 flex items-center gap-1.5 transition-all active:scale-95 touch-manipulation"
-                      title="Ingresar a sala de espera y triage"
-                    >
-                      <AlertTriangle className="w-3.5 h-3.5 text-amber-600" />
-                      <span>A Espera</span>
-                    </button>
-                  )}
+                          {/* Patient Identity */}
+                          <div className="min-w-0 flex-1 space-y-1">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <h3
+                                onClick={() => {
+                                  if (patient) {
+                                    setSelectedPatientId(patient.id);
+                                    setActivePatientTab('SIGNOS');
+                                    setActiveView('PACIENTES');
+                                  }
+                                }}
+                                className="text-base font-bold text-slate-900 hover:text-teal-700 cursor-pointer transition-colors leading-tight"
+                              >
+                                {patient?.name || 'Paciente'}
+                              </h3>
+                              <span className="text-[10px] font-mono font-bold bg-slate-100 px-2 py-0.5 rounded-md text-slate-600 border border-slate-200">
+                                {patient?.clinicalRecordNumber || 'HC-0000'}
+                              </span>
+                              <span className={'text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase border ' + typeInfo.bg}>
+                                {typeInfo.icon} {typeInfo.label}
+                              </span>
+                              <span className={'text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase border ' + statusClass}>
+                                {apt.status}
+                              </span>
+                            </div>
 
-                  {/* Pass to Consultation */}
-                  <button
-                    type="button"
-                    onClick={() => handlePassToConsultation(apt)}
-                    className="min-h-[40px] px-3.5 py-1.5 bg-teal-600 hover:bg-teal-500 text-white font-bold text-xs rounded-xl shadow-md shadow-teal-600/20 flex items-center gap-1.5 transition-all active:scale-95 touch-manipulation"
-                    title="Iniciar consulta médica SOAP"
-                  >
-                    <Stethoscope className="w-3.5 h-3.5" />
-                    <span>Atender</span>
-                  </button>
+                            <p className="text-xs text-slate-700 font-medium">
+                              Motivo: <strong className="text-slate-900">{apt.reason || 'Sin motivo detallado'}</strong>
+                            </p>
+
+                            <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500 pt-0.5">
+                              <span>
+                                Tutor: <strong className="text-slate-700">{owner ? (owner.firstName + ' ' + owner.lastName) : 'N/A'}</strong>
+                              </span>
+                              {(owner?.phone || owner?.whatsapp) && (
+                                <span className="font-mono text-slate-600 font-semibold text-[11px]">
+                                  ({owner.whatsapp || owner.phone})
+                                </span>
+                              )}
+                              <span>•</span>
+                              <span>
+                                Profesional: <strong className="text-slate-800">{apt.vetName || 'Dr. Diego Iván Irusta'}</strong>
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Right: Actions */}
+                        <div className="flex items-center gap-2 flex-wrap justify-end border-t lg:border-t-0 pt-3 lg:pt-0 border-slate-100 flex-shrink-0">
+                          {/* Status quick select */}
+                          <select
+                            value={apt.status}
+                            onChange={(e) => updateAppointmentStatus(apt.id, e.target.value as AppointmentStatus)}
+                            className="min-h-[40px] px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 focus:ring-2 focus:ring-teal-500 cursor-pointer"
+                          >
+                            <option value="RESERVADO">Reservado</option>
+                            <option value="CONFIRMADO">Confirmado</option>
+                            <option value="ESPERANDO">En Espera</option>
+                            <option value="EN_CONSULTA">En Consulta</option>
+                            <option value="FINALIZADO">Finalizado</option>
+                            <option value="CANCELADO">Cancelado</option>
+                            <option value="AUSENTE">Ausente</option>
+                          </select>
+
+                          {/* WhatsApp Reminder Button */}
+                          {(owner?.phone || owner?.whatsapp) && (
+                            <button
+                              type="button"
+                              onClick={() => handleSendWhatsAppReminder(apt)}
+                              className="min-h-[40px] px-3.5 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-bold text-xs rounded-xl border border-emerald-300 flex items-center gap-1.5 transition-all active:scale-95 touch-manipulation shadow-2xs cursor-pointer"
+                              title="Enviar recordatorio didáctico por WhatsApp al tutor"
+                            >
+                              <MessageCircle className="w-4 h-4 text-emerald-600" />
+                              <span>Avisar por WhatsApp</span>
+                            </button>
+                          )}
+
+                          {/* Pass to Triage */}
+                          {apt.status !== 'ESPERANDO' && apt.status !== 'EN_CONSULTA' && apt.status !== 'FINALIZADO' && (
+                            <button
+                              type="button"
+                              onClick={() => handlePassToTriage(apt, patient?.name || 'Paciente')}
+                              className="min-h-[40px] px-3 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-800 font-bold text-xs rounded-xl border border-amber-200 flex items-center gap-1.5 transition-all active:scale-95 touch-manipulation cursor-pointer"
+                              title="Ingresar a sala de espera y triage"
+                            >
+                              <AlertTriangle className="w-3.5 h-3.5 text-amber-600" />
+                              <span>A Espera</span>
+                            </button>
+                          )}
+
+                          {/* Pass to Consultation */}
+                          <button
+                            type="button"
+                            onClick={() => handlePassToConsultation(apt)}
+                            className="min-h-[40px] px-3.5 py-1.5 bg-teal-700 hover:bg-teal-600 text-white font-bold text-xs rounded-xl shadow-md shadow-teal-700/20 flex items-center gap-1.5 transition-all active:scale-95 touch-manipulation cursor-pointer"
+                            title="Iniciar consulta médica SOAP"
+                          >
+                            <Stethoscope className="w-3.5 h-3.5" />
+                            <span>Atender</span>
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             );
