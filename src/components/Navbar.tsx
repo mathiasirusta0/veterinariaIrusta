@@ -44,6 +44,10 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleMobileMenu }) => {
     <header className="h-16 bg-white/95 backdrop-blur-md border-b border-slate-200/80 px-2 sm:px-6 flex items-center justify-between sticky top-0 z-30 shadow-xs transition-all w-full max-w-full">
       {/* Left: Mobile Menu Trigger & Sleek Global Search Bar */}
       <div className="flex items-center gap-1.5 sm:gap-3 flex-1 min-w-0 max-w-lg">
+        {/* Mobile & Tablet Compact Logo */}
+        <div className="hidden sm:flex md:hidden items-center gap-2 flex-shrink-0">
+          <img src="/logo-ranquel.png" alt="Ranquel" className="w-8 h-8 rounded-xl object-contain bg-white p-0.5 border border-slate-200 shadow-2xs" />
+        </div>
         {onToggleMobileMenu && (
           <button
             type="button"

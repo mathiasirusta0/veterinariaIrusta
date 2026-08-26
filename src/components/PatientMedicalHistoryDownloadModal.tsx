@@ -584,18 +584,25 @@ ${financialItems.map((it) => `• ${it.description} x${it.quantity} = ${formatCu
         <div className="flex-1 overflow-y-auto p-5 sm:p-8 space-y-6 text-slate-900 bg-white font-sans text-xs">
           {/* Institutional Letterhead */}
           <div className="border-b-2 border-teal-800 pb-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="text-xl font-serif font-black tracking-tight text-teal-900">
-                  CLÍNICA VETERINARIA RANQUEL
-                </span>
+            <div className="flex items-center gap-3.5">
+              <img
+                src="/logo-ranquel.png"
+                alt="Logo Veterinaria Ranquel"
+                className="w-14 h-14 rounded-2xl object-contain bg-white p-1 border border-teal-300 shadow-xs flex-shrink-0"
+              />
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xl font-serif font-black tracking-tight text-teal-900">
+                    CLÍNICA VETERINARIA RANQUEL
+                  </span>
+                </div>
+                <p className="text-xs text-teal-700 font-bold">
+                  Grandes y Pequeños Animales • Cuidados Críticos & Cirugía 24 Hs
+                </p>
+                <p className="text-[11px] text-slate-600 font-medium">
+                  Dirección Médica: <strong>Dr. Diego Iván Irusta</strong> — Matrícula Profesional: <strong>M.P. 502</strong>
+                </p>
               </div>
-              <p className="text-xs text-teal-700 font-bold">
-                Grandes y Pequeños Animales • Cuidados Críticos & Cirugía 24 Hs
-              </p>
-              <p className="text-[11px] text-slate-600 font-medium">
-                Dirección Médica: <strong>Dr. Diego Iván Irusta</strong> — Matrícula Profesional: <strong>M.P. 502</strong>
-              </p>
             </div>
             <div className="text-left sm:text-right text-[11px] text-slate-500 font-mono">
               <p className="font-black text-slate-900 uppercase">HISTORIA CLÍNICA OFICIAL</p>

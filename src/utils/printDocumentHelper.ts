@@ -176,6 +176,7 @@ export function printThermalTicket(data: PrintableReceiptData) {
       </head>
       <body>
         <div class="text-center">
+          <img src="/logo-ranquel.png" style="width: 42px; height: 42px; object-fit: contain; margin-bottom: 4px;" alt="Logo" /><br />
           <div class="title">VETERINARIA RANQUEL</div>
           <div class="subtitle">Centro Hospitalario Veterinario</div>
           <div class="subtitle">Río Cuarto, Córdoba • Tel: +54 9 2942 47-7136</div>
@@ -407,8 +408,10 @@ export function printA4Document(data: PrintableReceiptData) {
       </head>
       <body>
         <div class="header">
-          <div>
-            <div class="clinic-name">VETERINARIA RANQUEL</div>
+          <div style="display: flex; align-items: center; gap: 14px;">
+            <img src="/logo-ranquel.png" style="width: 52px; height: 52px; object-fit: contain; border-radius: 10px; border: 1px solid #cbd5e1; background: #fff; padding: 2px;" alt="Logo Ranquel" />
+            <div>
+              <div class="clinic-name">VETERINARIA RANQUEL</div>
             <div class="clinic-sub">Centro Hospitalario Veterinario • Guardia 24 Horas</div>
             <div class="clinic-sub">Río Cuarto, Córdoba • Tel/WhatsApp: +54 9 2942 47-7136</div>
             <div class="clinic-sub">Dirección Médica: Dr. Diego Iván Irusta • Matrícula Profesional 502</div>
@@ -1237,7 +1240,7 @@ export function printA4MedicalHistory(data: PrintableMedicalHistoryData) {
       <body>
         <div class="header">
           <div>
-            <div class="clinic-name">CLÍNICA VETERINARIA RANQUEL</div>
+            <div style="display: flex; align-items: center; gap: 12px;"><img src="/logo-ranquel.png" style="width: 50px; height: 50px; object-fit: contain; border-radius: 10px; border: 1px solid #cbd5e1; background: #fff; padding: 2px; margin-right: 12px; vertical-align: middle;" alt="Logo Ranquel" /><div><div class="clinic-name">CLÍNICA VETERINARIA RANQUEL</div>
             <div class="clinic-sub">Grandes y Pequeños Animales • Cuidados Críticos & Cirugía 24 Hs</div>
             <div class="clinic-sub">Río Cuarto, Córdoba • Tel/WhatsApp: +54 9 2942 47-7136</div>
             <div class="clinic-sub">Dirección Médica: <strong>${data.doctor.name}</strong> — Matrícula Profesional: <strong>${data.doctor.license}</strong></div>
@@ -1949,7 +1952,7 @@ export function printDailyCashClose(data: PrintableDailyCashCloseData) {
       <body>
         <div class="header">
           <div>
-            <div class="logo-title">CLÍNICA VETERINARIA RANQUEL</div>
+            <div style="display: flex; align-items: center; gap: 12px;"><img src="/logo-ranquel.png" style="width: 50px; height: 50px; object-fit: contain; border-radius: 10px; border: 1px solid #cbd5e1; background: #fff; padding: 2px; margin-right: 12px; vertical-align: middle;" alt="Logo Ranquel" /><div><div class="logo-title">CLÍNICA VETERINARIA RANQUEL</div>
             <div class="logo-sub">Dirección Médica: Dr. Diego Iván Irusta • M.P. 502</div>
             <div class="logo-sub">${data.branchName} · ${data.branchAddress} · Río Cuarto, Cba.</div>
           </div>
@@ -2234,7 +2237,7 @@ export function printA4Prescription(data: PrintablePrescriptionData) {
       <body>
         <div class="header">
           <div>
-            <div class="clinic-name">CLÍNICA VETERINARIA RANQUEL</div>
+            <div style="display: flex; align-items: center; gap: 12px;"><img src="/logo-ranquel.png" style="width: 50px; height: 50px; object-fit: contain; border-radius: 10px; border: 1px solid #cbd5e1; background: #fff; padding: 2px; margin-right: 12px; vertical-align: middle;" alt="Logo Ranquel" /><div><div class="clinic-name">CLÍNICA VETERINARIA RANQUEL</div>
             <div class="clinic-sub">Dirección Médica: ${data.doctor.name} · ${data.doctor.license}</div>
             <div class="clinic-sub">${data.branch.name} · ${data.branch.address} · Tel: ${data.branch.phone} · Río Cuarto, Córdoba</div>
           </div>
@@ -2496,7 +2499,7 @@ export function printA4LabReport(data: PrintableLabReportData) {
       <body>
         <div class="header">
           <div>
-            <div class="clinic-name">CLÍNICA VETERINARIA RANQUEL</div>
+            <div style="display: flex; align-items: center; gap: 12px;"><img src="/logo-ranquel.png" style="width: 50px; height: 50px; object-fit: contain; border-radius: 10px; border: 1px solid #cbd5e1; background: #fff; padding: 2px; margin-right: 12px; vertical-align: middle;" alt="Logo Ranquel" /><div><div class="clinic-name">CLÍNICA VETERINARIA RANQUEL</div>
             <div class="clinic-sub">Dirección Médica: ${data.doctor.name} · ${data.doctor.license}</div>
             <div class="clinic-sub">${data.branch.name} · ${data.branch.address} · Tel: ${data.branch.phone} · Río Cuarto, Córdoba</div>
           </div>
@@ -2751,7 +2754,7 @@ export function printA4ImagingReport(data: PrintableImagingReportData) {
       <body>
         <div class="header">
           <div>
-            <div class="clinic-name">CLÍNICA VETERINARIA RANQUEL</div>
+            <div style="display: flex; align-items: center; gap: 12px;"><img src="/logo-ranquel.png" style="width: 50px; height: 50px; object-fit: contain; border-radius: 10px; border: 1px solid #cbd5e1; background: #fff; padding: 2px; margin-right: 12px; vertical-align: middle;" alt="Logo Ranquel" /><div><div class="clinic-name">CLÍNICA VETERINARIA RANQUEL</div>
             <div class="clinic-sub">Dirección Médica: ${data.doctor.name} · ${data.doctor.license}</div>
             <div class="clinic-sub">${data.branch.name} · ${data.branch.address} · Tel: ${data.branch.phone} · Río Cuarto, Córdoba</div>
           </div>
@@ -3001,7 +3004,7 @@ export function printA4VaccineCertificate(data: PrintableVaccineCertificateData)
       <body>
         <div class="header">
           <div>
-            <div class="clinic-name">CLÍNICA VETERINARIA RANQUEL</div>
+            <div style="display: flex; align-items: center; gap: 12px;"><img src="/logo-ranquel.png" style="width: 50px; height: 50px; object-fit: contain; border-radius: 10px; border: 1px solid #cbd5e1; background: #fff; padding: 2px; margin-right: 12px; vertical-align: middle;" alt="Logo Ranquel" /><div><div class="clinic-name">CLÍNICA VETERINARIA RANQUEL</div>
             <div class="clinic-sub">Dirección Médica: ${data.doctor.name} · ${data.doctor.license}</div>
             <div class="clinic-sub">${data.branch.name} · ${data.branch.address} · Tel: ${data.branch.phone} · Río Cuarto, Córdoba</div>
           </div>

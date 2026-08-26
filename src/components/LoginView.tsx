@@ -192,8 +192,8 @@ export const LoginView: React.FC<LoginViewProps> = ({ onBackToLanding }) => {
           )}
 
           <div className="space-y-2">
-            <div className="inline-flex items-center gap-2 bg-[#E3DEC3] text-[#6B4D56] px-3 py-1 rounded-2xl text-xs font-bold">
-              <Sparkles className="w-3.5 h-3.5 text-[#94465B]" />
+            <div className="inline-flex items-center gap-2.5 bg-white text-[#7E3A4D] px-3.5 py-1.5 rounded-full text-xs font-bold border border-[#EEDCE2] shadow-xs">
+              <img src="/logo-ranquel.png" alt="Logo Ranquel" className="w-6 h-6 rounded-full object-contain" />
               <span>Veterinaria Ranquel • Acceso Restringido</span>
             </div>
 
@@ -215,9 +215,12 @@ export const LoginView: React.FC<LoginViewProps> = ({ onBackToLanding }) => {
               className="w-full h-56 object-cover"
             />
             <div className="p-4 bg-white flex items-center justify-between">
-              <div>
-                <h4 className="text-sm font-bold font-serif text-[#162217]">VET SYSTEM • Gestión Médica</h4>
-                <p className="text-xs text-[#6B4D56]">Río Cuarto • Buenos Aires</p>
+              <div className="flex items-center gap-3">
+                <img src="/logo-ranquel.png" alt="Logo Ranquel" className="w-10 h-10 rounded-xl object-contain bg-white p-0.5 border border-[#EEDCE2] shadow-2xs" />
+                <div>
+                  <h4 className="text-sm font-bold font-serif text-[#162217]">Veterinaria Ranquel</h4>
+                  <p className="text-xs text-[#6B4D56]">Río Cuarto • Buenos Aires</p>
+                </div>
               </div>
               <span className="text-xs font-black bg-amber-100 text-amber-900 px-2.5 py-1 rounded-full border border-amber-200">
                 Guardia 24hs
@@ -240,13 +243,20 @@ export const LoginView: React.FC<LoginViewProps> = ({ onBackToLanding }) => {
       <div className="lg:w-1/2 p-6 sm:p-10 lg:p-14 flex items-center justify-center bg-[#FDF8F9]">
         <div className="w-full max-w-md space-y-6">
           <div className="bg-white border border-[#E8E3D9] rounded-3xl p-6 sm:p-8 shadow-xl space-y-5">
-            <div className="border-b border-[#F3EFEA] pb-4">
-              <h2 className="text-2xl font-black font-serif text-[#162217]">
-                Ingreso al Sistema
-              </h2>
-              <p className="text-xs text-[#6B4D56] mt-1 font-medium">
-                Ingresá tus credenciales autorizadas para acceder a la historia clínica y gestión hospitalaria.
-              </p>
+            <div className="border-b border-[#F3EFEA] pb-4 flex items-center gap-3.5">
+              <img
+                src="/logo-ranquel.png"
+                alt="Logo Veterinaria Ranquel"
+                className="w-14 h-14 rounded-2xl object-contain bg-white p-1 shadow-md border border-[#EEDCE2] flex-shrink-0"
+              />
+              <div>
+                <h2 className="text-2xl font-black font-serif text-[#162217] leading-tight">
+                  Ingreso al Sistema
+                </h2>
+                <p className="text-xs text-[#6B4D56] mt-0.5 font-medium">
+                  Gestión Hospitalaria & Clínica Veterinaria Ranquel
+                </p>
+              </div>
             </div>
 
             {errorMsg && (

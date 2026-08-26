@@ -107,9 +107,11 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onOpenLogi
       <header className="sticky top-0 z-40 bg-[#FDF8F9]/95 backdrop-blur-md border-b border-[#EEDCE2] px-4 sm:px-8 py-3.5 transition-all shadow-xs">
         <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
           <div className="flex items-center gap-3.5">
-            <div className="w-11 h-11 rounded-2xl bg-[#7E3A4D] text-white flex items-center justify-center text-xl shadow-md border-2 border-[#5C2433]">
-              🐴
-            </div>
+            <img
+              src="/logo-ranquel.png"
+              alt="Logo Veterinaria Ranquel"
+              className="w-12 h-12 rounded-2xl object-contain bg-white p-1 shadow-md border-2 border-[#EEDCE2]"
+            />
             <div>
               <span className="text-[10px] tracking-[0.22em] uppercase font-black text-[#94465B] block">
                 Grandes y Pequeños Animales
@@ -159,8 +161,8 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onOpenLogi
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
           {/* Main Copy */}
           <div className="lg:col-span-7 space-y-6">
-            <div className="inline-flex items-center gap-2 bg-[#F9F0F3] text-[#7E3A4D] px-4 py-1.5 rounded-full text-xs font-bold border border-[#EEDCE2]">
-              <Sparkles className="w-3.5 h-3.5 text-[#94465B]" />
+            <div className="inline-flex items-center gap-2.5 bg-white text-[#7E3A4D] px-3.5 py-1.5 rounded-full text-xs font-bold border border-[#EEDCE2] shadow-xs">
+              <img src="/logo-ranquel.png" alt="Logo Ranquel" className="w-6 h-6 rounded-full object-contain" />
               <span>Centro Médico Veterinario de Excelencia • Río Cuarto & CABA</span>
             </div>
 
@@ -500,8 +502,12 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onOpenLogi
       <footer className="bg-[#2C161D] text-[#FDF8F9] py-10 px-4 sm:px-8 border-t border-[#1E0D13]">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-6">
           <div className="space-y-1 text-center sm:text-left">
-            <div className="flex items-center justify-center sm:justify-start gap-2">
-              <span className="text-xl">🐴</span>
+            <div className="flex items-center justify-center sm:justify-start gap-3">
+              <img
+                src="/logo-ranquel.png"
+                alt="Logo Veterinaria Ranquel"
+                className="w-11 h-11 rounded-2xl object-contain bg-white p-1 shadow-md border border-white/20"
+              />
               <span className="text-base font-serif font-bold text-white">Veterinaria Ranquel</span>
             </div>
             <p className="text-xs text-rose-200/80">
@@ -537,9 +543,11 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onOpenLogi
           <div className="bg-white rounded-3xl p-5 border border-[#EEDCE2] shadow-2xl w-80 sm:w-96 space-y-3.5 animate-scale-up border-t-4 border-t-emerald-600">
             <div className="flex items-start justify-between border-b border-rose-100 pb-3">
               <div className="flex items-center gap-2.5">
-                <div className="w-10 h-10 rounded-full bg-emerald-600 text-white flex items-center justify-center text-xl shadow-xs">
-                  💬
-                </div>
+                <img
+                  src="/logo-ranquel.png"
+                  alt="Logo Ranquel"
+                  className="w-10 h-10 rounded-xl object-contain bg-white p-0.5 shadow-xs border border-emerald-300"
+                />
                 <div>
                   <h4 className="text-sm font-black text-[#26141A]">Veterinaria Ranquel</h4>
                   <p className="text-[11px] text-emerald-700 font-bold flex items-center gap-1">

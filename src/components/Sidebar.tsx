@@ -93,9 +93,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
         {/* Header / Brand Logo */}
         <div className="p-5 border-b border-slate-800 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-teal-600 flex items-center justify-center font-black text-white text-xl shadow-lg shadow-teal-500/20">
-              🐾
-            </div>
+            <img
+              src="/logo-ranquel.png"
+              alt="Veterinaria Ranquel"
+              className="w-11 h-11 rounded-2xl object-contain bg-white p-0.5 shadow-lg border border-slate-700 flex-shrink-0"
+            />
             <div>
               <h1 className="font-black text-white text-base tracking-tight leading-none">
                 VET SYSTEM
