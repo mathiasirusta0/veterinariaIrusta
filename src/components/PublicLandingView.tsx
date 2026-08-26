@@ -27,6 +27,7 @@ import {
   Pill,
   Star,
   HelpCircle,
+  User,
 } from 'lucide-react';
 import { triggerHaptic } from '../utils/haptics';
 
@@ -465,34 +466,121 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({ onOpenLogi
       </section>
 
       {/* SEDES & CONTACTO */}
-      <section id="sedes" className="py-14 px-4 sm:px-8 max-w-7xl mx-auto space-y-6">
+      <section id="sedes" className="py-16 px-4 sm:px-8 max-w-7xl mx-auto space-y-8 scroll-mt-20">
+        <div className="text-center space-y-2 max-w-2xl mx-auto">
+          <span className="text-[11px] font-bold text-[#7E3A4D] bg-[#F7EBEF] px-3 py-1 rounded-full uppercase tracking-wider border border-[#EEDCE2]">
+            🏥 Red Hospitalaria & Sedes Oficiales
+          </span>
+          <h2 className="text-2xl sm:text-3xl font-serif font-bold text-[#26141A]">
+            Nuestras Sedes & Centros de Atención
+          </h2>
+          <p className="text-xs sm:text-sm text-[#6B4D56]">
+            Atención clínica especializada, internación continua, cirugía y guardias médicas en Río Cuarto (Córdoba) y red de atención veterinaria.
+          </p>
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="bg-white rounded-3xl p-6 border border-[#EEDCE2] shadow-xs space-y-3">
-            <h3 className="text-base font-serif font-bold text-[#26141A]">Sede Matriz Río Cuarto (Córdoba)</h3>
-            <p className="text-xs text-[#6B4D56]">Atención médica a campo, boxes de internación y clínica general.</p>
-            <div className="space-y-1.5 text-xs text-[#5A3F47] pt-2 border-t border-[#F9F0F3]">
-              <div className="flex items-center gap-2"><MapPin className="w-3.5 h-3.5 text-[#7E3A4D]" /> <span>Río Cuarto, Córdoba (CP 5800)</span></div>
-              <div className="flex items-center gap-2">
-                <MessageCircle className="w-3.5 h-3.5 text-emerald-600" />
-                <a href={getWhatsAppLink(WA_TURNO_MSG)} target="_blank" rel="noopener noreferrer" className="text-emerald-800 font-bold hover:underline">
-                  WhatsApp Central: {WHATSAPP_DISPLAY}
-                </a>
+          {/* Sede Matriz Río Cuarto */}
+          <div className="bg-white rounded-3xl p-6 sm:p-8 border border-[#EEDCE2] shadow-sm space-y-4 hover:shadow-md transition-shadow relative overflow-hidden flex flex-col justify-between">
+            <div className="absolute top-0 right-0 w-24 h-24 bg-[#FDF0F4] rounded-bl-full -z-0 pointer-events-none" />
+            <div className="space-y-3 z-10">
+              <div className="flex items-center gap-3">
+                <img
+                  src="/logo-ranquel.png"
+                  alt="Logo Ranquel"
+                  className="w-12 h-12 rounded-2xl object-contain bg-white p-1 border border-[#EEDCE2] shadow-xs"
+                />
+                <div>
+                  <span className="text-[10px] font-bold text-teal-800 bg-teal-50 px-2 py-0.5 rounded-md border border-teal-200">
+                    SEDE MATRIZ & DIRECCIÓN MÉDICA
+                  </span>
+                  <h3 className="text-lg font-serif font-bold text-[#26141A] mt-0.5">
+                    Clínica Veterinaria Ranquel — Río Cuarto
+                  </h3>
+                </div>
               </div>
+
+              <p className="text-xs text-[#6B4D56] leading-relaxed">
+                Consultas clínicas para pequeños y grandes animales, medicina preventiva, internación en boxes climatizados, cirugías programadas y atención a campo.
+              </p>
+
+              <div className="space-y-2 text-xs text-[#5A3F47] pt-3 border-t border-[#F9F0F3]">
+                <div className="flex items-center gap-2.5">
+                  <MapPin className="w-4 h-4 text-[#7E3A4D] flex-shrink-0" />
+                  <span>Río Cuarto, Provincia de Córdoba (CP 5800)</span>
+                </div>
+                <div className="flex items-center gap-2.5">
+                  <Clock className="w-4 h-4 text-[#7E3A4D] flex-shrink-0" />
+                  <span>Lunes a Sábado · Guardias Médicas & Urgencias Activas</span>
+                </div>
+                <div className="flex items-center gap-2.5">
+                  <User className="w-4 h-4 text-[#7E3A4D] flex-shrink-0" />
+                  <span className="font-semibold text-slate-800">Dirección Médica: Dr. Diego Iván Irusta (M.P. 502)</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="pt-4 z-10">
+              <a
+                href={getWhatsAppLink(WA_TURNO_MSG)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-2xl flex items-center justify-center gap-2 shadow-md shadow-emerald-600/20 active:scale-95 transition-all"
+              >
+                <MessageCircle className="w-4 h-4" />
+                <span>Solicitar Turno en Río Cuarto ({WHATSAPP_DISPLAY})</span>
+              </a>
             </div>
           </div>
 
-          <div className="bg-white rounded-3xl p-6 border border-[#EEDCE2] shadow-xs space-y-3">
-            <h3 className="text-base font-serif font-bold text-[#26141A]">Hospital Central 24hs (Buenos Aires)</h3>
-            <p className="text-xs text-[#6B4D56]">Centro de alta complejidad, quirófano de urgencias y UCI continua.</p>
-            <div className="space-y-1.5 text-xs text-[#5A3F47] pt-2 border-t border-[#F9F0F3]">
-              <div className="flex items-center gap-2"><MapPin className="w-3.5 h-3.5 text-[#7E3A4D]" /> <span>Av. Corrientes 4550, CABA / Av. Maipú 2140, Olivos</span></div>
-              <div className="flex items-center gap-2"><Clock className="w-3.5 h-3.5 text-[#7E3A4D]" /> <span>Guardia Médica 24 Horas Activa</span></div>
-              <div className="flex items-center gap-2">
-                <Phone className="w-3.5 h-3.5 text-emerald-600" />
-                <a href={getWhatsAppLink(WA_GUARDIA_MSG)} target="_blank" rel="noopener noreferrer" className="text-emerald-800 font-bold hover:underline">
-                  Línea de Urgencias: {WHATSAPP_DISPLAY}
-                </a>
+          {/* Sede Hospital Central & Urgencias */}
+          <div className="bg-white rounded-3xl p-6 sm:p-8 border border-[#EEDCE2] shadow-sm space-y-4 hover:shadow-md transition-shadow relative overflow-hidden flex flex-col justify-between">
+            <div className="absolute top-0 right-0 w-24 h-24 bg-rose-50 rounded-bl-full -z-0 pointer-events-none" />
+            <div className="space-y-3 z-10">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-2xl bg-rose-100 border border-rose-300 text-rose-800 flex items-center justify-center font-bold text-xl shadow-xs">
+                  🚨
+                </div>
+                <div>
+                  <span className="text-[10px] font-bold text-red-800 bg-red-50 px-2 py-0.5 rounded-md border border-red-200">
+                    CENTRO HOSPITALARIO 24HS
+                  </span>
+                  <h3 className="text-lg font-serif font-bold text-[#26141A] mt-0.5">
+                    Hospital de Urgencias & Cuidados Críticos UCI
+                  </h3>
+                </div>
               </div>
+
+              <p className="text-xs text-[#6B4D56] leading-relaxed">
+                Terapia intensiva veterinaria, monitoreo hemodinámico multiparamétrico 24hs, quirófano de trauma y diagnóstico por imágenes de alta resolución.
+              </p>
+
+              <div className="space-y-2 text-xs text-[#5A3F47] pt-3 border-t border-[#F9F0F3]">
+                <div className="flex items-center gap-2.5">
+                  <MapPin className="w-4 h-4 text-[#7E3A4D] flex-shrink-0" />
+                  <span>Av. Corrientes 4550, CABA · Derivación Hospitalaria</span>
+                </div>
+                <div className="flex items-center gap-2.5">
+                  <Clock className="w-4 h-4 text-red-600 flex-shrink-0" />
+                  <span className="font-bold text-red-700">Guardia Activa 24 Horas / 365 Días</span>
+                </div>
+                <div className="flex items-center gap-2.5">
+                  <Phone className="w-4 h-4 text-[#7E3A4D] flex-shrink-0" />
+                  <span>Línea Telefónica Directa de Emergencias</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="pt-4 z-10">
+              <a
+                href={getWhatsAppLink(WA_GUARDIA_MSG)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full py-2.5 bg-red-600 hover:bg-red-500 text-white text-xs font-bold rounded-2xl flex items-center justify-center gap-2 shadow-md shadow-red-600/20 active:scale-95 transition-all"
+              >
+                <Phone className="w-4 h-4" />
+                <span>Contactar Guardia Médica Urgente</span>
+              </a>
             </div>
           </div>
         </div>
