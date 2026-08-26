@@ -25,34 +25,54 @@ import {
   Loader2,
 } from 'lucide-react';
 
+// Helper para carga perezosa resiliente a nuevos despliegues en producción
+function lazyRetry<T extends React.ComponentType<any>>(componentImport: () => Promise<{ default: T }>): React.LazyExoticComponent<T> {
+  return React.lazy(async () => {
+    const isReloaded = sessionStorage.getItem('vetsys_chunk_reload');
+    try {
+      const module = await componentImport();
+      sessionStorage.removeItem('vetsys_chunk_reload');
+      return module;
+    } catch (error: any) {
+      const msg = error?.message || '';
+      if (!isReloaded && (msg.includes('dynamically imported module') || msg.includes('Failed to fetch') || msg.includes('Loading chunk'))) {
+        sessionStorage.setItem('vetsys_chunk_reload', 'true');
+        window.location.reload();
+        return new Promise<{ default: T }>(() => {});
+      }
+      throw error;
+    }
+  });
+}
+
 // Modals Lazy Loaded
-const ClinicalCalculatorsModal = React.lazy(() => import('./components/ClinicalCalculatorsModal').then((m) => ({ default: m.ClinicalCalculatorsModal })));
-const MedicalPrintModal = React.lazy(() => import('./components/MedicalPrintModal').then((m) => ({ default: m.MedicalPrintModal })));
-const DentalChartModal = React.lazy(() => import('./components/DentalChartModal').then((m) => ({ default: m.DentalChartModal })));
-const AnatomicalBodyMapModal = React.lazy(() => import('./components/AnatomicalBodyMapModal').then((m) => ({ default: m.AnatomicalBodyMapModal })));
-const AnesthesiaChartModal = React.lazy(() => import('./components/AnesthesiaChartModal').then((m) => ({ default: m.AnesthesiaChartModal })));
-const WhatsAppHubModal = React.lazy(() => import('./components/WhatsAppHubModal').then((m) => ({ default: m.WhatsAppHubModal })));
-const ImagingAnnotatorModal = React.lazy(() => import('./components/ImagingAnnotatorModal').then((m) => ({ default: m.ImagingAnnotatorModal })));
+const ClinicalCalculatorsModal = lazyRetry(() => import('./components/ClinicalCalculatorsModal').then((m) => ({ default: m.ClinicalCalculatorsModal })));
+const MedicalPrintModal = lazyRetry(() => import('./components/MedicalPrintModal').then((m) => ({ default: m.MedicalPrintModal })));
+const DentalChartModal = lazyRetry(() => import('./components/DentalChartModal').then((m) => ({ default: m.DentalChartModal })));
+const AnatomicalBodyMapModal = lazyRetry(() => import('./components/AnatomicalBodyMapModal').then((m) => ({ default: m.AnatomicalBodyMapModal })));
+const AnesthesiaChartModal = lazyRetry(() => import('./components/AnesthesiaChartModal').then((m) => ({ default: m.AnesthesiaChartModal })));
+const WhatsAppHubModal = lazyRetry(() => import('./components/WhatsAppHubModal').then((m) => ({ default: m.WhatsAppHubModal })));
+const ImagingAnnotatorModal = lazyRetry(() => import('./components/ImagingAnnotatorModal').then((m) => ({ default: m.ImagingAnnotatorModal })));
 
 // Views Lazy Loaded
-const DashboardView = React.lazy(() => import('./components/DashboardView').then((m) => ({ default: m.DashboardView })));
-const PatientsListView = React.lazy(() => import('./components/PatientsListView').then((m) => ({ default: m.PatientsListView })));
-const Patient360View = React.lazy(() => import('./components/Patient360View').then((m) => ({ default: m.Patient360View })));
-const OwnersView = React.lazy(() => import('./components/OwnersView').then((m) => ({ default: m.OwnersView })));
-const AppointmentsView = React.lazy(() => import('./components/AppointmentsView').then((m) => ({ default: m.AppointmentsView })));
-const VitalSignsView = React.lazy(() => import('./components/VitalSignsView').then((m) => ({ default: m.VitalSignsView })));
-const SurgeriesView = React.lazy(() => import('./components/SurgeriesView').then((m) => ({ default: m.SurgeriesView })));
-const LaboratoryView = React.lazy(() => import('./components/LaboratoryView').then((m) => ({ default: m.LaboratoryView })));
-const ImagingView = React.lazy(() => import('./components/ImagingView').then((m) => ({ default: m.ImagingView })));
-const VaccinationView = React.lazy(() => import('./components/VaccinationView').then((m) => ({ default: m.VaccinationView })));
-const InventoryView = React.lazy(() => import('./components/InventoryView').then((m) => ({ default: m.InventoryView })));
-const FinancesUnifiedView = React.lazy(() => import('./components/FinancesUnifiedView').then((m) => ({ default: m.FinancesUnifiedView })));
-const LoginView = React.lazy(() => import('./components/LoginView').then((m) => ({ default: m.LoginView })));
-const PublicLandingView = React.lazy(() => import('./components/PublicLandingView').then((m) => ({ default: m.PublicLandingView })));
-const DocumentsView = React.lazy(() => import('./components/DocumentsView').then((m) => ({ default: m.DocumentsView })));
-const SettingsAndUsersView = React.lazy(() => import('./components/SettingsAndUsersView').then((m) => ({ default: m.SettingsAndUsersView })));
-const PrescriptionsView = React.lazy(() => import('./components/PrescriptionsView').then((m) => ({ default: m.PrescriptionsView })));
-const SystemQaTestCenterView = React.lazy(() => import('./components/SystemQaTestCenterView').then((m) => ({ default: m.SystemQaTestCenterView })));
+const DashboardView = lazyRetry(() => import('./components/DashboardView').then((m) => ({ default: m.DashboardView })));
+const PatientsListView = lazyRetry(() => import('./components/PatientsListView').then((m) => ({ default: m.PatientsListView })));
+const Patient360View = lazyRetry(() => import('./components/Patient360View').then((m) => ({ default: m.Patient360View })));
+const OwnersView = lazyRetry(() => import('./components/OwnersView').then((m) => ({ default: m.OwnersView })));
+const AppointmentsView = lazyRetry(() => import('./components/AppointmentsView').then((m) => ({ default: m.AppointmentsView })));
+const VitalSignsView = lazyRetry(() => import('./components/VitalSignsView').then((m) => ({ default: m.VitalSignsView })));
+const SurgeriesView = lazyRetry(() => import('./components/SurgeriesView').then((m) => ({ default: m.SurgeriesView })));
+const LaboratoryView = lazyRetry(() => import('./components/LaboratoryView').then((m) => ({ default: m.LaboratoryView })));
+const ImagingView = lazyRetry(() => import('./components/ImagingView').then((m) => ({ default: m.ImagingView })));
+const VaccinationView = lazyRetry(() => import('./components/VaccinationView').then((m) => ({ default: m.VaccinationView })));
+const InventoryView = lazyRetry(() => import('./components/InventoryView').then((m) => ({ default: m.InventoryView })));
+const FinancesUnifiedView = lazyRetry(() => import('./components/FinancesUnifiedView').then((m) => ({ default: m.FinancesUnifiedView })));
+const LoginView = lazyRetry(() => import('./components/LoginView').then((m) => ({ default: m.LoginView })));
+const PublicLandingView = lazyRetry(() => import('./components/PublicLandingView').then((m) => ({ default: m.PublicLandingView })));
+const DocumentsView = lazyRetry(() => import('./components/DocumentsView').then((m) => ({ default: m.DocumentsView })));
+const SettingsAndUsersView = lazyRetry(() => import('./components/SettingsAndUsersView').then((m) => ({ default: m.SettingsAndUsersView })));
+const PrescriptionsView = lazyRetry(() => import('./components/PrescriptionsView').then((m) => ({ default: m.PrescriptionsView })));
+const SystemQaTestCenterView = lazyRetry(() => import('./components/SystemQaTestCenterView').then((m) => ({ default: m.SystemQaTestCenterView })));
 
 // Loading Component
 const ViewLoadingFallback: React.FC = () => (

@@ -1,3 +1,12 @@
+// Manejo automático de actualización de chunks tras nuevos despliegues en producción
+if (typeof window !== 'undefined') {
+  window.addEventListener('vite:preloadError', (event) => {
+    event.preventDefault();
+    console.warn('[VET SYSTEM] Nueva versión detectada en el servidor. Actualizando aplicación...');
+    window.location.reload();
+  });
+}
+
 import React, { ReactNode, StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App.tsx';

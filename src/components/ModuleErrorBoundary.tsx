@@ -32,6 +32,15 @@ export class ModuleErrorBoundary extends React.Component<Props, State> {
   }
 
   handleRetry = () => {
+    const errorMsg = this.state.error?.message || '';
+    if (
+      errorMsg.includes('dynamically imported module') ||
+      errorMsg.includes('Failed to fetch') ||
+      errorMsg.includes('Loading chunk')
+    ) {
+      window.location.reload();
+      return;
+    }
     (this as any).setState({ hasError: false, error: null });
   };
 
