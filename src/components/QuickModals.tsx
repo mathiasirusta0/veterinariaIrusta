@@ -57,7 +57,7 @@ import {
 } from 'lucide-react';
 import { useVet } from '../context/VetContext';
 import { hasQuickActionPermission } from '../utils/rbac';
-import { Species, Sex } from '../types';
+import { Species, Sex, Product } from '../types';
 
 export const QuickModals: React.FC = () => {
   const {
@@ -718,13 +718,26 @@ export const QuickModals: React.FC = () => {
 
   const handleCreateProduct = (e: React.FormEvent) => {
     e.preventDefault();
+    const catMap: Record<string, Product['category']> = {
+      FARMACO: 'MEDICAMENTO',
+      MEDICAMENTO: 'MEDICAMENTO',
+      INSUMO_QUIRURGICO: 'INSUMO_QUIRURGICO',
+      DESCARTABLE: 'DESCARTABLE',
+      VACUNA: 'VACUNA',
+      ALIMENTO: 'ALIMENTO',
+      PSICOTROPICO: 'PSICOTROPICO',
+    };
+    const validCat: Product['category'] = catMap[prodCategory] || 'MEDICAMENTO';
     addProduct({
       code: prodCode || `MED-${Math.floor(Math.random() * 9000 + 1000)}`,
       commercialName: prodName,
       activeIngredient: prodIngr || prodName,
       concentration: 'Estándar',
-      category: prodCategory,
-      unit: 'unid',
+      category: validCat,
+      presentation: 'Unidad',
+      laboratory: 'Laboratorio Veterinario',
+      supplier: 'Droguería Central',
+      location: 'Estante Principal',
       currentStock: Number(prodStock),
       minStock: 5,
       costPrice: Number(prodPrice) * 0.6,
@@ -2751,10 +2764,12 @@ export const QuickModals: React.FC = () => {
                   onChange={(e) => setProdCategory(e.target.value as any)}
                   className="w-full bg-slate-50 border border-slate-200 rounded-lg px-2 py-2 text-slate-900 font-semibold"
                 >
-                  <option value="FARMACO">Fármaco</option>
-                  <option value="VACUNA">Vacuna</option>
-                  <option value="DESCARTABLE">Descartable</option>
-                  <option value="ALIMENTO">Alimento</option>
+                  <option value="MEDICAMENTO">💊 Medicamento</option>
+                  <option value="INSUMO_QUIRURGICO">✂️ Insumo Quirúrgico</option>
+                  <option value="DESCARTABLE">📦 Descartable</option>
+                  <option value="VACUNA">💉 Vacuna</option>
+                  <option value="PSICOTROPICO">🔒 Psicotrópico</option>
+                  <option value="ALIMENTO">🥩 Alimento</option>
                 </select>
               </div>
 

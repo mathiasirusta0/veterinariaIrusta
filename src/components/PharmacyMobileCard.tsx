@@ -3,14 +3,11 @@ import {
   Package,
   AlertTriangle,
   Clock,
-  ArrowRight,
-  TrendingUp,
-  Layers,
-  CheckCircle2,
-  DollarSign,
   ShieldAlert,
   MapPin,
-  FileText,
+  Edit3,
+  Trash2,
+  TrendingUp,
 } from 'lucide-react';
 import { Product } from '../types';
 import { formatExpirationDate } from '../utils/formatters';
@@ -20,12 +17,14 @@ interface PharmacyMobileCardProps {
   product: Product;
   onAdjustStock: (product: Product) => void;
   onEditProduct?: (product: Product) => void;
+  onDeleteProduct?: (product: Product) => void;
 }
 
 export const PharmacyMobileCard: React.FC<PharmacyMobileCardProps> = ({
   product,
   onAdjustStock,
   onEditProduct,
+  onDeleteProduct,
 }) => {
   const isCritical = (product.currentStock ?? 0) <= (product.minStock ?? 0);
   const isOutOfStock = (product.currentStock ?? 0) <= 0;
@@ -53,16 +52,27 @@ export const PharmacyMobileCard: React.FC<PharmacyMobileCardProps> = ({
     }
   })();
 
-  const isControlled = product.isPsychotropic || product.isNarcotic || product.category === 'PSICOTROPICO' || product.category === 'ESTUPEFACIENTE';
+  const isControlled =
+    product.isPsychotropic ||
+    product.isNarcotic ||
+    product.category === 'PSICOTROPICO' ||
+    product.category === 'ESTUPEFACIENTE';
+
+  const marginPercent =
+    product.costPrice && product.costPrice > 0 && product.salePrice
+      ? Math.round(((product.salePrice - product.costPrice) / product.costPrice) * 100)
+      : null;
 
   return (
     <article
-      className={'bg-white border rounded-2xl p-4 shadow-xs space-y-3 transition-all w-full max-w-full ' +
+      className={
+        'bg-white border rounded-2xl p-4 shadow-xs space-y-3 transition-all w-full max-w-full ' +
         (isOutOfStock
           ? 'border-rose-300 ring-2 ring-rose-200/50'
           : isCritical
           ? 'border-amber-300 ring-2 ring-amber-200/40'
-          : 'border-slate-200/90 hover:border-teal-500/60')}
+          : 'border-slate-200/90 hover:border-teal-500/60')
+      }
       aria-label={'Medicamento ' + product.commercialName}
     >
       {/* 1. Header: Commercial Name, Active Ingredient & Category Badge */}
@@ -154,6 +164,11 @@ export const PharmacyMobileCard: React.FC<PharmacyMobileCardProps> = ({
           <span className="font-mono font-black text-sm text-slate-900 block">
             ${(product.salePrice ?? 0).toLocaleString('es-AR')}
           </span>
+          {marginPercent !== null && (
+            <span className="text-[9px] text-emerald-700 font-bold block">
+              Margen: +{marginPercent}%
+            </span>
+          )}
         </div>
 
         <div className="min-w-0 border-t border-slate-200/60 pt-1.5">
@@ -161,8 +176,10 @@ export const PharmacyMobileCard: React.FC<PharmacyMobileCardProps> = ({
             Stock Disponible:
           </span>
           <span
-            className={'font-mono font-black text-sm block ' +
-              (isCritical ? 'text-rose-700' : 'text-slate-900')}
+            className={
+              'font-mono font-black text-sm block ' +
+              (isCritical ? 'text-rose-700' : 'text-slate-900')
+            }
           >
             {product.currentStock ?? 0}{' '}
             <span className="text-[11px] font-medium text-slate-500">
@@ -182,29 +199,48 @@ export const PharmacyMobileCard: React.FC<PharmacyMobileCardProps> = ({
       </div>
 
       {/* 4. Action Buttons */}
-      <div className="pt-2 border-t border-slate-100 flex items-center justify-end gap-2">
-        {onEditProduct && (
+      <div className="pt-2 border-t border-slate-100 flex items-center justify-between gap-2">
+        <div>
+          {onDeleteProduct && (
+            <button
+              type="button"
+              onClick={() => {
+                triggerHaptic('medium');
+                onDeleteProduct(product);
+              }}
+              className="p-2 text-rose-500 hover:text-rose-700 hover:bg-rose-50 rounded-xl transition-colors"
+              title="Eliminar producto"
+            >
+              <Trash2 className="w-4 h-4" />
+            </button>
+          )}
+        </div>
+
+        <div className="flex items-center gap-2">
+          {onEditProduct && (
+            <button
+              type="button"
+              onClick={() => {
+                triggerHaptic('light');
+                onEditProduct(product);
+              }}
+              className="min-h-[38px] px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition-all flex items-center gap-1 cursor-pointer"
+            >
+              <Edit3 className="w-3.5 h-3.5" />
+              <span>Editar</span>
+            </button>
+          )}
           <button
             type="button"
             onClick={() => {
-              triggerHaptic('light');
-              onEditProduct(product);
+              triggerHaptic('medium');
+              onAdjustStock(product);
             }}
-            className="min-h-[38px] px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition-all"
+            className="min-h-[38px] px-4 py-1.5 bg-teal-700 hover:bg-teal-800 text-white font-bold text-xs rounded-xl shadow-xs transition-all active:scale-95 flex items-center gap-1 cursor-pointer"
           >
-            Editar
+            <span>Ajustar / Reponer</span>
           </button>
-        )}
-        <button
-          type="button"
-          onClick={() => {
-            triggerHaptic('medium');
-            onAdjustStock(product);
-          }}
-          className="min-h-[38px] px-4 py-1.5 bg-teal-600 hover:bg-teal-500 text-white font-bold text-xs rounded-xl shadow-sm transition-all active:scale-95 flex items-center gap-1"
-        >
-          <span>Ajustar / Reponer</span>
-        </button>
+        </div>
       </div>
     </article>
   );

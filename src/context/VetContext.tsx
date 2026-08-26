@@ -267,6 +267,7 @@ interface VetContextType {
   addProduct: (product: Omit<Product, 'id' | 'branchId'>) => void;
   updateProduct: (productId: string, updates: Partial<Product>) => void;
   updateProductStock: (productId: string, quantityChange: number, type: InventoryMovement['type'], reason: string) => void;
+  deleteProduct: (productId: string) => void;
 
   // Appointments & Triage
   addAppointment: (apt: Omit<Appointment, 'id' | 'branchId'>) => void;
@@ -2212,6 +2213,15 @@ export const VetProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     );
   };
 
+  const deleteProduct = (productId: string) => {
+    const prodToDelete = products.find((p) => p.id === productId);
+    setProducts((prev) => prev.filter((p) => p.id !== productId));
+    if (prodToDelete) {
+      logAudit('ELIMINAR_PRODUCTO', 'Product', productId, `Fármaco/Insumo ${prodToDelete.commercialName} eliminado del catálogo`);
+      showToast('info', 'Producto Eliminado', `"${prodToDelete.commercialName}" fue removido del inventario.`);
+    }
+  };
+
   // Appointments & Triage
   const addAppointment = (data: Omit<Appointment, 'id' | 'branchId'>) => {
     const newApt: Appointment = {
@@ -2659,6 +2669,7 @@ export const VetProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         addProduct,
         updateProduct,
         updateProductStock,
+        deleteProduct,
 
         addAppointment,
         updateAppointmentStatus,
