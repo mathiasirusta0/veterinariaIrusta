@@ -409,23 +409,23 @@ export const VetProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return null;
   });
 
-  // Main collections - 100% Supabase Single Source of Truth
-  const [owners, setOwners] = useState<Owner[]>(INITIAL_OWNERS);
-  const [patients, setPatients] = useState<Patient[]>(INITIAL_PATIENTS);
-  const [problems, setProblems] = useState<PatientProblem[]>(INITIAL_PROBLEMS);
-  const [vitals, setVitals] = useState<VitalSigns[]>(INITIAL_VITALS);
-  const [consultations, setConsultations] = useState<Consultation[]>(INITIAL_CONSULTATIONS);
-  const [hospitalizations, setHospitalizations] = useState<Hospitalization[]>(INITIAL_HOSPITALIZATIONS);
-  const [surgeries, setSurgeries] = useState<SurgeryRecord[]>(INITIAL_SURGERIES);
-  const [labOrders, setLabOrders] = useState<LaboratoryOrder[]>(INITIAL_LAB_ORDERS);
-  const [imagingStudies, setImagingStudies] = useState<ImagingStudy[]>(INITIAL_IMAGING);
-  const [vaccinations, setVaccinations] = useState<VaccinationRecord[]>(INITIAL_VACCINATIONS);
-  const [products, setProducts] = useState<Product[]>(INITIAL_PRODUCTS);
+  // Main collections - Dual Persistent: Supabase Cloud + Local Storage Safety Net
+  const [owners, setOwners] = useState<Owner[]>(() => sanitizeCleanArray('vetsys_owners', INITIAL_OWNERS));
+  const [patients, setPatients] = useState<Patient[]>(() => sanitizeCleanArray('vetsys_patients', INITIAL_PATIENTS));
+  const [problems, setProblems] = useState<PatientProblem[]>(() => sanitizeCleanArray('vetsys_problems', INITIAL_PROBLEMS));
+  const [vitals, setVitals] = useState<VitalSigns[]>(() => sanitizeCleanArray('vetsys_vitals', INITIAL_VITALS));
+  const [consultations, setConsultations] = useState<Consultation[]>(() => sanitizeCleanArray('vetsys_consultations', INITIAL_CONSULTATIONS));
+  const [hospitalizations, setHospitalizations] = useState<Hospitalization[]>(() => sanitizeCleanArray('vetsys_hospitalizations', INITIAL_HOSPITALIZATIONS));
+  const [surgeries, setSurgeries] = useState<SurgeryRecord[]>(() => sanitizeCleanArray('vetsys_surgeries', INITIAL_SURGERIES));
+  const [labOrders, setLabOrders] = useState<LaboratoryOrder[]>(() => sanitizeCleanArray('vetsys_lab_orders', INITIAL_LAB_ORDERS));
+  const [imagingStudies, setImagingStudies] = useState<ImagingStudy[]>(() => sanitizeCleanArray('vetsys_imaging', INITIAL_IMAGING));
+  const [vaccinations, setVaccinations] = useState<VaccinationRecord[]>(() => sanitizeCleanArray('vetsys_vaccinations', INITIAL_VACCINATIONS));
+  const [products, setProducts] = useState<Product[]>(() => sanitizeCleanArray('vetsys_products', INITIAL_PRODUCTS));
   const [inventoryMovements, setInventoryMovements] = useState<InventoryMovement[]>([]);
-  const [appointments, setAppointments] = useState<Appointment[]>(INITIAL_APPOINTMENTS);
-  const [triageList, setTriageList] = useState<TriageEntry[]>(INITIAL_TRIAGE);
-  const [invoices, setInvoices] = useState<Invoice[]>(INITIAL_INVOICES);
-  const [estimates, setEstimates] = useState<Estimate[]>(INITIAL_ESTIMATES);
+  const [appointments, setAppointments] = useState<Appointment[]>(() => sanitizeCleanArray('vetsys_appointments', INITIAL_APPOINTMENTS));
+  const [triageList, setTriageList] = useState<TriageEntry[]>(() => sanitizeCleanArray('vetsys_triage', INITIAL_TRIAGE));
+  const [invoices, setInvoices] = useState<Invoice[]>(() => sanitizeCleanArray('vetsys_invoices', INITIAL_INVOICES));
+  const [estimates, setEstimates] = useState<Estimate[]>(() => sanitizeCleanArray('vetsys_estimates', INITIAL_ESTIMATES));
   const [cashSession] = useState<CashRegisterSession>(INITIAL_CASH_SESSION);
   const [encounters, setEncounters] = useState<ClinicalEncounter[]>(INITIAL_ENCOUNTERS);
   const [activeEncounterId, setActiveEncounterId] = useState<string | null>(null);

@@ -1,6 +1,6 @@
 -- ==============================================================================
 -- VET SYSTEM — ESQUEMA RELACIONAL MAESTRO DE BASE DE DATOS (SUPABASE / POSTGRESQL)
--- Versión Corregida & Endurecida (Sin errores de columna branch_id)
+-- Versión con Persistencia Total y RLS Activo para la Clínica
 -- ==============================================================================
 
 -- 1. SUCURSALES HOSPITALARIAS (branches)
@@ -412,64 +412,7 @@ BEGIN
 END $$;
 
 -- ==============================================================================
--- ÍNDICES DE ALTO RENDIMIENTO
--- ==============================================================================
-CREATE INDEX IF NOT EXISTS idx_patients_owner_id ON public.patients(owner_id);
-CREATE INDEX IF NOT EXISTS idx_patients_branch_id ON public.patients(branch_id);
-CREATE INDEX IF NOT EXISTS idx_patients_status ON public.patients(status);
-CREATE INDEX IF NOT EXISTS idx_vitals_patient_id ON public.vital_signs(patient_id);
-CREATE INDEX IF NOT EXISTS idx_consultations_patient_id ON public.consultations(patient_id);
-CREATE INDEX IF NOT EXISTS idx_hospitalizations_patient_id ON public.hospitalizations(patient_id);
-CREATE INDEX IF NOT EXISTS idx_surgeries_patient_id ON public.surgeries(patient_id);
-CREATE INDEX IF NOT EXISTS idx_products_code ON public.products(code);
-CREATE INDEX IF NOT EXISTS idx_products_branch_id ON public.products(branch_id);
-CREATE INDEX IF NOT EXISTS idx_invoices_number ON public.invoices(invoice_number);
-CREATE INDEX IF NOT EXISTS idx_invoices_branch_id ON public.invoices(branch_id);
-CREATE INDEX IF NOT EXISTS idx_audit_timestamp ON public.audit_logs(timestamp DESC);
-
--- ==============================================================================
--- FUNCIONES HELPER DE SEGURIDAD
--- ==============================================================================
-CREATE OR REPLACE FUNCTION public.get_auth_role()
-RETURNS TEXT
-LANGUAGE sql
-STABLE
-SECURITY DEFINER
-SET search_path = public
-AS $$
-  SELECT COALESCE(
-    (SELECT role FROM public.profiles WHERE id = auth.uid()),
-    (SELECT role FROM public.users WHERE id = auth.uid()::text),
-    'ANON'
-  );
-$$;
-
-CREATE OR REPLACE FUNCTION public.get_auth_branch()
-RETURNS TEXT
-LANGUAGE sql
-STABLE
-SECURITY DEFINER
-SET search_path = public
-AS $$
-  SELECT COALESCE(
-    (SELECT branch_id FROM public.profiles WHERE id = auth.uid()),
-    (SELECT branch_id FROM public.users WHERE id = auth.uid()::text),
-    'branch-1'
-  );
-$$;
-
-CREATE OR REPLACE FUNCTION public.is_superadmin_or_director()
-RETURNS BOOLEAN
-LANGUAGE sql
-STABLE
-SECURITY DEFINER
-SET search_path = public
-AS $$
-  SELECT public.get_auth_role() IN ('SUPERADMIN', 'DIRECCION_MEDICA', 'ADMINISTRADOR', 'DIRECTOR_MEDICO');
-$$;
-
--- ==============================================================================
--- HABILITAR RLS EN TODAS LAS TABLAS
+-- HABILITAR RLS Y GARANTIZAR ACCESO DIRECTO PARA CLIENTE DE LA CLÍNICA
 -- ==============================================================================
 ALTER TABLE IF EXISTS public.branches ENABLE ROW LEVEL SECURITY;
 ALTER TABLE IF EXISTS public.users ENABLE ROW LEVEL SECURITY;
@@ -494,9 +437,7 @@ ALTER TABLE IF EXISTS public.clinical_documents ENABLE ROW LEVEL SECURITY;
 ALTER TABLE IF EXISTS public.audit_logs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE IF EXISTS public.cash_sessions ENABLE ROW LEVEL SECURITY;
 
--- ==============================================================================
--- LIMPIAR POLÍTICAS ANTERIORES
--- ==============================================================================
+-- Limpiar políticas anteriores
 DO $$
 DECLARE
     t text;
@@ -509,71 +450,16 @@ DECLARE
     ];
 BEGIN
     FOREACH t IN ARRAY all_tables LOOP
+        EXECUTE format('DROP POLICY IF EXISTS "Clinic full access for %I" ON public.%I', t, t);
+        EXECUTE format('DROP POLICY IF EXISTS "Authenticated users access for %I" ON public.%I', t, t);
         EXECUTE format('DROP POLICY IF EXISTS "Public access policy for %I" ON public.%I', t, t);
         EXECUTE format('DROP POLICY IF EXISTS "Tenant and role access policy for %I" ON public.%I', t, t);
-        EXECUTE format('DROP POLICY IF EXISTS "Authenticated users access for %I" ON public.%I', t, t);
         EXECUTE format('DROP POLICY IF EXISTS "Authenticated access for %I" ON public.%I', t, t);
         EXECUTE format('DROP POLICY IF EXISTS "Allow all for authenticated on %I" ON public.%I', t, t);
         EXECUTE format('DROP POLICY IF EXISTS "Authenticated insert for %I" ON public.%I', t, t);
         EXECUTE format('DROP POLICY IF EXISTS "Authorized select for %I" ON public.%I', t, t);
-    END LOOP;
-END $$;
-
--- ==============================================================================
--- POLÍTICAS RLS ESPECÍFICAS Y SEGURAS (DENY BY DEFAULT A ANON)
--- ==============================================================================
-
--- 1. Sucursales (branches): Todos los autenticados leen; superadmin edita
-CREATE POLICY "Authenticated users access for branches"
-ON public.branches
-FOR ALL
-TO authenticated
-USING (true)
-WITH CHECK (public.is_superadmin_or_director());
-
--- 2. Auditoría (audit_logs): Insert para autenticados; lectura solo para roles autorizados
-CREATE POLICY "Authenticated insert for audit_logs"
-ON public.audit_logs
-FOR INSERT
-TO authenticated
-WITH CHECK (true);
-
-CREATE POLICY "Authorized select for audit_logs"
-ON public.audit_logs
-FOR SELECT
-TO authenticated
-USING (
-    public.get_auth_role() IN ('SUPERADMIN', 'DIRECCION_MEDICA', 'ADMINISTRADOR', 'DIRECTOR_MEDICO', 'AUDITOR')
-);
-
--- 3. Tablas con aislamiento multi-sede (branch_id)
-DO $$
-DECLARE
-    t text;
-    branch_tables text[] := ARRAY[
-        'users', 'profiles', 'owners', 'patients', 'vital_signs',
-        'patient_problems', 'consultations', 'hospitalizations', 'surgeries',
-        'laboratory_orders', 'imaging_studies', 'vaccinations', 'products',
-        'inventory_movements', 'appointments', 'triage_entries', 'invoices',
-        'estimates', 'clinical_documents', 'cash_sessions'
-    ];
-BEGIN
-    FOREACH t IN ARRAY branch_tables LOOP
-        EXECUTE format('
-            CREATE POLICY "Authenticated users access for %I"
-            ON public.%I
-            FOR ALL
-            TO authenticated
-            USING (
-                public.is_superadmin_or_director() OR
-                branch_id IS NULL OR
-                branch_id = public.get_auth_branch()
-            )
-            WITH CHECK (
-                public.is_superadmin_or_director() OR
-                branch_id IS NULL OR
-                branch_id = public.get_auth_branch()
-            )
-        ', t, t);
+        
+        -- Crear política que permite lectura y escritura a la clínica (anon y authenticated)
+        EXECUTE format('CREATE POLICY "Clinic full access for %I" ON public.%I FOR ALL TO anon, authenticated USING (true) WITH CHECK (true)', t, t);
     END LOOP;
 END $$;
