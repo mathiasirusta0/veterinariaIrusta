@@ -371,7 +371,7 @@ function normalizeVaccination(raw: any): VaccinationRecord {
     administeredDate: raw.administered_date || raw.administeredDate || new Date().toISOString().split('T')[0],
     nextDueDate: raw.next_due_date || raw.nextDueDate || new Date().toISOString().split('T')[0],
     administeredBy: raw.administered_by || raw.administeredBy || 'Dr. Diego Iván Irusta',
-    vetLicense: raw.vet_license || raw.vetLicense || 'MP-VET',
+    vetLicense: raw.vet_license || raw.vetLicense || 'M.P. 502',
     certificateGenerated: !!raw.certificate_generated || !!raw.certificateGenerated,
   };
 }

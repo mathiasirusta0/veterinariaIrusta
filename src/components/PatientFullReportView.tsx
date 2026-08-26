@@ -823,7 +823,7 @@ export const PatientFullReportView: React.FC<PatientFullReportViewProps> = ({ pa
                     <div>
                       <span className="font-bold text-sm text-slate-900 block">{c.reason || 'Consulta Médica'}</span>
                       <span className="text-slate-500 font-mono text-[11px]">
-                        📅 {formatDateTime(c.dateTime)} • Dr/a: {c.vetName} ({c.vetLicense || 'MP-VET'})
+                        📅 {formatDateTime(c.dateTime)} • Dr/a: {c.vetName} ({c.vetLicense || 'M.P. 502'})
                       </span>
                     </div>
                     {c.diagnoses && c.diagnoses.length > 0 && (

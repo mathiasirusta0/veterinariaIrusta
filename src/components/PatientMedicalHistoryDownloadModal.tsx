@@ -351,12 +351,15 @@ export const PatientMedicalHistoryDownloadModal: React.FC<PatientMedicalHistoryD
     }),
     evolutions: patientEvolutions.map((e) => {
       const dObj = new Date(e.createdAt || e.timestamp || e.dateTime || 0);
+      const isIrusta = !e.authorName || e.authorName.toLowerCase().includes('irusta') || e.authorName.toLowerCase().includes('diego');
+      const author = isIrusta ? 'Dr. Diego Iván Irusta' : (e.authorName || 'Dr. Diego Iván Irusta');
+      const license = (isIrusta || !e.authorLicense || e.authorLicense.includes('8412') || e.authorLicense.includes('7841')) ? 'M.P. 502 - Dirección Médica' : e.authorLicense;
       return {
         date: dObj.toLocaleDateString('es-AR'),
         dayOfWeek: getDayName(dObj),
         time: dObj.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit', hour12: false }),
-        author: e.authorName || 'Dr. Diego Iván Irusta',
-        license: e.authorLicense || 'M.P. 502',
+        author,
+        license,
         type: e.type || 'Médica',
         content: e.content || (e as any).assessment || (e as any).plan || 'Evolución clínica registrada.',
       };
@@ -745,9 +748,24 @@ ${financialItems.map((it) => `• ${it.description} x${it.quantity} = ${formatCu
                     <div key={evo.id} className="p-3.5 rounded-2xl border border-slate-200 bg-slate-50/60 space-y-1.5">
                       <div className="flex items-center justify-between text-[11px] text-teal-800 font-bold border-b border-slate-200 pb-1">
                         <span>Evolución ({evo.type || 'Médica'}) — {getDayName(evoDate)} {evoDate.toLocaleDateString('es-AR')} {evoDate.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })} hs</span>
-                        <span>{evo.authorName || 'Dr. Diego Iván Irusta'} ({evo.authorLicense || 'M.P. 502'})</span>
+                        <span>{(!evo.authorName || evo.authorName.includes('Irusta')) ? 'Dr. Diego Iván Irusta' : evo.authorName} ({(!evo.authorLicense || evo.authorLicense.includes('8412') || !evo.authorName || evo.authorName.includes('Irusta')) ? 'M.P. 502 - Dirección Médica' : evo.authorLicense})</span>
                       </div>
-                      <p className="text-[11px] text-slate-800 whitespace-pre-line leading-relaxed">{fullText}</p>
+                      <div className="text-[11px] text-slate-800 leading-relaxed space-y-1">
+                        {fullText.split('\n').map((l, lIdx) => {
+                          if (!l.trim()) return <div key={lIdx} className="h-1" />;
+                          const parts = l.split(/(\*\*.*?\*\*)/g);
+                          return (
+                            <p key={lIdx}>
+                              {parts.map((p, pIdx) => {
+                                if (p.startsWith('**') && p.endsWith('**')) {
+                                  return <strong key={pIdx} className="font-bold text-slate-950">{p.slice(2, -2)}</strong>;
+                                }
+                                return <span key={pIdx}>{p}</span>;
+                              })}
+                            </p>
+                          );
+                        })}
+                      </div>
                     </div>
                   );
                 })}

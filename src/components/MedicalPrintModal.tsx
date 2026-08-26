@@ -129,7 +129,7 @@ export const MedicalPrintModal: React.FC<{
                 Dr./Dra.: <span className="font-bold text-slate-800">{currentUser.name}</span>
               </span>
               <span className="text-[10px] text-slate-400 font-mono">
-                Matrícula: {currentUser.licenseNumber || 'MP-VET-7841'}
+                Matrícula: {currentUser.licenseNumber || 'M.P. 502'}
               </span>
             </div>
           </div>
@@ -393,7 +393,7 @@ export const MedicalPrintModal: React.FC<{
 
             <div className="text-center w-56 border-t border-slate-900 pt-2 space-y-0.5">
               <span className="font-bold text-slate-900 block">{currentUser.name}</span>
-              <span className="text-[11px] text-slate-600 block">Médico Veterinario • {currentUser.licenseNumber || 'MP-VET-7841'}</span>
+              <span className="text-[11px] text-slate-600 block">Médico Veterinario • {currentUser.licenseNumber || 'M.P. 502'}</span>
               <span className="text-[10px] text-teal-700 font-semibold block">Firma & Sello Acreditado</span>
             </div>
           </div>

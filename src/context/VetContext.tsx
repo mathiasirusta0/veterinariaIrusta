@@ -2137,7 +2137,7 @@ export const VetProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       id: `vac-${Date.now()}`,
       administeredDate: new Date().toISOString().split('T')[0],
       administeredBy: currentUser.name,
-      vetLicense: currentUser.licenseNumber || 'MP-VET',
+      vetLicense: currentUser.licenseNumber || 'M.P. 502',
       certificateGenerated: true,
     };
     setVaccinations((prev) => [newVac, ...prev]);

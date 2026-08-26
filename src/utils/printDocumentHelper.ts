@@ -1,3 +1,22 @@
+
+export function normalizeDoctorProfessional(authorName?: string, authorLicense?: string): { name: string; license: string } {
+  const nameStr = (authorName || '').trim();
+  const licStr = (authorLicense || '').trim();
+  const isIrusta = !nameStr || nameStr.toLowerCase().includes('irusta') || nameStr.toLowerCase().includes('diego');
+
+  if (isIrusta) {
+    return {
+      name: 'Dr. Diego Iván Irusta',
+      license: 'M.P. 502 - Dirección Médica',
+    };
+  }
+
+  const isFakeLicense = !licStr || licStr.includes('8412') || licStr.includes('7841') || licStr.includes('MP-VET') || licStr.includes('MP-');
+  return {
+    name: nameStr || 'Dr. Diego Iván Irusta',
+    license: isFakeLicense ? 'M.P. 502 - Dirección Médica' : licStr,
+  };
+}
 // Helper para Impresión Aislada y Descarga Limpia de Comprobantes, Tickets y Presupuestos
 // Evita fondos oscuros de modales, bordes de navegador y recortes de página.
 import jsPDF from 'jspdf';
@@ -1108,15 +1127,19 @@ export function printA4MedicalHistory(data: PrintableMedicalHistoryData) {
         ${data.evolutions && data.evolutions.length > 0 ? `
         <div class="block-section">
           <div class="block-title">3. Evolución Médica & Notas Clínicas</div>
-          ${data.evolutions.map(e => `
+          ${data.evolutions.map(e => {
+            const norm = normalizeDoctorProfessional(e.author, e.license);
+            const formattedContent = (e.content || '').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+            return `
             <div class="evo-box">
               <div class="evo-meta">
                 <span>Evolución (${e.type || 'Médica'}) — ${e.dayOfWeek} ${e.date} ${e.time} hs</span>
-                <span>${e.author} (${e.license || data.doctor.license})</span>
+                <span>${norm.name} (${norm.license})</span>
               </div>
-              <div class="evo-body">${e.content}</div>
+              <div class="evo-body">${formattedContent}</div>
             </div>
-          `).join('')}
+            `;
+          }).join('')}
         </div>
         ` : ''}
 
@@ -1372,11 +1395,15 @@ export function generateMedicalHistoryPdfDocument(data: PrintableMedicalHistoryD
 
   // 5. Evolutions Section
   if (data.evolutions && data.evolutions.length > 0) {
-    const evoBody = data.evolutions.map((e) => [
-      `${e.dayOfWeek} ${e.date} ${e.time} hs\n(${e.type || 'Médica'})`,
-      e.content,
-      `${e.author}\n${e.license || data.doctor.license}`,
-    ]);
+    const evoBody = data.evolutions.map((e) => {
+      const norm = normalizeDoctorProfessional(e.author, e.license);
+      const cleanContent = (e.content || '').replace(/\*\*(.*?)\*\*/g, '$1');
+      return [
+        `${e.dayOfWeek} ${e.date} ${e.time} hs\n(${e.type || 'Médica'})`,
+        cleanContent,
+        `${norm.name}\n${norm.license}`,
+      ];
+    });
     autoTable(doc, {
       startY: (doc as any).lastAutoTable.finalY + 4,
       margin: { left: 14, right: 14 },
@@ -1486,15 +1513,16 @@ export function generateMedicalHistoryPdfDocument(data: PrintableMedicalHistoryD
   doc.text(`Firma del Tutor / Titular · DNI ${data.owner?.dni || 'S/D'}`, 55, finalY + 25, { align: 'center' });
 
   // Signature Right: Doctor
+  const normDoc = normalizeDoctorProfessional(data.doctor?.name, data.doctor?.license);
   doc.line(125, finalY + 16, 185, finalY + 16);
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(8);
   doc.setTextColor(30, 41, 59);
-  doc.text(data.doctor.name, 155, finalY + 21, { align: 'center' });
+  doc.text(normDoc.name, 155, finalY + 21, { align: 'center' });
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(6.8);
   doc.setTextColor(100, 116, 139);
-  doc.text(`Médico Veterinario · ${data.doctor.license}`, 155, finalY + 25, { align: 'center' });
+  doc.text(`Médico Veterinario · ${normDoc.license.includes('502') ? 'M.P. 502' : normDoc.license}`, 155, finalY + 25, { align: 'center' });
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(15, 118, 110);
   doc.text('Dirección Médica • Veterinaria Ranquel', 155, finalY + 29, { align: 'center' });
