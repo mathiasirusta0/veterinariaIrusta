@@ -1,3 +1,4 @@
+import { LabDocumentViewerModal } from './LabDocumentViewerModal';
 import React, { useState } from 'react';
 import {
   FlaskConical,
@@ -14,6 +15,7 @@ import {
   Sparkles,
   Check,
   Edit3,
+  Eye,
   Paperclip,
   Activity,
   Layers,
@@ -46,6 +48,7 @@ export const LaboratoryView: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState('TODOS');
   const [typeFilter, setTypeFilter] = useState('TODOS');
   const [editingOrder, setEditingOrder] = useState<LaboratoryOrder | null>(null);
+  const [viewingLabOrder, setViewingLabOrder] = useState<LaboratoryOrder | null>(null);
 
   // Edit Results Modal State
   const [editResults, setEditResults] = useState<LabResultItem[]>([]);
@@ -439,16 +442,18 @@ export const LaboratoryView: React.FC = () => {
 
                     {/* View Attached File */}
                     {lab.attachedPdfUrl && (
-                      <a
-                        href={lab.attachedPdfUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="min-h-[38px] px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-900 font-bold text-xs rounded-xl border border-blue-300 flex items-center gap-1.5 transition-all active:scale-95 touch-manipulation cursor-pointer"
-                        title="Ver o abrir archivo local adjunto (PDF / Imagen)"
+                      <button
+                        type="button"
+                        onClick={() => {
+                          triggerHaptic('light');
+                          setViewingLabOrder(lab);
+                        }}
+                        className="min-h-[38px] px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-black text-xs rounded-xl flex items-center gap-1.5 transition-all active:scale-95 touch-manipulation cursor-pointer shadow-2xs"
+                        title="Visualizar estudio en pantalla sin descargar"
                       >
-                        <FileText className="w-3.5 h-3.5 text-blue-700" />
-                        <span>Ver Archivo</span>
-                      </a>
+                        <Eye className="w-3.5 h-3.5" />
+                        <span>👁️ Visualizar</span>
+                      </button>
                     )}
 
                     {/* WhatsApp Report */}
@@ -631,6 +636,24 @@ export const LaboratoryView: React.FC = () => {
           </div>
         </div>
       )}
+      {/* Modal Visor de Laboratorio */}
+      {viewingLabOrder && viewingLabOrder.attachedPdfUrl && (() => {
+        const p = patients.find(pat => pat.id === viewingLabOrder.patientId);
+        return (
+          <LabDocumentViewerModal
+            isOpen={!!viewingLabOrder}
+            onClose={() => setViewingLabOrder(null)}
+            title={viewingLabOrder.testType}
+            patientName={p?.name || 'Paciente'}
+            species={p?.species}
+            testType={viewingLabOrder.testType}
+            date={formatDate(viewingLabOrder.requestedAt)}
+            diagnosticReport={viewingLabOrder.diagnosticReport || viewingLabOrder.conclusions}
+            fileUrl={viewingLabOrder.attachedPdfUrl}
+            doctorName={viewingLabOrder.requestedBy || 'Dr. Diego Iván Irusta (M.P. 502)'}
+          />
+        );
+      })()}
     </div>
   );
 };

@@ -1,3 +1,4 @@
+import { LabDocumentViewerModal } from './LabDocumentViewerModal';
 import React, { useState } from 'react';
 import { processImageFile } from '../utils/imageUploadHelper';
 import {
@@ -40,13 +41,14 @@ import {
   Scale,
   Camera,
   Upload,
+  Download,
   Paperclip,
   X,
   Check,
 } from 'lucide-react';
 import { useVet } from '../context/VetContext';
 import { computeDoseTimes, computeInitialDoseSlots, getShiftFromTime, formatDoseSlotLabel } from '../utils/medicationScheduleHelper';
-import { ProblemStatus, PatientProblem, Species, Sex, ReproductiveStatus, PatientStatus, PatientAlert, Patient } from '../types';
+import { ProblemStatus, PatientProblem, Species, Sex, ReproductiveStatus, PatientStatus, PatientAlert, Patient, LaboratoryOrder } from '../types';
 import { formatDate, formatDateTime, formatTime, formatWeight, formatOwnerBalance } from '../utils/formatters';
 import { triggerHaptic } from '../utils/haptics';
 import { EmptyState, StatusBadge, ClinicalAlert, StatCard } from './ui';
@@ -195,6 +197,7 @@ export const Patient360View: React.FC = () => {
   // Direct Lab Order State
   const [newLabTestType, setNewLabTestType] = useState('Hemograma Completo');
   const [newLabReport, setNewLabReport] = useState('');
+  const [viewingLabDoc, setViewingLabDoc] = useState<LaboratoryOrder | null>(null);
   const [attachedLabFile, setAttachedLabFile] = useState<{
     name: string;
     size: string;
@@ -1996,53 +1999,91 @@ export const Patient360View: React.FC = () => {
               </div>
             ) : (
               <div className="max-h-[520px] overflow-y-auto pr-1.5 space-y-3 custom-scrollbar">
-                {patientLabs.map((lab) => (
-                  <div key={lab.id} className="p-4 bg-slate-50/80 border border-slate-200 rounded-2xl space-y-2.5 text-xs shadow-2xs hover:bg-slate-50 transition-colors">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <span className="w-7 h-7 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-xs">
-                          🧪
-                        </span>
-                        <span className="font-black text-slate-900 text-sm">{lab.testType}</span>
-                      </div>
-                      <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200">
-                        {lab.status}
-                      </span>
-                    </div>
+                {patientLabs.map((lab) => {
+                  const isImageFile = lab.attachedPdfUrl && (
+                    lab.attachedPdfUrl.startsWith('data:image/') ||
+                    lab.attachedPdfUrl.includes('.webp') ||
+                    lab.attachedPdfUrl.includes('.png') ||
+                    lab.attachedPdfUrl.includes('.jpg') ||
+                    (lab.diagnosticReport && lab.diagnosticReport.includes('.webp'))
+                  );
 
-                    <div className="text-slate-800 bg-white p-3.5 rounded-xl border border-slate-200/80 font-medium whitespace-pre-line leading-relaxed">
-                      {lab.diagnosticReport || lab.conclusions || 'Estudio procesado sin anomalías.'}
-                    </div>
-
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-1 border-t border-slate-200/60">
-                      <span className="text-[10px] text-slate-500 font-mono block">
-                        🗓️ Fecha: {formatDate(lab.requestedAt || (lab as any).date)} • 👨‍⚕️ Solicitado por: {lab.requestedBy || 'Dr. Diego Iván Irusta'}
-                      </span>
-
-                      {lab.attachedPdfUrl && (
+                  return (
+                    <div key={lab.id} className="p-4 bg-slate-50/80 border border-slate-200 rounded-2xl space-y-3 text-xs shadow-2xs hover:bg-slate-50 transition-colors">
+                      <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                          <a
-                            href={lab.attachedPdfUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-900 font-black text-xs rounded-xl border border-blue-300 transition-all shadow-2xs cursor-pointer active:scale-95"
-                          >
-                            <Eye className="w-3.5 h-3.5 text-blue-700" />
-                            <span>👁️ Ver / Abrir Archivo</span>
-                          </a>
-                          <a
-                            href={lab.attachedPdfUrl}
-                            download={`Laboratorio_${lab.testType}_${patient.name}`}
-                            className="inline-flex items-center gap-1 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs rounded-xl transition-all shadow-2xs cursor-pointer active:scale-95"
-                            title="Descargar archivo a la computadora"
-                          >
-                            <span>📥 Descargar</span>
-                          </a>
+                          <span className="w-7 h-7 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-xs">
+                            🧪
+                          </span>
+                          <span className="font-black text-slate-900 text-sm">{lab.testType}</span>
+                        </div>
+                        <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200">
+                          {lab.status}
+                        </span>
+                      </div>
+
+                      <div className="text-slate-800 bg-white p-3.5 rounded-xl border border-slate-200/80 font-medium whitespace-pre-line leading-relaxed">
+                        {lab.diagnosticReport || lab.conclusions || 'Estudio procesado sin anomalías.'}
+                      </div>
+
+                      {/* Miniatura interactiva directa si contiene imagen */}
+                      {lab.attachedPdfUrl && isImageFile && (
+                        <div
+                          onClick={() => {
+                            triggerHaptic('light');
+                            setViewingLabDoc(lab);
+                          }}
+                          className="cursor-pointer group relative max-w-[260px] rounded-xl overflow-hidden border-2 border-blue-200 hover:border-blue-500 shadow-sm transition-all bg-slate-900"
+                          title="Haga clic para expandir en pantalla completa"
+                        >
+                          <img
+                            src={lab.attachedPdfUrl}
+                            alt={lab.testType}
+                            className="w-full h-32 object-cover group-hover:scale-105 transition-transform opacity-90 group-hover:opacity-100"
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent flex items-end p-2">
+                            <span className="text-[10px] font-bold text-white flex items-center gap-1">
+                              <Eye className="w-3.5 h-3.5 text-blue-400" />
+                              <span>Clic para examinar imagen</span>
+                            </span>
+                          </div>
                         </div>
                       )}
+
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-1 border-t border-slate-200/60">
+                        <span className="text-[10px] text-slate-500 font-mono block">
+                          🗓️ Fecha: {formatDate(lab.requestedAt || (lab as any).date)} • 👨‍⚕️ Solicitado por: {lab.requestedBy || 'Dr. Diego Iván Irusta'}
+                        </span>
+
+                        {lab.attachedPdfUrl && (
+                          <div className="flex items-center gap-2">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                triggerHaptic('light');
+                                setViewingLabDoc(lab);
+                              }}
+                              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-black text-xs rounded-xl shadow-2xs transition-all cursor-pointer active:scale-95"
+                              title="Visualizar estudio directamente en pantalla sin descargar"
+                            >
+                              <Eye className="w-3.5 h-3.5" />
+                              <span>👁️ Visualizar en Pantalla</span>
+                            </button>
+                            <a
+                              href={lab.attachedPdfUrl}
+                              download={`Laboratorio_${lab.testType}_${patient.name}`}
+                              className="inline-flex items-center gap-1 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs rounded-xl transition-all shadow-2xs cursor-pointer active:scale-95"
+                              title="Descargar copia a la computadora"
+                            >
+                              <Download className="w-3.5 h-3.5 text-slate-600" />
+                              <span>Descargar</span>
+                            </a>
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>
