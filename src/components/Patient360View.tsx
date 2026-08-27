@@ -106,6 +106,7 @@ export const Patient360View: React.FC = () => {
     addOwner,
     addVitalSigns,
     addLabOrder,
+    deleteConsultation,
   } = useVet();
 
   const [isDischargeModalOpen, setIsDischargeModalOpen] = useState(false);
@@ -1795,17 +1796,33 @@ export const Patient360View: React.FC = () => {
                 {patientConsultations.map((cons) => (
                   <div key={cons.id} className="p-4 bg-slate-50/80 border border-slate-200 rounded-2xl space-y-2.5 text-xs shadow-2xs">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 border-b border-slate-200 pb-2">
-                      <div className="flex items-center gap-2">
-                        <span className="px-2 py-0.5 rounded-md font-bold text-[10px] bg-teal-100 text-teal-900 uppercase">
-                          Consulta Médica Inicial
-                        </span>
-                        <span className="font-black text-slate-900 text-xs">
-                          👨‍⚕️ {cons.vetName || 'Dr. Diego Iván Irusta'}
-                        </span>
+                      <div className="flex items-center justify-between w-full">
+                        <div className="flex items-center gap-2">
+                          <span className="px-2 py-0.5 rounded-md font-bold text-[10px] bg-teal-100 text-teal-900 uppercase">
+                            Consulta Médica
+                          </span>
+                          <span className="font-black text-slate-900 text-xs">
+                            👨‍⚕️ {cons.vetName || 'Dr. Diego Iván Irusta'}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="font-mono font-bold text-slate-600 text-[11px]">
+                            🗓️ {new Date(cons.dateTime).toLocaleDateString('es-AR')} • ⏰ {new Date(cons.dateTime).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })} hs
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (window.confirm('¿Está seguro de eliminar esta consulta médica del historial?')) {
+                                deleteConsultation(cons.id);
+                              }
+                            }}
+                            className="p-1 rounded-lg text-slate-400 hover:text-rose-700 hover:bg-rose-50 transition-colors"
+                            title="Eliminar Consulta"
+                          >
+                            <span className="text-xs">🗑️</span>
+                          </button>
+                        </div>
                       </div>
-                      <span className="font-mono font-bold text-slate-600 text-[11px]">
-                        🗓️ {new Date(cons.dateTime).toLocaleDateString('es-AR')} • ⏰ {new Date(cons.dateTime).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })} hs
-                      </span>
                     </div>
 
                     <div className="p-3 bg-white rounded-xl border border-slate-100 space-y-1.5 text-slate-800 text-xs">

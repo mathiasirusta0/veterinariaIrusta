@@ -268,6 +268,7 @@ interface VetContextType {
   updateProduct: (productId: string, updates: Partial<Product>) => void;
   updateProductStock: (productId: string, quantityChange: number, type: InventoryMovement['type'], reason: string) => void;
   deleteProduct: (productId: string) => void;
+  deleteConsultation: (consultationId: string) => void;
 
   // Global Archive & Delete
   archiveOwner: (ownerId: string) => void;
@@ -2344,10 +2345,33 @@ export const VetProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const deleteAppointment = (aptId: string) => {
     const apt = appointments.find((a) => a.id === aptId);
-    setAppointments((prev) => prev.filter((a) => a.id !== aptId));
+    setAppointments((prev) => {
+      const next = prev.filter((a) => a.id !== aptId);
+      try {
+        localStorage.setItem('vetsys_appointments', JSON.stringify(next));
+      } catch {}
+      return next;
+    });
     if (apt) {
       logAudit('ELIMINAR_TURNO', 'Appointment', aptId, `Turno del ${apt.date} ${apt.time} eliminado`);
       showToast('success', 'Turno Eliminado', 'La cita fue eliminada de la agenda.');
+      Promise.resolve(supabase.from('appointments').delete().eq('id', aptId)).catch(() => {});
+    }
+  };
+
+  const deleteConsultation = (consultationId: string) => {
+    const cons = consultations.find((c) => c.id === consultationId);
+    setConsultations((prev) => {
+      const next = prev.filter((c) => c.id !== consultationId);
+      try {
+        localStorage.setItem('vetsys_consultations', JSON.stringify(next));
+      } catch {}
+      return next;
+    });
+    if (cons) {
+      logAudit('ELIMINAR_CONSULTA', 'Consultation', consultationId, `Consulta de fecha ${cons.dateTime} eliminada`);
+      showToast('success', 'Consulta Eliminada', 'El registro de la consulta fue eliminado correctamente.');
+      Promise.resolve(supabase.from('consultations').delete().eq('id', consultationId)).catch(() => {});
     }
   };
 
@@ -2939,6 +2963,7 @@ export const VetProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         deleteVaccination,
         archiveAppointment,
         deleteAppointment,
+        deleteConsultation,
         archiveSurgery,
         deleteSurgery,
         archiveLabOrder,

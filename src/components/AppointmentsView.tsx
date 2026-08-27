@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import {
+  Trash2,
   CalendarDays,
   Plus,
   Clock,
@@ -710,6 +711,21 @@ export const AppointmentsView: React.FC = () => {
 
                         {/* Right: Actions */}
                         <div className="flex items-center gap-2 flex-wrap justify-end border-t lg:border-t-0 pt-3 lg:pt-0 border-slate-100 flex-shrink-0">
+                          {/* Delete Appointment Button */}
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (window.confirm(`¿Está seguro de borrar el turno de ${patient?.name || 'la consulta'} (${apt.date} ${apt.time})? Esta acción no se puede deshacer.`)) {
+                                deleteAppointment(apt.id);
+                              }
+                            }}
+                            className="min-h-[40px] px-3 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 hover:text-rose-900 font-bold text-xs rounded-xl border border-rose-200 flex items-center gap-1.5 transition-all active:scale-95 touch-manipulation cursor-pointer shadow-2xs"
+                            title="Borrar este turno / consulta de la agenda definitivamente"
+                          >
+                            <Trash2 className="w-3.5 h-3.5 text-rose-600" />
+                            <span>Borrar</span>
+                          </button>
+
                           {/* Status quick select */}
                           <select
                             value={apt.status}
