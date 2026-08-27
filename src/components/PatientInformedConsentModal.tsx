@@ -347,7 +347,7 @@ export const PatientInformedConsentModal: React.FC<PatientInformedConsentModalPr
                   CLÍNICA VETERINARIA RANQUEL
                 </span>
                 <h4 className="text-sm font-black text-slate-900">{activeTemplate.title}</h4>
-                <p className="text-[10px] text-slate-500">Dirección Médica: Dr. Diego Iván Irusta (M.P. 502) • Río Cuarto, Córdoba</p>
+                <p className="text-[10px] text-slate-500">Dirección Médica: Dr. Diego Iván Irusta (M.P. 502) • Casa 13, Barrio Militar de Oficiales, Las Lajas, Neuquén (CP 8347)</p>
               </div>
               <div className="text-right text-[10px] font-mono text-slate-400">
                 <span>Fecha: {new Date().toLocaleDateString('es-AR')}</span>

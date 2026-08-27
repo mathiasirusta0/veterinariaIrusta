@@ -96,7 +96,7 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({
       icon: Compass,
       title: 'Medicina Equina & Atención a Campo',
       subtitle: 'Haras, Studs & Establecimientos',
-      description: 'Atención veterinaria integral a campo en Río Cuarto y zona rural. Evaluación de cólicos, odontología equina, traumatología y medicina preventiva.',
+      description: 'Atención veterinaria integral a campo en Las Lajas, Zapala y zona rural de Neuquén. Evaluación de cólicos, odontología equina, traumatología y medicina preventiva.',
       badge: 'Servicio a Campo',
       linkMsg: WA_EQUINOS_MSG,
     },
@@ -145,7 +145,7 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({
     },
     {
       q: '¿Qué áreas de cobertura tienen para atención equina y grandes animales?',
-      a: 'El Dr. Diego Iván Irusta realiza visitas médicas a campo en Río Cuarto y localidades vecinas del sur de Córdoba, asistiendo a haras, studs deportivos y establecimientos ganaderos.',
+      a: 'El Dr. Diego Iván Irusta realiza visitas médicas a campo en Las Lajas, Zapala y zona centro/cordillera de Neuquén, asistiendo a establecimientos ganaderos, estancias y haras.',
     },
     {
       q: '¿Cuáles son los medios de pago aceptados y cómo se presupuestan las cirugías?',
@@ -164,7 +164,7 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({
         <div className="flex items-center gap-2 max-w-full truncate">
           <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse flex-shrink-0" />
           <span className="font-bold tracking-wide uppercase text-[10px] sm:text-xs">
-            Atención Médica Veterinaria & Urgencias 24hs — Río Cuarto, Córdoba
+            Atención Médica Veterinaria & Urgencias 24hs — Las Lajas, Neuquén
           </span>
         </div>
         <div className="flex items-center gap-3 text-xs">
@@ -212,7 +212,7 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({
             <a href="#urgencias" className="hover:text-[#7E3A4D] transition-colors">Urgencias</a>
             <a href="#equinos" className="hover:text-[#7E3A4D] transition-colors">Equinos & Campo</a>
             <a href="#direccion-medica" className="hover:text-[#7E3A4D] transition-colors">Dirección Médica</a>
-            <a href="#sedes" className="hover:text-[#7E3A4D] transition-colors">Sede Río Cuarto</a>
+            <a href="#sedes" className="hover:text-[#7E3A4D] transition-colors">Sede Las Lajas</a>
             <a href="#preguntas" className="hover:text-[#7E3A4D] transition-colors">Preguntas</a>
           </div>
 
@@ -254,11 +254,11 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({
           <div className="lg:col-span-7 space-y-5 text-center lg:text-left">
             <div className="inline-flex items-center gap-2 bg-[#F7EBEF] border border-[#EEDCE2] text-[#7E3A4D] px-3.5 py-1.5 rounded-full text-xs font-bold shadow-2xs">
               <Sparkles className="w-3.5 h-3.5 text-[#7E3A4D]" />
-              <span>Medicina Veterinaria Especializada en Río Cuarto, Córdoba</span>
+              <span>Medicina Veterinaria Especializada en Las Lajas, Neuquén</span>
             </div>
 
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-serif font-black text-[#26141A] tracking-tight leading-[1.15]">
-              Veterinaria en Río Cuarto para Pequeños Animales, Equinos y Atención a Campo
+              Veterinaria en Las Lajas (Neuquén) para Pequeños Animales, Equinos y Atención a Campo
             </h1>
 
             <p className="text-sm sm:text-base text-[#6B4D56] max-w-2xl mx-auto lg:mx-0 leading-relaxed">
@@ -287,7 +287,7 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({
             </div>
 
             <p className="text-[11px] text-[#8C6D76] pt-1">
-              📍 Ubicación: Río Cuarto, Córdoba • Tel/WhatsApp: <strong>{WHATSAPP_DISPLAY}</strong>
+              📍 Ubicación: Casa 13, Barrio Militar de Oficiales, Las Lajas (Neuquén) • Tel/WhatsApp: <strong>{WHATSAPP_DISPLAY}</strong>
             </p>
           </div>
 
@@ -302,7 +302,7 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({
                 />
                 <div>
                   <h3 className="font-serif font-black text-base text-[#26141A]">Clínica Veterinaria Ranquel</h3>
-                  <p className="text-xs text-[#7E3A4D] font-bold">Río Cuarto, Provincia de Córdoba</p>
+                  <p className="text-xs text-[#7E3A4D] font-bold">Las Lajas, Provincia de Neuquén (CP 8347)</p>
                   <p className="text-[11px] text-[#6B4D56]">Dirección Médica: Dr. Diego Iván Irusta • M.P. 502</p>
                 </div>
               </div>
@@ -343,9 +343,9 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({
             <p className="text-[11px] text-[#8C6D76]">Colegio Médico Veterinario</p>
           </div>
           <div className="space-y-1">
-            <span className="text-xl sm:text-2xl font-serif font-black text-[#7E3A4D]">Río Cuarto</span>
+            <span className="text-xl sm:text-2xl font-serif font-black text-[#7E3A4D]">Las Lajas</span>
             <p className="text-xs font-bold text-[#26141A]">Sede & Atención a Campo</p>
-            <p className="text-[11px] text-[#8C6D76]">Córdoba y zona rural</p>
+            <p className="text-[11px] text-[#8C6D76]">Neuquén y zona rural</p>
           </div>
           <div className="space-y-1">
             <span className="text-xl sm:text-2xl font-serif font-black text-[#7E3A4D]">24 Horas</span>
@@ -478,7 +478,7 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({
               Medicina Veterinaria Equina & Grandes Animales
             </h2>
             <p className="text-xs sm:text-sm text-[#6B4D56] leading-relaxed">
-              El <strong>Dr. Diego Iván Irusta</strong> cuenta con amplia trayectoria en medicina equina y producción ganadera, brindando asistencia clínica periódica y de urgencia directamente en su establecimiento en Río Cuarto y localidades vecinas.
+              El <strong>Dr. Diego Iván Irusta</strong> cuenta con amplia trayectoria en medicina equina y producción ganadera, brindando asistencia clínica periódica y de urgencia directamente en su establecimiento en Las Lajas, Zapala y zona centro/cordillera de Neuquén.
             </p>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs text-[#5A3F47] pt-2">
@@ -516,7 +516,7 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({
           <div className="lg:col-span-5 bg-white p-6 rounded-3xl border border-[#EEDCE2] shadow-xs space-y-3">
             <h3 className="text-sm font-serif font-bold text-[#26141A]">Cobertura en la Región</h3>
             <p className="text-xs text-[#6B4D56]">
-              Coordinación programada de visitas a haras, cabañas y campos en Río Cuarto, Holmberg, Las Higueras y zona de influencia.
+              Coordinación programada de visitas a estancias, establecimientos rurales y campos en Las Lajas, Zapala, Loncopué y zona de influencia.
             </p>
             <div className="p-3 bg-[#FAF0F3] rounded-2xl border border-[#EEDCE2] text-[11px] text-[#7E3A4D] font-mono space-y-1">
               <div>• Consultas por disponibilidad horaria y traslados</div>
@@ -660,10 +660,10 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({
             🏥 Ubicación & Contacto
           </span>
           <h2 className="text-2xl sm:text-3xl font-serif font-bold text-[#26141A]">
-            Nuestra Sede en Río Cuarto
+            Nuestra Sede en Las Lajas, Neuquén
           </h2>
           <p className="text-xs sm:text-sm text-[#6B4D56]">
-            Atención médica veterinaria en clínica y servicio a campo en Río Cuarto y sur de la provincia de Córdoba.
+            Atención médica veterinaria en clínica y servicio a campo en Las Lajas y centro/cordillera de la provincia de Neuquén.
           </p>
         </div>
 
@@ -679,7 +679,7 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({
                 CLÍNICA CENTRAL & GUARDIA
               </span>
               <h3 className="text-lg font-serif font-bold text-[#26141A] mt-0.5">
-                Veterinaria Ranquel — Río Cuarto
+                Veterinaria Ranquel — Las Lajas (Neuquén)
               </h3>
             </div>
           </div>
@@ -689,7 +689,7 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({
               <MapPin className="w-4 h-4 text-[#7E3A4D] flex-shrink-0 mt-0.5" />
               <div>
                 <strong className="block text-[#26141A]">Dirección:</strong>
-                <span>Río Cuarto, Provincia de Córdoba (CP 5800)</span>
+                <span>Casa 13, Barrio Militar de Oficiales, Las Lajas, Neuquén (CP 8347)</span>
               </div>
             </div>
             <div className="flex items-start gap-2.5">
@@ -730,7 +730,7 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({
               <span>Solicitar Turno por WhatsApp</span>
             </a>
             <a
-              href="https://maps.google.com/?q=Rio+Cuarto+Cordoba"
+              href="https://maps.google.com/?q=Barrio+Militar+de+Oficiales+Casa+13+Las+Lajas+Neuquen"
               target="_blank"
               rel="noopener noreferrer"
               className="py-3 px-5 bg-[#FAF0F3] hover:bg-[#F7EBEF] text-[#7E3A4D] text-xs font-bold rounded-2xl border border-[#EEDCE2] flex items-center justify-center gap-1.5 transition-colors"
@@ -755,7 +755,7 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({
               <span className="text-base font-serif font-bold text-white">Veterinaria Ranquel</span>
             </div>
             <p className="text-xs text-rose-200/80 leading-relaxed">
-              Clínica Veterinaria para Grandes y Pequeños Animales. Consultas, cirugía, internación y atención a campo en Río Cuarto (Córdoba).
+              Clínica Veterinaria para Grandes y Pequeños Animales. Consultas, cirugía, internación y atención a campo en Las Lajas (Neuquén).
             </p>
             <p className="text-[11px] text-[#E8A5B8] font-mono">
               Dirección Médica: Dr. Diego Iván Irusta (M.P. 502)
@@ -766,7 +766,7 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({
             <h4 className="font-bold text-white uppercase text-[11px] tracking-wider mb-2">Contacto Directo</h4>
             <div className="flex items-center gap-2">
               <MapPin className="w-3.5 h-3.5 text-[#E8A5B8]" />
-              <span>Río Cuarto, Provincia de Córdoba (CP 5800)</span>
+              <span>Casa 13, Barrio Militar de Oficiales, Las Lajas, Neuquén (CP 8347)</span>
             </div>
             <div className="flex items-center gap-2">
               <Phone className="w-3.5 h-3.5 text-[#E8A5B8]" />

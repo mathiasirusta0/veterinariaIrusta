@@ -1107,7 +1107,7 @@ export const FinancesUnifiedView: React.FC = () => {
                       {currentDocument.type === 'PRESUPUESTO' ? 'PRESUPUESTO CLÍNICO OFICIAL' : 'COMPROBANTE DE PAGO & RECIBO'}
                     </h4>
                     <p className="text-[10px] text-slate-500 font-medium">
-                      Río Cuarto, Córdoba • Tel: +54 9 2942 47-7136 • Dr. Diego Iván Irusta (M.P. 502)
+                      Casa 13, Barrio Militar de Oficiales, Las Lajas (Neuquén) • Tel: +54 9 2942 47-7136 • Dr. Diego Iván Irusta (M.P. 502)
                     </p>
                   </div>
                 </div>

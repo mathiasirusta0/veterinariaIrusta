@@ -727,7 +727,7 @@ export const DocumentsView: React.FC = () => {
                 <div>
                   <div className="text-lg font-black text-teal-800">VETERINARIA RANQUEL</div>
                   <div className="text-[11px] text-slate-600 font-bold">Centro Hospitalario Veterinario • Guardia 24 Horas</div>
-                  <div className="text-[10px] text-slate-500">Río Cuarto, Córdoba • Tel/WhatsApp: +54 9 2942 47-7136</div>
+                  <div className="text-[10px] text-slate-500">Casa 13, Barrio Militar de Oficiales, Las Lajas, Neuquén • Tel/WhatsApp: +54 9 2942 47-7136</div>
                   <div className="text-[10px] text-slate-500 font-medium">Dirección Médica: Dr. Diego Iván Irusta • M.P. 502</div>
                 </div>
                 <div className="bg-teal-50 border border-teal-200 px-3 py-1.5 rounded-xl text-right">

@@ -204,7 +204,7 @@ export function printThermalTicket(data: PrintableReceiptData) {
           <img src="/logo-ranquel.png" style="width: 42px; height: 42px; object-fit: contain; margin-bottom: 4px;" alt="Logo" /><br />
           <div class="title">VETERINARIA RANQUEL</div>
           <div class="subtitle">Centro Hospitalario Veterinario</div>
-          <div class="subtitle">Río Cuarto, Córdoba • Tel: +54 9 2942 47-7136</div>
+          <div class="subtitle">Casa 13, Barrio Militar de Oficiales, Las Lajas (Neuquén) • Tel: +54 9 2942 47-7136</div>
           <div class="subtitle">Dr. Diego Iván Irusta • M.P. 502</div>
           <div class="divider"></div>
           <div class="bold" style="font-size: 12px;">${title}</div>
@@ -486,7 +486,7 @@ export function printA4Document(data: PrintableReceiptData) {
             <div>
               <div class="clinic-name">CLÍNICA VETERINARIA RANQUEL</div>
               <div class="clinic-sub">Centro Hospitalario Veterinario • Cuidados Críticos 24 Horas</div>
-              <div class="clinic-sub">Río Cuarto, Córdoba • Tel/WhatsApp: +54 9 2942 47-7136</div>
+              <div class="clinic-sub">Casa 13, Barrio Militar de Oficiales, Las Lajas (Neuquén) • Tel/WhatsApp: +54 9 2942 47-7136</div>
               <div class="clinic-sub">Dirección Médica: Dr. Diego Iván Irusta • Matrícula Profesional 502</div>
             </div>
           </div>
@@ -509,7 +509,7 @@ export function printA4Document(data: PrintableReceiptData) {
             <div class="section-title">TUTOR RESPONSABLE</div>
             <div class="card-row"><span class="label">Nombre:</span><span class="value">${data.ownerName}</span></div>
             <div class="card-row"><span class="label">Teléfono:</span><span class="value">${data.ownerPhone || 'S/D'}</span></div>
-            <div class="card-row"><span class="label">Localidad:</span><span class="value">Río Cuarto, Córdoba</span></div>
+            <div class="card-row"><span class="label">Localidad:</span><span class="value">Casa 13, Barrio Militar de Oficiales, Las Lajas, Neuquén (CP 8347)</span></div>
           </div>
         </div>
 
@@ -596,7 +596,7 @@ export function generateReceiptPdfDocument(data: PrintableReceiptData): jsPDF {
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(8);
   doc.setTextColor(204, 251, 241);
-  doc.text('Grandes y Pequeños Animales • Cuidados Críticos & Cirugía 24 Hs • Río Cuarto, Córdoba', 14, 16);
+  doc.text('Grandes y Pequeños Animales • Cuidados Críticos & Cirugía 24 Hs • Casa 13, Barrio Militar de Oficiales, Las Lajas, Neuquén (CP 8347)', 14, 16);
   doc.text('Dirección Médica: Dr. Diego Iván Irusta — Matrícula Profesional: M.P. 502', 14, 21);
 
   // Document Badge Right
@@ -616,7 +616,7 @@ export function generateReceiptPdfDocument(data: PrintableReceiptData): jsPDF {
     body: [
       [
         `Paciente: ${data.patientName}\nEspecie/Raza: ${data.species} ${data.breed ? '• ' + data.breed : ''}\nHistoria Clínica: ${data.hc || 'HC-2026'}`,
-        `Tutor: ${data.ownerName}\nTeléfono: ${data.ownerPhone || 'S/D'}\nLocalidad: Río Cuarto, Córdoba\nVeterinario a Cargo: Dr. Diego Iván Irusta (M.P. 502)`,
+        `Tutor: ${data.ownerName}\nTeléfono: ${data.ownerPhone || 'S/D'}\nLocalidad: Casa 13, Barrio Militar de Oficiales, Las Lajas, Neuquén (CP 8347)\nVeterinario a Cargo: Dr. Diego Iván Irusta (M.P. 502)`,
       ],
     ],
     theme: 'grid',
@@ -715,7 +715,7 @@ export function generateReceiptPdfDocument(data: PrintableReceiptData): jsPDF {
   doc.setFontSize(6.5);
   doc.setTextColor(148, 163, 184);
   doc.text(
-    'Comprobante emitido por el Sistema Hospitalario de Veterinaria Ranquel (Río Cuarto, Córdoba) • Tel/WhatsApp +54 9 2942 47-7136',
+    'Comprobante emitido por el Sistema Hospitalario de Veterinaria Ranquel (Casa 13, Barrio Militar de Oficiales, Las Lajas, Neuquén (CP 8347)) • Tel/WhatsApp +54 9 2942 47-7136',
     14,
     286
   );
@@ -943,7 +943,7 @@ export function printA4ClinicalDocument(data: PrintableClinicalDocumentData) {
           <div>
             <div class="clinic-name">VETERINARIA RANQUEL</div>
             <div class="clinic-sub">Centro Hospitalario Veterinario • Guardia 24 Horas</div>
-            <div class="clinic-sub">Río Cuarto, Córdoba • Tel/WhatsApp: +54 9 2942 47-7136</div>
+            <div class="clinic-sub">Casa 13, Barrio Militar de Oficiales, Las Lajas (Neuquén) • Tel/WhatsApp: +54 9 2942 47-7136</div>
             <div class="clinic-sub">Dirección Médica: Dr. Diego Iván Irusta • Matrícula Profesional 502</div>
           </div>
           <div class="doc-badge">
@@ -1031,7 +1031,7 @@ export function generateClinicalDocumentPdf(data: PrintableClinicalDocumentData)
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(8);
   doc.setTextColor(204, 251, 241);
-  doc.text('Grandes y Pequeños Animales • Cuidados Críticos & Cirugía 24 Hs • Río Cuarto, Córdoba', 14, 16);
+  doc.text('Grandes y Pequeños Animales • Cuidados Críticos & Cirugía 24 Hs • Casa 13, Barrio Militar de Oficiales, Las Lajas, Neuquén (CP 8347)', 14, 16);
   doc.text('Dirección Médica: Dr. Diego Iván Irusta — Matrícula Profesional: M.P. 502', 14, 21);
 
   // Document Title Badge Right
@@ -1148,7 +1148,7 @@ export function generateClinicalDocumentPdf(data: PrintableClinicalDocumentData)
   doc.setFontSize(6.5);
   doc.setTextColor(148, 163, 184);
   doc.text(
-    'Documento legal emitido por el Sistema Hospitalario de Veterinaria Ranquel (Río Cuarto, Córdoba) • Tel/WhatsApp +54 9 2942 47-7136',
+    'Documento legal emitido por el Sistema Hospitalario de Veterinaria Ranquel (Casa 13, Barrio Militar de Oficiales, Las Lajas, Neuquén (CP 8347)) • Tel/WhatsApp +54 9 2942 47-7136',
     14,
     286
   );
@@ -1476,7 +1476,7 @@ export function printA4MedicalHistory(data: PrintableMedicalHistoryData) {
           <div>
             <div style="display: flex; align-items: center; gap: 12px;"><img src="/logo-ranquel.png" style="width: 50px; height: 50px; object-fit: contain; border-radius: 10px; border: 1px solid #cbd5e1; background: #fff; padding: 2px; margin-right: 12px; vertical-align: middle;" alt="Logo Ranquel" /><div><div class="clinic-name">CLÍNICA VETERINARIA RANQUEL</div>
             <div class="clinic-sub">Grandes y Pequeños Animales • Cuidados Críticos & Cirugía 24 Hs</div>
-            <div class="clinic-sub">Río Cuarto, Córdoba • Tel/WhatsApp: +54 9 2942 47-7136</div>
+            <div class="clinic-sub">Casa 13, Barrio Militar de Oficiales, Las Lajas (Neuquén) • Tel/WhatsApp: +54 9 2942 47-7136</div>
             <div class="clinic-sub">Dirección Médica: <strong>${data.doctor.name}</strong> — Matrícula Profesional: <strong>${data.doctor.license}</strong></div>
           </div>
           <div class="doc-badge">
@@ -1503,7 +1503,7 @@ export function printA4MedicalHistory(data: PrintableMedicalHistoryData) {
             <div class="card-row"><span class="label">Nombre:</span><span class="value">${data.owner?.name || 'Sin tutor registrado'}</span></div>
             <div class="card-row"><span class="label">Teléfono / WhatsApp:</span><span class="value">${data.owner?.phone || 'S/D'}</span></div>
             <div class="card-row"><span class="label">DNI / CUIT:</span><span class="value">${data.owner?.dni || 'S/D'}</span></div>
-            <div class="card-row"><span class="label">Dirección:</span><span class="value">${data.owner?.address || 'Río Cuarto, Córdoba'}</span></div>
+            <div class="card-row"><span class="label">Dirección:</span><span class="value">${data.owner?.address || 'Casa 13, Barrio Militar de Oficiales, Las Lajas, Neuquén (CP 8347)'}</span></div>
             <div class="card-row"><span class="label">Cuenta Corriente:</span><span class="value">${data.owner?.balance !== undefined ? '$ ' + Number(data.owner.balance).toLocaleString('es-AR', { minimumFractionDigits: 2 }) : '$ 0,00'}</span></div>
             <div class="card-row"><span class="label">Veterinario a Cargo:</span><span class="value">${data.doctor.name} (${data.doctor.license})</span></div>
           </div>
@@ -1732,7 +1732,7 @@ export function generateMedicalHistoryPdfDocument(data: PrintableMedicalHistoryD
   doc.setFontSize(8);
   doc.setTextColor(71, 85, 105);
   doc.text('Grandes y Pequeños Animales • Cuidados Críticos & Cirugía 24 Hs', 14, 23);
-  doc.text('Río Cuarto, Córdoba • Tel/WhatsApp: +54 9 2942 47-7136', 14, 27);
+  doc.text('Casa 13, Barrio Militar de Oficiales, Las Lajas (Neuquén) • Tel/WhatsApp: +54 9 2942 47-7136', 14, 27);
 
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(15, 118, 110);
@@ -1772,7 +1772,7 @@ export function generateMedicalHistoryPdfDocument(data: PrintableMedicalHistoryD
     `Nombre: ${data.owner?.name || 'Sin tutor asignado'}`,
     `Teléfono / WhatsApp: ${data.owner?.phone || 'S/D'}`,
     `DNI / CUIT: ${data.owner?.dni || 'S/D'}`,
-    `Dirección: ${data.owner?.address || 'Río Cuarto, Córdoba'}`,
+    `Dirección: ${data.owner?.address || 'Casa 13, Barrio Militar de Oficiales, Las Lajas, Neuquén (CP 8347)'}`,
     `Cuenta Corriente: ${data.owner?.balance !== undefined ? '$ ' + Number(data.owner.balance).toLocaleString('es-AR', { minimumFractionDigits: 2 }) : '$ 0,00'}`,
     `Veterinario a Cargo: ${data.doctor.name} (${data.doctor.license})`,
   ].join('\n');
@@ -1974,7 +1974,7 @@ export function generateMedicalHistoryPdfDocument(data: PrintableMedicalHistoryD
     doc.setFontSize(6.5);
     doc.setTextColor(148, 163, 184);
     doc.text(
-      'Historia clínica oficial expedida bajo secreto médico veterinario · Clínica Veterinaria Ranquel (Río Cuarto, Córdoba)',
+      'Historia clínica oficial expedida bajo secreto médico veterinario · Clínica Veterinaria Ranquel (Casa 13, Barrio Militar de Oficiales, Las Lajas, Neuquén (CP 8347))',
       14,
       290
     );
@@ -2473,7 +2473,7 @@ export function printA4Prescription(data: PrintablePrescriptionData) {
           <div>
             <div style="display: flex; align-items: center; gap: 12px;"><img src="/logo-ranquel.png" style="width: 50px; height: 50px; object-fit: contain; border-radius: 10px; border: 1px solid #cbd5e1; background: #fff; padding: 2px; margin-right: 12px; vertical-align: middle;" alt="Logo Ranquel" /><div><div class="clinic-name">CLÍNICA VETERINARIA RANQUEL</div>
             <div class="clinic-sub">Dirección Médica: ${data.doctor.name} · ${data.doctor.license}</div>
-            <div class="clinic-sub">${data.branch.name} · ${data.branch.address} · Tel: ${data.branch.phone} · Río Cuarto, Córdoba</div>
+            <div class="clinic-sub">${data.branch.name} · ${data.branch.address} · Tel: ${data.branch.phone} · Casa 13, Barrio Militar de Oficiales, Las Lajas, Neuquén (CP 8347)</div>
           </div>
           <div class="rx-badge">
             <div style="font-size: 8.5px; font-weight: bold; color: #64748b; text-transform: uppercase;">Receta Médica Veterinaria</div>
@@ -2735,7 +2735,7 @@ export function printA4LabReport(data: PrintableLabReportData) {
           <div>
             <div style="display: flex; align-items: center; gap: 12px;"><img src="/logo-ranquel.png" style="width: 50px; height: 50px; object-fit: contain; border-radius: 10px; border: 1px solid #cbd5e1; background: #fff; padding: 2px; margin-right: 12px; vertical-align: middle;" alt="Logo Ranquel" /><div><div class="clinic-name">CLÍNICA VETERINARIA RANQUEL</div>
             <div class="clinic-sub">Dirección Médica: ${data.doctor.name} · ${data.doctor.license}</div>
-            <div class="clinic-sub">${data.branch.name} · ${data.branch.address} · Tel: ${data.branch.phone} · Río Cuarto, Córdoba</div>
+            <div class="clinic-sub">${data.branch.name} · ${data.branch.address} · Tel: ${data.branch.phone} · Casa 13, Barrio Militar de Oficiales, Las Lajas, Neuquén (CP 8347)</div>
           </div>
           <div class="lab-badge">
             <div style="font-size: 8.5px; font-weight: bold; color: #64748b; text-transform: uppercase;">Laboratorio de Análisis Clínicos</div>
@@ -2990,7 +2990,7 @@ export function printA4ImagingReport(data: PrintableImagingReportData) {
           <div>
             <div style="display: flex; align-items: center; gap: 12px;"><img src="/logo-ranquel.png" style="width: 50px; height: 50px; object-fit: contain; border-radius: 10px; border: 1px solid #cbd5e1; background: #fff; padding: 2px; margin-right: 12px; vertical-align: middle;" alt="Logo Ranquel" /><div><div class="clinic-name">CLÍNICA VETERINARIA RANQUEL</div>
             <div class="clinic-sub">Dirección Médica: ${data.doctor.name} · ${data.doctor.license}</div>
-            <div class="clinic-sub">${data.branch.name} · ${data.branch.address} · Tel: ${data.branch.phone} · Río Cuarto, Córdoba</div>
+            <div class="clinic-sub">${data.branch.name} · ${data.branch.address} · Tel: ${data.branch.phone} · Casa 13, Barrio Militar de Oficiales, Las Lajas, Neuquén (CP 8347)</div>
           </div>
           <div class="img-badge">
             <div style="font-size: 8.5px; font-weight: bold; color: #64748b; text-transform: uppercase;">Diagnóstico por Imágenes</div>
@@ -3240,7 +3240,7 @@ export function printA4VaccineCertificate(data: PrintableVaccineCertificateData)
           <div>
             <div style="display: flex; align-items: center; gap: 12px;"><img src="/logo-ranquel.png" style="width: 50px; height: 50px; object-fit: contain; border-radius: 10px; border: 1px solid #cbd5e1; background: #fff; padding: 2px; margin-right: 12px; vertical-align: middle;" alt="Logo Ranquel" /><div><div class="clinic-name">CLÍNICA VETERINARIA RANQUEL</div>
             <div class="clinic-sub">Dirección Médica: ${data.doctor.name} · ${data.doctor.license}</div>
-            <div class="clinic-sub">${data.branch.name} · ${data.branch.address} · Tel: ${data.branch.phone} · Río Cuarto, Córdoba</div>
+            <div class="clinic-sub">${data.branch.name} · ${data.branch.address} · Tel: ${data.branch.phone} · Casa 13, Barrio Militar de Oficiales, Las Lajas, Neuquén (CP 8347)</div>
           </div>
           <div class="cert-badge">
             <div style="font-size: 8.5px; font-weight: bold; color: #64748b; text-transform: uppercase;">Certificado de Vacunación</div>
@@ -3403,7 +3403,7 @@ export function generateVaccineCertificatePdf(data: PrintableVaccineCertificateD
   doc.setFontSize(8.5);
   doc.setTextColor(71, 85, 105);
   doc.text('Centro Hospitalario Veterinario • Guardia 24 Hs & Inmunizaciones', 14, 24);
-  doc.text(`${data.branch.name || 'Sede Central'} • ${data.branch.address || 'Río Cuarto, Córdoba'} • Tel: ${data.branch.phone || '+54 9 2942 47-7136'}`, 14, 28);
+  doc.text(`${data.branch.name || 'Sede Central'} • ${data.branch.address || 'Casa 13, Barrio Militar de Oficiales, Las Lajas, Neuquén (CP 8347)'} • Tel: ${data.branch.phone || '+54 9 2942 47-7136'}`, 14, 28);
 
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(15, 118, 110);
@@ -3444,7 +3444,7 @@ export function generateVaccineCertificatePdf(data: PrintableVaccineCertificateD
     `Tutor: ${data.owner.name}`,
     `DNI / CUIT: ${data.owner.dni}`,
     `Teléfono: ${data.owner.phone}`,
-    `Domicilio: ${data.owner.address || 'Río Cuarto, Córdoba'}`,
+    `Domicilio: ${data.owner.address || 'Casa 13, Barrio Militar de Oficiales, Las Lajas, Neuquén (CP 8347)'}`,
     `Veterinario: ${data.doctor.name}`,
     `Matrícula: ${data.doctor.license}`,
   ].join('\n');
@@ -3587,7 +3587,7 @@ export function generateCompleteVaccinationBookletPdf(data: PrintableCompleteVac
   doc.setFontSize(8.5);
   doc.setTextColor(71, 85, 105);
   doc.text('Centro Hospitalario Veterinario • Pasaporte Sanitario & Plan de Inmunizaciones', 14, 24);
-  doc.text(`${data.branch.name || 'Sede Central'} • ${data.branch.address || 'Río Cuarto, Córdoba'} • Tel: ${data.branch.phone || '+54 9 2942 47-7136'}`, 14, 28);
+  doc.text(`${data.branch.name || 'Sede Central'} • ${data.branch.address || 'Casa 13, Barrio Militar de Oficiales, Las Lajas, Neuquén (CP 8347)'} • Tel: ${data.branch.phone || '+54 9 2942 47-7136'}`, 14, 28);
 
   // Badge
   doc.setFillColor(240, 253, 250);
@@ -3620,7 +3620,7 @@ export function generateCompleteVaccinationBookletPdf(data: PrintableCompleteVac
     `Tutor: ${data.owner.name}`,
     `DNI / CUIT: ${data.owner.dni}`,
     `Teléfono: ${data.owner.phone}`,
-    `Domicilio: ${data.owner.address || 'Río Cuarto, Córdoba'}`,
+    `Domicilio: ${data.owner.address || 'Casa 13, Barrio Militar de Oficiales, Las Lajas, Neuquén (CP 8347)'}`,
     `Dirección Médica: ${data.doctor.name}`,
     `Matrícula Profesional: ${data.doctor.license}`,
   ].join('\n');
