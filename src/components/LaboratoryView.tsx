@@ -42,6 +42,8 @@ export const LaboratoryView: React.FC = () => {
     setQuickModal,
     openWhatsAppHub,
     showToast,
+    archiveLabOrder,
+    deleteLabOrder,
   } = useVet();
 
   const [search, setSearch] = useState('');

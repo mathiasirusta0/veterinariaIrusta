@@ -42,6 +42,8 @@ export const SurgeriesView: React.FC = () => {
     openAnesthesiaChart,
     openWhatsAppHub,
     showToast,
+    archiveSurgery,
+    deleteSurgery,
   } = useVet();
 
   const [search, setSearch] = useState('');

@@ -311,12 +311,14 @@ export const VaccinationView: React.FC = () => {
     setActiveView,
     setQuickModal,
     openWhatsAppHub,
+    archiveVaccination,
+    deleteVaccination,
     showToast,
   } = useVet();
 
   const [search, setSearch] = useState('');
   const [speciesFilter, setSpeciesFilter] = useState<string>('TODAS');
-  const [statusFilter, setStatusFilter] = useState<'TODOS' | 'VIGENTE' | 'POR_VENCER' | 'VENCIDA'>('TODOS');
+  const [statusFilter, setStatusFilter] = useState<'TODOS' | 'VIGENTE' | 'POR_VENCER' | 'VENCIDA' | 'ARCHIVADAS'>('TODOS');
   const [selectedCertModal, setSelectedCertModal] = useState<VaccinationRecord | null>(null);
 
   // New Vaccination Form Modal Dual Mode State

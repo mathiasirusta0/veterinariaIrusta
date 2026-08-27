@@ -47,6 +47,7 @@ export interface Branch {
 }
 
 export interface Owner {
+  isArchived?: boolean;
   id: string;
   firstName: string;
   lastName: string;
@@ -431,6 +432,7 @@ export interface AnesthesiaVitalPoint {
 }
 
 export interface SurgeryRecord {
+  isArchived?: boolean;
   id: string;
   patientId: string;
   procedureName: string;
@@ -491,6 +493,7 @@ export interface LabResultItem {
 }
 
 export interface LaboratoryOrder {
+  isArchived?: boolean;
   id: string;
   orderNumber: string;
   patientId: string;
@@ -510,6 +513,7 @@ export interface LaboratoryOrder {
 export type ImageModality = 'RADIOGRAFIA' | 'ECOGRAFIA' | 'TOMOGRAFIA' | 'RESONANCIA' | 'ENDOSCOPIA' | 'FOTOGRAFIA_CLINICA';
 
 export interface ImagingStudy {
+  isArchived?: boolean;
   id: string;
   studyNumber: string;
   patientId: string;
@@ -526,6 +530,7 @@ export interface ImagingStudy {
 
 // VACUNAS
 export interface VaccinationRecord {
+  isArchived?: boolean;
   id: string;
   patientId: string;
   vaccineName: string; // ej: Toxoide Tetánico Equino, Adenitis, Influenza, Antirrábica, Séxtuple
@@ -556,6 +561,7 @@ export type StockMovementType =
   | 'VENCIMIENTO';
 
 export interface Product {
+  isArchived?: boolean;
   id: string;
   code: string;
   barcode?: string;
@@ -782,6 +788,7 @@ export type AppointmentType =
   | 'PELUQUERIA_BANO';
 
 export interface Appointment {
+  isArchived?: boolean;
   id: string;
   patientId: string;
   ownerId: string;
@@ -898,6 +905,7 @@ export type DocumentType =
   | 'INFORME_DERIVACION_CLINICA';
 
 export interface ClinicalDocument {
+  isArchived?: boolean;
   id: string;
   type: DocumentType;
   title: string;

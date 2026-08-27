@@ -42,6 +42,8 @@ export const ImagingView: React.FC = () => {
     openImagingAnnotator,
     openWhatsAppHub,
     showToast,
+    archiveImaging,
+    deleteImaging,
   } = useVet();
 
   const [search, setSearch] = useState('');

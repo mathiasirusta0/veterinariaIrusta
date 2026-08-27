@@ -269,6 +269,23 @@ interface VetContextType {
   updateProductStock: (productId: string, quantityChange: number, type: InventoryMovement['type'], reason: string) => void;
   deleteProduct: (productId: string) => void;
 
+  // Global Archive & Delete
+  archiveOwner: (ownerId: string) => void;
+  deleteOwner: (ownerId: string) => void;
+  archiveVaccination: (vacId: string) => void;
+  deleteVaccination: (vacId: string) => void;
+  archiveAppointment: (aptId: string) => void;
+  deleteAppointment: (aptId: string) => void;
+  archiveSurgery: (surgeryId: string) => void;
+  deleteSurgery: (surgeryId: string) => void;
+  archiveLabOrder: (labId: string) => void;
+  deleteLabOrder: (labId: string) => void;
+  archiveImaging: (imgId: string) => void;
+  deleteImaging: (imgId: string) => void;
+  archiveDocument: (docId: string) => void;
+  deleteDocument: (docId: string) => void;
+  archiveProduct: (productId: string) => void;
+
   // Appointments & Triage
   addAppointment: (apt: Omit<Appointment, 'id' | 'branchId'>) => void;
   updateAppointmentStatus: (id: string, status: Appointment['status']) => void;
@@ -2264,6 +2281,182 @@ export const VetProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   };
 
+  // Global Collection Archive & Delete Handlers
+  const archiveOwner = (ownerId: string) => {
+    setOwners((prev) =>
+      prev.map((o) => {
+        if (o.id === ownerId) {
+          const nextArchived = !o.isArchived;
+          logAudit('ARCHIVAR_TUTOR', 'Owner', o.id, `Tutor ${o.firstName} ${o.lastName} ${nextArchived ? 'archivado' : 'desarchivado'}`);
+          showToast('info', nextArchived ? 'Tutor Archivado' : 'Tutor Desarchivado', `${o.firstName} ${o.lastName} ${nextArchived ? 'fue archivado' : 'está activo'}.`);
+          return { ...o, isArchived: nextArchived };
+        }
+        return o;
+      })
+    );
+  };
+
+  const deleteOwner = (ownerId: string) => {
+    const own = owners.find((o) => o.id === ownerId);
+    setOwners((prev) => prev.filter((o) => o.id !== ownerId));
+    if (own) {
+      logAudit('ELIMINAR_TUTOR', 'Owner', ownerId, `Tutor ${own.firstName} ${own.lastName} eliminado`);
+      showToast('success', 'Tutor Eliminado', `El tutor ${own.firstName} ${own.lastName} fue eliminado.`);
+    }
+  };
+
+  const archiveVaccination = (vacId: string) => {
+    setVaccinations((prev) =>
+      prev.map((v) => {
+        if (v.id === vacId) {
+          const nextArchived = !v.isArchived;
+          logAudit('ARCHIVAR_VACUNA', 'Vaccination', v.id, `Vacunación ${v.vaccineName} ${nextArchived ? 'archivada' : 'desarchivada'}`);
+          showToast('info', nextArchived ? 'Vacunación Archivado' : 'Vacunación Desarchivada', `${v.vaccineName} ${nextArchived ? 'archivada' : 'activa'}.`);
+          return { ...v, isArchived: nextArchived };
+        }
+        return v;
+      })
+    );
+  };
+
+  const deleteVaccination = (vacId: string) => {
+    const vac = vaccinations.find((v) => v.id === vacId);
+    setVaccinations((prev) => prev.filter((v) => v.id !== vacId));
+    if (vac) {
+      logAudit('ELIMINAR_VACUNA', 'Vaccination', vacId, `Registro de vacuna ${vac.vaccineName} eliminado`);
+      showToast('success', 'Vacunación Eliminada', `El registro de ${vac.vaccineName} fue eliminado.`);
+    }
+  };
+
+  const archiveAppointment = (aptId: string) => {
+    setAppointments((prev) =>
+      prev.map((a) => {
+        if (a.id === aptId) {
+          const nextArchived = !a.isArchived;
+          logAudit('ARCHIVAR_TURNO', 'Appointment', a.id, `Turno ${a.date} ${a.time} ${nextArchived ? 'archivado' : 'desarchivado'}`);
+          showToast('info', nextArchived ? 'Turno Archivado' : 'Turno Desarchivado', `Cita del ${a.date} ${nextArchived ? 'archivada' : 'activa'}.`);
+          return { ...a, isArchived: nextArchived };
+        }
+        return a;
+      })
+    );
+  };
+
+  const deleteAppointment = (aptId: string) => {
+    const apt = appointments.find((a) => a.id === aptId);
+    setAppointments((prev) => prev.filter((a) => a.id !== aptId));
+    if (apt) {
+      logAudit('ELIMINAR_TURNO', 'Appointment', aptId, `Turno del ${apt.date} ${apt.time} eliminado`);
+      showToast('success', 'Turno Eliminado', 'La cita fue eliminada de la agenda.');
+    }
+  };
+
+  const archiveSurgery = (surgeryId: string) => {
+    setSurgeries((prev) =>
+      prev.map((s) => {
+        if (s.id === surgeryId) {
+          const nextArchived = !s.isArchived;
+          logAudit('ARCHIVAR_CIRUGIA', 'Surgery', s.id, `Cirugía ${s.procedureName} ${nextArchived ? 'archivada' : 'desarchivada'}`);
+          showToast('info', nextArchived ? 'Cirugía Archivada' : 'Cirugía Desarchivada', `${s.procedureName} ${nextArchived ? 'archivada' : 'activa'}.`);
+          return { ...s, isArchived: nextArchived };
+        }
+        return s;
+      })
+    );
+  };
+
+  const deleteSurgery = (surgeryId: string) => {
+    const surg = surgeries.find((s) => s.id === surgeryId);
+    setSurgeries((prev) => prev.filter((s) => s.id !== surgeryId));
+    if (surg) {
+      logAudit('ELIMINAR_CIRUGIA', 'Surgery', surgeryId, `Cirugía ${surg.procedureName} eliminada`);
+      showToast('success', 'Cirugía Eliminada', `El registro de ${surg.procedureName} fue eliminado.`);
+    }
+  };
+
+  const archiveLabOrder = (labId: string) => {
+    setLabOrders((prev) =>
+      prev.map((l) => {
+        if (l.id === labId) {
+          const nextArchived = !l.isArchived;
+          logAudit('ARCHIVAR_LAB', 'LaboratoryOrder', l.id, `Orden de laboratorio ${l.orderNumber} ${nextArchived ? 'archivada' : 'desarchivada'}`);
+          showToast('info', nextArchived ? 'Laboratorio Archivado' : 'Laboratorio Desarchivado', `Orden ${l.orderNumber} ${nextArchived ? 'archivada' : 'activa'}.`);
+          return { ...l, isArchived: nextArchived };
+        }
+        return l;
+      })
+    );
+  };
+
+  const deleteLabOrder = (labId: string) => {
+    const lab = labOrders.find((l) => l.id === labId);
+    setLabOrders((prev) => prev.filter((l) => l.id !== labId));
+    if (lab) {
+      logAudit('ELIMINAR_LAB', 'LaboratoryOrder', labId, `Orden ${lab.orderNumber} eliminada`);
+      showToast('success', 'Laboratorio Eliminado', `La orden ${lab.orderNumber} fue eliminada.`);
+    }
+  };
+
+  const archiveImaging = (imgId: string) => {
+    setImagingStudies((prev) =>
+      prev.map((i) => {
+        if (i.id === imgId) {
+          const nextArchived = !i.isArchived;
+          logAudit('ARCHIVAR_IMAGEN', 'ImagingStudy', i.id, `Estudio ${i.region} ${nextArchived ? 'archivado' : 'desarchivado'}`);
+          showToast('info', nextArchived ? 'Estudio Archivado' : 'Estudio Desarchivado', `${i.region} ${nextArchived ? 'archivado' : 'activo'}.`);
+          return { ...i, isArchived: nextArchived };
+        }
+        return i;
+      })
+    );
+  };
+
+  const deleteImaging = (imgId: string) => {
+    const img = imagingStudies.find((i) => i.id === imgId);
+    setImagingStudies((prev) => prev.filter((i) => i.id !== imgId));
+    if (img) {
+      logAudit('ELIMINAR_IMAGEN', 'ImagingStudy', imgId, `Estudio ${img.region} eliminado`);
+      showToast('success', 'Estudio Eliminado', `El estudio de ${img.region} fue eliminado.`);
+    }
+  };
+
+  const archiveDocument = (docId: string) => {
+    setDocuments((prev) =>
+      prev.map((d) => {
+        if (d.id === docId) {
+          const nextArchived = !d.isArchived;
+          logAudit('ARCHIVAR_DOC', 'ClinicalDocument', d.id, `Documento ${d.title} ${nextArchived ? 'archivado' : 'desarchivado'}`);
+          showToast('info', nextArchived ? 'Documento Archivado' : 'Documento Desarchivado', `${d.title} ${nextArchived ? 'archivado' : 'activo'}.`);
+          return { ...d, isArchived: nextArchived };
+        }
+        return d;
+      })
+    );
+  };
+
+  const deleteDocument = (docId: string) => {
+    const doc = documents.find((d) => d.id === docId);
+    setDocuments((prev) => prev.filter((d) => d.id !== docId));
+    if (doc) {
+      logAudit('ELIMINAR_DOC', 'ClinicalDocument', docId, `Documento ${doc.title} eliminado`);
+      showToast('success', 'Documento Eliminado', `El documento ${doc.title} fue eliminado.`);
+    }
+  };
+
+  const archiveProduct = (productId: string) => {
+    setProducts((prev) =>
+      prev.map((p) => {
+        if (p.id === productId) {
+          const nextArchived = !p.isArchived;
+          logAudit('ARCHIVAR_PRODUCTO', 'Product', p.id, `Producto ${p.commercialName} ${nextArchived ? 'archivado' : 'desarchivado'}`);
+          showToast('info', nextArchived ? 'Producto Archivado' : 'Producto Desarchivado', `${p.commercialName} ${nextArchived ? 'archivado' : 'activo'}.`);
+          return { ...p, isArchived: nextArchived };
+        }
+        return p;
+      })
+    );
+  };
+
   // Appointments & Triage
   const addAppointment = (data: Omit<Appointment, 'id' | 'branchId'>) => {
     // Validar colisión / doble reserva por profesional y consultorio
@@ -2740,6 +2933,21 @@ export const VetProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         updateProductStock,
         deleteProduct,
 
+        archiveOwner,
+        deleteOwner,
+        archiveVaccination,
+        deleteVaccination,
+        archiveAppointment,
+        deleteAppointment,
+        archiveSurgery,
+        deleteSurgery,
+        archiveLabOrder,
+        deleteLabOrder,
+        archiveImaging,
+        deleteImaging,
+        archiveDocument,
+        deleteDocument,
+        archiveProduct,
         addAppointment,
         updateAppointmentStatus,
         addTriageEntry,

@@ -41,6 +41,8 @@ export const AppointmentsView: React.FC = () => {
     setActivePatientTab,
     setActiveView,
     openWhatsAppHub,
+    archiveAppointment,
+    deleteAppointment,
     showToast,
   } = useVet();
 
@@ -114,8 +116,14 @@ export const AppointmentsView: React.FC = () => {
           (a.notes || '').toLowerCase().includes(q);
 
         const matchesVet = filterVet === 'TODOS' || a.vetId === filterVet;
-        const matchesStatus = filterStatus === 'TODOS' || a.status === filterStatus;
         const matchesType = filterType === 'TODOS' || a.type === filterType;
+        let matchesStatus = true;
+        if (filterStatus === 'ARCHIVADOS') {
+          matchesStatus = !!a.isArchived;
+        } else {
+          if (a.isArchived) return false;
+          matchesStatus = filterStatus === 'TODOS' || a.status === filterStatus;
+        }
 
         // If there is an active search query, match across ALL dates seamlessly
         if (q) {

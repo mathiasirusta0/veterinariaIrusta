@@ -48,6 +48,8 @@ export const PatientsListView: React.FC = () => {
     openWhatsAppHub,
     openDentalChart,
     openBodyMap,
+    archivePatient,
+    deletePatient,
     showToast,
   } = useVet();
 

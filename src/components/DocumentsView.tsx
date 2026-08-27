@@ -143,6 +143,8 @@ export const DocumentsView: React.FC = () => {
     signDocument,
     openWhatsAppHub,
     showToast,
+    archiveDocument,
+    deleteDocument,
   } = useVet();
 
   // Search & Filter
