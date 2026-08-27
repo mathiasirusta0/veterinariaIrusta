@@ -219,7 +219,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ onBackToLanding }) => {
                 <img src="/logo-ranquel.png" alt="Logo Ranquel" className="w-10 h-10 rounded-xl object-contain bg-white p-0.5 border border-[#EEDCE2] shadow-2xs" />
                 <div>
                   <h4 className="text-sm font-bold font-serif text-[#162217]">Veterinaria Ranquel</h4>
-                  <p className="text-xs text-[#6B4D56]">Río Cuarto • Buenos Aires</p>
+                  <p className="text-xs text-[#6B4D56] font-medium">Las Lajas • Neuquén (CP 8347)</p>
                 </div>
               </div>
               <span className="text-xs font-black bg-amber-100 text-amber-900 px-2.5 py-1 rounded-full border border-amber-200">
