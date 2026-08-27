@@ -216,6 +216,12 @@ export const AppointmentsView: React.FC = () => {
   }, [currentCalendarMonth, appointments]);
 
   // Actions
+  const handleFinalizeAppointment = (apt: Appointment, patientName: string) => {
+    triggerHaptic('success');
+    updateAppointmentStatus(apt.id, 'FINALIZADO');
+    showToast('success', 'Turno Finalizado con Éxito', `La atención de ${patientName} fue marcada como completada.`);
+  };
+
   const handlePassToConsultation = (apt: Appointment) => {
     triggerHaptic('medium');
     updateAppointmentStatus(apt.id, 'EN_CONSULTA');
@@ -755,6 +761,29 @@ export const AppointmentsView: React.FC = () => {
                             <Stethoscope className="w-3.5 h-3.5" />
                             <span>Atender</span>
                           </button>
+
+                          {/* Finalizar Turno / Dar Okay */}
+                          {apt.status !== 'FINALIZADO' ? (
+                            <button
+                              type="button"
+                              onClick={() => handleFinalizeAppointment(apt, patient?.name || 'el paciente')}
+                              className="min-h-[40px] px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs rounded-xl shadow-md shadow-emerald-600/25 flex items-center gap-1.5 transition-all active:scale-95 touch-manipulation cursor-pointer"
+                              title="Dar el OK y finalizar el turno del paciente"
+                            >
+                              <CheckCircle2 className="w-4 h-4 stroke-[2.5]" />
+                              <span>Finalizar Turno</span>
+                            </button>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => updateAppointmentStatus(apt.id, 'CONFIRMADO')}
+                              className="min-h-[40px] px-3 py-1.5 bg-emerald-50 text-emerald-800 border border-emerald-300 font-bold text-xs rounded-xl flex items-center gap-1.5 cursor-pointer hover:bg-emerald-100 transition-colors"
+                              title="Turno completado. Clic para reabrir si fue un error"
+                            >
+                              <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                              <span>✓ Finalizado</span>
+                            </button>
+                          )}
                         </div>
                       </div>
                     );
