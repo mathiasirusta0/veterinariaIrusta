@@ -148,7 +148,7 @@ export const SurgeriesView: React.FC = () => {
         <SearchInput
           value={search}
           onChange={setSearch}
-          placeholder="Buscar por cirugía, paciente, HC, cirujano o anestesista..."
+          placeholder="Buscar por cirugía, paciente, HC, cirujano..."
         />
         <FilterBar
           options={statusOptions}
@@ -237,7 +237,7 @@ export const SurgeriesView: React.FC = () => {
                       <span>Cirujano: {surg.surgeonName}</span>
                     </div>
                     <div className="text-slate-500 text-[11px]">
-                      Anestesista: <strong className="text-slate-700">{surg.anesthetistName}</strong>
+                      Atención quirúrgica profesional
                       {surg.assistantName ? ' • Ayudante: ' + surg.assistantName : ''}
                     </div>
                     <div className="font-mono text-slate-500 text-[11px] mt-0.5">

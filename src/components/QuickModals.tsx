@@ -617,23 +617,38 @@ export const QuickModals: React.FC = () => {
     e.preventDefault();
     const pat = patients.find((p) => p.id === surgPatId) || patients[0];
     addSurgery({
-      patientId: surgPatId || pat.id,
-      procedureName: surgProcName,
-      surgeonName: surgSurgeon,
-      anesthetistName: surgAnesthetist,
-      date: surgDate,
-      startTime: surgStartTime,
-      estimatedDurationMinutes: Number(surgDuration),
-      asaGrade: surgAsa,
+      patientId: surgPatId || pat?.id || 'pat-duque-001',
+      procedureName: surgProcName || 'Cirugía General',
+      surgeonName: surgSurgeon || 'Dr. Diego Iván Irusta',
+      anesthetistName: surgSurgeon || 'Dr. Diego Iván Irusta',
+      date: surgDate || new Date().toISOString().split('T')[0],
+      startTime: surgStartTime || '10:00',
+      estimatedDurationMinutes: Number(surgDuration) || 60,
+      asaGrade: 'I',
       status: 'PROGRAMADA',
-      preOpAssessment: surgPreOp,
-      anesthesiaProtocol: {
-        induction: surgInduction,
-        maintenance: surgMaintenance,
-        analgesia: surgAnalgesia,
+      preOpAssessment: {
+        asaGrade: 'I',
+        fastingHours: 8,
+        labReviewed: true,
+        risksAlerts: 'Procedimiento estándar ambulatorio',
       },
-      surgicalTechnique: surgTechnique,
-      postOpInstructions: surgPostOp,
+      anesthesiaProtocol: {
+        premedication: '',
+        induction: '',
+        maintenance: '',
+        analgesia: '',
+        monitoringPoints: [],
+        milestones: {
+          inductionTime: surgStartTime || '10:00',
+          intubationTime: surgStartTime || '10:00',
+          incisionTime: surgStartTime || '10:00',
+          sutureTime: '',
+          extubationTime: '',
+          recoveryTime: '',
+        },
+      },
+      surgicalTechnique: surgTechnique || '',
+      postOpInstructions: surgPostOp || '',
     });
     setQuickModal(null);
     setActiveView('CIRUGIAS');
@@ -854,7 +869,7 @@ export const QuickModals: React.FC = () => {
             {quickModal === 'NUEVO_TURNO' && '📅 Agendar Nuevo Turno'}
             {quickModal === 'NUEVO_TRIAGE' && '⏱️ Ingresar Paciente a Triage / Sala de Espera'}
                         {quickModal === 'INGRESO_INTERNACION' && '🏥 Ingreso Directo a Internación (Caniles/UCI)'}
-            {quickModal === 'NUEVA_CIRUGIA' && '✂️ Programar Cirugía & Protocolo Anestésico'}
+            {quickModal === 'NUEVA_CIRUGIA' && '✂️ Programar Cirugía / Procedimiento'}
             {quickModal === 'NUEVO_LAB' && '🧪 Solicitar Análisis de Laboratorio'}
             {quickModal === 'NUEVA_IMAGEN' && '🔍 Solicitar Estudio de Imagen'}
             {quickModal === 'NUEVA_VACUNA' && '💉 Aplicar Vacuna & Libreta'}
