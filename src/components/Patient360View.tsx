@@ -24,6 +24,7 @@ import {
   Sparkles,
   Plus,
   ShieldAlert,
+  ShieldCheck,
   Calculator,
   Eye,
   Radio,
@@ -625,6 +626,19 @@ export const Patient360View: React.FC = () => {
         {/* Clean Contextual Actions */}
         <div className="flex items-center gap-2">
 
+
+          <button
+            type="button"
+            onClick={() => {
+              triggerHaptic('medium');
+              setIsConsentModalOpen(true);
+            }}
+            className="flex items-center gap-1.5 px-3.5 py-2 bg-teal-50 hover:bg-teal-100 text-teal-950 border border-teal-300 text-xs font-bold rounded-xl transition-all active:scale-95 cursor-pointer shadow-2xs"
+            title="Generar, visualizar y firmar consentimiento informado oficial"
+          >
+            <ShieldCheck className="w-3.5 h-3.5 text-teal-700" />
+            <span>Consentimiento Informado</span>
+          </button>
 
           <button
             type="button"
@@ -3147,6 +3161,14 @@ export const Patient360View: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Modal de Consentimiento Informado Veterinario */}
+      <PatientInformedConsentModal
+        isOpen={isConsentModalOpen}
+        onClose={() => setIsConsentModalOpen(false)}
+        patient={patient}
+        owner={owner}
+      />
 
       {/* Modales de Alta Médica y Descarga de Historia Clínica */}
       <PatientDischargeModal

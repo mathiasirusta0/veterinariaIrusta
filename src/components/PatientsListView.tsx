@@ -952,6 +952,16 @@ export const PatientsListView: React.FC = () => {
       </div>
     )}
 
+    {/* Modal de Consentimiento Informado Veterinario */}
+    {selectedConsentPatient && (
+      <PatientInformedConsentModal
+        isOpen={!!selectedConsentPatient}
+        onClose={() => setSelectedConsentPatient(null)}
+        patient={selectedConsentPatient}
+        owner={owners.find((o) => o.id === selectedConsentPatient.ownerId)}
+      />
+    )}
+
     {/* Modales de Alta Médica y Descarga de Historia Clínica */}
     <PatientDischargeModal
       isOpen={!!dischargeModalPatient}

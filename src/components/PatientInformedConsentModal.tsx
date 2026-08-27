@@ -115,7 +115,7 @@ export const PatientInformedConsentModal: React.FC<PatientInformedConsentModalPr
     }
   }, [selectedTemplateIndex, specificProcedure, patient, owner]);
 
-  if (!isOpen) return null;
+  if (!isOpen || !patient) return null;
 
   const currentDocData: PrintableClinicalDocumentData = {
     title: activeTemplate.title,
@@ -226,7 +226,7 @@ export const PatientInformedConsentModal: React.FC<PatientInformedConsentModalPr
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-slate-950/80 backdrop-blur-xs animate-in fade-in">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-2 sm:p-4 bg-slate-950/80 backdrop-blur-xs animate-in fade-in">
       <div
         className="bg-white rounded-3xl w-full max-w-4xl max-h-[94vh] flex flex-col shadow-2xl border border-slate-200 overflow-hidden text-slate-900"
         role="dialog"
