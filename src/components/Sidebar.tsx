@@ -1,5 +1,6 @@
 import React from 'react';
 import {
+  Calculator,
   X,
   LogOut,
 } from 'lucide-react';
@@ -34,6 +35,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
     hospitalizations,
     triageList,
     setSelectedPatientId,
+    openCalculators,
   } = useVet();
 
   const lowStockCount = (products || []).filter((p) => (p.currentStock ?? 0) <= (p.minStock ?? 0)).length;
@@ -83,11 +85,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
       {/* Main Sidebar Container */}
       <aside
         className={`
-          fixed md:static inset-y-0 left-0 z-50
-          w-72 max-w-[85vw] bg-slate-900 text-slate-100 flex flex-col
+          fixed md:sticky top-0 md:top-16 inset-y-0 left-0 z-50
+          w-72 max-w-[85vw] h-full md:h-[calc(100vh-4rem)] md:h-[calc(100dvh-4rem)]
+          bg-slate-900 text-slate-100 flex flex-col justify-between
           transition-transform duration-300 ease-in-out border-r border-slate-800
           ${isDrawerOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
-          shadow-2xl md:shadow-none select-none
+          shadow-2xl md:shadow-none select-none overflow-hidden flex-shrink-0
         `}
       >
         {/* Header / Brand Logo */}
@@ -120,7 +123,25 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </div>
 
         {/* Navigation Item Groups */}
-        <div className="flex-1 overflow-y-auto px-3 py-4 space-y-6 scrollbar-thin scrollbar-thumb-slate-800">
+        <div className="flex-1 overflow-y-auto px-3 py-4 space-y-5 scrollbar-thin scrollbar-thumb-slate-800">
+          {/* Quick Tool: Calculadora Dosis */}
+          <div className="px-1 mb-2">
+            <button
+              type="button"
+              onClick={() => {
+                triggerHaptic('medium');
+                openCalculators();
+                handleClose();
+              }}
+              className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl bg-gradient-to-r from-teal-900/60 to-slate-800/80 border border-teal-500/40 hover:border-teal-400 hover:bg-teal-800/40 text-teal-200 hover:text-white font-bold text-xs shadow-sm transition-all active:scale-[0.98] cursor-pointer"
+              title="Abrir Calculadora Médica y Protocolos Farmacológicos"
+            >
+              <div className="w-6 h-6 rounded-lg bg-teal-500/20 border border-teal-400/30 flex items-center justify-center text-teal-300">
+                <Calculator className="w-3.5 h-3.5" />
+              </div>
+              <span className="truncate">Calculadora Dosis</span>
+            </button>
+          </div>
           {navGroups.map((group, gIdx) => (
             <div key={gIdx} className="space-y-1">
               <span className="px-3 text-[10px] font-extrabold uppercase tracking-wider text-slate-500 block mb-2">
