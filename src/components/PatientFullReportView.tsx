@@ -1,3 +1,4 @@
+import { PatientMedicalHistoryDownloadModal } from './PatientMedicalHistoryDownloadModal';
 import React, { useState, useMemo } from 'react';
 import {
   FileText,
@@ -134,6 +135,7 @@ export const PatientFullReportView: React.FC<PatientFullReportViewProps> = ({ pa
 
   // Modal Short Summary State
   const [showSummaryModal, setShowSummaryModal] = useState(false);
+  const [isDownloadModalOpen, setIsDownloadModalOpen] = useState(false);
 
   const toggleSection = (section: string) => {
     triggerHaptic('light');
@@ -441,6 +443,16 @@ export const PatientFullReportView: React.FC<PatientFullReportViewProps> = ({ pa
     });
   };
 
+
+  const getCleanOwnerAddress = (o?: Owner | null) => {
+    if (!o) return 'Sin tutor registrado';
+    const parts: string[] = [];
+    if (o.address) parts.push(o.address);
+    if (o.city && !o.address?.toLowerCase().includes(o.city.toLowerCase())) parts.push(o.city);
+    if (o.province && !o.address?.toLowerCase().includes(o.province.toLowerCase())) parts.push(o.province);
+    return parts.length > 0 ? parts.join(', ') : 'Casa 13, Barrio Militar de Oficiales, Las Lajas (Neuquén)';
+  };
+
   const isWorkingAnimal =
     patient.isProductionAnimal ||
     patient.equinePassport ||
@@ -453,29 +465,29 @@ export const PatientFullReportView: React.FC<PatientFullReportViewProps> = ({ pa
   return (
     <div className="space-y-6 pb-20 w-full max-w-full print:p-0 print:space-y-4">
       {/* 1. TOP ACTION RIBBON (Hidden on print) */}
-      <div className="bg-white border border-slate-200 p-4 rounded-3xl shadow-xs flex flex-wrap items-center justify-between gap-3 print:hidden">
+      <div className="bg-white border border-slate-200 p-4 sm:p-5 rounded-3xl shadow-xs flex flex-wrap items-center justify-between gap-3 print:hidden">
         <div>
-          <span className="text-[10px] font-extrabold uppercase tracking-widest text-teal-800 block">
+          <span className="text-[10px] font-black uppercase tracking-widest text-[#7E3A4D] bg-[#F7EBEF] px-2.5 py-0.5 rounded-md border border-[#EEDCE2] inline-block mb-1">
             EXPEDIENTE CLÍNICO INTEGRAL & HISTORIAL 360°
           </span>
           <h2 className="text-lg sm:text-xl font-black text-slate-900 leading-tight flex items-center gap-2">
-            <FileText className="w-5 h-5 text-teal-600" />
-            <span>Informe Completo: {patient.name} ({patient.clinicalRecordNumber})</span>
+            <FileText className="w-5 h-5 text-[#7E3A4D]" />
+            <span>Informe 360°: {patient.name} ({patient.clinicalRecordNumber})</span>
           </h2>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          {/* Generate Short Summary Button */}
+          {/* Executive Summary Button */}
           <button
             type="button"
             onClick={() => {
               triggerHaptic('light');
               setShowSummaryModal(true);
             }}
-            className="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs rounded-xl transition-all active:scale-95 flex items-center gap-1.5"
+            className="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs rounded-xl transition-all active:scale-95 flex items-center gap-1.5 cursor-pointer shadow-2xs"
             title="Ver resumen ejecutivo corto"
           >
-            <Sparkles className="w-3.5 h-3.5 text-teal-600" />
+            <Sparkles className="w-3.5 h-3.5 text-[#7E3A4D]" />
             <span>Resumen Ejecutivo</span>
           </button>
 
@@ -484,24 +496,76 @@ export const PatientFullReportView: React.FC<PatientFullReportViewProps> = ({ pa
             <button
               type="button"
               onClick={handleSendWhatsAppSummary}
-              className="px-3.5 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 font-bold text-xs rounded-xl transition-all active:scale-95 flex items-center gap-1.5"
+              className="px-3.5 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 font-bold text-xs rounded-xl transition-all active:scale-95 flex items-center gap-1.5 cursor-pointer shadow-2xs"
               title="Enviar resumen al tutor por WhatsApp"
             >
               <MessageCircle className="w-3.5 h-3.5 text-emerald-600" />
-              <span className="hidden sm:inline">WhatsApp</span>
+              <span>WhatsApp Tutor</span>
             </button>
           )}
 
-          {/* Print / Download PDF */}
+          {/* Official PDF Download Modal */}
+          <button
+            type="button"
+            onClick={() => {
+              triggerHaptic('medium');
+              setIsDownloadModalOpen(true);
+            }}
+            className="px-3.5 py-2 bg-[#FAF8F5] hover:bg-[#EFECE3] text-[#1C2B1D] border border-[#DDD7C8] font-bold text-xs rounded-xl transition-all active:scale-95 flex items-center gap-1.5 cursor-pointer shadow-2xs"
+            title="Descargar Historia Clínica Completa en PDF A4 Membretado"
+          >
+            <Download className="w-3.5 h-3.5 text-[#5F7359]" />
+            <span>Descargar PDF A4</span>
+          </button>
+
+          {/* Print A4 */}
           <button
             type="button"
             onClick={handlePrintFullReport}
-            className="px-4 py-2 bg-teal-600 hover:bg-teal-500 text-white font-bold text-xs rounded-xl shadow-md shadow-teal-600/20 transition-all active:scale-95 flex items-center gap-1.5"
-            title="Imprimir / Guardar como PDF"
+            className="px-4 py-2 bg-[#7E3A4D] hover:bg-[#632C3B] text-white font-bold text-xs rounded-xl shadow-md shadow-[#7E3A4D]/20 transition-all active:scale-95 flex items-center gap-1.5 cursor-pointer"
+            title="Imprimir Expediente Completo"
           >
-            <Printer className="w-4 h-4" />
-            <span>Imprimir / PDF</span>
+            <Printer className="w-4 h-4 text-rose-200" />
+            <span>Imprimir A4</span>
           </button>
+        </div>
+      </div>
+
+      {/* INSTITUTIONAL OFFICIAL LETTERHEAD (Screen & Print) */}
+      <div className="bg-white border border-slate-200 p-5 sm:p-6 rounded-3xl shadow-xs space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
+          <div className="flex items-center gap-3.5">
+            <img
+              src="/logo-ranquel.png"
+              alt="Logo Veterinaria Ranquel"
+              className="w-14 h-14 rounded-2xl object-contain bg-white p-1 border border-slate-200 shadow-xs flex-shrink-0"
+            />
+            <div>
+              <span className="text-[10px] font-black tracking-widest text-[#7E3A4D] uppercase bg-[#F7EBEF] px-2 py-0.5 rounded-md border border-[#EEDCE2]">
+                CENTRO MÉDICO VETERINARIO OFICIAL
+              </span>
+              <h1 className="text-xl sm:text-2xl font-serif font-black text-[#26141A] tracking-tight mt-0.5">
+                Clínica Veterinaria Ranquel
+              </h1>
+              <p className="text-xs text-slate-600 font-medium">
+                Casa 13, Barrio Militar de Oficiales, Las Lajas (Neuquén) • Tel/WhatsApp: +54 9 2942 47-7136
+              </p>
+              <p className="text-[11px] text-[#7E3A4D] font-bold">
+                Dirección Médica: Dr. Diego Iván Irusta • M.P. 502
+              </p>
+            </div>
+          </div>
+
+          <div className="text-left sm:text-right space-y-1">
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Fecha de Emisión:</span>
+            <p className="font-mono font-bold text-slate-900 text-xs sm:text-sm">
+              {new Date().toLocaleDateString('es-AR')} — {new Date().toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })} hs
+            </p>
+            <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+              <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+              <span>Historial Inmutable Verificado</span>
+            </span>
+          </div>
         </div>
       </div>
 
@@ -591,7 +655,7 @@ export const PatientFullReportView: React.FC<PatientFullReportViewProps> = ({ pa
               <>
                 <p className="text-slate-600 font-mono text-[11px]">DNI/CUIT: {owner.dni || owner.cuit || 'N/D'}</p>
                 <p className="text-slate-600">📞 {owner.phone || owner.whatsapp || 'Sin teléfono'}</p>
-                {owner.address && <p className="text-slate-500 truncate">📍 {owner.address}, {owner.city}</p>}
+                <p className="text-slate-600 truncate">📍 {getCleanOwnerAddress(owner)}</p>
                 <p className="text-[11px] font-mono pt-1 border-t border-slate-200">
                   Cuenta Corriente:{' '}
                   <strong className={(owner.balance || 0) < 0 ? 'text-rose-600 font-black' : 'text-emerald-700 font-black'}>
