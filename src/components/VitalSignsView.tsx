@@ -272,14 +272,7 @@ export const VitalSignsView: React.FC = () => {
 
         <div className="flex flex-wrap items-center gap-2.5">
 
-          <button
-            onClick={() => openCalculators()}
-            className="flex items-center gap-1.5 px-3.5 py-2 bg-white hover:bg-slate-50 text-slate-800 border border-slate-200 text-xs font-bold rounded-lg shadow-2xs transition-all"
-            title="Calculadora de infusión y fluidoterapia"
-          >
-            <Droplet className="w-3.5 h-3.5 text-teal-600" />
-            <span>Calculadora Dosis</span>
-          </button>
+
 
           <button
             onClick={() => setIsRegisterModalOpen(true)}

@@ -133,12 +133,7 @@ export const SurgeriesView: React.FC = () => {
         description="Planificación quirúrgica, protocolos anestésicos multimodales, estratificación ASA y listas de verificación"
         icon={Scissors}
         actions={[
-          {
-            label: 'Calculadora Dosis',
-            icon: Calculator,
-            onClick: () => openCalculators(),
-            variant: 'secondary',
-          },
+
           {
             label: 'Programar Cirugía',
             icon: Plus,

@@ -125,14 +125,7 @@ export const DashboardView: React.FC = () => {
             ))}
           </div>
 
-          <button
-            onClick={() => openCalculators()}
-            className="bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 px-3 py-2 rounded-xl text-xs font-bold shadow-2xs transition-all flex items-center gap-1.5"
-            title="Calculadora médica y dosis"
-          >
-            <Calculator className="w-3.5 h-3.5 text-teal-600" />
-            <span>Calculadora Dosis</span>
-          </button>
+
           <button
             onClick={() => setQuickModal('NUEVO_TURNO')}
             className="bg-teal-600 hover:bg-teal-500 text-white px-4 py-2 rounded-xl text-xs font-black shadow-sm shadow-teal-600/25 transition-all active:scale-95 flex items-center gap-1.5"

@@ -1169,15 +1169,7 @@ export const Patient360View: React.FC = () => {
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() => openCalculators()}
-                    className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs rounded-xl flex items-center gap-1.5 transition-colors active:scale-95 cursor-pointer"
-                    title="Calculadora de dosis farmacológicas y fluidoterapia"
-                  >
-                    <Calculator className="w-3.5 h-3.5 text-teal-600" />
-                    <span>Calculadora Dosis</span>
-                  </button>
+
                   <button
                     type="button"
                     onClick={() =>
