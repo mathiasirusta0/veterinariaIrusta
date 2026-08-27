@@ -1,6 +1,5 @@
 import React from 'react';
 import {
-  Calculator,
   X,
   LogOut,
 } from 'lucide-react';
@@ -35,7 +34,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
     hospitalizations,
     triageList,
     setSelectedPatientId,
-    openCalculators,
   } = useVet();
 
   const lowStockCount = (products || []).filter((p) => (p.currentStock ?? 0) <= (p.minStock ?? 0)).length;
@@ -124,25 +122,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
         {/* Navigation Item Groups */}
         <div className="flex-1 overflow-y-auto px-3.5 py-4 space-y-5 scrollbar-thin scrollbar-thumb-slate-200">
-          {/* Quick Tool: Calculadora Dosis */}
-          <div className="mb-2">
-            <button
-              type="button"
-              onClick={() => {
-                triggerHaptic('medium');
-                openCalculators();
-                handleClose();
-              }}
-              className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl bg-teal-50/90 hover:bg-teal-100/80 border border-teal-200 text-teal-900 font-extrabold text-xs shadow-2xs transition-all active:scale-[0.98] cursor-pointer"
-              title="Abrir Calculadora Médica y Protocolos Farmacológicos"
-            >
-              <div className="w-6 h-6 rounded-lg bg-teal-600 flex items-center justify-center text-white shadow-2xs flex-shrink-0">
-                <Calculator className="w-3.5 h-3.5" />
-              </div>
-              <span className="truncate">Calculadora Dosis</span>
-            </button>
-          </div>
-
           {navGroups.map((group, gIdx) => (
             <div key={gIdx} className="space-y-1">
               <span className="px-3 text-[10px] font-black uppercase tracking-wider text-slate-400 block mb-1.5">
