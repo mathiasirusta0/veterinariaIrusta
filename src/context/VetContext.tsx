@@ -1019,10 +1019,18 @@ export const VetProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const deletePatient = (id: string) => {
     const p = patients.find((pat) => pat.id === id);
-    setPatients((prev) => prev.filter((pat) => pat.id !== id));
-    logAudit('ELIMINAR_PACIENTE', 'Patient', id, `Eliminación de paciente: ${p?.name || id}`);
+    setPatients((prev) => {
+      const next = prev.filter((pat) => pat.id !== id);
+      try {
+        localStorage.setItem('vetsys_patients', JSON.stringify(next));
+      } catch {}
+      return next;
+    });
+    logAudit('ELIMINAR_PACIENTE', 'Patient', id, `Eliminación definitiva de paciente: ${p?.name || id}`);
+    showToast('success', 'Paciente Eliminado', `El paciente ${p?.name || id} fue eliminado definitivamente del sistema y la base de datos.`);
+    Promise.resolve(supabase.from('patients').delete().eq('id', id)).catch(() => {});
     if (selectedPatientId === id) {
-      setSelectedPatientId(patients.find((pat) => pat.id !== id)?.id || null);
+      setSelectedPatientId(null);
     }
   };
 
@@ -1030,38 +1038,46 @@ export const VetProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const now = new Date().toISOString();
     const p = patients.find((pat) => pat.id === patientId);
 
-    // 1. Update patient status to 'ALTA_MEDICA'
-    setPatients((prev) =>
-      prev.map((pat) => {
+    // 1. Update patient status to 'ARCHIVADO' & 'ALTA_MEDICA'
+    setPatients((prev) => {
+      const next = prev.map((pat) => {
         if (pat.id === patientId) {
-          const updated: Patient = { ...pat, status: 'ALTA_MEDICA' };
+          const updated: Patient = { ...pat, status: 'ARCHIVADO', isArchived: true };
           syncPatientToSupabase(updated);
           return updated;
         }
         return pat;
-      })
-    );
+      });
+      try {
+        localStorage.setItem('vetsys_patients', JSON.stringify(next));
+      } catch {}
+      return next;
+    });
 
-    // 2. Complete any active hospitalization
-    setHospitalizations((prev) =>
-      prev.map((h) => {
+    // 2. Complete active hospitalization
+    setHospitalizations((prev) => {
+      const next = prev.map((h) => {
         if (h.patientId === patientId && h.status === 'ACTIVA') {
           const updated: Hospitalization = {
             ...h,
             status: 'ALTA_MEDICA',
             dischargedAt: now,
-            dischargeSummary: `${options.condition ? `[Condición: ${options.condition}] ` : ''}${options.dischargeNotes}${options.homeMedication ? ` | Medicación al alta: ${options.homeMedication}` : ''}`,
+            dischargeSummary: `${options.condition ? `[Condición: ${options.condition}] ` : ''}${options.dischargeNotes}${options.homeMedication ? ` | Medicación: ${options.homeMedication}` : ''}`,
           };
           syncHospitalizationToSupabase(updated);
           return updated;
         }
         return h;
-      })
-    );
+      });
+      try {
+        localStorage.setItem('vetsys_hospitalizations', JSON.stringify(next));
+      } catch {}
+      return next;
+    });
 
-    // 3. Complete any active encounter
-    setEncounters((prev) =>
-      prev.map((enc) => {
+    // 3. Complete active encounter
+    setEncounters((prev) => {
+      const next = prev.map((enc) => {
         if (enc.patientId === patientId && enc.status === 'EN_CURSO') {
           const updated: ClinicalEncounter = {
             ...enc,
@@ -1075,58 +1091,100 @@ export const VetProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           return updated;
         }
         return enc;
-      })
-    );
+      });
+      try {
+        localStorage.setItem('vetsys_encounters', JSON.stringify(next));
+      } catch {}
+      return next;
+    });
 
-    // 4. Save clinical document (Epicrisis de Alta)
+    // 4. Remove active triage and clear active vital signs of monitoring
+    setTriageList((prev) => {
+      const next = prev.filter((t) => t.patientId !== patientId);
+      try {
+        localStorage.setItem('vetsys_triage', JSON.stringify(next));
+      } catch {}
+      return next;
+    });
+
+    setVitals((prev) => {
+      const next = prev.filter((v) => v.patientId !== patientId);
+      try {
+        localStorage.setItem('vetsys_vitals', JSON.stringify(next));
+      } catch {}
+      return next;
+    });
+
+    // 5. Save clinical document
     const newDoc: ClinicalDocument = {
       id: `doc-alta-${Date.now()}`,
       patientId,
       ownerId: p?.ownerId || '',
       type: 'INFORME_ALTA_MEDICA',
       title: `Epicrisis de Alta — ${p?.name || 'Paciente'}`,
-      content: `ALTA MÉDICA Y EPICRISIS CLÍNICA\nFecha y Hora: ${new Date(now).toLocaleString('es-AR')}\nProfesional Responsable: ${currentUser?.name || 'Dr. Diego Iván Irusta'} (${currentUser?.licenseNumber || 'M.P. 502'})\n\nEstado al Egreso: ${options.condition || 'Recuperado'}\n\nEvolución y Resumen Clínico:\n${options.dischargeNotes}\n\nMedicación y Tratamiento en Hogar:\n${options.homeMedication || 'Sin medicación prescrita'}\n\nPróximo Control / Revisión:\n${options.followUpDate || 'A demanda o según evolución'}`,
+      content: `ALTA MÉDICA Y EPICRISIS CLÍNICA\nFecha: ${new Date(now).toLocaleString('es-AR')}\nProfesional: ${currentUser?.name || 'Dr. Diego Iván Irusta'}\n\nEstado al Egreso: ${options.condition || 'Recuperado'}\n\nEvolución y Resumen:\n${options.dischargeNotes}\n\nTratamiento Hogar:\n${options.homeMedication || 'Sin medicación'}\n\nControl:\n${options.followUpDate || 'Según evolución'}`,
       vetName: currentUser?.name || 'Dr. Diego Iván Irusta',
       createdAt: now,
       isSigned: true,
     };
-    setDocuments((prev) => [newDoc, ...prev]);
+    setDocuments((prev) => {
+      const next = [newDoc, ...prev];
+      try {
+        localStorage.setItem('vetsys_documents', JSON.stringify(next));
+      } catch {}
+      return next;
+    });
     syncDocumentToSupabase(newDoc);
 
     logAudit('ALTA_MEDICA', 'Patient', patientId, `Alta médica registrada para ${p?.name || patientId}. Condición: ${options.condition || 'Recuperado'}`);
-    showToast('success', 'Alta Médica Registrada', `Se registró el alta de ${p?.name || 'paciente'}. Su historial permanece guardado.`);
+    showToast('success', 'Alta Médica Registrada', `Se registró el alta de ${p?.name || 'paciente'}, se liberaron los signos vitales activos y su ficha quedó archivada.`);
   };
 
   const archivePatient = (patientId: string, reason?: string) => {
     const p = patients.find((pat) => pat.id === patientId);
-    setPatients((prev) =>
-      prev.map((pat) => {
+    setPatients((prev) => {
+      const next = prev.map((pat) => {
         if (pat.id === patientId) {
-          const updated: Patient = { ...pat, status: 'ARCHIVADO' };
+          const updated: Patient = { ...pat, status: 'ARCHIVADO', isArchived: true };
           syncPatientToSupabase(updated);
           return updated;
         }
         return pat;
-      })
-    );
+      });
+      try {
+        localStorage.setItem('vetsys_patients', JSON.stringify(next));
+      } catch {}
+      return next;
+    });
+    setTriageList((prev) => {
+      const next = prev.filter((t) => t.patientId !== patientId);
+      try {
+        localStorage.setItem('vetsys_triage', JSON.stringify(next));
+      } catch {}
+      return next;
+    });
     logAudit('ARCHIVAR_PACIENTE', 'Patient', patientId, `Ficha archivada de ${p?.name || patientId}. Motivo: ${reason || 'Inactividad'}`);
-    showToast('info', 'Ficha Archivada', `La ficha de ${p?.name || 'paciente'} ha sido archivada. Podés desarchivarla cuando regrese.`);
+    showToast('info', 'Paciente Archivado', `La ficha de ${p?.name || 'paciente'} ha sido trasladada a Pacientes Archivados.`);
   };
 
   const unarchivePatient = (patientId: string) => {
     const p = patients.find((pat) => pat.id === patientId);
-    setPatients((prev) =>
-      prev.map((pat) => {
+    setPatients((prev) => {
+      const next = prev.map((pat) => {
         if (pat.id === patientId) {
-          const updated: Patient = { ...pat, status: 'ACTIVO' };
+          const updated: Patient = { ...pat, status: 'ACTIVO', isArchived: false };
           syncPatientToSupabase(updated);
           return updated;
         }
         return pat;
-      })
-    );
+      });
+      try {
+        localStorage.setItem('vetsys_patients', JSON.stringify(next));
+      } catch {}
+      return next;
+    });
     logAudit('DESARCHIVAR_PACIENTE', 'Patient', patientId, `Ficha de ${p?.name || patientId} restaurada a estado activo.`);
-    showToast('success', 'Ficha Restaurada', `${p?.name || 'El paciente'} vuelve a estar activo en la lista.`);
+    showToast('success', 'Paciente Restaurado', `${p?.name || 'El paciente'} vuelve a estar activo en el censo.`);
   };
 
   const addPatientAlert = (patientId: string, alert: { type: PatientAlert; description: string }) => {

@@ -1,6 +1,9 @@
 import { PatientInformedConsentModal } from './PatientInformedConsentModal';
 import React, { useState } from 'react';
 import {
+  RotateCcw,
+  Archive,
+  Trash2,
   PawPrint,
   Users,
   Mail,
@@ -49,6 +52,7 @@ export const PatientsListView: React.FC = () => {
     openDentalChart,
     openBodyMap,
     archivePatient,
+    unarchivePatient,
     deletePatient,
     showToast,
   } = useVet();
@@ -58,7 +62,7 @@ export const PatientsListView: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState('TODOS');
   const [viewMode, setViewMode] = useState<'GRID' | 'TABLE'>('TABLE');
   const [sortBy, setSortBy] = useState<'NAME_ASC' | 'RECENT' | 'WEIGHT_DESC' | 'WEIGHT_ASC' | 'AGE_DESC'>('NAME_ASC');
-  const [activeSubTab, setActiveSubTab] = useState<'PACIENTES' | 'TUTORES'>('PACIENTES');
+  const [activeSubTab, setActiveSubTab] = useState<'PACIENTES' | 'TUTORES' | 'ARCHIVADOS'>('PACIENTES');
   const [dischargeModalPatient, setDischargeModalPatient] = useState<Patient | null>(null);
   const [historyDownloadModalPatient, setHistoryDownloadModalPatient] = useState<Patient | null>(null);
   const [selectedConsentPatient, setSelectedConsentPatient] = useState<Patient | null>(null);
@@ -155,44 +159,65 @@ export const PatientsListView: React.FC = () => {
     showToast('success', 'Censo Exportado', `${filteredPatients.length} pacientes exportados exitosamente.`);
   };
 
-  // Counts for fast badges
-  const canineCount = patients.filter((p) => p.species?.toUpperCase() === 'CANINO').length;
-  const felineCount = patients.filter((p) => p.species?.toUpperCase() === 'FELINO').length;
-  const exoticCount = patients.filter((p) => p.species?.toUpperCase() === 'EXOTICO' || p.species?.toUpperCase() === 'EXÓTICO').length;
-  const internedCount = patients.filter((p) => p.status === 'INTERNADO' || hospitalizations.some((h) => h.patientId === p.id && h.status === 'ACTIVA')).length;
-  const allergicCount = patients.filter((p) => p.alerts && p.alerts.length > 0).length;
+  // Active vs Archived patients
+  const activePatients = patients.filter((p) => p.status !== 'ARCHIVADO' && !p.isArchived);
+  const archivedPatients = patients.filter((p) => p.status === 'ARCHIVADO' || p.isArchived);
+
+  // Counts for fast badges (active)
+  const canineCount = activePatients.filter((p) => p.species?.toUpperCase() === 'CANINO').length;
+  const felineCount = activePatients.filter((p) => p.species?.toUpperCase() === 'FELINO').length;
+  const exoticCount = activePatients.filter((p) => p.species?.toUpperCase() === 'EXOTICO' || p.species?.toUpperCase() === 'EXÓTICO').length;
+  const internedCount = activePatients.filter((p) => p.status === 'INTERNADO' || hospitalizations.some((h) => h.patientId === p.id && h.status === 'ACTIVA')).length;
+  const allergicCount = activePatients.filter((p) => p.alerts && p.alerts.length > 0).length;
 
   return (
     <div className="space-y-5 pb-2 w-full max-w-full">
-      {/* Top Module Subtabs: Pacientes vs Tutores */}
-      <div className="grid grid-cols-2 gap-1.5 p-1.5 bg-slate-100/90 rounded-2xl w-full sm:w-fit border border-slate-200 text-xs">
+      {/* Top Module Subtabs: Pacientes vs Tutores vs Archivados */}
+      <div className="flex flex-wrap gap-1.5 p-1.5 bg-slate-100/90 rounded-2xl w-full sm:w-fit border border-slate-200 text-xs">
         <button
+          type="button"
           onClick={() => {
             triggerHaptic('light');
             setActiveSubTab('PACIENTES');
           }}
-          className={`px-3 py-2 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-1.5 text-center truncate ${
+          className={`px-3.5 py-2 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-1.5 text-center cursor-pointer ${
             activeSubTab === 'PACIENTES'
               ? 'bg-white text-teal-800 shadow-sm border border-slate-200'
               : 'text-slate-600 hover:text-slate-900'
           }`}
         >
           <PawPrint className="w-4 h-4 text-teal-600 flex-shrink-0" />
-          <span className="truncate">Pacientes ({patients.length})</span>
+          <span>Pacientes Activos ({activePatients.length})</span>
         </button>
         <button
+          type="button"
           onClick={() => {
             triggerHaptic('light');
             setActiveSubTab('TUTORES');
           }}
-          className={`px-3 py-2 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-1.5 text-center truncate ${
+          className={`px-3.5 py-2 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-1.5 text-center cursor-pointer ${
             activeSubTab === 'TUTORES'
               ? 'bg-white text-teal-800 shadow-sm border border-slate-200'
               : 'text-slate-600 hover:text-slate-900'
           }`}
         >
           <Users className="w-4 h-4 text-teal-600 flex-shrink-0" />
-          <span className="truncate">Tutores ({owners.length})</span>
+          <span>Tutores ({owners.length})</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            triggerHaptic('light');
+            setActiveSubTab('ARCHIVADOS');
+          }}
+          className={`px-3.5 py-2 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-1.5 text-center cursor-pointer ${
+            activeSubTab === 'ARCHIVADOS'
+              ? 'bg-amber-800 text-white shadow-sm'
+              : 'text-amber-900/80 hover:text-amber-950 hover:bg-amber-100/50'
+          }`}
+        >
+          <Archive className="w-4 h-4 text-amber-500 flex-shrink-0" />
+          <span>Pacientes Archivados ({archivedPatients.length})</span>
         </button>
       </div>
 
@@ -347,6 +372,144 @@ export const PatientsListView: React.FC = () => {
                 );
               })}
           </div>
+        </div>
+      )}
+
+      
+      {/* 📁 SUBTAB: PACIENTES ARCHIVADOS */}
+      {activeSubTab === 'ARCHIVADOS' && (
+        <div className="space-y-6 animate-in fade-in duration-150">
+          <PageHeader
+            category="Histórico Hospitalario & Depuración de Datos"
+            title="Directorio de Pacientes Archivados"
+            description="Pacientes inactivos o con alta médica. Podés restaurarlos al censo activo o eliminarlos definitivamente de Supabase para no ocupar espacio."
+            icon={Archive}
+          />
+
+          {/* Search bar for archived */}
+          <div className="bg-white border border-slate-200 p-4 rounded-2xl shadow-sm flex items-center gap-3">
+            <Search className="w-4 h-4 text-slate-400" />
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Buscar en pacientes archivados por nombre, historia clínica, tutor..."
+              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-amber-500 font-medium"
+            />
+          </div>
+
+          {/* Archived Patients List */}
+          {archivedPatients.filter((p) => {
+            const q = search.toLowerCase();
+            const owner = owners.find((o) => o.id === p.ownerId);
+            const ownerName = owner ? `${owner.firstName} ${owner.lastName}`.toLowerCase() : '';
+            return (
+              (p.name || '').toLowerCase().includes(q) ||
+              (p.clinicalRecordNumber || '').toLowerCase().includes(q) ||
+              (p.breed || '').toLowerCase().includes(q) ||
+              ownerName.includes(q)
+            );
+          }).length === 0 ? (
+            <div className="bg-white rounded-3xl p-10 border border-slate-200 text-center space-y-2 shadow-xs">
+              <div className="w-12 h-12 bg-amber-50 rounded-2xl flex items-center justify-center mx-auto text-amber-700 text-xl font-bold">
+                📁
+              </div>
+              <h3 className="text-sm font-black text-slate-800">No hay pacientes archivados</h3>
+              <p className="text-xs text-slate-500 max-w-md mx-auto">
+                Los pacientes a los que se les otorgue Alta Médica o que sean archivados desde el censo activo aparecerán en esta sección.
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+              {archivedPatients
+                .filter((p) => {
+                  const q = search.toLowerCase();
+                  const owner = owners.find((o) => o.id === p.ownerId);
+                  const ownerName = owner ? `${owner.firstName} ${owner.lastName}`.toLowerCase() : '';
+                  return (
+                    (p.name || '').toLowerCase().includes(q) ||
+                    (p.clinicalRecordNumber || '').toLowerCase().includes(q) ||
+                    (p.breed || '').toLowerCase().includes(q) ||
+                    ownerName.includes(q)
+                  );
+                })
+                .map((patient) => {
+                  const owner = owners.find((o) => o.id === patient.ownerId);
+
+                  return (
+                    <div
+                      key={patient.id}
+                      className="bg-white border border-amber-200/80 rounded-3xl p-5 shadow-xs flex flex-col justify-between space-y-4 hover:border-amber-400 transition-colors"
+                    >
+                      <div className="space-y-3">
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="flex items-center gap-3">
+                            <img
+                              src={patient.photoUrl || 'https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=100'}
+                              alt={patient.name}
+                              className="w-12 h-12 rounded-2xl object-cover border border-slate-200 shadow-2xs grayscale"
+                            />
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <h3 className="text-sm font-black text-slate-900">{patient.name}</h3>
+                                <span className="text-[10px] font-mono bg-slate-100 px-1.5 py-0.5 rounded text-slate-600 border border-slate-200">
+                                  {patient.clinicalRecordNumber || 'HC-0000'}
+                                </span>
+                              </div>
+                              <p className="text-xs text-slate-500 font-medium">
+                                {patient.species} • {patient.breed || 'Mestizo'}
+                              </p>
+                            </div>
+                          </div>
+                          <span className="px-2 py-0.5 rounded-md text-[10px] font-black uppercase bg-amber-100 text-amber-900 border border-amber-300">
+                            Archivado
+                          </span>
+                        </div>
+
+                        <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100 text-xs text-slate-600 space-y-1">
+                          <p>
+                            <strong>Tutor:</strong> {owner ? `${owner.firstName} ${owner.lastName}` : 'Sin tutor'} {owner?.phone ? `(${owner.phone})` : ''}
+                          </p>
+                          <p className="text-[11px] text-slate-500">
+                            Peso registrado: <strong>{patient.weight || 0} kg</strong>
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Action buttons for archived */}
+                      <div className="flex items-center gap-2 pt-2 border-t border-slate-100">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            triggerHaptic('medium');
+                            unarchivePatient(patient.id);
+                          }}
+                          className="flex-1 min-h-[38px] px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-black text-xs rounded-xl border border-emerald-300 flex items-center justify-center gap-1.5 transition-all active:scale-95 shadow-2xs cursor-pointer"
+                          title="Restaurar al censo de pacientes activos"
+                        >
+                          <RotateCcw className="w-3.5 h-3.5 text-emerald-700" />
+                          <span>Restaurar</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            triggerHaptic('heavy');
+                            if (window.confirm(`¿Está seguro de ELIMINAR DEFINITIVAMENTE al paciente ${patient.name}? Se borrará de la base de datos de Supabase y se liberará espacio en el sistema.`)) {
+                              deletePatient(patient.id);
+                            }
+                          }}
+                          className="min-h-[38px] px-3 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 hover:text-rose-900 font-black text-xs rounded-xl border border-rose-200 flex items-center justify-center gap-1.5 transition-all active:scale-95 shadow-2xs cursor-pointer"
+                          title="Eliminar de Supabase definitivamente para liberar espacio"
+                        >
+                          <Trash2 className="w-3.5 h-3.5 text-rose-600" />
+                          <span>Eliminar</span>
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+            </div>
+          )}
         </div>
       )}
 
@@ -919,12 +1082,38 @@ export const PatientsListView: React.FC = () => {
                               <span>Consentimiento</span>
                             </button>
                             <button
+                              type="button"
                               onClick={() => setDischargeModalPatient(patient)}
-                              className="px-2.5 py-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-bold text-xs border border-emerald-300 transition-colors flex items-center gap-1 shadow-2xs"
-                              title="Dar de Alta Médica o Archivar"
+                              className="px-2.5 py-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-bold text-xs border border-emerald-300 transition-colors flex items-center gap-1 shadow-2xs cursor-pointer"
+                              title="Dar de Alta Médica y Archivar"
                             >
                               <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                              <span>Alta / Archivar</span>
+                              <span>Alta Médica</span>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (window.confirm(`¿Archivar la ficha de ${patient.name}? Pasará a Pacientes Archivados.`)) {
+                                  archivePatient(patient.id);
+                                }
+                              }}
+                              className="px-2.5 py-1.5 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-900 font-bold text-xs border border-amber-200 transition-colors flex items-center gap-1 shadow-2xs cursor-pointer"
+                              title="Archivar ficha del paciente"
+                            >
+                              <Archive className="w-3.5 h-3.5 text-amber-700" />
+                              <span>Archivar</span>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (window.confirm(`¿Está seguro de eliminar definitivamente a ${patient.name}? Esta acción borrará al paciente de la base de datos.`)) {
+                                  deletePatient(patient.id);
+                                }
+                              }}
+                              className="px-2 py-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-xs border border-rose-200 transition-colors flex items-center gap-1 shadow-2xs cursor-pointer"
+                              title="Eliminar paciente de la base de datos"
+                            >
+                              <Trash2 className="w-3.5 h-3.5 text-rose-600" />
                             </button>
                             <button
                               onClick={() => setHistoryDownloadModalPatient(patient)}
