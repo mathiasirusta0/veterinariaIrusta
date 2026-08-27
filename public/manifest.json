@@ -1,16 +1,16 @@
 {
-  "short_name": "VetSystem",
-  "name": "VET SYSTEM — Hospital Veterinario",
+  "short_name": "Ranquel",
+  "name": "Veterinaria Ranquel — Centro Veterinario & Hospital",
   "icons": [
     {
-      "src": "/favicon.ico",
-      "sizes": "64x64 32x32 24x24 16x16",
-      "type": "image/x-icon"
+      "src": "/logo-ranquel.png",
+      "sizes": "192x192 512x512",
+      "type": "image/png"
     }
   ],
   "start_url": "/",
-  "background_color": "#0f172a",
-  "theme_color": "#0d9488",
+  "background_color": "#2C161D",
+  "theme_color": "#7E3A4D",
   "display": "standalone",
   "orientation": "any"
 }

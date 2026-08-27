@@ -3,27 +3,117 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover" />
-    <meta name="theme-color" content="#0d9488" />
+    <meta name="theme-color" content="#7E3A4D" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-    <meta name="apple-mobile-web-app-title" content="VetSystem" />
+    <meta name="apple-mobile-web-app-title" content="Veterinaria Ranquel" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="format-detection" content="telephone=no" />
+    
     <link rel="manifest" href="/manifest.json" />
     <link rel="icon" type="image/png" href="/logo-ranquel.png" />
     <link rel="apple-touch-icon" href="/logo-ranquel.png" />
-    <title>Veterinaria Ranquel — Centro Hospitalario Veterinario</title>
-    <meta name="description" content="Sistema integral de gestión clínica, internación UCI, cirugías, farmacia y facturación veterinaria." />
-    <meta property="og:title" content="Veterinaria Ranquel — Centro Hospitalario Veterinario" />
-    <meta property="og:description" content="Plataforma médica veterinaria integral 24hs • Dr. Diego Iván Irusta (M.P. 502)" />
-    <meta property="og:image" content="/logo-ranquel.png" />
+    <link rel="canonical" href="https://veterinaria-irusta.vercel.app/" />
+
+    <!-- SEO Meta Tags -->
+    <title>Veterinaria en Río Cuarto | Guardia, Equinos y Cirugía | Veterinaria Ranquel</title>
+    <meta name="description" content="Veterinaria Ranquel en Río Cuarto: atención de pequeños animales, equinos, cirugía, diagnóstico e internación. Dirección Médica: Dr. Diego Iván Irusta (M.P. 502). Consultá turnos y urgencias por WhatsApp." />
+    <meta name="keywords" content="veterinaria rio cuarto, veterinaria ranquel, diego ivan irusta, guardia veterinaria rio cuarto, veterinaria equina cordoba, cirugia veterinaria, internacion veterinaria" />
+    <meta name="robots" content="index, follow" />
+
+    <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://veterinaria-irusta.vercel.app/" />
+    <meta property="og:title" content="Veterinaria en Río Cuarto | Guardia, Equinos y Cirugía | Veterinaria Ranquel" />
+    <meta property="og:description" content="Atención médica veterinaria en Río Cuarto para pequeños animales, equinos y campo. Guardia, internación y cirugía. Dr. Diego Iván Irusta (M.P. 502)." />
+    <meta property="og:image" content="https://veterinaria-irusta.vercel.app/logo-ranquel.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:locale" content="es_AR" />
+    <meta property="og:site_name" content="Veterinaria Ranquel" />
+
+    <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:image" content="/logo-ranquel.png" />
+    <meta name="twitter:url" content="https://veterinaria-irusta.vercel.app/" />
+    <meta name="twitter:title" content="Veterinaria en Río Cuarto | Guardia, Equinos y Cirugía | Veterinaria Ranquel" />
+    <meta name="twitter:description" content="Atención médica veterinaria en Río Cuarto para pequeños animales, equinos y campo. Guardia, internación y cirugía. Dr. Diego Iván Irusta (M.P. 502)." />
+    <meta name="twitter:image" content="https://veterinaria-irusta.vercel.app/logo-ranquel.png" />
+
+    <!-- Schema.org Structured Data (JSON-LD) -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "VeterinaryCare",
+      "name": "Veterinaria Ranquel",
+      "image": "https://veterinaria-irusta.vercel.app/logo-ranquel.png",
+      "@id": "https://veterinaria-irusta.vercel.app/",
+      "url": "https://veterinaria-irusta.vercel.app/",
+      "telephone": "+5492942477136",
+      "priceRange": "$$",
+      "address": {
+        "@type": "PostalAddress",
+        "streetAddress": "Río Cuarto",
+        "addressLocality": "Río Cuarto",
+        "addressRegion": "Córdoba",
+        "postalCode": "5800",
+        "addressCountry": "AR"
+      },
+      "geo": {
+        "@type": "GeoCoordinates",
+        "latitude": -33.1232,
+        "longitude": -64.3499
+      },
+      "founder": {
+        "@type": "Person",
+        "name": "Dr. Diego Iván Irusta",
+        "jobTitle": "Médico Veterinario",
+        "identifier": "M.P. 502"
+      },
+      "openingHoursSpecification": [
+        {
+          "@type": "OpeningHoursSpecification",
+          "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
+          "opens": "00:00",
+          "closes": "23:59"
+        }
+      ]
+    }
+    </script>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "¿Cómo solicito un turno en Veterinaria Ranquel?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Podés solicitar tu turno directamente a través de nuestro WhatsApp oficial (+54 9 2942 47-7136), indicando especie, motivo de consulta y disponibilidad horaria."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "¿Cómo funciona el servicio de guardia veterinaria?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Contamos con guardia activa para urgencias. Recomendamos llamar telefónicamente antes de acudir a la clínica para preparar al equipo médico y el quirófano o box de internación."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "¿Realizan atención a campo y traslados de equinos?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Sí, el Dr. Diego Iván Irusta realiza atención médica veterinaria a campo para equinos y grandes animales en establecimientos rurales y haras de Río Cuarto y región."
+          }
+        }
+      ]
+    }
+    </script>
   </head>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
-
