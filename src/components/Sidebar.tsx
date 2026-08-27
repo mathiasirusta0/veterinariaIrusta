@@ -45,7 +45,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const getBadgeForView = (viewId: SystemView) => {
     switch (viewId) {
       case 'PACIENTES':
-        return { count: (patients || []).length, color: 'bg-slate-200 text-slate-700' };
+        return { count: (patients || []).length, color: 'bg-slate-100 text-slate-700 border border-slate-200' };
       case 'INVENTARIO':
         return lowStockCount > 0 ? { count: lowStockCount, color: 'bg-amber-500 text-white' } : null;
       default:
@@ -78,34 +78,34 @@ export const Sidebar: React.FC<SidebarProps> = ({
       {isDrawerOpen && (
         <div
           onClick={handleClose}
-          className="fixed inset-0 bg-slate-950/70 z-40 md:hidden backdrop-blur-xs transition-opacity"
+          className="fixed inset-0 bg-slate-950/40 z-40 md:hidden backdrop-blur-xs transition-opacity"
         />
       )}
 
-      {/* Main Sidebar Container */}
+      {/* Main Sidebar Container - Clean Light Medical Theme */}
       <aside
         className={`
           fixed md:sticky top-0 md:top-16 inset-y-0 left-0 z-50
           w-72 max-w-[85vw] h-full md:h-[calc(100vh-4rem)] md:h-[calc(100dvh-4rem)]
-          bg-slate-900 text-slate-100 flex flex-col justify-between
-          transition-transform duration-300 ease-in-out border-r border-slate-800
+          bg-white text-slate-800 flex flex-col justify-between
+          transition-transform duration-300 ease-in-out border-r border-slate-200/90
           ${isDrawerOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
-          shadow-2xl md:shadow-none select-none overflow-hidden flex-shrink-0
+          shadow-xl md:shadow-none select-none overflow-hidden flex-shrink-0
         `}
       >
         {/* Header / Brand Logo */}
-        <div className="p-5 border-b border-slate-800 flex items-center justify-between">
+        <div className="p-4 sm:p-5 border-b border-slate-100 flex items-center justify-between bg-white">
           <div className="flex items-center gap-3">
             <img
               src="/logo-ranquel.png"
               alt="Veterinaria Ranquel"
-              className="w-11 h-11 rounded-2xl object-contain bg-white p-0.5 shadow-lg border border-slate-700 flex-shrink-0"
+              className="w-10 h-10 rounded-xl object-contain bg-white p-0.5 shadow-2xs border border-slate-200 flex-shrink-0"
             />
             <div>
-              <h1 className="font-black text-white text-base tracking-tight leading-none">
+              <h1 className="font-black text-slate-900 text-base tracking-tight leading-none">
                 VET SYSTEM
               </h1>
-              <p className="text-[10px] text-teal-400 font-bold uppercase tracking-widest mt-1">
+              <p className="text-[10px] text-teal-700 font-black uppercase tracking-widest mt-1">
                 Hospital Veterinario
               </p>
             </div>
@@ -115,7 +115,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           <button
             type="button"
             onClick={handleClose}
-            className="md:hidden p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+            className="md:hidden p-2 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
             title="Cerrar menú lateral"
           >
             <X className="w-5 h-5" />
@@ -123,9 +123,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </div>
 
         {/* Navigation Item Groups */}
-        <div className="flex-1 overflow-y-auto px-3 py-4 space-y-5 scrollbar-thin scrollbar-thumb-slate-800">
+        <div className="flex-1 overflow-y-auto px-3.5 py-4 space-y-5 scrollbar-thin scrollbar-thumb-slate-200">
           {/* Quick Tool: Calculadora Dosis */}
-          <div className="px-1 mb-2">
+          <div className="mb-2">
             <button
               type="button"
               onClick={() => {
@@ -133,18 +133,19 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 openCalculators();
                 handleClose();
               }}
-              className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl bg-gradient-to-r from-teal-900/60 to-slate-800/80 border border-teal-500/40 hover:border-teal-400 hover:bg-teal-800/40 text-teal-200 hover:text-white font-bold text-xs shadow-sm transition-all active:scale-[0.98] cursor-pointer"
+              className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl bg-teal-50/90 hover:bg-teal-100/80 border border-teal-200 text-teal-900 font-extrabold text-xs shadow-2xs transition-all active:scale-[0.98] cursor-pointer"
               title="Abrir Calculadora Médica y Protocolos Farmacológicos"
             >
-              <div className="w-6 h-6 rounded-lg bg-teal-500/20 border border-teal-400/30 flex items-center justify-center text-teal-300">
+              <div className="w-6 h-6 rounded-lg bg-teal-600 flex items-center justify-center text-white shadow-2xs flex-shrink-0">
                 <Calculator className="w-3.5 h-3.5" />
               </div>
               <span className="truncate">Calculadora Dosis</span>
             </button>
           </div>
+
           {navGroups.map((group, gIdx) => (
             <div key={gIdx} className="space-y-1">
-              <span className="px-3 text-[10px] font-extrabold uppercase tracking-wider text-slate-500 block mb-2">
+              <span className="px-3 text-[10px] font-black uppercase tracking-wider text-slate-400 block mb-1.5">
                 {group.group}
               </span>
 
@@ -159,18 +160,18 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     onClick={() => handleSelect(item.id)}
                     className={`
                       w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all
-                      active:scale-[0.98] text-left
+                      active:scale-[0.98] text-left cursor-pointer
                       ${
                         isActive
-                          ? 'bg-teal-600 text-white shadow-md shadow-teal-600/30'
-                          : 'text-slate-300 hover:bg-slate-800/80 hover:text-white'
+                          ? 'bg-teal-600 text-white shadow-md shadow-teal-600/25'
+                          : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
                       }
                     `}
                   >
                     <div className="flex items-center gap-3 min-w-0">
                       <Icon
                         className={`w-4 h-4 flex-shrink-0 ${
-                          isActive ? 'text-white' : 'text-slate-400'
+                          isActive ? 'text-white' : 'text-slate-500'
                         }`}
                       />
                       <span className="truncate">{item.label}</span>
@@ -193,14 +194,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </div>
 
         {/* Footer: User profile info & Logout */}
-        <div className="p-3.5 border-t border-slate-800 bg-slate-950/40 space-y-2">
-          <div className="flex items-center gap-3 px-2 py-1">
-            <div className="w-8 h-8 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center font-bold text-teal-400 text-xs">
+        <div className="p-3.5 border-t border-slate-100 bg-slate-50/80 space-y-2 flex-shrink-0">
+          <div className="flex items-center gap-3 px-1 py-1">
+            <div className="w-8 h-8 rounded-xl bg-teal-50 border border-teal-200 flex items-center justify-center font-black text-teal-800 text-xs shadow-2xs">
               {currentUser?.name?.charAt(0) || 'U'}
             </div>
             <div className="min-w-0 flex-1">
-              <p className="text-xs font-bold text-white truncate">{currentUser?.name}</p>
-              <p className="text-[10px] text-slate-400 font-medium truncate uppercase">
+              <p className="text-xs font-black text-slate-900 truncate">{currentUser?.name}</p>
+              <p className="text-[10px] text-slate-500 font-bold truncate uppercase tracking-wider">
                 {currentUser?.role}
               </p>
             </div>
@@ -212,10 +213,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
               if (onCloseMobile) onCloseMobile();
               await logout();
             }}
-            className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-xs font-bold text-rose-400 hover:text-white bg-rose-950/40 hover:bg-rose-600/90 border border-rose-900/50 hover:border-rose-500 transition-all cursor-pointer shadow-2xs active:scale-98"
+            className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-xs font-bold text-rose-700 hover:text-rose-900 bg-rose-50 hover:bg-rose-100/80 border border-rose-200 transition-all cursor-pointer shadow-2xs active:scale-98"
             title="Cerrar sesión de forma segura"
           >
-            <LogOut className="w-4 h-4" />
+            <LogOut className="w-4 h-4 text-rose-600" />
             <span>Cerrar Sesión</span>
           </button>
         </div>
