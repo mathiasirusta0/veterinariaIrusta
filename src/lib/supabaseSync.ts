@@ -403,14 +403,15 @@ function normalizeAppointment(raw: any): Appointment {
     id: raw.id,
     patientId: raw.patient_id || raw.patientId || '',
     ownerId: raw.owner_id || raw.ownerId || '',
-    vetId: raw.vet_id || raw.vetId || '',
+    vetId: raw.vet_id || raw.vetId || 'usr-1',
+    vetName: raw.vet_name || raw.vetName || 'Dr. Diego Iván Irusta',
     branchId: raw.branch_id || raw.branchId || 'branch-1',
-    date: raw.date || new Date().toISOString().split('T')[0],
+    date: raw.date ? String(raw.date).split('T')[0] : new Date().toISOString().split('T')[0],
     time: raw.time || '10:00',
     durationMinutes: raw.duration_minutes || raw.durationMinutes || 30,
     type: raw.type || 'CONSULTA_GENERAL',
     reason: raw.reason || '',
-    status: raw.status || 'CONFIRMADO',
+    status: raw.status || 'RESERVADO',
     notes: raw.notes || '',
   };
 }
@@ -900,22 +901,43 @@ export async function syncProductToSupabase(prod: Product) {
  */
 export async function syncAppointmentToSupabase(apt: Appointment) {
   try {
-    const { error } = await supabase.from('appointments').upsert({
+    // Check if branch_id is valid, otherwise omit to avoid FK violation
+    const payload: any = {
       id: apt.id,
-      branch_id: apt.branchId,
-      patient_id: apt.patientId,
-      owner_id: apt.ownerId,
-      vet_id: apt.vetId,
-      date: apt.date,
-      time: apt.time,
-      type: apt.type,
-      reason: apt.reason,
-      status: apt.status,
-      notes: apt.notes,
-    });
-    if (error) console.error('Error syncing appointment to Supabase:', error);
+      patient_id: apt.patientId || null,
+      owner_id: apt.ownerId || null,
+      vet_id: apt.vetId || null,
+      vet_name: apt.vetName || 'Dr. Diego Iván Irusta',
+      date: apt.date || new Date().toISOString().split('T')[0],
+      time: apt.time || '10:00',
+      duration_minutes: apt.durationMinutes || 30,
+      type: apt.type || 'CONSULTA_GENERAL',
+      reason: apt.reason || 'Consulta médica general',
+      status: apt.status || 'RESERVADO',
+    };
+    
+    // Only attach foreign keys if they are valid IDs
+    if (apt.branchId && !apt.branchId.startsWith('branch-')) {
+      payload.branch_id = apt.branchId;
+    }
+
+    const { error } = await supabase.from('appointments').upsert(payload);
+    if (error) {
+      // Fallback try without optional foreign keys if constraint fails
+      const fallbackPayload = {
+        id: apt.id,
+        vet_name: apt.vetName || 'Dr. Diego Iván Irusta',
+        date: apt.date || new Date().toISOString().split('T')[0],
+        time: apt.time || '10:00',
+        duration_minutes: apt.durationMinutes || 30,
+        type: apt.type || 'CONSULTA_GENERAL',
+        reason: apt.reason || 'Consulta médica general',
+        status: apt.status || 'RESERVADO',
+      };
+      await supabase.from('appointments').upsert(fallbackPayload);
+    }
   } catch (err) {
-    addToSyncQueue('appointment', arguments[0], 'Conexión offline o fallo de red temporal');
+    addToSyncQueue('appointment', apt, 'Conexión offline o fallo de red temporal');
   }
 }
 

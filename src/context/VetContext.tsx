@@ -677,6 +677,55 @@ export const VetProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [isCloudConnected, setIsCloudConnected] = useState<boolean>(false);
   const [cloudSyncStatus, setCloudSyncStatus] = useState<'CONECTADO' | 'SINCRONIZANDO' | 'OFFLINE_LOCAL'>('SINCRONIZANDO');
 
+  // LocalStorage Reactive Persistence for Appointments and Core Clinical Collections
+  useEffect(() => {
+    try {
+      localStorage.setItem('vetsys_appointments', JSON.stringify(appointments));
+    } catch {}
+  }, [appointments]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('vetsys_owners', JSON.stringify(owners));
+    } catch {}
+  }, [owners]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('vetsys_patients', JSON.stringify(patients));
+    } catch {}
+  }, [patients]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('vetsys_consultations', JSON.stringify(consultations));
+    } catch {}
+  }, [consultations]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('vetsys_vitals', JSON.stringify(vitals));
+    } catch {}
+  }, [vitals]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('vetsys_surgeries', JSON.stringify(surgeries));
+    } catch {}
+  }, [surgeries]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('vetsys_lab_orders', JSON.stringify(labOrders));
+    } catch {}
+  }, [labOrders]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('vetsys_vaccinations', JSON.stringify(vaccinations));
+    } catch {}
+  }, [vaccinations]);
+
   // Initialize Supabase Cloud Connection & Sync
   useEffect(() => {
     let isMounted = true;

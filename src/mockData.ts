@@ -83,7 +83,38 @@ export const INITIAL_LAB_ORDERS: LaboratoryOrder[] = [];
 export const INITIAL_IMAGING: ImagingStudy[] = [];
 export const INITIAL_VACCINES: VaccinationRecord[] = [];
 export const INITIAL_VACCINATIONS: VaccinationRecord[] = [];
-export const INITIAL_APPOINTMENTS: Appointment[] = [];
+export const INITIAL_APPOINTMENTS: Appointment[] = [
+  {
+    id: 'app-001',
+    patientId: 'pat-duque-001',
+    ownerId: 'own-enzo-001',
+    vetId: 'usr-1',
+    vetName: 'Dr. Diego Iván Irusta',
+    branchId: 'branch-1',
+    date: '2026-08-27',
+    time: '10:30',
+    durationMinutes: 30,
+    type: 'CONSULTA_GENERAL',
+    reason: 'Control clínico de rutina y peso corporal',
+    status: 'CONFIRMADO',
+    notes: 'Paciente noble y atento. Traer libreta sanitaria.',
+  },
+  {
+    id: 'app-002',
+    patientId: 'pat-duque-001',
+    ownerId: 'own-enzo-001',
+    vetId: 'usr-1',
+    vetName: 'Dr. Diego Iván Irusta',
+    branchId: 'branch-1',
+    date: '2026-08-27',
+    time: '16:00',
+    durationMinutes: 45,
+    type: 'VACUNACION',
+    reason: 'Refuerzo de vacuna quíntuple y desparasitación',
+    status: 'RESERVADO',
+    notes: 'Chequeo de temperatura pre-inmunización.',
+  },
+];
 export const INITIAL_TRIAGE: TriageEntry[] = [];
 export const INITIAL_INVOICES: Invoice[] = [];
 export const INITIAL_ESTIMATES: Estimate[] = [];
