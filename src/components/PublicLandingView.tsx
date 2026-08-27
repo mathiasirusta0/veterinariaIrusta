@@ -88,47 +88,47 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({
       icon: Stethoscope,
       title: 'Clínica de Pequeños Animales',
       subtitle: 'Caninos & Felinos',
-      description: 'Consultas clínicas completas, vacunación oficial, planes sanitarios para cachorros y gerontes, desparasitación y chequeos de salud integral.',
+      description: 'Consultas clínicas completas, controles pediátricos y geriátricos, chequeos de salud integral y seguimiento médico cercano.',
       badge: 'Atención con y sin turno',
       linkMsg: WA_TURNO_MSG,
     },
     {
       icon: Compass,
       title: 'Medicina Equina & Atención a Campo',
-      subtitle: 'Haras, Studs & Establecimientos',
-      description: 'Atención veterinaria integral a campo en Las Lajas, Zapala y zona rural de Neuquén. Evaluación de cólicos, odontología equina, traumatología y medicina preventiva.',
+      subtitle: 'Estancias & Haras de Neuquén',
+      description: 'Atención veterinaria integral a campo en Las Lajas, Zapala y zona rural. Evaluación y manejo de cólicos, odontología equina, traumatología y medicina preventiva.',
       badge: 'Servicio a Campo',
       linkMsg: WA_EQUINOS_MSG,
     },
     {
       icon: Scissors,
-      title: 'Cirugía General & Anestesia Inhalatoria',
-      subtitle: 'Quirófano Equipado',
-      description: 'Cirugías programadas y de urgencia: esterilizaciones, tejidos blandos, traumatología y procedimientos con monitoreo multiparamétrico continuo.',
-      badge: 'Protocolo Quirúrgico Seguro',
+      title: 'Cirugía General & Procedimientos Quirúrgicos',
+      subtitle: 'Cirugías Programadas y Curaciones',
+      description: 'Esterilizaciones y castraciones, resolución de heridas y suturas traumáticas, cirugía de tejidos blandos y manejo pre y posoperatorio seguro.',
+      badge: 'Cirugía Veterinaria',
       linkMsg: WA_CIRUGIA_MSG,
     },
     {
-      icon: BedDouble,
-      title: 'Internación & Cuidados Críticos',
-      subtitle: 'Boxes Climatizados',
-      description: 'Hospitalización para pacientes que requieren fluidoterapia continua endovenosa, oxigenoterapia, control hemodinámico y recuperación posquirúrgica.',
-      badge: 'Monitoreo Médico Continuo',
+      icon: HeartPulse,
+      title: 'Primera Intervención & Estabilización',
+      subtitle: 'Atención de Urgencia Ambulatoria',
+      description: 'Recepción y triage de urgencias, estabilización hemodinámica inicial, control del dolor, fluidoterapia de rescate y primeras curaciones.',
+      badge: 'Urgencias & Primeros Auxilios',
       linkMsg: WA_GUARDIA_MSG,
     },
     {
-      icon: Microscope,
-      title: 'Diagnóstico Complementario',
-      subtitle: 'Laboratorio & Ecografía',
-      description: 'Análisis clínicos de sangre, orina y citologías. Ecografía abdominal y derivación radiológica para diagnósticos precisos en tiempo oportuno.',
-      badge: 'Diagnóstico Rápido',
+      icon: ShieldCheck,
+      title: 'Medicina Preventiva & Planes Sanitarios',
+      subtitle: 'Inmunización & Desparasitación',
+      description: 'Planes de vacunación oficial para cachorros y adultos, desparasitaciones internas y externas periódicas y asesoramiento nutricional.',
+      badge: 'Prevención Sanitaria',
       linkMsg: WA_TURNO_MSG,
     },
     {
       icon: Pill,
-      title: 'Farmacia & Recetario Oficial',
-      subtitle: 'Fármacos & Terapéutica',
-      description: 'Dispensación y prescripción bajo recetario oficial SENASA (Ley 27.233). Antibioticoterapia responsable y control de psicotrópicos.',
+      title: 'Farmacia Veterinaria & Recetario Oficial',
+      subtitle: 'Fármacos & Prescripción SENASA',
+      description: 'Dispensación responsable de tratamientos y prescripción bajo recetario oficial SENASA (Ley 27.233). Antibioticoterapia y analgésicos.',
       badge: 'Normativa Oficial SENASA',
       linkMsg: WA_TURNO_MSG,
     },
@@ -141,7 +141,7 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({
     },
     {
       q: '¿Cómo debo proceder ante una urgencia veterinaria?',
-      a: 'Ante una urgencia, te recomendamos llamar directamente al +54 9 2942 47-7136 antes de acudir a la clínica. De esta manera, el equipo médico puede preparar el box de atención, el quirófano o el equipamiento necesario para recibir al paciente de inmediato.',
+      a: 'Ante una urgencia, te recomendamos llamar directamente al +54 9 2942 47-7136 antes de acudir a la clínica. De esta manera, el equipo médico puede preparar la sala de primera intervención y el equipamiento necesario para estabilizar y atender al paciente de inmediato.',
     },
     {
       q: '¿Qué áreas de cobertura tienen para atención equina y grandes animales?',
@@ -262,7 +262,7 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({
             </h1>
 
             <p className="text-sm sm:text-base text-[#6B4D56] max-w-2xl mx-auto lg:mx-0 leading-relaxed">
-              Consultas clínicas, cirugía general, diagnóstico por imágenes e internación con guardia veterinaria activa. Atención médica integral con respaldo ético y profesional bajo la dirección médica del <strong>Dr. Diego Iván Irusta (M.P. 502)</strong>.
+              Consultas clínicas, cirugía general, primera intervención de urgencia y planes sanitarios para pequeños y grandes animales. Atención médica integral con respaldo ético y profesional bajo la dirección médica del <strong>Dr. Diego Iván Irusta (M.P. 502)</strong>.
             </p>
 
             {/* Primary Action Buttons */}
@@ -318,7 +318,7 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({
                 </div>
                 <div className="flex items-center gap-2.5 p-2 rounded-xl bg-[#FAF0F3] border border-[#EEDCE2]">
                   <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />
-                  <span><strong>Quirófano & Guardia:</strong> Cirugías programadas y recepción de urgencias.</span>
+                  <span><strong>Cirugías & Urgencias:</strong> Procedimientos quirúrgicos y primera intervención ambulatoria.</span>
                 </div>
               </div>
 
@@ -755,7 +755,7 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({
               <span className="text-base font-serif font-bold text-white">Veterinaria Ranquel</span>
             </div>
             <p className="text-xs text-rose-200/80 leading-relaxed">
-              Clínica Veterinaria para Grandes y Pequeños Animales. Consultas, cirugía, internación y atención a campo en Las Lajas (Neuquén).
+              Clínica Veterinaria para Grandes y Pequeños Animales. Consultas, cirugía general, primera intervención y atención a campo en Las Lajas (Neuquén).
             </p>
             <p className="text-[11px] text-[#E8A5B8] font-mono">
               Dirección Médica: Dr. Diego Iván Irusta (M.P. 502)
