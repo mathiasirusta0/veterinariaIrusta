@@ -276,6 +276,7 @@ interface VetContextType {
   archiveOwner: (ownerId: string) => void;
   deleteOwner: (ownerId: string) => void;
   archiveVaccination: (vacId: string) => void;
+  restoreVaccination: (vacId: string) => void;
   deleteVaccination: (vacId: string) => void;
   archiveAppointment: (aptId: string) => void;
   deleteAppointment: (aptId: string) => void;
@@ -2393,26 +2394,45 @@ export const VetProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const archiveVaccination = (vacId: string) => {
-    setVaccinations((prev) =>
-      prev.map((v) => {
-        if (v.id === vacId) {
-          const nextArchived = !v.isArchived;
-          logAudit('ARCHIVAR_VACUNA', 'Vaccination', v.id, `Vacunación ${v.vaccineName} ${nextArchived ? 'archivada' : 'desarchivada'}`);
-          showToast('info', nextArchived ? 'Vacunación Archivado' : 'Vacunación Desarchivada', `${v.vaccineName} ${nextArchived ? 'archivada' : 'activa'}.`);
-          return { ...v, isArchived: nextArchived };
-        }
-        return v;
-      })
-    );
+    const vac = vaccinations.find((v) => v.id === vacId);
+    setVaccinations((prev) => {
+      const next = prev.map((v) => (v.id === vacId ? { ...v, isArchived: true } : v));
+      try {
+        localStorage.setItem('vetsys_vaccinations', JSON.stringify(next));
+      } catch {}
+      return next;
+    });
+    logAudit('ARCHIVAR_VACUNA', 'Vaccination', vacId, `Vacuna ${vac?.vaccineName || vacId} archivada`);
+    showToast('info', 'Vacunación Archivada', `${vac?.vaccineName || 'Vacunación'} archivada del calendario activo.`);
+    Promise.resolve(supabase.from('vaccinations').update({ is_archived: true }).eq('id', vacId)).catch(() => {});
+  };
+
+  const restoreVaccination = (vacId: string) => {
+    const vac = vaccinations.find((v) => v.id === vacId);
+    setVaccinations((prev) => {
+      const next = prev.map((v) => (v.id === vacId ? { ...v, isArchived: false } : v));
+      try {
+        localStorage.setItem('vetsys_vaccinations', JSON.stringify(next));
+      } catch {}
+      return next;
+    });
+    logAudit('RESTAURAR_VACUNA', 'Vaccination', vacId, `Vacuna ${vac?.vaccineName || vacId} restaurada`);
+    showToast('success', 'Vacunación Restaurada', `${vac?.vaccineName || 'Vacunación'} devuelta al calendario activo.`);
+    Promise.resolve(supabase.from('vaccinations').update({ is_archived: false }).eq('id', vacId)).catch(() => {});
   };
 
   const deleteVaccination = (vacId: string) => {
     const vac = vaccinations.find((v) => v.id === vacId);
-    setVaccinations((prev) => prev.filter((v) => v.id !== vacId));
-    if (vac) {
-      logAudit('ELIMINAR_VACUNA', 'Vaccination', vacId, `Registro de vacuna ${vac.vaccineName} eliminado`);
-      showToast('success', 'Vacunación Eliminada', `El registro de ${vac.vaccineName} fue eliminado.`);
-    }
+    setVaccinations((prev) => {
+      const next = prev.filter((v) => v.id !== vacId);
+      try {
+        localStorage.setItem('vetsys_vaccinations', JSON.stringify(next));
+      } catch {}
+      return next;
+    });
+    logAudit('ELIMINAR_VACUNA', 'Vaccination', vacId, `Registro de vacuna ${vac?.vaccineName || vacId} eliminado`);
+    showToast('success', 'Vacunación Eliminada', `El registro de ${vac?.vaccineName || 'vacunación'} fue eliminado.`);
+    Promise.resolve(supabase.from('vaccinations').delete().eq('id', vacId)).catch(() => {});
   };
 
   const archiveAppointment = (aptId: string) => {
@@ -3046,6 +3066,7 @@ export const VetProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         archiveOwner,
         deleteOwner,
         archiveVaccination,
+        restoreVaccination,
         deleteVaccination,
         archiveAppointment,
         deleteAppointment,
