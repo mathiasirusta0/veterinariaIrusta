@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import {
+  Trash2,
   Activity,
   Heart,
   Thermometer,
@@ -86,6 +87,8 @@ export const VitalSignsView: React.FC = () => {
     owners,
     currentUser,
     addVitalSigns,
+    deleteVitalSign,
+    clearArchivedPatientsVitals,
     setSelectedPatientId,
     setActivePatientTab,
     setActiveView,
@@ -98,6 +101,7 @@ export const VitalSignsView: React.FC = () => {
   const [selectedSpecies, setSelectedSpecies] = useState<'TODAS' | 'Canino' | 'Felino' | 'Equino' | 'Bovino' | 'Exótico'>('TODAS');
   const [filterAlertsOnly, setFilterAlertsOnly] = useState(false);
   const [selectedPatientFilter, setSelectedPatientFilter] = useState<string>('TODOS');
+  const [patientStatusFilter, setPatientStatusFilter] = useState<'ACTIVOS' | 'TODOS' | 'ARCHIVADOS'>('ACTIVOS');
 
   // Quick Logging Form State
   const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);
@@ -179,6 +183,12 @@ export const VitalSignsView: React.FC = () => {
   const filteredVitals = vitals.filter((v) => {
     const patient = patients.find((p) => p.id === v.patientId);
     if (!patient) return false;
+
+    const isPatientArchived = patient.status === 'ARCHIVADO' || patient.isArchived || v.isArchived;
+
+    // Filter by patient status (default: only active patients)
+    if (patientStatusFilter === 'ACTIVOS' && isPatientArchived) return false;
+    if (patientStatusFilter === 'ARCHIVADOS' && !isPatientArchived) return false;
 
     const matchesSearch =
       patient.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -420,26 +430,76 @@ export const VitalSignsView: React.FC = () => {
               className="bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-900 font-semibold focus:outline-none focus:ring-2 focus:ring-teal-500"
             >
               <option value="TODOS">Todos los Pacientes</option>
-              {patients.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.name} ({p.species} - {p.breed})
-                </option>
-              ))}
+              {patients
+                .filter(p => patientStatusFilter === 'TODOS' || (patientStatusFilter === 'ACTIVOS' ? p.status !== 'ARCHIVADO' : p.status === 'ARCHIVADO'))
+                .map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.name} ({p.species} - {p.breed})
+                  </option>
+                ))}
             </select>
+          </div>
+
+          {/* Patient Status Selector: ACTIVOS vs TODOS vs ARCHIVADOS */}
+          <div className="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200 text-xs">
+            <button
+              type="button"
+              onClick={() => setPatientStatusFilter('ACTIVOS')}
+              className={`px-2.5 py-1 rounded-lg font-bold transition-all ${
+                patientStatusFilter === 'ACTIVOS' ? 'bg-white text-teal-800 shadow-2xs' : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              🐾 Solo Activos
+            </button>
+            <button
+              type="button"
+              onClick={() => setPatientStatusFilter('TODOS')}
+              className={`px-2.5 py-1 rounded-lg font-bold transition-all ${
+                patientStatusFilter === 'TODOS' ? 'bg-white text-teal-800 shadow-2xs' : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              Todos
+            </button>
+            <button
+              type="button"
+              onClick={() => setPatientStatusFilter('ARCHIVADOS')}
+              className={`px-2.5 py-1 rounded-lg font-bold transition-all ${
+                patientStatusFilter === 'ARCHIVADOS' ? 'bg-white text-amber-900 shadow-2xs' : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              📁 Archivados
+            </button>
           </div>
         </div>
 
-        <button
-          onClick={() => setFilterAlertsOnly((prev) => !prev)}
-          className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg font-bold text-xs transition-all border ${
-            filterAlertsOnly
-              ? 'bg-red-50 text-red-700 border-red-300 shadow-2xs'
-              : 'bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200'
-          }`}
-        >
-          <AlertTriangle className={`w-3.5 h-3.5 ${filterAlertsOnly ? 'text-red-600' : 'text-slate-400'}`} />
-          <span>Solo con Alertas ({totalAlertsCount})</span>
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setFilterAlertsOnly((prev) => !prev)}
+            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg font-bold text-xs transition-all border ${
+              filterAlertsOnly
+                ? 'bg-red-50 text-red-700 border-red-300 shadow-2xs'
+                : 'bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200'
+            }`}
+          >
+            <AlertTriangle className={`w-3.5 h-3.5 ${filterAlertsOnly ? 'text-red-600' : 'text-slate-400'}`} />
+            <span>Solo Alertas ({totalAlertsCount})</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              if (window.confirm('¿Limpiar los registros de signos vitales de todos los pacientes archivados / dados de alta?')) {
+                clearArchivedPatientsVitals();
+              }
+            }}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-bold text-xs text-amber-900 bg-amber-50 hover:bg-amber-100 border border-amber-200 transition-all shadow-2xs cursor-pointer"
+            title="Limpiar registros viejos de pacientes archivados o que ya se fueron"
+          >
+            <Trash2 className="w-3.5 h-3.5 text-amber-700" />
+            <span>Purgar Archivados</span>
+          </button>
+        </div>
       </div>
 
       {/* Vitals Feed & Table View */}
@@ -625,12 +685,28 @@ export const VitalSignsView: React.FC = () => {
 
                         {/* Action */}
                         <td className="p-3.5 text-right">
-                          <button
-                            onClick={() => handleViewPatientDetail(patient.id)}
-                            className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold rounded-lg text-xs transition-colors"
-                          >
-                            Ver Ficha →
-                          </button>
+                          <div className="flex items-center justify-end gap-1.5">
+                            <button
+                              type="button"
+                              onClick={() => handleViewPatientDetail(patient.id)}
+                              className="px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold rounded-lg text-xs transition-colors cursor-pointer"
+                              title="Ver Ficha 360° del Paciente"
+                            >
+                              Ficha →
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (window.confirm(`¿Está seguro de eliminar este registro de signos vitales de ${patient.name} (${formatDate(v.recordedAt)} ${formatTime(v.recordedAt)} hs)?`)) {
+                                  deleteVitalSign(v.id);
+                                }
+                              }}
+                              className="p-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold rounded-lg text-xs border border-rose-200 transition-colors cursor-pointer shadow-2xs"
+                              title="Eliminar este registro de signos vitales de la base de datos"
+                            >
+                              <Trash2 className="w-3.5 h-3.5 text-rose-600" />
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     );

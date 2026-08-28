@@ -156,6 +156,7 @@ export interface VitalSigns {
   painScale?: number; // 0 - 10
   bodyConditionScore?: '1/9' | '2/9' | '3/9' | '4/9' | '5/9' | '6/9' | '7/9' | '8/9' | '9/9';
   notes?: string;
+  isArchived?: boolean;
 }
 
 export interface PhysicalExamSystems {

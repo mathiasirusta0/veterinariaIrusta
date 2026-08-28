@@ -232,6 +232,8 @@ interface VetContextType {
 
   // Clinical Actions
   addVitalSigns: (vitals: Omit<VitalSigns, 'id' | 'recordedAt' | 'recordedBy'>) => void;
+  deleteVitalSign: (vitalId: string) => void;
+  clearArchivedPatientsVitals: () => void;
   addConsultation: (consultation: Omit<Consultation, 'id' | 'dateTime' | 'vetId' | 'vetName' | 'branchId'>) => Consultation;
   
   // Hospitalization Actions
@@ -1277,6 +1279,32 @@ export const VetProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   // Vitals
+  const deleteVitalSign = (vitalId: string) => {
+    setVitals((prev) => {
+      const next = prev.filter((v) => v.id !== vitalId);
+      try {
+        localStorage.setItem('vetsys_vitals', JSON.stringify(next));
+      } catch {}
+      return next;
+    });
+    logAudit('ELIMINAR_SIGNOS_VITALES', 'VitalSigns', vitalId, 'Registro de signos vitales eliminado');
+    showToast('success', 'Registro Eliminado', 'La medición de signos vitales fue eliminada.');
+    Promise.resolve(supabase.from('vital_signs').delete().eq('id', vitalId)).catch(() => {});
+  };
+
+  const clearArchivedPatientsVitals = () => {
+    const archivedIds = new Set(patients.filter((p) => p.status === 'ARCHIVADO' || p.isArchived).map((p) => p.id));
+    setVitals((prev) => {
+      const next = prev.filter((v) => !archivedIds.has(v.patientId) && !v.isArchived);
+      try {
+        localStorage.setItem('vetsys_vitals', JSON.stringify(next));
+      } catch {}
+      return next;
+    });
+    logAudit('PURGAR_SIGNOS_ARCHIVADOS', 'VitalSigns', 'ALL', 'Depuración de signos vitales de pacientes archivados');
+    showToast('success', 'Registros Purgados', 'Se limpiaron los registros de signos vitales de pacientes archivados.');
+  };
+
   const addVitalSigns = (data: Omit<VitalSigns, 'id' | 'recordedAt' | 'recordedBy'>) => {
     const newVital: VitalSigns = {
       ...data,
