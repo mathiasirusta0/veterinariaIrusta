@@ -408,7 +408,7 @@ export const OwnersView: React.FC = () => {
                   dni: editingOwner.dni?.trim(),
                   email: editingOwner.email?.trim(),
                   address: editingOwner.address?.trim(),
-                  city: editingOwner.city?.trim() || 'Río Cuarto',
+                  city: editingOwner.city?.trim() || 'Las Lajas',
                   taxCondition: editingOwner.taxCondition || 'CONSUMIDOR_FINAL',
                 });
                 showToast('success', 'Tutor Actualizado', `Datos de ${editingOwner.firstName} ${editingOwner.lastName || ''} guardados correctamente.`);
@@ -476,7 +476,7 @@ export const OwnersView: React.FC = () => {
                   <label className="font-bold text-slate-700 block mb-1">Ciudad</label>
                   <input
                     type="text"
-                    value={editingOwner.city ?? 'Río Cuarto'}
+                    value={editingOwner.city ?? 'Las Lajas'}
                     onChange={(e) => setEditingOwner({ ...editingOwner, city: e.target.value })}
                     className="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-slate-900 focus:ring-2 focus:ring-teal-500"
                   />

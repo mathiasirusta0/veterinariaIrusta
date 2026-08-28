@@ -56,7 +56,7 @@ export const RegulatoryComplianceView: React.FC = () => {
                 Marco Legal Argentina & Provincia de Córdoba
               </span>
               <span className="px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-800 text-[10px] font-extrabold tracking-wider border border-blue-200 uppercase">
-                Jurisdicción: Río Cuarto
+                Jurisdicción: Las Lajas
               </span>
             </div>
             <h2 className="text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2.5">
@@ -319,7 +319,7 @@ export const RegulatoryComplianceView: React.FC = () => {
               norma: 'RG AFIP/ARCA 4291',
             },
             {
-              name: 'Municipalidad de Río Cuarto — Ambiente',
+              name: 'Municipalidad de Las Lajas — Ambiente',
               desc: 'Registro Municipal de Generadores de Residuos Patogénicos y normativa local de habilitaciones clínicas veterinarias.',
               url: 'https://www.riocuarto.gov.ar',
               category: 'Municipal / Local',
@@ -385,7 +385,7 @@ export const RegulatoryComplianceView: React.FC = () => {
               { title: 'Ejercicio Profesional & Matrícula Colegial', desc: 'Validación obligatoria de matrícula profesional en toda prescripción y acto clínico.', status: 'CUMPLIDO', law: 'Ley 11.076 CMVC' },
               { title: 'Inalterabilidad de Historias Clínicas', desc: 'Consultas cerradas protegidas con enmiendas cronológicas inmutables.', status: 'CUMPLIDO', law: 'Código de Ética CMVC' },
               { title: 'Libro Digital de Psicotrópicos & Ketamina', desc: 'Trazabilidad estricta de entradas, salidas y recetas oficiales sin borrado físico.', status: 'CUMPLIDO', law: 'Leyes 17.818 / 19.303' },
-              { title: 'Gestión de Residuos Patológicos', desc: 'Manifiestos de retiro y certificados de disposición final con pesaje registrado.', status: 'CUMPLIDO', law: 'Ley 24.051 / Río Cuarto' },
+              { title: 'Gestión de Residuos Patológicos', desc: 'Manifiestos de retiro y certificados de disposición final con pesaje registrado.', status: 'CUMPLIDO', law: 'Ley 24.051 / Las Lajas' },
               { title: 'Protección de Datos Personales', desc: 'Consentimiento de privacidad y confidencialidad de tutores sin uso de datos para entrenamiento no autorizado.', status: 'CUMPLIDO', law: 'Ley 25.326' },
               { title: 'Firma Electrónica & Trazabilidad Criptográfica', desc: 'Almacenamiento de hash criptográfico, autor y timestamp en cada documento emitido.', status: 'CUMPLIDO', law: 'Ley 25.506' },
               { title: 'Facturación Electrónica ARCA (Modo Homologación / Producción)', desc: 'Integración oficial con CAE y QR fiscal sin simulación falsa.', status: 'CUMPLIDO', law: 'RG ARCA 4291' },

@@ -29,7 +29,7 @@ export const PathologicalWasteView: React.FC = () => {
   const [formContainerType, setFormContainerType] = useState<'BOLSA_ROJA_REGISTRO' | 'DESCARTADOR_RIGIDO'>('BOLSA_ROJA_REGISTRO');
   const [formContainerCount, setFormContainerCount] = useState(1);
   const [formManifestNumber, setFormManifestNumber] = useState(`MAN-2026-${Math.floor(1000 + Math.random() * 9000)}`);
-  const [formTransportCompany, setFormTransportCompany] = useState('Servicios Ambientales Río Cuarto S.A.');
+  const [formTransportCompany, setFormTransportCompany] = useState('Servicios Ambientales Las Lajas S.A.');
 
   const totalKgStored = pathologicalWaste
     .filter((w) => w.status === 'ALMACENADO_TRANSITORIO')
@@ -52,7 +52,7 @@ export const PathologicalWasteView: React.FC = () => {
       containerCount: Number(formContainerCount),
       storageLocation: 'Depósito Transitorio Refrigerado (Sector Residuos)',
       transportCompany: formTransportCompany,
-      municipalGeneratorRegistry: 'Registro Municipal Río Cuarto Res. Nº 441/2020 - Generador Nº 8421',
+      municipalGeneratorRegistry: 'Registro Municipal Las Lajas Res. Nº 441/2020 - Generador Nº 8421',
       status: 'ALMACENADO_TRANSITORIO',
       registeredBy: 'Lic. Gonzalo Rossi',
       branchId: 'branch-1',
@@ -71,7 +71,7 @@ export const PathologicalWasteView: React.FC = () => {
           <div>
             <div className="flex items-center gap-2 mb-1.5">
               <span className="px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-800 text-[10px] font-extrabold tracking-wider border border-amber-200 uppercase">
-                Ley Nacional Nº 24.051 & Ordenanza Río Cuarto
+                Ley Nacional Nº 24.051 & Ordenanza Las Lajas
               </span>
               <span className="px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700 text-[10px] font-extrabold tracking-wider border border-slate-200 uppercase">
                 Generador Habilitado Nº 8421
@@ -82,7 +82,7 @@ export const PathologicalWasteView: React.FC = () => {
               <span>Gestión de Residuos Patológicos & Peligrosos</span>
             </h2>
             <p className="text-xs text-slate-500 font-medium max-w-3xl mt-1">
-              Registro obligatorio de generación, pesaje en origen, manifiestos de retiro y certificados de disposición final según la normativa ambiental de la Provincia de Córdoba y Municipalidad de Río Cuarto.
+              Registro obligatorio de generación, pesaje en origen, manifiestos de retiro y certificados de disposición final según la normativa ambiental de la Provincia de Córdoba y Municipalidad de Las Lajas.
             </p>
           </div>
 

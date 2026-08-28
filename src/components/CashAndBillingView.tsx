@@ -74,7 +74,7 @@ const DEFAULT_FISCAL_CONFIG: FiscalConfig = {
   businessName: 'Veterinaria Ranquel S.R.L.',
   fantasyName: 'Hospital Veterinario Irusta',
   taxCondition: 'IVA Responsable Inscripto',
-  fiscalAddress: 'Av. San Martín 1420, Río Cuarto, Córdoba',
+  fiscalAddress: 'Av. San Martín 1420, Las Lajas, Neuquén',
   iibb: '904-812391-2 (Convenio Multilateral)',
   startDate: '01/03/2018',
   pointOfSaleMain: 1,

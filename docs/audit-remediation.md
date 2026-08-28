@@ -1,75 +1,74 @@
-# VET SYSTEM — Informe de Remediación de Seguridad, RLS y Arquitectura
+# 🛡️ Documento de Auditoría y Remediación Integral de Seguridad — VET SYSTEM
 
-**Fecha de Remediación:** 26 de Agosto de 2026  
-**Sistema Evaluado:** VET SYSTEM — Sistema Hospitalario Veterinario  
-**Objetivo:** `https://veterinaria-irusta.vercel.app/` / Repositorio Oficial  
-
----
-
-## 1. Resumen Ejecutivo de Hallazgos y Acciones Ejecutadas
-
-| Prioridad | Hallazgo Comprobado | Remediación Implementada | Estado |
-|---|---|---|:---:|
-| **P0** | Lectura anónima abierta en API Supabase (`patients`, `owners`, `clinical_documents`, `audit_logs`). | Migración SQL `20260826_remediation_rls_security_auth.sql` con políticas RLS `DENY ALL` para rol `anon`. Acceso restringido exclusivamente a tokens autenticados con JWT válido y aislamiento por sede/rol. | ✅ REMEDIADO |
-| **P0** | Escalación de privilegios en el cliente (`localStorage` forzando `SUPERADMIN` por nombres/emails). | Eliminación de toda regla cliente que asigne `SUPERADMIN`. La identidad y el rol se obtienen y validan estrictamente desde `supabase.auth.getUser()` y la tabla protegida `public.profiles`. | ✅ REMEDIADO |
-| **P0** | Escrituras directas (`upsert`) no controladas en el cliente. | Transacciones atómicas, validación de esquemas en repositorios y permisos RLS específicos por operación. | ✅ REMEDIADO |
-| **P1** | URL `#sedes` abría la vista de Pacientes y carecía de enrutador profundo. | Enrutamiento reactivo por hash (`#sedes`, `#/configuracion/sedes`, `#usuarios`, `#auditoria`) sincronizado con vistas y submódulos. | ✅ REMEDIADO |
-| **P1** | CSP con `unsafe-eval` y `frame-ancestors 'self'`. | Endurecimiento de cabeceras en `vercel.json`: se eliminó `unsafe-eval` y se estableció `frame-ancestors 'none'`. | ✅ REMEDIADO |
-| **P1** | Tratamiento heterogéneo de cola offline con PII en `localStorage`. | Sanitización de colas, aislamiento por usuario/sede y política explícita de fallo visible. | ✅ REMEDIADO |
+**Fecha de Remediación:** 27 de Agosto de 2026  
+**Sistema:** VET SYSTEM — Sistema Hospitalario Veterinario  
+**Institución:** Veterinaria Ranquel (Las Lajas, Neuquén - CP 8347)  
+**Director Médico:** Dr. Diego Iván Irusta (M.P. 502)  
+**Entorno de Producción:** `https://veterinaria-irusta.vercel.app`  
 
 ---
 
-## 2. Mapa de Confianza del Sistema
+## 1. Mapa de Confianza del Sistema & Arquitectura de Seguridad
 
 ```
-[ NAVEGADOR CLIENTE ]
+[ NAVEGADOR / CLIENTE ]
         │
-        ▼ (1. Credenciales / OAuth)
-[ SUPABASE AUTH SERVICE ] ──── (2. Emite JWT firmado con auth.uid())
+        ▼ (HTTPS + CSP estricto + HSTS + Deny Frame)
+[ Vercel Edge / CDN ]
         │
-        ▼ (3. Solicitud HTTPS con Bearer JWT)
-[ POSTGRESQL RLS ENGINE ]
-  ├── auth.uid() verificado por firma criptográfica
-  ├── Función helper get_auth_role() consulta public.profiles
-  └── Función helper get_auth_branch() valida aislamiento multi-sede
+        ├── Landing Pública (SSG/SSR - Sin datos clínicos expuestos)
         │
-        ▼ (4. Permisos Validados)
-[ TABLAS MAESTRAS EN POSTGRESQL ]
-  ├── patients, owners, clinical_documents, invoices (Protegidas)
-  └── audit_logs (Append-Only inmutable, UPDATE/DELETE denegado)
+        └── App Privada Clínico-Hospitalaria
+                │
+                ▼ (Validación obligatoria de JWT)
+        [ Supabase Auth (auth.getUser() / getSession()) ]
+                │
+                ▼ (Rol 'authenticated' + branch_id verificado)
+        [ PostgreSQL Cloud con Row Level Security (RLS) ]
+                │
+                ├── Políticas Deny-by-Default para rol 'anon'
+                ├── Acceso de lectura/escritura condicionado a auth.uid()
+                └── Registro de Auditoría Append-Only en audit_logs
 ```
 
 ---
 
-## 3. Matriz de Roles y Permisos (RBAC & RLS)
+## 2. Matriz de Roles y Permisos (RBAC & RLS)
 
-| Entidad / Módulo | Anon | ENFERMERO | RECEPCION | VETERINARIO | DIRECCION_MEDICA | SUPERADMIN |
-|---|:---:|:---:|:---:|:---:|:---:|:---:|
-| **Pacientes & Tutores (PII)** | ❌ DENEGADO | Lectura / Signos | Lectura / Alta | CRUD Completo | CRUD Completo | CRUD Completo |
-| **Historia Clínica / SOAP** | ❌ DENEGADO | Lectura | ❌ DENEGADO | Crear / Firmar | CRUD / Enmiendas | CRUD Completo |
-| **Quirófano & Cirugías** | ❌ DENEGADO | Checklist | ❌ DENEGADO | Protocolo Anest. | CRUD Completo | CRUD Completo |
-| **Farmacia & Stock** | ❌ DENEGADO | Consumo dosis | ❌ DENEGADO | Receta / Consumo | Ajuste / Precios | CRUD Completo |
-| **Finanzas & Facturación** | ❌ DENEGADO | ❌ DENEGADO | Cobros / Recibos | Presupuestos | Arqueo / Cierre | CRUD Completo |
-| **Documentos Legales** | ❌ DENEGADO | ❌ DENEGADO | Emisión | Firma Médica | CRUD Completo | CRUD Completo |
-| **Auditoría del Sistema** | ❌ DENEGADO | ❌ DENEGADO | ❌ DENEGADO | ❌ DENEGADO | Lectura Sede | Lectura Global |
-| **Configuración & Sedes** | ❌ DENEGADO | ❌ DENEGADO | ❌ DENEGADO | ❌ DENEGADO | ❌ DENEGADO | CRUD Completo |
-
----
-
-## 4. Lineamientos de Facturación Electrónica ARCA
-
-1. **WSAA & WSMTXCA estrictamente en Backend:** Ningún certificado (`.crt`), clave privada (`.key`), Ticket de Acceso (TRA) ni token/sign se almacena o expone en el frontend (`VITE_*`, bundle o `localStorage`).
-2. **Ambientes Seguros:** Separación estricta de variables `ARCA_ENVIRONMENT=homologacion` vs `ARCA_ENVIRONMENT=produccion`.
-3. **Máquina de Estados de Comprobantes:**
-   draft -> authorizing -> authorized (CAE otorgado + QR v1) | observed/rejected (Rechazo con motivo) | uncertain (Timeout reconciliación)
-4. **Idempotencia y Correlatividad:** Serialización de emisiones por Punto de Venta y Tipo de Comprobante, impidiendo saltos de numeración o reintentos duplicados.
+| Módulo / Entidad | DIRECTOR_MEDICO | VETERINARIO | ENFERMERO_TECNICO | RECEPCION | ADMINISTRATIVO |
+|---|:---:|:---:|:---:|:---:|:---:|
+| **Pacientes & Tutores** | Total (C/R/U/D) | Total (C/R/U/D) | Lectura / Registro | Lectura / Registro | Lectura / Registro |
+| **Historia Clínica 360 & SOAP** | Total / Firma | Total / Firma | Lectura / Notas | No accesible | No accesible |
+| **Signos Vitales & Biometría** | Total (C/R/U/D) | Total (C/R/U/D) | Registro / Lectura | No accesible | No accesible |
+| **Quirófano & Cirugías** | Total / Firma | Total / Firma | Asistencia | No accesible | No accesible |
+| **Agenda de Turnos & Triage** | Total (C/R/U/D) | Total (C/R/U/D) | Registro Triage | Total (C/R/U/D) | Total (C/R/U/D) |
+| **Farmacia & Stock** | Total (C/R/U/D) | Consumo / Receta | Consumo interno | Consulta stock | Total (C/R/U/D) |
+| **Caja, Facturación & ARCA** | Total / Auditoría | Consulta | No accesible | Cobro / Recibos | Total / Emisión |
+| **Documentos Clínicos** | Total / Firma | Total / Firma | Lectura | No accesible | No accesible |
+| **Auditoría & Configuración** | Total (C/R) | No accesible | No accesible | No accesible | Configuración |
 
 ---
 
-## 5. Procedimiento de Despliegue y Rollback Seguro
+## 3. Lineamientos de Facturación Electrónica ARCA
 
-### Procedimiento de Despliegue:
-1. **Backup:** Ejecutar snapshot completo de base de datos Supabase.
-2. **Migración SQL:** Aplicar `supabase/migrations/20260826_remediation_rls_security_auth.sql`.
-3. **Verificación RLS:** Constatar que consultas anónimas retornen acceso denegado.
-4. **Frontend Deploy:** Despliegue en Vercel con CSP endurecido.
+1. **Aislamiento de Secretos:** WSAA y WSMTXCA exclusivamente en backend/Edge Functions. Certificados y claves en Supabase Vault.
+2. **Ambientes Homologación vs Producción:** Separación estricta de credenciales y endpoints.
+3. **Correlatividad e Idempotencia:** Registro transaccional por (CUIT, Punto de Venta, Tipo de Comprobante).
+4. **Resguardo Fiscal:** Comprobante autorizado con CAE / CAEA y código QR oficial AFIP/ARCA v1.
+
+---
+
+## 4. Estado de Remediación de Hallazgos Críticos (P0)
+
+### ✅ P0.1: Supabase RLS Deny-by-Default
+- **Acción:** Creada migración SQL `supabase/migrations/20260827_harden_rls_deny_anon.sql`.
+- **Efecto:** `REVOKE ALL FROM anon` aplicado en todas las tablas sensibles. Únicamente se expone la información institucional de la sede para la landing.
+
+### ✅ P0.2: Autenticación Verificada y Cierre de Confianza Ciega
+- **Acción:** Actualizado `VetContext.tsx` con verificación de sesión mediante `supabase.auth.getSession()` y escucha reactiva en `supabase.auth.onAuthStateChange`.
+
+### ✅ P0.3: Unificación de Sede Única Oficial y Eliminación de Fixtures
+- **Acción:** Sede oficial fijada: **Veterinaria Ranquel, Casa 13, Barrio Militar de Oficiales, Las Lajas, Neuquén (CP 8347)** - Dr. Diego Iván Irusta (M.P. 502).
+
+### ✅ P0.4: Desacoplamiento de Hashes de Navegación
+- **Acción:** Las rutas internas de la aplicación clínica utilizan el prefijo `#app/[modulo]`, desacoplándose de los anclajes de navegación de la Landing Page.

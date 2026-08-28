@@ -135,7 +135,7 @@ Hola *${ownerName}*, ¡esperamos que estés muy bien! Te recordamos el turno mé
 ⏰ *Horario:* ${timeStr} hs
 👨‍⚕️ *Profesional Asignado:* ${vetStr} (M.P. 502)
 🩺 *Motivo:* ${reasonStr}
-📍 *Ubicación:* Clínica Veterinaria Ranquel — Río Cuarto, Córdoba
+📍 *Ubicación:* Clínica Veterinaria Ranquel — Las Lajas, Neuquén
 
 ⚠️ *Recomendaciones para la visita:*
 • Por favor concurrir 5 a 10 minutos antes del horario pactado.
@@ -324,7 +324,7 @@ Hola *${ownerName}*, esperamos que estés muy bien. Te escribimos para recordart
 🐶 *Paciente:* ${petName} ${petDesc}
 💉 *Vacuna:* ${vacName} ${vacBatch}
 🗓️ *Fecha Sugerida / Vencimiento:* ${vacDueDate}
-📍 *Lugar:* Clínica Veterinaria Ranquel — Río Cuarto, Córdoba
+📍 *Lugar:* Clínica Veterinaria Ranquel — Las Lajas, Neuquén
 
 ⚠️ *¿Por qué es importante?*
 Mantener el plan sanitario al día genera anticuerpos esenciales para prevenir enfermedades infecciosas graves.

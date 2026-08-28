@@ -302,7 +302,7 @@ export const PatientsListView: React.FC = () => {
                         </div>
                         <div className="flex items-center gap-2">
                           <MapPin className="w-3.5 h-3.5 text-slate-400" />
-                          <span>{owner.address ? `${owner.address}, ${owner.city || 'Río Cuarto'}` : 'Dirección no registrada'}</span>
+                          <span>{owner.address ? `${owner.address}, ${owner.city || 'Las Lajas'}` : 'Dirección no registrada'}</span>
                         </div>
                       </div>
 

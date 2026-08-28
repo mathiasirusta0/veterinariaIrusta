@@ -267,7 +267,7 @@ export const PrescriptionsView: React.FC = () => {
       vetLicense: vet.licenseNumber || 'M.P. 502',
       vetCuit: '20-32458912-8',
       establishmentName: 'Hospital Veterinario Central 24hs',
-      establishmentAddress: 'Av. Corrientes 4550, CABA',
+      establishmentAddress: 'Casa 13, Barrio Militar de Oficiales, Las Lajas, Neuquén',
       date: new Date().toISOString().split('T')[0],
       diagnosis,
       items: items.map((it, idx) => ({
@@ -302,7 +302,7 @@ export const PrescriptionsView: React.FC = () => {
       },
       branch: {
         name: activeBranch?.name || 'Clínica Veterinaria Ranquel',
-        address: activeBranch?.address || 'Río Cuarto, Córdoba',
+        address: activeBranch?.address || 'Las Lajas, Neuquén',
         phone: activeBranch?.phone || '+54 9 2942 47-7136',
       },
       patient: {
@@ -317,7 +317,7 @@ export const PrescriptionsView: React.FC = () => {
         name: ow ? `${ow.firstName} ${ow.lastName}` : 'Tutor Responsable',
         dni: ow?.dni || 'N/A',
         phone: ow?.phone || ow?.whatsapp || 'N/A',
-        address: ow?.address || 'Río Cuarto',
+        address: ow?.address || 'Las Lajas',
       },
       items: rx.items.map((it) => ({
         medicationName: it.medicationName,

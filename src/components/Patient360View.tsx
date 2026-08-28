@@ -547,7 +547,7 @@ export const Patient360View: React.FC = () => {
           whatsapp: ownerPhone || '',
           email: ownerEmail || '',
           address: ownerAddress || '',
-          city: 'Río Cuarto',
+          city: 'Las Lajas',
           taxCondition: 'CONSUMIDOR_FINAL',
           balance: 0,
           notes: 'Creado desde edición de ficha médica',
@@ -2855,7 +2855,7 @@ export const Patient360View: React.FC = () => {
                       type="text"
                       value={editFormData.ownerAddress ?? ''}
                       onChange={(e) => setEditFormData({ ...editFormData, ownerAddress: e.target.value })}
-                      placeholder="Ej: San Martín 450, Río Cuarto"
+                      placeholder="Ej: San Martín 450, Las Lajas"
                       className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-teal-500"
                     />
                   </div>

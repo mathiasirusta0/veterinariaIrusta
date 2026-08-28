@@ -125,34 +125,43 @@ const MainLayout: React.FC = () => {
 
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  // Sincronización bidireccional de rutas y URL Hash para enlaces profundos
+  // Sincronización bidireccional de rutas y URL Hash protegidas (#app/*)
   React.useEffect(() => {
     const syncViewFromHash = () => {
       const hash = (window.location.hash || '').toLowerCase();
-      if (!hash) return;
+      if (!hash || !hash.startsWith('#app/')) return;
 
-      if (hash.includes('sedes') || hash.includes('sucursales') || hash.includes('configuracion') || hash.includes('usuarios') || hash.includes('auditoria')) {
+      const appRoute = hash.replace('#app/', '');
+      if (appRoute.includes('configuracion') || appRoute.includes('usuarios') || appRoute.includes('auditoria')) {
         setActiveView('CONFIGURACION');
-      } else if (hash.includes('paciente')) {
+      } else if (appRoute.includes('paciente')) {
         setActiveView('PACIENTES');
-      } else if (hash.includes('agenda') || hash.includes('turno')) {
+      } else if (appRoute.includes('propietario') || appRoute.includes('tutor')) {
+        setActiveView('PROPIETARIOS');
+      } else if (appRoute.includes('agenda') || appRoute.includes('turno')) {
         setActiveView('AGENDA');
-      } else if (hash.includes('cirugia') || hash.includes('quirofano')) {
+      } else if (appRoute.includes('cirugia') || appRoute.includes('quirofano')) {
         setActiveView('CIRUGIAS');
-      } else if (hash.includes('vital') || hash.includes('signos')) {
+      } else if (appRoute.includes('vital') || appRoute.includes('signos')) {
         setActiveView('SIGNOS_VITALES');
-      } else if (hash.includes('farmacia') || hash.includes('inventario') || hash.includes('stock')) {
+      } else if (appRoute.includes('farmacia') || appRoute.includes('inventario') || appRoute.includes('stock')) {
         setActiveView('INVENTARIO');
-      } else if (hash.includes('caja') || hash.includes('finanzas') || hash.includes('factura')) {
+      } else if (appRoute.includes('caja') || appRoute.includes('finanzas') || appRoute.includes('factura')) {
         setActiveView('CAJA_FACTURACION');
-      } else if (hash.includes('documento')) {
+      } else if (appRoute.includes('documento')) {
         setActiveView('DOCUMENTOS');
-      } else if (hash.includes('vacuna')) {
+      } else if (appRoute.includes('vacuna')) {
         setActiveView('VACUNAS');
-      } else if (hash.includes('receta')) {
+      } else if (appRoute.includes('receta')) {
         setActiveView('RECETAS_OFICIALES');
-      } else if (hash.includes('qa') || hash.includes('test')) {
+      } else if (appRoute.includes('laboratorio')) {
+        setActiveView('LABORATORIO');
+      } else if (appRoute.includes('imagen')) {
+        setActiveView('IMAGENES');
+      } else if (appRoute.includes('qa') || appRoute.includes('test')) {
         setActiveView('CENTRO_QA');
+      } else if (appRoute.includes('inicio') || appRoute.includes('dashboard')) {
+        setActiveView('OPERACION');
       }
     };
 

@@ -176,7 +176,7 @@ export const FinancesUnifiedView: React.FC = () => {
         customerId: targetOwnerId || 'own-gen',
         customerName: ownName,
         customerDni: '',
-        customerAddress: 'Río Cuarto, Córdoba',
+        customerAddress: 'Las Lajas, Neuquén',
         customerTaxCondition: 'CONSUMIDOR_FINAL',
         type: 'X',
         pointOfSale: 1,

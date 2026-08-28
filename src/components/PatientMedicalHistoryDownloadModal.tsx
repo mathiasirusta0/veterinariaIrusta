@@ -307,7 +307,7 @@ export const PatientMedicalHistoryDownloadModal: React.FC<PatientMedicalHistoryD
           name: `${owner.firstName} ${owner.lastName}`.trim(),
           phone: owner.phone || owner.whatsapp,
           dni: owner.dni || owner.cuit,
-          address: owner.address ? `${owner.address}, ${owner.city || 'Río Cuarto'}` : 'Río Cuarto, Córdoba',
+          address: owner.address ? `${owner.address}, ${owner.city || 'Las Lajas'}` : 'Las Lajas, Neuquén',
           balance: owner.balance,
         }
       : undefined,
@@ -439,7 +439,7 @@ DATOS DEL TUTOR TITULAR:
 - Nombre: ${owner ? `${owner.firstName} ${owner.lastName}` : 'No asignado'}
 - Teléfono / WhatsApp: ${owner?.phone || 'No registrado'}
 - DNI / CUIT: ${owner?.dni || owner?.cuit || 'S/D'}
-- Dirección: ${owner?.address || 'Río Cuarto, Córdoba'}
+- Dirección: ${owner?.address || 'Las Lajas, Neuquén'}
 - Saldo Cuenta Corriente: ${owner?.balance !== undefined ? formatCurrency(owner.balance) : '$ 0,00'}
 - Veterinario a Cargo: Dr. Diego Iván Irusta (M.P. 502)
 
@@ -633,7 +633,7 @@ ${financialItems.map((it) => `• ${it.description} x${it.quantity} = ${formatCu
               <p className="text-xs"><strong>Nombre:</strong> {owner ? `${owner.firstName} ${owner.lastName}` : 'No asignado'}</p>
               <p className="text-xs"><strong>Teléfono / WhatsApp:</strong> {owner?.phone || owner?.whatsapp || 'No registrado'}</p>
               <p className="text-xs"><strong>DNI / CUIT:</strong> {owner?.dni || owner?.cuit || 'No registrado'}</p>
-              <p className="text-xs"><strong>Dirección:</strong> {owner?.address || 'Río Cuarto, Córdoba'}</p>
+              <p className="text-xs"><strong>Dirección:</strong> {owner?.address || 'Las Lajas, Neuquén'}</p>
               <p className="text-xs">
                 <strong>Cuenta Corriente:</strong>{' '}
                 <span className={owner?.balance && owner.balance < 0 ? 'text-rose-600 font-bold' : 'text-emerald-700 font-bold'}>

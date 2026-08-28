@@ -32,40 +32,29 @@ import {
   ServicePriceItem,
 } from './types';
 
-// 1. SUCURSALES HOSPITALARIAS
+// 1. SUCURSAL OFICIAL UNIFICADA - VETERINARIA RANQUEL
 export const INITIAL_BRANCHES: Branch[] = [
   {
     id: 'branch-1',
-    name: 'Hospital Central 24 Horas',
-    code: 'HC-01',
-    address: 'Av. Corrientes 4550, CABA',
-    phone: '+54 11 4862-9900',
-    whatsapp: '+54 9 11 3822-9011',
-    email: 'contacto@vetsystem.com.ar',
-    cuit: '30-71458920-4',
-    taxCondition: 'IVA Responsable Inscripto',
-  },
-  {
-    id: 'branch-2',
-    name: 'Clínica & Consultorios Norte',
-    code: 'CN-02',
-    address: 'Av. Maipú 2140, Olivos, Buenos Aires',
-    phone: '+54 11 4791-3320',
-    whatsapp: '+54 9 11 4455-8812',
-    email: 'norte@vetsystem.com.ar',
-    cuit: '30-71458920-4',
+    name: 'Veterinaria Ranquel',
+    code: 'VR-01',
+    address: 'Casa 13, Barrio Militar de Oficiales, Las Lajas, Neuquén (CP 8347)',
+    phone: '+54 9 2942 47-7136',
+    whatsapp: '+54 9 2942 47-7136',
+    email: 'contacto@veterinariaranquel.com.ar',
+    cuit: '20-31458920-4',
     taxCondition: 'IVA Responsable Inscripto',
   },
 ];
 
-// 2. USUARIO MAESTRO SUPERADMIN
+// 2. USUARIO MAESTRO - DIRECTOR MÉDICO
 export const INITIAL_USERS: User[] = [
   {
-    id: 'user-irusta-superadmin',
+    id: 'user-irusta-dir',
     name: 'Dr. Diego Iván Irusta',
     email: 'irusta@gmail.com',
-    role: 'SUPERADMIN',
-    licenseNumber: 'M.P. 502 - Dirección Médica',
+    role: 'DIRECTOR_MEDICO',
+    licenseNumber: 'M.P. 502',
     branchId: 'branch-1',
   },
 ];
@@ -83,38 +72,7 @@ export const INITIAL_LAB_ORDERS: LaboratoryOrder[] = [];
 export const INITIAL_IMAGING: ImagingStudy[] = [];
 export const INITIAL_VACCINES: VaccinationRecord[] = [];
 export const INITIAL_VACCINATIONS: VaccinationRecord[] = [];
-export const INITIAL_APPOINTMENTS: Appointment[] = [
-  {
-    id: 'app-001',
-    patientId: 'pat-duque-001',
-    ownerId: 'own-enzo-001',
-    vetId: 'usr-1',
-    vetName: 'Dr. Diego Iván Irusta',
-    branchId: 'branch-1',
-    date: '2026-08-27',
-    time: '10:30',
-    durationMinutes: 30,
-    type: 'CONSULTA_GENERAL',
-    reason: 'Control clínico de rutina y peso corporal',
-    status: 'CONFIRMADO',
-    notes: 'Paciente noble y atento. Traer libreta sanitaria.',
-  },
-  {
-    id: 'app-002',
-    patientId: 'pat-duque-001',
-    ownerId: 'own-enzo-001',
-    vetId: 'usr-1',
-    vetName: 'Dr. Diego Iván Irusta',
-    branchId: 'branch-1',
-    date: '2026-08-27',
-    time: '16:00',
-    durationMinutes: 45,
-    type: 'VACUNACION',
-    reason: 'Refuerzo de vacuna quíntuple y desparasitación',
-    status: 'RESERVADO',
-    notes: 'Chequeo de temperatura pre-inmunización.',
-  },
-];
+export const INITIAL_APPOINTMENTS: Appointment[] = [];
 export const INITIAL_TRIAGE: TriageEntry[] = [];
 export const INITIAL_INVOICES: Invoice[] = [];
 export const INITIAL_ESTIMATES: Estimate[] = [];
@@ -273,7 +231,7 @@ export const INITIAL_REGULATORY_RULES: RegulatoryRule[] = [
     id: 'rule-1',
     country: 'Argentina',
     province: 'Córdoba',
-    municipality: 'Río Cuarto',
+    municipality: 'Las Lajas',
     organism: 'COLEGIO_VETERINARIO_CORDOBA',
     lawTitle: 'Ley 11.076 / 5.142 Ejercicio Profesional Veterinario Córdoba',
     lawNumber: 'Ley 11.076 / 5.142',
@@ -311,9 +269,9 @@ export const INITIAL_REGULATORY_RULES: RegulatoryRule[] = [
     id: 'rule-3',
     country: 'Argentina',
     province: 'Córdoba',
-    municipality: 'Río Cuarto',
+    municipality: 'Las Lajas',
     organism: 'GOBIERNO_CORDOBA',
-    lawTitle: 'Residuos Patológicos Ley 24.051 y Ordenanza Río Cuarto',
+    lawTitle: 'Residuos Patológicos Ley 24.051 y Ordenanza Las Lajas',
     lawNumber: 'Ley 24.051',
     articleSection: 'Capítulo IV',
     description: 'Segregación de residuos biopatogénicos en bolsa roja.',

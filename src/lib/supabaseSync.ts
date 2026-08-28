@@ -126,7 +126,7 @@ function normalizeOwner(raw: any): Owner {
     whatsapp: raw.whatsapp || raw.phone || '',
     email: raw.email || '',
     address: raw.address || '',
-    city: raw.city || 'Río Cuarto',
+    city: raw.city || 'Las Lajas',
     province: raw.province || 'Córdoba',
     postalCode: raw.postal_code || raw.postalCode || '5800',
     notes: raw.notes || '',

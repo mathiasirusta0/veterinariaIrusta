@@ -485,8 +485,8 @@ export const VaccinationView: React.FC = () => {
         phone: newOwnerPhone.trim(),
         whatsapp: newOwnerPhone.trim(),
         email: '',
-        address: 'Río Cuarto, Córdoba',
-        city: 'Río Cuarto',
+        address: 'Las Lajas, Neuquén',
+        city: 'Las Lajas',
         province: 'Córdoba',
         postalCode: '5800',
         taxCondition: 'CONSUMIDOR_FINAL',
@@ -579,7 +579,7 @@ export const VaccinationView: React.FC = () => {
       },
       branch: {
         name: activeBranch?.name || 'Clínica Veterinaria Ranquel',
-        address: activeBranch?.address || 'Río Cuarto, Córdoba',
+        address: activeBranch?.address || 'Las Lajas, Neuquén',
         phone: activeBranch?.phone || '+54 9 2942 47-7136',
       },
       patient: {
@@ -596,7 +596,7 @@ export const VaccinationView: React.FC = () => {
         name: ow ? `${ow.firstName} ${ow.lastName}` : 'Tutor Responsable',
         dni: ow?.dni || 'N/A',
         phone: ow?.phone || ow?.whatsapp || 'N/A',
-        address: ow?.address || 'Río Cuarto',
+        address: ow?.address || 'Las Lajas',
       },
     });
     showToast('success', 'Certificado Descargado', `Se descargó el certificado en PDF de ${vac.vaccineName}.`);
@@ -625,7 +625,7 @@ export const VaccinationView: React.FC = () => {
         name: ow ? `${ow.firstName} ${ow.lastName}` : 'Tutor Responsable',
         dni: ow?.dni || 'N/A',
         phone: ow?.phone || ow?.whatsapp || 'N/A',
-        address: ow?.address || 'Río Cuarto',
+        address: ow?.address || 'Las Lajas',
       },
       doctor: {
         name: currentUser?.name || 'Dr. Diego Iván Irusta',
@@ -633,7 +633,7 @@ export const VaccinationView: React.FC = () => {
       },
       branch: {
         name: activeBranch?.name || 'Clínica Veterinaria Ranquel',
-        address: activeBranch?.address || 'Río Cuarto, Córdoba',
+        address: activeBranch?.address || 'Las Lajas, Neuquén',
         phone: activeBranch?.phone || '+54 9 2942 47-7136',
       },
       vaccines: patientVacs.map((v) => ({
@@ -678,7 +678,7 @@ export const VaccinationView: React.FC = () => {
       },
       branch: {
         name: activeBranch?.name || 'Clínica Veterinaria Ranquel',
-        address: activeBranch?.address || 'Río Cuarto, Córdoba',
+        address: activeBranch?.address || 'Las Lajas, Neuquén',
         phone: activeBranch?.phone || '+54 9 2942 47-7136',
       },
       patient: {
@@ -695,7 +695,7 @@ export const VaccinationView: React.FC = () => {
         name: ow ? `${ow.firstName} ${ow.lastName}` : 'Tutor Responsable',
         dni: ow?.dni || 'N/A',
         phone: ow?.phone || ow?.whatsapp || 'N/A',
-        address: ow?.address || 'Río Cuarto',
+        address: ow?.address || 'Las Lajas',
       },
     });
     showToast('success', 'Certificado en Impresión A4', `Certificado de ${vac.vaccineName} enviado a impresión oficial.`);
@@ -1493,7 +1493,7 @@ export const VaccinationView: React.FC = () => {
                 <h4 className="font-black text-slate-900 text-sm mt-0.5">
                   CERTIFICADO OFICIAL DE INMUNIZACIÓN & SANIDAD
                 </h4>
-                <p className="text-[10px] text-slate-400 font-medium">Río Cuarto, Córdoba • Tel: +54 9 2942 47-7136</p>
+                <p className="text-[10px] text-slate-400 font-medium">Las Lajas, Neuquén • Tel: +54 9 2942 47-7136</p>
               </div>
 
               {(() => {

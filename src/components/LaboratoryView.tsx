@@ -123,7 +123,7 @@ export const LaboratoryView: React.FC = () => {
       },
       branch: {
         name: activeBranch?.name || 'Clínica Veterinaria Ranquel',
-        address: activeBranch?.address || 'Río Cuarto, Córdoba',
+        address: activeBranch?.address || 'Las Lajas, Neuquén',
         phone: activeBranch?.phone || '+54 9 2942 47-7136',
       },
       patient: {

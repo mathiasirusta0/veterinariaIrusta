@@ -314,8 +314,8 @@ export const QuickModals: React.FC = () => {
         phone: patOwnerPhone.trim(),
         whatsapp: patOwnerPhone.trim(),
         email: patOwnerEmail.trim() || `${patOwnerFirstName.toLowerCase().replace(/\s+/g, '')}@veterinariairusta.com`,
-        address: 'Río Cuarto, Córdoba',
-        city: 'Río Cuarto',
+        address: 'Las Lajas, Neuquén',
+        city: 'Las Lajas',
       });
       ownerIdToUse = createdOwner.id;
     }
@@ -442,8 +442,8 @@ export const QuickModals: React.FC = () => {
         phone: aptNewOwnerPhone.trim(),
         whatsapp: aptNewOwnerPhone.trim(),
         email: `${aptNewOwnerFirstName.toLowerCase().replace(/\s+/g, '')}@veterinariairusta.com`,
-        address: 'Río Cuarto, Córdoba',
-        city: 'Río Cuarto',
+        address: 'Las Lajas, Neuquén',
+        city: 'Las Lajas',
         taxCondition: 'CONSUMIDOR_FINAL',
         balance: 0,
         branchId: 'branch-central',
@@ -706,8 +706,8 @@ export const QuickModals: React.FC = () => {
         phone: vacNewOwnerPhone.trim(),
         whatsapp: vacNewOwnerPhone.trim(),
         email: '',
-        address: 'Río Cuarto, Córdoba',
-        city: 'Río Cuarto',
+        address: 'Las Lajas, Neuquén',
+        city: 'Las Lajas',
         province: 'Córdoba',
         postalCode: '5800',
         taxCondition: 'CONSUMIDOR_FINAL',
