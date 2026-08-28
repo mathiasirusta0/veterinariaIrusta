@@ -74,18 +74,42 @@ const SettingsAndUsersView = lazyRetry(() => import('./components/SettingsAndUse
 const PrescriptionsView = lazyRetry(() => import('./components/PrescriptionsView').then((m) => ({ default: m.PrescriptionsView })));
 const SystemQaTestCenterView = lazyRetry(() => import('./components/SystemQaTestCenterView').then((m) => ({ default: m.SystemQaTestCenterView })));
 
-// Loading Component
+// Sleek iOS-style Non-Jarring Skeleton Fallback
 const ViewLoadingFallback: React.FC = () => (
-  <div className="flex-1 flex flex-col items-center justify-center min-h-[400px] p-6 text-slate-500">
-    <div className="w-12 h-12 rounded-2xl bg-teal-50 border border-teal-200 flex items-center justify-center text-teal-600 animate-pulse mb-3 shadow-xs">
-      <Loader2 className="w-6 h-6 animate-spin" />
+  <div className="space-y-4 animate-in fade-in duration-100 w-full max-w-full p-2">
+    {/* Micro progress line */}
+    <div className="h-1 w-full bg-slate-100/80 rounded-full overflow-hidden">
+      <div className="h-full bg-teal-600/80 rounded-full w-1/3 animate-pulse" />
     </div>
-    <p className="text-xs font-bold text-slate-700">Cargando módulo hospitalario...</p>
-    <span className="text-[11px] text-slate-400 font-mono mt-0.5">Veterinaria Ranquel • M.P. 502</span>
+    {/* Header Skeleton */}
+    <div className="h-16 bg-slate-200/50 rounded-2xl w-full animate-pulse" />
+    {/* KPI Cards Skeleton */}
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+      <div className="h-24 bg-slate-200/40 rounded-2xl animate-pulse" />
+      <div className="h-24 bg-slate-200/40 rounded-2xl animate-pulse" />
+      <div className="h-24 bg-slate-200/40 rounded-2xl animate-pulse" />
+      <div className="h-24 bg-slate-200/40 rounded-2xl animate-pulse" />
+    </div>
+    {/* Main Content Skeleton */}
+    <div className="h-64 bg-slate-200/30 rounded-3xl w-full animate-pulse" />
   </div>
 );
 
 const MainLayout: React.FC = () => {
+  // Idle Prefetching of Frequent Modules for 0ms Instant View Switching
+  React.useEffect(() => {
+    const idleTimer = setTimeout(() => {
+      import('./components/PatientsListView');
+      import('./components/AppointmentsView');
+      import('./components/VitalSignsView');
+      import('./components/SurgeriesView');
+      import('./components/VaccinationView');
+      import('./components/InventoryView');
+      import('./components/FinancesUnifiedView');
+      import('./components/DocumentsView');
+    }, 800);
+    return () => clearTimeout(idleTimer);
+  }, []);
   const {
     activeView,
     setActiveView,
@@ -335,7 +359,9 @@ const MainLayout: React.FC = () => {
         {/* Central Dynamic Content Area */}
         <main className="flex-1 flex flex-col min-w-0 overflow-y-auto w-full relative bg-[#F8FAFC] main-content-pad p-3 sm:p-5 lg:p-6 box-border">
           <Suspense fallback={<ViewLoadingFallback />}>
-            {renderActiveView()}
+            <div key={activeView} className="w-full animate-in fade-in duration-150 ease-out">
+              {renderActiveView()}
+            </div>
           </Suspense>
         </main>
       </div>
