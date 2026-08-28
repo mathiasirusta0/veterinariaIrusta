@@ -1004,13 +1004,15 @@ export const VaccinationView: React.FC = () => {
 
                       <button
                         type="button"
-                        onClick={() => {
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
                           if (window.confirm(`¿Eliminar definitivamente el registro de ${vac.vaccineName} de ${patient?.name || 'este paciente'}?`)) {
                             triggerHaptic('heavy');
                             deleteVaccination(vac.id);
                           }
                         }}
-                        className="p-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-xl transition-all cursor-pointer"
+                        className="p-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-xl transition-all cursor-pointer hover:scale-105 active:scale-95"
                         title="Eliminar registro de vacunación"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
