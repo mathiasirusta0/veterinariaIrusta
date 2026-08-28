@@ -15,6 +15,24 @@ interface SidebarProps {
   onCloseMobileMenu?: () => void;
 }
 
+// Pre-carga inteligente bajo demanda (On-Hover)
+const PREFETCH_MAP: Record<string, () => Promise<any>> = {
+  PACIENTES: () => import('./PatientsListView'),
+  AGENDA: () => import('./AppointmentsView'),
+  SIGNOS_VITALES: () => import('./VitalSignsView'),
+  CIRUGIAS: () => import('./SurgeriesView'),
+  LABORATORIO: () => import('./LaboratoryView'),
+  IMAGENES: () => import('./ImagingView'),
+  VACUNAS: () => import('./VaccinationView'),
+  INVENTARIO: () => import('./InventoryView'),
+  CAJA_FACTURACION: () => import('./FinancesUnifiedView'),
+  DOCUMENTOS: () => import('./DocumentsView'),
+  RECETAS_OFICIALES: () => import('./PrescriptionsView'),
+  CONFIGURACION: () => import('./SettingsAndUsersView'),
+  PROPIETARIOS: () => import('./OwnersView'),
+  CENTRO_QA: () => import('./SystemQaTestCenterView'),
+};
+
 export const Sidebar: React.FC<SidebarProps> = ({
   isOpenMobile,
   isMobileMenuOpen,
@@ -60,6 +78,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
       items,
     };
   }).filter((grp) => grp.items && grp.items.length > 0);
+
+  const handlePrefetch = (viewId: string) => {
+    if (PREFETCH_MAP[viewId]) {
+      PREFETCH_MAP[viewId]().catch(() => {});
+    }
+  };
 
   const handleSelect = (id: SystemView) => {
     triggerHaptic('light');
@@ -137,13 +161,17 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   <button
                     key={item.id}
                     type="button"
+                    aria-current={isActive ? 'page' : undefined}
+                    onMouseEnter={() => handlePrefetch(item.id)}
+                    onFocus={() => handlePrefetch(item.id)}
                     onClick={(e) => {
                       e.preventDefault();
                       handleSelect(item.id);
                     }}
                     className={`
                       w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold
-                      transition-all duration-150 ease-out active:scale-[0.96] text-left cursor-pointer select-none
+                      transition-all duration-150 ease-out active:scale-[0.97] text-left cursor-pointer select-none
+                      focus-visible:ring-2 focus-visible:ring-teal-500 focus-visible:outline-hidden
                       ${
                         isActive
                           ? 'bg-teal-600 text-white shadow-sm shadow-teal-600/20 font-black'

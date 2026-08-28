@@ -25,22 +25,20 @@ import {
   Loader2,
 } from 'lucide-react';
 
-// Helper para carga perezosa resiliente a nuevos despliegues en producción
+// Helper para carga diferida sin recargas forzosas del navegador
 function lazyRetry<T extends React.ComponentType<any>>(componentImport: () => Promise<{ default: T }>): React.LazyExoticComponent<T> {
   return React.lazy(async () => {
-    const isReloaded = sessionStorage.getItem('vetsys_chunk_reload');
     try {
-      const module = await componentImport();
-      sessionStorage.removeItem('vetsys_chunk_reload');
-      return module;
-    } catch (error: any) {
-      const msg = error?.message || '';
-      if (!isReloaded && (msg.includes('dynamically imported module') || msg.includes('Failed to fetch') || msg.includes('Loading chunk'))) {
-        sessionStorage.setItem('vetsys_chunk_reload', 'true');
-        window.location.reload();
-        return new Promise<{ default: T }>(() => {});
+      return await componentImport();
+    } catch (error) {
+      // Reintento suave tras breve pausa antes de fallar (sin recargar la ventana)
+      try {
+        await new Promise((resolve) => setTimeout(resolve, 400));
+        return await componentImport();
+      } catch (secondError) {
+        console.error('Error al cargar módulo:', secondError);
+        throw secondError;
       }
-      throw error;
     }
   });
 }
@@ -96,20 +94,7 @@ const ViewLoadingFallback: React.FC = () => (
 );
 
 const MainLayout: React.FC = () => {
-  // Idle Prefetching of Frequent Modules for 0ms Instant View Switching
-  React.useEffect(() => {
-    const idleTimer = setTimeout(() => {
-      import('./components/PatientsListView');
-      import('./components/AppointmentsView');
-      import('./components/VitalSignsView');
-      import('./components/SurgeriesView');
-      import('./components/VaccinationView');
-      import('./components/InventoryView');
-      import('./components/FinancesUnifiedView');
-      import('./components/DocumentsView');
-    }, 800);
-    return () => clearTimeout(idleTimer);
-  }, []);
+
   const {
     activeView,
     setActiveView,
@@ -149,7 +134,7 @@ const MainLayout: React.FC = () => {
 
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  // Sincronización bidireccional de rutas y URL Hash protegidas (#app/*)
+  // Sincronización bidireccional de rutas y URL Hash (#app/*)
   React.useEffect(() => {
     const syncViewFromHash = () => {
       const hash = (window.location.hash || '').toLowerCase();
@@ -184,7 +169,7 @@ const MainLayout: React.FC = () => {
         setActiveView('IMAGENES');
       } else if (appRoute.includes('qa') || appRoute.includes('test')) {
         setActiveView('CENTRO_QA');
-      } else if (appRoute.includes('inicio') || appRoute.includes('dashboard')) {
+      } else if (appRoute.includes('inicio') || appRoute.includes('dashboard') || appRoute.includes('operacion')) {
         setActiveView('OPERACION');
       }
     };
@@ -193,6 +178,14 @@ const MainLayout: React.FC = () => {
     window.addEventListener('hashchange', syncViewFromHash);
     return () => window.removeEventListener('hashchange', syncViewFromHash);
   }, [setActiveView]);
+
+  // Actualizar hash en URL cuando cambia la vista sin forzar recarga
+  React.useEffect(() => {
+    const targetHash = `#app/${activeView.toLowerCase().replace(/_/g, '-')}`;
+    if (window.location.hash !== targetHash) {
+      window.history.replaceState(null, '', targetHash);
+    }
+  }, [activeView]);
 
   const activeHospitalCount = (hospitalizations || []).filter((h) => h.status === 'ACTIVA').length;
   const waitingTriageCount = (triageList || []).filter((t) => t.status === 'EN_ESPERA').length;
@@ -359,7 +352,7 @@ const MainLayout: React.FC = () => {
         {/* Central Dynamic Content Area */}
         <main className="flex-1 flex flex-col min-w-0 overflow-y-auto w-full relative bg-[#F8FAFC] main-content-pad p-3 sm:p-5 lg:p-6 box-border">
           <Suspense fallback={<ViewLoadingFallback />}>
-            <div key={activeView} className="w-full animate-in fade-in duration-150 ease-out">
+            <div className="w-full">
               {renderActiveView()}
             </div>
           </Suspense>

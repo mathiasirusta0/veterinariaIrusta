@@ -40,12 +40,9 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({ onOpenMobileMe
             setSelectedPatientId(null);
             setActiveView('PACIENTES');
           }}
-          className={`flex flex-col items-center justify-center gap-0.5 h-full w-full py-1 rounded-xl transition-all active:scale-95 touch-manipulation min-h-[48px] ${
-            isPatientsActive
-              ? 'text-teal-700 font-black'
-              : 'text-slate-500 hover:text-slate-800'
-          }`}
           aria-label="Ir a Directorio de Pacientes"
+          aria-current={isPatientsActive ? 'page' : undefined}
+          className={`flex flex-col items-center justify-center gap-0.5 h-full w-full py-1 rounded-xl transition-all active:scale-95 touch-manipulation min-h-[48px] focus-visible:ring-2 focus-visible:ring-teal-500 ${isPatientsActive ? 'text-teal-700 font-black' : 'text-slate-500 hover:text-slate-800'}`}
         >
           <div
             className={`p-1 rounded-xl transition-colors ${
@@ -66,12 +63,9 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({ onOpenMobileMe
             triggerHaptic('light');
             setActiveView('CAJA_FACTURACION');
           }}
-          className={`flex flex-col items-center justify-center gap-0.5 h-full w-full py-1 rounded-xl transition-all active:scale-95 touch-manipulation min-h-[48px] ${
-            isHospitalActive
-              ? 'text-teal-700 font-black'
-              : 'text-slate-500 hover:text-slate-800'
-          }`}
           aria-label="Ir a Finanzas y Caja"
+          aria-current={isHospitalActive ? 'page' : undefined}
+          className={`flex flex-col items-center justify-center gap-0.5 h-full w-full py-1 rounded-xl transition-all active:scale-95 touch-manipulation min-h-[48px] focus-visible:ring-2 focus-visible:ring-teal-500 ${isHospitalActive ? 'text-teal-700 font-black' : 'text-slate-500 hover:text-slate-800'}`}
         >
           <div
             className={`p-1 rounded-xl transition-colors ${
