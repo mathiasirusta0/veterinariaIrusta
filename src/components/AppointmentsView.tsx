@@ -25,7 +25,7 @@ import {
 } from 'lucide-react';
 import { useVet } from '../context/VetContext';
 import { Appointment, AppointmentStatus, AppointmentType } from '../types';
-import { formatDate, formatTime, formatDateTime } from '../utils/formatters';
+import { formatDate, formatTime, formatDateTime, getTodayLocalDateString } from '../utils/formatters';
 import { triggerHaptic } from '../utils/haptics';
 import { PageHeader, EmptyState, SearchInput, FilterBar } from './ui';
 

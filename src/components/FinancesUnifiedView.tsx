@@ -59,6 +59,8 @@ export const FinancesUnifiedView: React.FC = () => {
     showToast,
   } = useVet();
 
+  const activePatients = patients.filter((p) => p.status !== 'ARCHIVADO' && !p.isArchived);
+
   // Active Main Subtab: 'COBROS' vs 'PRESUPUESTOS'
   const [mainTab, setMainTab] = useState<'COBROS' | 'PRESUPUESTOS'>('COBROS');
 

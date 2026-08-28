@@ -24,7 +24,7 @@ import {
 } from 'lucide-react';
 import { useVet } from '../context/VetContext';
 import { VitalSigns, Patient } from '../types';
-import { formatDate, formatTime, formatDateTime, formatWeight } from '../utils/formatters';
+import { formatDate, formatTime, formatDateTime, formatWeight, getTodayLocalDateString } from '../utils/formatters';
 
 // Physiological normal reference ranges by species
 export const SPECIES_RANGES = {
@@ -97,29 +97,31 @@ export const VitalSignsView: React.FC = () => {
     logAudit,
   } = useVet();
 
+  const activePatients = patients.filter((p) => p.status !== 'ARCHIVADO' && !p.isArchived);
+
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedSpecies, setSelectedSpecies] = useState<'TODAS' | 'Canino' | 'Felino' | 'Equino' | 'Bovino' | 'Exótico'>('TODAS');
   const [filterAlertsOnly, setFilterAlertsOnly] = useState(false);
   const [selectedPatientFilter, setSelectedPatientFilter] = useState<string>('TODOS');
   const [patientStatusFilter, setPatientStatusFilter] = useState<'ACTIVOS' | 'TODOS' | 'ARCHIVADOS'>('ACTIVOS');
 
-  // Quick Logging Form State
+  // Quick Logging Form State (P0-02: Clean empty fields, no fake default values)
   const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);
-  const [targetPatientId, setTargetPatientId] = useState(patients[0]?.id || '');
-  const [regTemp, setRegTemp] = useState('38.5');
-  const [regHR, setRegHR] = useState('110');
-  const [regFR, setRegFR] = useState('22');
-  const [regPAS, setRegPAS] = useState('125');
-  const [regPAD, setRegPAD] = useState('75');
-  const [regPAM, setRegPAM] = useState('85');
-  const [regSpO2, setRegSpO2] = useState('98');
-  const [regWeight, setRegWeight] = useState('12.5');
-  const [regGlucose, setRegGlucose] = useState('95');
+  const [targetPatientId, setTargetPatientId] = useState(activePatients[0]?.id || '');
+  const [regTemp, setRegTemp] = useState('');
+  const [regHR, setRegHR] = useState('');
+  const [regFR, setRegFR] = useState('');
+  const [regPAS, setRegPAS] = useState('');
+  const [regPAD, setRegPAD] = useState('');
+  const [regPAM, setRegPAM] = useState('');
+  const [regSpO2, setRegSpO2] = useState('');
+  const [regWeight, setRegWeight] = useState('');
+  const [regGlucose, setRegGlucose] = useState('');
   const [regMucosas, setRegMucosas] = useState<VitalSigns['mucousMembranes']>('ROSADAS');
-  const [regTLLC, setRegTLLC] = useState('1.5');
-  const [regPain, setRegPain] = useState('1');
+  const [regTLLC, setRegTLLC] = useState('');
+  const [regPain, setRegPain] = useState('0');
   const [regConsciousness, setRegConsciousness] = useState<VitalSigns['consciousnessLevel']>('ALERTA');
-  const [regNotes, setRegNotes] = useState('Paciente en buen estado general, alerta y responsivo.');
+  const [regNotes, setRegNotes] = useState('');
 
   // Helper to evaluate if vital sign is out of bounds
   const getVitalAlerts = (v: VitalSigns, patientSpecies?: string) => {
@@ -760,11 +762,15 @@ export const VitalSignsView: React.FC = () => {
                   }}
                   className="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 font-bold text-slate-900 text-xs focus:outline-none focus:ring-2 focus:ring-teal-500"
                 >
-                  {patients.map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {p.name} ({p.species} • {p.breed} • {p.weight} kg)
-                    </option>
-                  ))}
+                  {activePatients.length === 0 ? (
+                    <option value="" disabled>Sin pacientes activos (Restaurar o crear nuevo)</option>
+                  ) : (
+                    activePatients.map((p) => (
+                      <option key={p.id} value={p.id}>
+                        {p.name} ({p.species} • {p.breed} • {p.weight} kg)
+                      </option>
+                    ))
+                  )}
                 </select>
               </div>
 

@@ -1500,7 +1500,7 @@ export const QuickModals: React.FC = () => {
                   onChange={(e) => setConsPatId(e.target.value)}
                   className="bg-white border border-slate-200 text-slate-900 font-bold rounded-lg px-2 py-1"
                 >
-                  {patients.map((p) => (
+                  {patients.filter(p => p.status !== "ARCHIVADO" && !p.isArchived).map((p) => (
                     <option key={p.id} value={p.id}>
                       {p.name} ({p.species})
                     </option>

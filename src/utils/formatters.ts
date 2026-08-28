@@ -299,3 +299,45 @@ export function formatOwnerBalance(balance: unknown): FormattedBalance {
     badgeClass: 'bg-teal-50 text-teal-800 border-teal-200',
   };
 }
+
+/**
+ * Retorna la fecha local actual de Argentina (America/Argentina/Buenos_Aires) en formato ISO YYYY-MM-DD.
+ * Elimina cualquier desfase de 1 día provocado por toISOString() en horario nocturno (UTC vs UTC-3).
+ */
+export function getTodayLocalDateString(): string {
+  try {
+    const formatter = new Intl.DateTimeFormat('en-CA', {
+      timeZone: 'America/Argentina/Buenos_Aires',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    });
+    return formatter.format(new Date());
+  } catch {
+    const d = new Date();
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+  }
+}
+
+/**
+ * Retorna la hora local actual de Argentina en formato HH:MM (24 hs).
+ */
+export function getCurrentLocalTimeString(): string {
+  try {
+    const formatter = new Intl.DateTimeFormat('es-AR', {
+      timeZone: 'America/Argentina/Buenos_Aires',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+    });
+    return formatter.format(new Date());
+  } catch {
+    const d = new Date();
+    const h = String(d.getHours()).padStart(2, '0');
+    const m = String(d.getMinutes()).padStart(2, '0');
+    return `${h}:${m}`;
+  }
+}
