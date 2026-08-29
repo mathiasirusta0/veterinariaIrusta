@@ -722,29 +722,28 @@ export async function syncInvoiceToSupabase(inv: Invoice) {
  * Sync single vital signs entry to Supabase
  */
 export async function syncVitalSignsToSupabase(vital: VitalSigns) {
-  try {
-    const { error } = await supabase.from('vital_signs').upsert({
-      id: vital.id,
-      patient_id: vital.patientId,
-      recorded_at: vital.recordedAt,
-      temperature: vital.temperature,
-      heart_rate: vital.heartRate,
-      respiratory_rate: vital.respiratoryRate,
-      systolic_bp: vital.systolicBP,
-      diastolic_bp: vital.diastolicBP,
-      mean_bp: vital.meanBP,
-      capillary_refill_time_seconds: vital.capillaryRefillTime,
-      mucous_membranes: vital.mucousMembranes,
-      weight: vital.weight,
-      glycemia: vital.bloodGlucose,
-      oxygen_saturation: vital.spo2,
-      pain_score_glasgow: vital.painScale,
-      recorded_by: vital.recordedBy,
-      notes: vital.notes,
-    });
-    if (error) console.error('Error syncing vital signs to Supabase:', error);
-  } catch (err) {
-    console.warn('Offline: vital signs cached locally');
+  const { error } = await supabase.from('vital_signs').upsert({
+    id: vital.id,
+    patient_id: vital.patientId,
+    recorded_at: vital.recordedAt,
+    temperature: vital.temperature ?? null,
+    heart_rate: vital.heartRate ?? null,
+    respiratory_rate: vital.respiratoryRate ?? null,
+    systolic_bp: vital.systolicBP ?? null,
+    diastolic_bp: vital.diastolicBP ?? null,
+    mean_bp: vital.meanBP ?? null,
+    capillary_refill_time_seconds: vital.capillaryRefillTime ?? null,
+    mucous_membranes: vital.mucousMembranes ?? null,
+    weight: vital.weight ?? null,
+    glycemia: vital.bloodGlucose ?? null,
+    oxygen_saturation: vital.spo2 ?? null,
+    pain_score_glasgow: vital.painScale ?? null,
+    recorded_by: vital.recordedBy ?? null,
+    notes: vital.notes ?? null,
+  });
+  if (error) {
+    console.error('Error syncing vital signs to Supabase:', error);
+    throw new Error(error.message || 'Error al persistir signos vitales en el servidor.');
   }
 }
 

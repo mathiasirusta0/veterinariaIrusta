@@ -107,6 +107,8 @@ export const VitalSignsView: React.FC = () => {
 
   // Quick Logging Form State (P0-02: Clean empty fields, no fake default values)
   const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [pamDiscrepancyWarning, setPamDiscrepancyWarning] = useState<string | null>(null);
   const [targetPatientId, setTargetPatientId] = useState(activePatients[0]?.id || '');
   const [regTemp, setRegTemp] = useState('');
   const [regHR, setRegHR] = useState('');
@@ -212,48 +214,77 @@ export const VitalSignsView: React.FC = () => {
     return getVitalAlerts(v, (patient?.species as any) || 'Canino').length > 0;
   }).length;
 
-  const handleSaveVitalEntry = (e: React.FormEvent) => {
-    e.preventDefault();
-    const patient = patients.find((p) => p.id === targetPatientId) || patients[0];
+  const parseOptionalFloat = (val: string): number | undefined => {
+    if (!val || val.trim() === '') return undefined;
+    const n = parseFloat(val);
+    return Number.isFinite(n) ? n : undefined;
+  };
 
-    if (!patient) {
-      showToast('error', 'Sin Paciente', 'Debe registrar al menos un paciente en el sistema antes de cargar signos vitales.');
+  const parseOptionalInt = (val: string): number | undefined => {
+    if (!val || val.trim() === '') return undefined;
+    const n = parseInt(val, 10);
+    return Number.isFinite(n) ? n : undefined;
+  };
+
+  const handleSaveVitalEntry = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!targetPatientId || targetPatientId.trim() === '') {
+      showToast('error', 'Paciente Requerido', 'Debe seleccionar un paciente explícitamente de la lista.');
       return;
     }
 
-    const newRecord: Omit<VitalSigns, 'id'> = {
+    const patient = patients.find((p) => p.id === targetPatientId);
+    if (!patient) {
+      showToast('error', 'Paciente Inválido', 'El paciente seleccionado no existe o no se encuentra activo.');
+      return;
+    }
+
+    const pasVal = parseOptionalInt(regPAS);
+    const padVal = parseOptionalInt(regPAD);
+    let pamVal = parseOptionalInt(regPAM);
+
+    // Auto-cálculo de PAM si se ingresaron TAS y TAD pero se omitió PAM
+    if (pamVal === undefined && pasVal !== undefined && padVal !== undefined) {
+      pamVal = Math.round((pasVal + 2 * padVal) / 3);
+    }
+
+    const newRecord: Omit<VitalSigns, 'id' | 'recordedAt' | 'recordedBy'> = {
       patientId: patient.id,
-      recordedAt: new Date().toISOString(),
-      recordedBy: currentUser?.name || 'Dr. Diego Iván Irusta',
-      weight: parseFloat(regWeight) || patient.weight || 10,
-      temperature: parseFloat(regTemp) || 38.5,
-      heartRate: parseInt(regHR) || 110,
-      respiratoryRate: parseInt(regFR) || 22,
-      systolicBP: parseInt(regPAS) || 125,
-      diastolicBP: parseInt(regPAD) || 75,
-      meanBP: parseInt(regPAM) || 85,
-      spo2: parseInt(regSpO2) || 98,
-      bloodGlucose: parseInt(regGlucose) || 95,
+      weight: parseOptionalFloat(regWeight),
+      temperature: parseOptionalFloat(regTemp),
+      heartRate: parseOptionalInt(regHR),
+      respiratoryRate: parseOptionalInt(regFR),
+      systolicBP: pasVal,
+      diastolicBP: padVal,
+      meanBP: pamVal,
+      spo2: parseOptionalInt(regSpO2),
+      bloodGlucose: parseOptionalInt(regGlucose),
       mucousMembranes: regMucosas,
-      capillaryRefillTime: parseFloat(regTLLC) || 1.5,
-      painScale: parseInt(regPain) || 1,
+      capillaryRefillTime: parseOptionalFloat(regTLLC),
+      painScale: parseOptionalInt(regPain),
       consciousnessLevel: regConsciousness,
-      notes: regNotes,
+      notes: regNotes.trim() || undefined,
     };
 
-    addVitalSigns(newRecord);
-    setIsRegisterModalOpen(false);
-    showToast(
-      'success',
-      'Signos Vitales Registrados',
-      `Constantes clínicas de ${patient.name} guardadas con éxito.`
-    );
-    logAudit(
-      'REGISTRO_SIGNOS_VITALES',
-      'VitalSigns',
-      patient.id,
-      `Signos vitales cargados: FC ${newRecord.heartRate}, Temp ${newRecord.temperature}°C, SpO2 ${newRecord.spo2}% para ${patient.name}`
-    );
+    setIsSubmitting(true);
+    try {
+      await addVitalSigns(newRecord);
+      setIsRegisterModalOpen(false);
+      showToast(
+        'success',
+        'Signos Vitales Registrados',
+        `Constantes clínicas de ${patient.name} guardadas y persistidas con éxito.`
+      );
+    } catch (err: any) {
+      showToast(
+        'error',
+        'Error al Guardar',
+        err.message || 'No se pudieron guardar los signos vitales en el servidor.'
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleViewPatientDetail = (patientId: string) => {
@@ -749,6 +780,12 @@ export const VitalSignsView: React.FC = () => {
             </div>
 
             {/* Form Content */}
+              {pamDiscrepancyWarning && (
+                <div className="mx-6 mt-4 p-3 bg-amber-50 border border-amber-200 rounded-xl flex items-start gap-2 text-amber-900 text-[11px] leading-relaxed">
+                  <AlertTriangle className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
+                  <span>{pamDiscrepancyWarning}</span>
+                </div>
+              )}
             <form onSubmit={handleSaveVitalEntry} className="p-6 overflow-y-auto space-y-4 text-xs text-slate-700">
               {/* Patient Selector */}
               <div>

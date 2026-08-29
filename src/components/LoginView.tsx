@@ -42,7 +42,7 @@ function translateAuthError(errMessage: string): string {
 }
 
 export const LoginView: React.FC<LoginViewProps> = ({ onBackToLanding }) => {
-  const { showToast, setCurrentUser, loginAsDoctor } = useVet();
+  const { showToast } = useVet();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -69,20 +69,10 @@ export const LoginView: React.FC<LoginViewProps> = ({ onBackToLanding }) => {
       });
 
       if (error) {
-        const msg = (error.message || '').toLowerCase();
-        // Si el correo es de la dirección médica o el error es por confirmación de email
-        if (cleanEmail === 'irusta@gmail.com' || cleanEmail.includes('irusta') || msg.includes('email not confirmed')) {
-          loginAsDoctor(cleanEmail);
-          return;
-        }
         throw new Error(translateAuthError(error.message));
       }
 
       if (!data.user || !data.session) {
-        if (cleanEmail.includes('irusta')) {
-          loginAsDoctor(cleanEmail);
-          return;
-        }
         throw new Error('Credenciales inválidas. Verifique su usuario y contraseña.');
       }
 
@@ -90,18 +80,10 @@ export const LoginView: React.FC<LoginViewProps> = ({ onBackToLanding }) => {
         const verifiedUser = await getVerifiedAppUser(data.user);
         showToast('success', 'Sesión Iniciada', `Bienvenido ${verifiedUser.name} (${verifiedUser.role})`);
       } catch (profileError) {
-        if (cleanEmail.includes('irusta')) {
-          loginAsDoctor(cleanEmail);
-          return;
-        }
         await supabase.auth.signOut();
         throw profileError;
       }
     } catch (err: any) {
-      if (cleanEmail.includes('irusta')) {
-        loginAsDoctor(cleanEmail);
-        return;
-      }
       const translated = translateAuthError(err.message);
       setErrorMsg(translated);
       showToast('error', 'Acceso Denegado', translated);

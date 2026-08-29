@@ -160,7 +160,6 @@ interface VetContextType {
   isAuthLoading: boolean;
   logout: () => Promise<void>;
   setCurrentUser: (user: User | null) => void;
-  loginAsDoctor: (email?: string) => void;
   activeBranch: Branch;
   setActiveBranch: (branch: Branch) => void;
   users: User[];
@@ -234,7 +233,7 @@ interface VetContextType {
   updateProblemStatus: (problemId: string, status: PatientProblem['status']) => void;
 
   // Clinical Actions
-  addVitalSigns: (vitals: Omit<VitalSigns, 'id' | 'recordedAt' | 'recordedBy'>) => void;
+  addVitalSigns: (vitals: Omit<VitalSigns, 'id' | 'recordedAt' | 'recordedBy'>) => Promise<VitalSigns>;
   deleteVitalSign: (vitalId: string) => void;
   clearArchivedPatientsVitals: () => void;
   addConsultation: (consultation: Omit<Consultation, 'id' | 'dateTime' | 'vetId' | 'vetName' | 'branchId'>) => Consultation;
@@ -2421,14 +2420,16 @@ export const VetProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       showToast('success', 'Turno Eliminado', 'La cita fue eliminada de la agenda.');
     }
     // Borrado definitivo en Supabase Cloud
-    supabase
-      .from('appointments')
-      .delete()
-      .eq('id', aptId)
-      .then(({ error }) => {
+    Promise.resolve(
+      supabase
+        .from('appointments')
+        .delete()
+        .eq('id', aptId)
+    )
+      .then(({ error }: any) => {
         if (error) console.error('[SUPABASE] Error al eliminar turno:', error);
       })
-      .catch((err) => console.error('[SUPABASE] Error de red al eliminar turno:', err));
+      .catch((err: any) => console.error('[SUPABASE] Error de red al eliminar turno:', err));
   };
 
   const deleteConsultation = (consultationId: string) => {
