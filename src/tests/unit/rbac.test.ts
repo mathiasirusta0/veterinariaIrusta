@@ -2,14 +2,13 @@ import { describe, it, expect } from 'vitest';
 import { hasViewPermission, getDefaultViewForRole, hasQuickActionPermission } from '../../utils/rbac';
 
 describe('RBAC Permissions Matrix Unit Tests', () => {
-  it('SUPERADMIN and ADMINISTRADOR should have access to all modules including CONFIGURACION', () => {
-    expect(hasViewPermission('SUPERADMIN', 'CONFIGURACION')).toBe(true);
+  it('SUPERADMIN and ADMINISTRADOR should have access to all modules including CIRUGIAS and CENTRO_QA', () => {
+    expect(hasViewPermission('SUPERADMIN', 'CENTRO_QA')).toBe(true);
     expect(hasViewPermission('SUPERADMIN', 'CIRUGIAS')).toBe(true);
-    expect(hasViewPermission('ADMINISTRADOR', 'CONFIGURACION')).toBe(true);
+    expect(hasViewPermission('ADMINISTRADOR', 'CENTRO_QA')).toBe(true);
   });
 
-  it('RECEPCION must be denied access to CONFIGURACION, CIRUGIAS, LABORATORIO, and INVENTARIO', () => {
-    expect(hasViewPermission('RECEPCION', 'CONFIGURACION')).toBe(false);
+  it('RECEPCION must be denied access to CIRUGIAS, LABORATORIO, and INVENTARIO', () => {
     expect(hasViewPermission('RECEPCION', 'CIRUGIAS')).toBe(false);
     expect(hasViewPermission('RECEPCION', 'LABORATORIO')).toBe(false);
     expect(hasViewPermission('RECEPCION', 'INVENTARIO')).toBe(false);
@@ -23,7 +22,6 @@ describe('RBAC Permissions Matrix Unit Tests', () => {
   it('CAJA must be restricted to financial and document operations', () => {
     expect(hasViewPermission('CAJA', 'CAJA_FACTURACION')).toBe(true);
     expect(hasViewPermission('CAJA', 'CIRUGIAS')).toBe(false);
-    expect(hasViewPermission('CAJA', 'CONFIGURACION')).toBe(false);
     expect(hasViewPermission('CAJA', 'LABORATORIO')).toBe(false);
   });
 

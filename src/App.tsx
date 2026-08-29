@@ -68,7 +68,6 @@ const FinancesUnifiedView = lazyRetry(() => import('./components/FinancesUnified
 const LoginView = lazyRetry(() => import('./components/LoginView').then((m) => ({ default: m.LoginView })));
 const PublicLandingView = lazyRetry(() => import('./components/PublicLandingView').then((m) => ({ default: m.PublicLandingView })));
 const DocumentsView = lazyRetry(() => import('./components/DocumentsView').then((m) => ({ default: m.DocumentsView })));
-const SettingsAndUsersView = lazyRetry(() => import('./components/SettingsAndUsersView').then((m) => ({ default: m.SettingsAndUsersView })));
 const PrescriptionsView = lazyRetry(() => import('./components/PrescriptionsView').then((m) => ({ default: m.PrescriptionsView })));
 const SystemQaTestCenterView = lazyRetry(() => import('./components/SystemQaTestCenterView').then((m) => ({ default: m.SystemQaTestCenterView })));
 
@@ -141,9 +140,7 @@ const MainLayout: React.FC = () => {
       if (!hash || !hash.startsWith('#app/')) return;
 
       const appRoute = hash.replace('#app/', '');
-      if (appRoute.includes('configuracion') || appRoute.includes('usuarios') || appRoute.includes('auditoria')) {
-        setActiveView('CONFIGURACION');
-      } else if (appRoute.includes('paciente')) {
+      if (appRoute.includes('paciente')) {
         setActiveView('PACIENTES');
       } else if (appRoute.includes('propietario') || appRoute.includes('tutor')) {
         setActiveView('PROPIETARIOS');
@@ -303,13 +300,6 @@ const MainLayout: React.FC = () => {
         return (
           <ModuleErrorBoundary moduleName="Centro de Pruebas QA">
             <SystemQaTestCenterView />
-          </ModuleErrorBoundary>
-        );
-      case 'CONFIGURACION':
-      case 'AUDITORIA_USUARIOS':
-        return (
-          <ModuleErrorBoundary moduleName="Configuración & Auditoría">
-            <SettingsAndUsersView />
           </ModuleErrorBoundary>
         );
       default:

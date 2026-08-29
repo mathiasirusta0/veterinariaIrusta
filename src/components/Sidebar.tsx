@@ -28,7 +28,6 @@ const PREFETCH_MAP: Record<string, () => Promise<any>> = {
   CAJA_FACTURACION: () => import('./FinancesUnifiedView'),
   DOCUMENTOS: () => import('./DocumentsView'),
   RECETAS_OFICIALES: () => import('./PrescriptionsView'),
-  CONFIGURACION: () => import('./SettingsAndUsersView'),
   PROPIETARIOS: () => import('./OwnersView'),
   CENTRO_QA: () => import('./SystemQaTestCenterView'),
 };

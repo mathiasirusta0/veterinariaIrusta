@@ -1,9 +1,20 @@
 // @vitest-environment jsdom
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { supabase } from '../../lib/supabase';
 import { NAVIGATION_ITEMS } from '../../config/navigation';
 
 describe('Auditoría Integral de Sistema - Veterinaria Ranquel', () => {
+  beforeAll(async () => {
+    await supabase.auth.signInWithPassword({
+      email: 'irusta@gmail.com',
+      password: 'admin1998',
+    });
+  });
+
+  afterAll(async () => {
+    await supabase.auth.signOut();
+  });
+
   it('1. Debe verificar la conectividad y operatividad de todas las 22 tablas en Supabase Cloud', async () => {
     const all22Tables = [
       'branches',

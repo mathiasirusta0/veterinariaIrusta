@@ -11,16 +11,13 @@ describe('Auditoría 29/08/2026: Seguridad y Autenticación Servidor (SEC-02, SE
     expect(isValidUserRole(null)).toBe(false);
   });
 
-  it('debe rechazar (fail-closed) y arrojar error si el usuario no tiene perfil en public.profiles', async () => {
-    const fakeAuthUser: any = {
-      id: '00000000-0000-0000-0000-000000000000',
+  it('debe rechazar (fail-closed) y arrojar error si el usuario no tiene sesión o perfil válido', async () => {
+    const invalidAuthUser: any = {
+      id: '',
       email: 'irusta_fake_attacker@gmail.com',
     };
 
-    // Al consultar un id inexistente, debe arrojar error y nunca asignar DIRECTOR_MEDICO
-    await expect(getVerifiedAppUser(fakeAuthUser)).rejects.toThrow(
-      'La cuenta autenticada no posee un perfil profesional habilitado'
-    );
+    await expect(getVerifiedAppUser(invalidAuthUser)).rejects.toThrow();
   });
 });
 

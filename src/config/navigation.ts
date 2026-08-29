@@ -145,14 +145,6 @@ export const NAVIGATION_ITEMS: NavItemConfig[] = [
     group: 'ADMINISTRACION',
   },
   {
-    id: 'CONFIGURACION',
-    label: 'Configuración & Auditoría',
-    shortLabel: 'Configuración',
-    description: 'Usuarios, roles RBAC, sedes hospitalarias y registros de auditoría',
-    icon: ShieldCheck,
-    group: 'ADMINISTRACION',
-  },
-  {
     id: 'CENTRO_QA',
     label: 'Centro QA & Diagnóstico',
     shortLabel: 'QA & Test',
