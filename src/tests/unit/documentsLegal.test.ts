@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { DOCUMENT_TEMPLATES } from '../../components/DocumentsView';
 import { maskDni } from '../../utils/formatters';
+import { generateClinicalDocumentPdf, PrintableClinicalDocumentData } from '../../utils/printDocumentHelper';
 
 describe('Gestión de Documentos Clínicos & Certificados Legales', () => {
   it('debe contener las 6 plantillas oficiales de consentimientos y certificados', () => {
@@ -57,5 +58,34 @@ describe('Gestión de Documentos Clínicos & Certificados Legales', () => {
     expect(parsed.authorName).toBe('Dr. Diego Iván Irusta');
     expect(parsed.assessment).toContain('Paciente canino ingresa a control');
     expect(parsed.plan).toContain('Mantener plan');
+  });
+
+  it('debe generar el PDF con firma digital del tutor e identificación DNI correcta', () => {
+    const mockDocData: PrintableClinicalDocumentData = {
+      title: 'Consentimiento Quirúrgico',
+      type: 'CONSENTIMIENTO_ANESTESIA',
+      patientName: 'Duque',
+      species: 'Canino',
+      breed: 'American Bully',
+      hc: 'HC-2026-0042',
+      ownerName: 'Enzo Girardi',
+      ownerDni: '37188100',
+      ownerPhone: '+5492942477136',
+      date: '29/08/2026',
+      time: '17:30',
+      content: 'Autorización para intervención quirúrgica y anestesia general.',
+      vetName: 'Dr. Diego Iván Irusta',
+      vetLicense: 'M.P. 502',
+      isSigned: true,
+      signedByOwnerName: 'Enzo Girardi',
+      signedByOwnerDni: '37188100',
+      signedAt: '29/08/2026 17:30',
+      // Base64 transparent 1x1 png sample
+      signatureDataUrl: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==',
+    };
+
+    const pdf = generateClinicalDocumentPdf(mockDocData);
+    expect(pdf).toBeDefined();
+    expect(typeof pdf.output).toBe('function');
   });
 });

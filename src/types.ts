@@ -924,12 +924,17 @@ export interface ClinicalDocument {
   type: DocumentType;
   title: string;
   patientId: string;
+  patientName?: string;
   ownerId: string;
+  ownerName?: string;
+  ownerDni?: string;
   vetName: string;
+  vetLicense?: string;
   createdAt: string;
   content: string;
   signedByOwnerName?: string;
   signedByOwnerDni?: string;
+  signedAt?: string;
   signatureDataUrl?: string; // Firma digital en canvas
   isSigned: boolean;
   documentVersion?: string;

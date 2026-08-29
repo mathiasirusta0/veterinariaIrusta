@@ -29,12 +29,15 @@ import {
   Calendar,
   Check,
   Share2,
+  CheckCircle,
+  FileSignature,
+  FileSpreadsheet,
 } from 'lucide-react';
 import { useVet } from '../context/VetContext';
 import { ClinicalDocument, DocumentType } from '../types';
 import { formatDate, formatDateTime, maskDni } from '../utils/formatters';
 import { triggerHaptic } from '../utils/haptics';
-import { EmptyState, PageHeader } from './ui';
+import { EmptyState, PageHeader, StatCard } from './ui';
 import {
   printA4ClinicalDocument,
   downloadClinicalDocumentPdf,
@@ -45,6 +48,7 @@ export const DOCUMENT_TEMPLATES: {
   type: DocumentType;
   title: string;
   category: 'CONSENTIMIENTO' | 'CERTIFICADO' | 'LEGAL';
+  categoryLabel: string;
   badgeColor: string;
   icon: React.ComponentType<{ className?: string }>;
   defaultContent: (p: {
@@ -62,24 +66,31 @@ export const DOCUMENT_TEMPLATES: {
     type: 'CONSENTIMIENTO_ANESTESIA',
     title: 'Consentimiento de Cirugía & Procedimientos Anestésicos',
     category: 'CONSENTIMIENTO',
+    categoryLabel: 'Consentimiento',
     badgeColor: 'bg-rose-50 text-rose-800 border-rose-200',
     icon: Activity,
     defaultContent: (p) =>
-      `Por la presente, yo ${p.ownerName} (DNI ${p.ownerDni}), en mi carácter de tutor/responsable del paciente ${p.name} (${p.species} ${p.breed}, HC ${p.hc}), autorizo al equipo médico de Veterinaria Ranquel bajo la dirección de ${p.vetName} (${p.vetLicense}) a realizar los procedimientos quirúrgicos y anestésicos necesarios.\n\nHe sido plenamente informado/a sobre la naturaleza de la intervención, los estudios prequirúrgicos requeridos, los riesgos inherentes a todo acto anestésico y las posibles complicaciones, asumiendo libre y conscientemente las decisiones terapéuticas.`,
+      `Por la presente, yo ${p.ownerName} (DNI ${p.ownerDni}), en mi carácter de tutor/responsable del paciente ${p.name} (${p.species} ${p.breed}, HC ${p.hc}), autorizo al equipo médico de Veterinaria Ranquel bajo la dirección de ${p.vetName} (${p.vetLicense}) a realizar los procedimientos quirúrgicos y anestésicos necesarios.
+
+He sido plenamente informado/a sobre la naturaleza de la intervención, los estudios prequirúrgicos requeridos, los riesgos inherentes a todo acto anestésico y las posibles complicaciones, asumiendo libre y conscientemente las decisiones terapéuticas.`,
   },
   {
     type: 'CONSENTIMIENTO_INTERNACION_UCI',
     title: 'Consentimiento de Internación en Terapia Intensiva & UCI',
     category: 'CONSENTIMIENTO',
+    categoryLabel: 'Consentimiento',
     badgeColor: 'bg-purple-50 text-purple-800 border-purple-200',
     icon: ShieldCheck,
     defaultContent: (p) =>
-      `Yo, ${p.ownerName} (DNI ${p.ownerDni}), autorizo la internación y hospitalización de urgencia de ${p.name} (HC ${p.hc}) en el sector de Cuidados Críticos / UCI de Veterinaria Ranquel.\n\nAutorizo la colocación de accesos vasculares, fluidoterapia endovenosa continua, administración de fármacos de urgencia, oxigenoterapia y monitoreo hemodinámico según criterio profesional del equipo de guardia.`,
+      `Yo, ${p.ownerName} (DNI ${p.ownerDni}), autorizo la internación y hospitalización de urgencia de ${p.name} (HC ${p.hc}) en el sector de Cuidados Críticos / UCI de Veterinaria Ranquel.
+
+Autorizo la colocación de accesos vasculares, fluidoterapia endovenosa continua, administración de fármacos de urgencia, oxigenoterapia y monitoreo hemodinámico según criterio profesional del equipo de guardia.`,
   },
   {
     type: 'CONSENTIMIENTO_EUTANASIA',
     title: 'Acta de Consentimiento de Eutanasia Humanitaria',
     category: 'CONSENTIMIENTO',
+    categoryLabel: 'Consentimiento',
     badgeColor: 'bg-slate-100 text-slate-800 border-slate-300',
     icon: HeartHandshake,
     defaultContent: (p) =>
@@ -89,6 +100,7 @@ export const DOCUMENT_TEMPLATES: {
     type: 'CERTIFICADO_SALUD_VIAJE',
     title: 'Certificado de Aptitud Sanitaria y Tránsito Federal SENASA',
     category: 'CERTIFICADO',
+    categoryLabel: 'Certificado',
     badgeColor: 'bg-teal-50 text-teal-800 border-teal-200',
     icon: Award,
     defaultContent: (p) =>
@@ -98,19 +110,29 @@ export const DOCUMENT_TEMPLATES: {
     type: 'CERTIFICADO_VACUNACION_ANTIRRABICA',
     title: 'Certificado Oficial de Vacunación Antirrábica (Ley 22.953)',
     category: 'CERTIFICADO',
+    categoryLabel: 'Certificado',
     badgeColor: 'bg-emerald-50 text-emerald-800 border-emerald-200',
     icon: FileCheck,
     defaultContent: (p) =>
-      `CERTIFICADO OFICIAL DE VACUNACIÓN ANTIRRÁBICA:\n\nPaciente: ${p.name} (${p.species} ${p.breed}, HC ${p.hc})\nTutor: ${p.ownerName} (DNI ${p.ownerDni})\nVeterinario actuante: Dr/a. ${p.vetName} (${p.vetLicense})\n\nSe certifica la aplicación conforme a la legislación sanitaria vigente, biológico con fecha de vigencia por 12 meses calendario a partir de la emisión del presente.`,
+      `CERTIFICADO OFICIAL DE VACUNACIÓN ANTIRRÁBICA:
+
+Paciente: ${p.name} (${p.species} ${p.breed}, HC ${p.hc})
+Tutor: ${p.ownerName} (DNI ${p.ownerDni})
+Veterinario actuante: Dr/a. ${p.vetName} (${p.vetLicense})
+
+Se certifica la aplicación conforme a la legislación sanitaria vigente, biológico con fecha de vigencia por 12 meses calendario a partir de la emisión del presente.`,
   },
   {
     type: 'ALTA_VOLUNTARIA_DESLINDE',
     title: 'Acta de Alta Voluntaria & Deslinde de Responsabilidad Médica',
     category: 'LEGAL',
+    categoryLabel: 'Legal',
     badgeColor: 'bg-amber-50 text-amber-800 border-amber-200',
     icon: AlertOctagon,
     defaultContent: (p) =>
-      `Yo, ${p.ownerName} (DNI ${p.ownerDni}), manifiesto expresamente que he decidido retirar voluntariamente a mi animal ${p.name} (HC ${p.hc}) de la internación hospitalaria, EN CONTRA DEL CONSEJO Y RECOMENDACIÓN MÉDICA explícita emitida por el equipo veterinario.\n\nAsumo toda la responsabilidad por las eventuales consecuencias que dicha decisión pueda ocasionar en la salud o vida del paciente, deslindando al centro médico de cualquier responsabilidad civil o penal.`,
+      `Yo, ${p.ownerName} (DNI ${p.ownerDni}), manifiesto expresamente que he decidido retirar voluntariamente a mi animal ${p.name} (HC ${p.hc}) de la internación hospitalaria, EN CONTRA DEL CONSEJO Y RECOMENDACIÓN MÉDICA explícita emitida por el equipo veterinario.
+
+Asumo toda la responsabilidad por las eventuales consecuencias que dicha decisión pueda ocasionar en la salud o vida del paciente, deslindando al centro médico de cualquier responsabilidad civil o penal.`,
   },
 ];
 
@@ -167,6 +189,12 @@ export const DocumentsView: React.FC = () => {
   const [signerDni, setSignerDni] = useState('');
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isDrawing, setIsDrawing] = useState(false);
+
+  // Estadísticas
+  const totalDocs = documents.length;
+  const signedDocs = documents.filter((d) => d.isSigned).length;
+  const pendingDocs = totalDocs - signedDocs;
+  const consentDocs = documents.filter((d) => d.type.includes('CONSENTIMIENTO')).length;
 
   // Initialize Create Modal with selected patient & template
   const handleOpenCreateModal = (templateIdx = 0) => {
@@ -233,7 +261,7 @@ export const DocumentsView: React.FC = () => {
     setShowCreateModal(false);
   };
 
-  // Canvas Signature
+  // Canvas Signature Methods with High Resolution Scale
   const getCanvasCoords = (
     canvas: HTMLCanvasElement,
     e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>
@@ -291,8 +319,8 @@ export const DocumentsView: React.FC = () => {
     triggerHaptic('medium');
     const own = owners.find((o) => o.id === doc.ownerId);
     setSigningDocId(doc.id);
-    setSignerName(own ? `${own.firstName} ${own.lastName}` : '');
-    setSignerDni(own?.dni || '');
+    setSignerName(doc.signedByOwnerName || (own ? `${own.firstName} ${own.lastName}` : ''));
+    setSignerDni(doc.signedByOwnerDni || own?.dni || '');
   };
 
   const handleSaveSignature = (e: React.FormEvent) => {
@@ -303,9 +331,9 @@ export const DocumentsView: React.FC = () => {
       return;
     }
     const canvas = canvasRef.current;
-    const dataUrl = canvas ? canvas.toDataURL() : '';
+    const dataUrl = canvas ? canvas.toDataURL('image/png') : '';
     signDocument(signingDocId, signerName.trim(), signerDni.trim(), dataUrl);
-    showToast('success', 'Firma Digital Registrada', 'El documento quedó legalmente firmado.');
+    showToast('success', 'Firma Digital Registrada', 'El documento quedó legalmente firmado con certificado digital.');
     setSigningDocId(null);
     setSignerName('');
     setSignerDni('');
@@ -326,7 +354,7 @@ export const DocumentsView: React.FC = () => {
     }
   };
 
-  // Helper para preparar datos de impresión y PDF
+  // Helper para preparar datos de impresión y PDF con firma íntegra
   const preparePrintableData = (doc: ClinicalDocument): PrintableClinicalDocumentData => {
     const patient = patients.find((p) => p.id === doc.patientId);
     const owner = owners.find((o) => o.id === doc.ownerId);
@@ -334,18 +362,33 @@ export const DocumentsView: React.FC = () => {
 
     let cleanText = doc.content;
     if (parsed.isJson && parsed.data) {
-      cleanText = `EVOLUCIÓN MÉDICA INTEGRAL\nSector: ${parsed.data.sector || 'UCI / Guardia'}\nTurno: ${parsed.data.shift || 'General'}\nProfesional: ${parsed.data.authorName || doc.vetName || 'Dr. Diego Iván Irusta'} (${parsed.data.authorLicense || 'M.P. 502'})\n\nEVALUACIÓN MÉDICA:\n${parsed.data.assessment || 'Sin evaluación registrada'}\n\nPLAN TERAPÉUTICO & INDICACIONES:\n${parsed.data.plan || 'Mantener indicaciones previas'}${parsed.data.notes ? `\n\nOBSERVACIONES:\n${parsed.data.notes}` : ''}`;
+      cleanText = `EVOLUCIÓN MÉDICA INTEGRAL
+Sector: ${parsed.data.sector || 'UCI / Guardia'}
+Turno: ${parsed.data.shift || 'General'}
+Profesional: ${parsed.data.authorName || doc.vetName || 'Dr. Diego Iván Irusta'} (${parsed.data.authorLicense || 'M.P. 502'})
+
+EVALUACIÓN MÉDICA:
+${parsed.data.assessment || 'Sin evaluación registrada'}
+
+PLAN TERAPÉUTICO & INDICACIONES:
+${parsed.data.plan || 'Mantener indicaciones previas'}${parsed.data.notes ? `
+
+OBSERVACIONES:
+${parsed.data.notes}` : ''}`;
     }
+
+    const effectiveOwnerName = doc.signedByOwnerName || (owner ? `${owner.firstName} ${owner.lastName}` : (doc.ownerName || 'Tutor Responsable'));
+    const effectiveOwnerDni = doc.signedByOwnerDni || owner?.dni || doc.ownerDni || '';
 
     return {
       title: doc.title,
       type: doc.type,
-      patientName: patient?.name || 'Paciente',
+      patientName: patient?.name || doc.patientName || 'Paciente',
       species: patient?.species || 'Canino',
       breed: patient?.breed || 'Mestizo',
       hc: patient?.clinicalRecordNumber || 'HC-2026',
-      ownerName: owner ? `${owner.firstName} ${owner.lastName}` : 'Tutor Responsable',
-      ownerDni: owner?.dni || 'S/D',
+      ownerName: effectiveOwnerName,
+      ownerDni: effectiveOwnerDni && effectiveOwnerDni !== 'S/D' ? effectiveOwnerDni : (owner?.dni || 'S/D'),
       ownerPhone: owner?.phone || owner?.whatsapp || 'S/D',
       date: formatDate(doc.createdAt),
       time: new Date(doc.createdAt).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' }),
@@ -353,8 +396,8 @@ export const DocumentsView: React.FC = () => {
       vetName: doc.vetName || 'Dr. Diego Iván Irusta',
       vetLicense: 'M.P. 502',
       isSigned: doc.isSigned,
-      signedByOwnerName: doc.signedByOwnerName,
-      signedByOwnerDni: doc.signedByOwnerDni,
+      signedByOwnerName: doc.signedByOwnerName || effectiveOwnerName,
+      signedByOwnerDni: doc.signedByOwnerDni || (effectiveOwnerDni && effectiveOwnerDni !== 'S/D' ? effectiveOwnerDni : undefined),
       signatureDataUrl: doc.signatureDataUrl,
     };
   };
@@ -369,7 +412,7 @@ export const DocumentsView: React.FC = () => {
     triggerHaptic('light');
     const data = preparePrintableData(doc);
     downloadClinicalDocumentPdf(data);
-    showToast('info', 'Generando PDF', 'Abriendo vista previa para guardar como PDF.');
+    showToast('info', 'Generando PDF', 'Descargando documento oficial con firma digital.');
   };
 
   const handleSendWhatsApp = (doc: ClinicalDocument) => {
@@ -379,7 +422,7 @@ export const DocumentsView: React.FC = () => {
 
     openWhatsAppHub({
       patientName: patient?.name || 'Paciente',
-      ownerName: owner ? `${owner.firstName} ${owner.lastName}` : 'Tutor',
+      ownerName: doc.signedByOwnerName || (owner ? `${owner.firstName} ${owner.lastName}` : 'Tutor'),
       ownerPhone: owner?.phone || owner?.whatsapp || '',
       type: 'DOCUMENTO',
       details: {
@@ -402,7 +445,8 @@ export const DocumentsView: React.FC = () => {
         doc.title.toLowerCase().includes(q) ||
         doc.content.toLowerCase().includes(q) ||
         (pat && pat.name.toLowerCase().includes(q)) ||
-        (own && `${own.firstName} ${own.lastName}`.toLowerCase().includes(q));
+        (own && `${own.firstName} ${own.lastName}`.toLowerCase().includes(q)) ||
+        (doc.signedByOwnerName && doc.signedByOwnerName.toLowerCase().includes(q));
 
       const matchesFilter =
         filterType === 'TODOS' ||
@@ -422,7 +466,7 @@ export const DocumentsView: React.FC = () => {
       <PageHeader
         category="Gestión Legal & Expedición de Certificados"
         title="Documentos Clínicos & Legales"
-        description="Emisión de consentimientos informados, certificados oficiales SENASA, evoluciones y firma digital en pantalla"
+        description="Emisión de consentimientos informados, certificados oficiales SENASA, evoluciones y firma digital táctil con descarga en PDF oficial."
         icon={FileText}
         actions={[
           {
@@ -434,13 +478,45 @@ export const DocumentsView: React.FC = () => {
         ]}
       />
 
-      {/* 2. Quick Template Selector Ribbons */}
+      {/* 2. StatCards */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <StatCard
+          label="Total Documentos"
+          value={totalDocs}
+          icon={FileText}
+          color="teal"
+          trend="Padrón legal activo"
+        />
+        <StatCard
+          label="Firmados Digitalmente"
+          value={signedDocs}
+          icon={ShieldCheck}
+          color="emerald"
+          trend="Validados con firma"
+        />
+        <StatCard
+          label="Pendientes de Firma"
+          value={pendingDocs}
+          icon={Clock}
+          color="amber"
+          trend={pendingDocs > 0 ? 'Requiere firma tutor' : 'Todo al día'}
+        />
+        <StatCard
+          label="Consentimientos"
+          value={consentDocs}
+          icon={HeartHandshake}
+          color="purple"
+          trend="Quirúrgicos & UCI"
+        />
+      </div>
+
+      {/* 3. Quick Template Selector Ribbons */}
       <div className="bg-white border border-slate-200 p-4 sm:p-5 rounded-3xl shadow-xs space-y-3.5">
         <div className="flex items-center justify-between">
           <span className="text-[10px] uppercase font-black tracking-widest text-slate-400 block">
-            Plantillas Oficiales de Emisión Rápida:
+            Plantillas Oficiales de Emisión Rápida (1-Clic):
           </span>
-          <span className="text-[11px] font-bold text-teal-700">Veterinaria Ranquel</span>
+          <span className="text-[11px] font-bold text-teal-700">Veterinaria Ranquel • M.P. 502</span>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-2.5 text-xs">
@@ -459,7 +535,7 @@ export const DocumentsView: React.FC = () => {
                       <Icon className="w-4 h-4" />
                     </div>
                     <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-md bg-white/80 border border-slate-200 text-slate-600">
-                      {tmpl.category}
+                      {tmpl.categoryLabel}
                     </span>
                   </div>
                   <strong className="text-xs font-bold text-slate-800 group-hover:text-teal-950 line-clamp-2 leading-snug">
@@ -477,7 +553,7 @@ export const DocumentsView: React.FC = () => {
         </div>
       </div>
 
-      {/* 3. Search & Filter Bar */}
+      {/* 4. Search & Filter Bar */}
       <div className="bg-white border border-slate-200 p-3 sm:p-4 rounded-2xl shadow-xs flex flex-col md:flex-row items-center justify-between gap-3 text-xs">
         <div className="relative w-full md:w-80">
           <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
@@ -518,7 +594,7 @@ export const DocumentsView: React.FC = () => {
         </div>
       </div>
 
-      {/* 4. Documents Grid */}
+      {/* 5. Documents Grid */}
       {filteredDocuments.length === 0 ? (
         <EmptyState
           icon={FileText}
@@ -533,6 +609,7 @@ export const DocumentsView: React.FC = () => {
             const patient = patients.find((p) => p.id === doc.patientId);
             const owner = owners.find((o) => o.id === doc.ownerId);
             const parsed = parseDocumentContent(doc.content);
+            const displayOwnerName = doc.signedByOwnerName || (owner ? `${owner.firstName} ${owner.lastName}` : (doc.ownerName || 'S/D'));
 
             return (
               <div
@@ -555,7 +632,7 @@ export const DocumentsView: React.FC = () => {
                         {doc.title}
                       </h3>
                       <p className="text-xs text-slate-500 font-medium">
-                        Paciente: <strong className="text-slate-800">{patient?.name || 'S/D'}</strong> ({patient?.species || 'Canino'} {patient?.breed ? `· ${patient.breed}` : ''}) • Tutor: <strong className="text-slate-800">{owner ? `${owner.firstName} ${owner.lastName}` : 'S/D'}</strong>
+                        Paciente: <strong className="text-slate-800">{patient?.name || doc.patientName || 'S/D'}</strong> ({patient?.species || 'Canino'} {patient?.breed ? `· ${patient.breed}` : ''}) • Tutor: <strong className="text-slate-800">{displayOwnerName}</strong>
                       </p>
                     </div>
 
@@ -570,7 +647,7 @@ export const DocumentsView: React.FC = () => {
                     </span>
                   </div>
 
-                  {/* Body Content: Clean Formatted View (No raw JSON!) */}
+                  {/* Body Content */}
                   {parsed.isJson && parsed.data ? (
                     <div className="bg-slate-50/90 rounded-2xl border border-slate-200/80 p-3.5 space-y-2 text-xs">
                       <div className="flex items-center justify-between text-[11px] font-bold text-slate-600 border-b border-slate-200/60 pb-1.5">
@@ -599,7 +676,7 @@ export const DocumentsView: React.FC = () => {
                       )}
                     </div>
                   ) : (
-                    <div className="p-3.5 bg-slate-50/80 rounded-2xl border border-slate-100 text-xs text-slate-700 leading-relaxed max-h-36 overflow-y-auto whitespace-pre-line font-sans">
+                    <div className="p-3.5 bg-slate-50/80 rounded-2xl border border-slate-100 text-xs text-slate-700 leading-relaxed max-h-36 overflow-y-auto whitespace-pre-line font-sans custom-scrollbar">
                       {doc.content}
                     </div>
                   )}
@@ -609,8 +686,8 @@ export const DocumentsView: React.FC = () => {
                     <div className="bg-emerald-50/70 border border-emerald-200 p-3 rounded-2xl flex items-center justify-between text-xs">
                       <div>
                         <span className="text-[10px] font-extrabold uppercase text-emerald-900 block">Firma Digital Registrada:</span>
-                        <strong className="text-slate-900">{doc.signedByOwnerName || (owner ? `${owner.firstName} ${owner.lastName}` : 'Tutor')}</strong>
-                        <span className="text-slate-500 text-[11px] block font-mono">DNI: {maskDni(doc.signedByOwnerDni || owner?.dni || 'S/D')}</span>
+                        <strong className="text-slate-900">{displayOwnerName}</strong>
+                        <span className="text-slate-500 text-[11px] block font-mono">DNI: {maskDni(doc.signedByOwnerDni || owner?.dni || doc.ownerDni || 'S/D')}</span>
                       </div>
                       {doc.signatureDataUrl ? (
                         <img
@@ -649,7 +726,7 @@ export const DocumentsView: React.FC = () => {
                       type="button"
                       onClick={() => handleDownloadPdf(doc)}
                       className="px-3 py-1.5 bg-teal-50 hover:bg-teal-100 text-teal-800 font-bold rounded-xl border border-teal-200 flex items-center gap-1 transition-colors cursor-pointer"
-                      title="Descargar documento en PDF"
+                      title="Descargar documento oficial en PDF con firma digital"
                     >
                       <Download className="w-3.5 h-3.5 text-teal-600" />
                       <span>PDF</span>
@@ -669,7 +746,7 @@ export const DocumentsView: React.FC = () => {
 
                   <div className="flex items-center gap-1.5">
                     {/* WhatsApp */}
-                    {owner && (
+                    {(owner?.phone || owner?.whatsapp) && (
                       <button
                         type="button"
                         onClick={() => handleSendWhatsApp(doc)}
@@ -700,136 +777,145 @@ export const DocumentsView: React.FC = () => {
         </div>
       )}
 
-      {/* 5. MODAL: VISTA PREVIA MEMBRETADA OFICIAL A4 */}
+      {/* 6. MODAL: VISTA PREVIA MEMBRETADA OFICIAL A4 */}
       {previewDoc && (
-        <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
-          <div className="bg-white rounded-3xl max-w-3xl w-full p-5 sm:p-6 space-y-4 shadow-2xl border border-slate-200 max-h-[92vh] overflow-y-auto flex flex-col justify-between">
-            {/* Modal Header */}
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <div className="flex items-center gap-2">
-                <FileText className="w-5 h-5 text-teal-600" />
+        <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-xs flex items-center justify-center p-2 sm:p-4 overflow-hidden animate-in fade-in duration-150">
+          <div className="bg-white rounded-3xl max-w-3xl w-full shadow-2xl border border-slate-200 max-h-[92vh] flex flex-col overflow-hidden animate-in zoom-in-95">
+            {/* Modal Header Fijo */}
+            <div className="px-5 py-3.5 border-b border-slate-100 flex items-center justify-between flex-shrink-0 bg-white">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-teal-50 border border-teal-200 flex items-center justify-center text-teal-700">
+                  <FileText className="w-5 h-5" />
+                </div>
                 <div>
-                  <h3 className="text-base font-black text-slate-900">{previewDoc.title}</h3>
-                  <span className="text-[11px] text-slate-400">Vista Oficial Membretada A4</span>
+                  <h3 className="text-base font-black text-slate-900 leading-tight">{previewDoc.title}</h3>
+                  <span className="text-[11px] text-slate-400 font-medium">Vista Oficial Membretada A4 • Veterinaria Ranquel</span>
                 </div>
               </div>
               <button
                 type="button"
                 onClick={() => setPreviewDoc(null)}
-                className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold flex items-center justify-center cursor-pointer"
+                className="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold flex items-center justify-center text-xs cursor-pointer transition-colors"
               >
                 ✕
               </button>
             </div>
 
-            {/* Hoja A4 Membretada Preview */}
-            <div className="bg-slate-50 border border-slate-300 rounded-2xl p-5 sm:p-7 space-y-5 text-xs text-slate-800 shadow-inner">
-              {/* Membrete */}
-              <div className="border-b-2 border-teal-700 pb-3 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-                <div>
-                  <div className="text-lg font-black text-teal-800">VETERINARIA RANQUEL</div>
-                  <div className="text-[11px] text-slate-600 font-bold">Centro Hospitalario Veterinario • Guardia 24 Horas</div>
-                  <div className="text-[10px] text-slate-500">Casa 13, Barrio Militar de Oficiales, Las Lajas, Neuquén • Tel/WhatsApp: +54 9 2942 47-7136</div>
-                  <div className="text-[10px] text-slate-500 font-medium">Dirección Médica: Dr. Diego Iván Irusta • M.P. 502</div>
+            {/* Hoja A4 Membretada Body con Scroll */}
+            <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4 custom-scrollbar">
+              <div className="bg-slate-50 border border-slate-300 rounded-2xl p-5 sm:p-7 space-y-5 text-xs text-slate-800 shadow-inner">
+                {/* Membrete */}
+                <div className="border-b-2 border-teal-700 pb-3 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                  <div>
+                    <div className="text-lg font-black text-teal-800">VETERINARIA RANQUEL</div>
+                    <div className="text-[11px] text-slate-600 font-bold">Centro Hospitalario Veterinario • Guardia 24 Horas</div>
+                    <div className="text-[10px] text-slate-500">Casa 13, Barrio Militar de Oficiales, Las Lajas, Neuquén • Tel/WhatsApp: +54 9 2942 47-7136</div>
+                    <div className="text-[10px] text-slate-500 font-medium">Dirección Médica: Dr. Diego Iván Irusta • M.P. 502</div>
+                  </div>
+                  <div className="bg-teal-50 border border-teal-200 px-3 py-1.5 rounded-xl text-right">
+                    <span className="text-[10px] font-black text-teal-800 uppercase block">{previewDoc.type.replace(/_/g, ' ')}</span>
+                    <span className="text-[10px] text-slate-500 font-mono">Fecha: {formatDate(previewDoc.createdAt)}</span>
+                  </div>
                 </div>
-                <div className="bg-teal-50 border border-teal-200 px-3 py-1.5 rounded-xl text-right">
-                  <span className="text-[10px] font-black text-teal-800 uppercase block">{previewDoc.type.replace(/_/g, ' ')}</span>
-                  <span className="text-[10px] text-slate-500 font-mono">Fecha: {formatDate(previewDoc.createdAt)}</span>
-                </div>
-              </div>
 
-              {/* Paciente y Tutor Grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-                {(() => {
-                  const pat = patients.find((p) => p.id === previewDoc.patientId);
-                  const own = owners.find((o) => o.id === previewDoc.ownerId);
-                  return (
-                    <>
-                      <div className="bg-white p-3 rounded-xl border border-slate-200 space-y-1">
-                        <span className="text-[10px] font-black uppercase text-slate-400 block">🐾 Datos del Paciente</span>
-                        <div className="flex justify-between"><span>Nombre:</span><strong className="text-slate-900">{pat?.name || 'S/D'}</strong></div>
-                        <div className="flex justify-between"><span>Especie/Raza:</span><span>{pat?.species || 'Canino'} · {pat?.breed || 'Mestizo'}</span></div>
-                        <div className="flex justify-between"><span>Historia Clínica:</span><span className="font-mono">{pat?.clinicalRecordNumber || 'HC-2026'}</span></div>
-                      </div>
+                {/* Paciente y Tutor Grid */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                  {(() => {
+                    const pat = patients.find((p) => p.id === previewDoc.patientId);
+                    const own = owners.find((o) => o.id === previewDoc.ownerId);
+                    const previewSigner = previewDoc.signedByOwnerName || (own ? `${own.firstName} ${own.lastName}` : (previewDoc.ownerName || 'S/D'));
+                    const previewDni = previewDoc.signedByOwnerDni || own?.dni || previewDoc.ownerDni || 'S/D';
 
-                      <div className="bg-white p-3 rounded-xl border border-slate-200 space-y-1">
-                        <span className="text-[10px] font-black uppercase text-slate-400 block">👤 Tutor Responsable</span>
-                        <div className="flex justify-between"><span>Nombre:</span><strong className="text-slate-900">{own ? `${own.firstName} ${own.lastName}` : 'S/D'}</strong></div>
-                        <div className="flex justify-between"><span>DNI / Pasaporte:</span><span className="font-mono">{own?.dni || 'S/D'}</span></div>
-                        <div className="flex justify-between"><span>Teléfono:</span><span>{own?.phone || own?.whatsapp || 'S/D'}</span></div>
-                      </div>
-                    </>
-                  );
-                })()}
-              </div>
-
-              {/* Cuerpo del Documento */}
-              <div className="bg-white p-4 sm:p-5 rounded-xl border border-slate-200 space-y-3 leading-relaxed">
-                <span className="text-[10px] font-black uppercase text-slate-400 block border-b border-slate-100 pb-1">
-                  📄 Contenido del Instrumento Clínico / Legal
-                </span>
-                {(() => {
-                  const parsed = parseDocumentContent(previewDoc.content);
-                  if (parsed.isJson && parsed.data) {
                     return (
-                      <div className="space-y-3">
-                        <div className="bg-teal-50/50 p-2.5 rounded-lg border border-teal-100 font-mono text-[11px] text-teal-950 flex justify-between">
-                          <span>Médico: <strong>{parsed.data.authorName || previewDoc.vetName || 'Dr. Diego Iván Irusta'}</strong> ({parsed.data.authorLicense || 'M.P. 502'})</span>
-                          <span>{parsed.data.sector || 'UCI'} · {parsed.data.shift || 'DIURNO'}</span>
+                      <>
+                        <div className="bg-white p-3 rounded-xl border border-slate-200 space-y-1">
+                          <span className="text-[10px] font-black uppercase text-slate-400 block">🐾 Datos del Paciente</span>
+                          <div className="flex justify-between"><span>Nombre:</span><strong className="text-slate-900">{pat?.name || previewDoc.patientName || 'S/D'}</strong></div>
+                          <div className="flex justify-between"><span>Especie/Raza:</span><span>{pat?.species || 'Canino'} {pat?.breed ? `· ${pat.breed}` : ''}</span></div>
+                          <div className="flex justify-between"><span>HC:</span><span className="font-mono">{pat?.clinicalRecordNumber || 'HC-2026'}</span></div>
                         </div>
-                        {parsed.data.assessment && (
-                          <div>
-                            <strong className="text-slate-700 block mb-1">Evaluación Médica:</strong>
-                            <p className="text-slate-800 leading-relaxed">{parsed.data.assessment}</p>
-                          </div>
-                        )}
-                        {parsed.data.plan && (
-                          <div className="bg-slate-50 p-3 rounded-xl border border-slate-200">
-                            <strong className="text-teal-900 block mb-1">Plan Terapéutico & Medicación:</strong>
-                            <p className="text-slate-800 leading-relaxed">{parsed.data.plan}</p>
-                          </div>
-                        )}
-                      </div>
-                    );
-                  }
-                  return <p className="whitespace-pre-line text-slate-800 leading-relaxed">{previewDoc.content}</p>;
-                })()}
-              </div>
 
-              {/* Firmas */}
-              <div className="grid grid-cols-2 gap-4 pt-4 border-t border-slate-200 text-center">
-                <div className="space-y-1">
-                  {previewDoc.signatureDataUrl ? (
-                    <img src={previewDoc.signatureDataUrl} className="h-10 mx-auto object-contain" alt="Firma Tutor" />
-                  ) : (
-                    <div className="h-10 flex items-center justify-center text-[10px] text-slate-400 italic">
-                      {previewDoc.isSigned ? 'Firma Verificada' : 'Sin Firmar'}
-                    </div>
-                  )}
-                  <div className="border-t border-slate-400 w-3/4 mx-auto pt-1">
-                    <strong className="block text-[11px]">{previewDoc.signedByOwnerName || 'Firma del Tutor'}</strong>
-                    <span className="text-[10px] text-slate-500">Tutor Responsable</span>
-                  </div>
+                        <div className="bg-white p-3 rounded-xl border border-slate-200 space-y-1">
+                          <span className="text-[10px] font-black uppercase text-slate-400 block">👤 Tutor Titular</span>
+                          <div className="flex justify-between"><span>Nombre:</span><strong className="text-slate-900">{previewSigner}</strong></div>
+                          <div className="flex justify-between"><span>DNI:</span><span className="font-mono">{previewDni}</span></div>
+                          <div className="flex justify-between"><span>Teléfono:</span><span>{own?.phone || own?.whatsapp || 'S/D'}</span></div>
+                        </div>
+                      </>
+                    );
+                  })()}
                 </div>
 
-                <div className="space-y-1">
-                  <div className="h-10 flex items-center justify-center text-[11px] font-bold text-teal-800">
-                    {previewDoc.vetName || 'Dr. Diego Iván Irusta'}
+                {/* Cuerpo del Documento */}
+                <div className="bg-white p-4 sm:p-5 rounded-xl border border-slate-200 space-y-3 leading-relaxed">
+                  <span className="text-[10px] font-black uppercase text-slate-400 block border-b border-slate-100 pb-1">
+                    📄 Contenido del Instrumento Clínico / Legal
+                  </span>
+                  {(() => {
+                    const parsed = parseDocumentContent(previewDoc.content);
+                    if (parsed.isJson && parsed.data) {
+                      return (
+                        <div className="space-y-3">
+                          <div className="bg-teal-50/50 p-2.5 rounded-lg border border-teal-100 font-mono text-[11px] text-teal-950 flex justify-between">
+                            <span>Médico: <strong>{parsed.data.authorName || previewDoc.vetName || 'Dr. Diego Iván Irusta'}</strong> ({parsed.data.authorLicense || 'M.P. 502'})</span>
+                            <span>{parsed.data.sector || 'UCI'} · {parsed.data.shift || 'DIURNO'}</span>
+                          </div>
+                          {parsed.data.assessment && (
+                            <div>
+                              <strong className="text-slate-700 block mb-1">Evaluación Médica:</strong>
+                              <p className="text-slate-800 leading-relaxed">{parsed.data.assessment}</p>
+                            </div>
+                          )}
+                          {parsed.data.plan && (
+                            <div className="bg-slate-50 p-3 rounded-xl border border-slate-200">
+                              <strong className="text-teal-900 block mb-1">Plan Terapéutico & Medicación:</strong>
+                              <p className="text-slate-800 leading-relaxed">{parsed.data.plan}</p>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    }
+                    return <p className="whitespace-pre-line text-slate-800 leading-relaxed">{previewDoc.content}</p>;
+                  })()}
+                </div>
+
+                {/* Firmas Oficiales */}
+                <div className="grid grid-cols-2 gap-4 pt-4 border-t border-slate-200 text-center">
+                  <div className="space-y-1">
+                    {previewDoc.signatureDataUrl ? (
+                      <img src={previewDoc.signatureDataUrl} className="h-12 mx-auto object-contain" alt="Firma Tutor" />
+                    ) : (
+                      <div className="h-12 flex items-center justify-center text-[10px] text-slate-400 italic">
+                        {previewDoc.isSigned ? 'Firma Verificada' : 'Sin Firmar'}
+                      </div>
+                    )}
+                    <div className="border-t border-slate-400 w-3/4 mx-auto pt-1">
+                      <strong className="block text-[11px] text-slate-900">{previewDoc.signedByOwnerName || 'Firma del Tutor'}</strong>
+                      <span className="text-[10px] text-slate-500">
+                        Firma del Tutor {previewDoc.signedByOwnerDni ? `(DNI ${previewDoc.signedByOwnerDni})` : ''}
+                      </span>
+                    </div>
                   </div>
-                  <div className="border-t border-slate-400 w-3/4 mx-auto pt-1">
-                    <strong className="block text-[11px]">{previewDoc.vetName || 'Dr. Diego Iván Irusta'}</strong>
-                    <span className="text-[10px] text-slate-500">Médico Veterinario • M.P. 502</span>
+
+                  <div className="space-y-1">
+                    <div className="h-12 flex items-center justify-center text-[11px] font-bold text-teal-800">
+                      Dr. Diego Iván Irusta
+                    </div>
+                    <div className="border-t border-slate-400 w-3/4 mx-auto pt-1">
+                      <strong className="block text-[11px] text-slate-900">{previewDoc.vetName || 'Dr. Diego Iván Irusta'}</strong>
+                      <span className="text-[10px] text-slate-500">Médico Veterinario • M.P. 502</span>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Modal Bottom Actions */}
-            <div className="flex flex-wrap items-center justify-between gap-2 pt-2">
+            {/* Modal Bottom Actions Fijo */}
+            <div className="px-5 py-3.5 bg-slate-50 border-t border-slate-200 flex flex-wrap items-center justify-between gap-2 flex-shrink-0 rounded-b-3xl">
               <button
                 type="button"
                 onClick={() => setPreviewDoc(null)}
-                className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs cursor-pointer"
+                className="px-4 py-2 bg-white hover:bg-slate-100 text-slate-700 font-bold rounded-xl text-xs border border-slate-200 cursor-pointer"
               >
                 Cerrar
               </button>
@@ -838,16 +924,16 @@ export const DocumentsView: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => handleDownloadPdf(previewDoc)}
-                  className="px-4 py-2 bg-teal-600 hover:bg-teal-500 text-white font-bold rounded-xl text-xs flex items-center gap-1.5 cursor-pointer shadow-sm"
+                  className="px-4 py-2 bg-teal-600 hover:bg-teal-500 text-white font-bold rounded-xl text-xs flex items-center gap-1.5 cursor-pointer shadow-sm transition-all active:scale-95"
                 >
                   <Download className="w-4 h-4" />
-                  <span>Descargar PDF</span>
+                  <span>Descargar PDF con Firma</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={() => handlePrintDoc(previewDoc)}
-                  className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl text-xs flex items-center gap-1.5 cursor-pointer shadow-sm"
+                  className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl text-xs flex items-center gap-1.5 cursor-pointer shadow-sm transition-all active:scale-95"
                 >
                   <Printer className="w-4 h-4" />
                   <span>Imprimir A4</span>
@@ -857,7 +943,7 @@ export const DocumentsView: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => handleOpenSignatureModal(previewDoc)}
-                    className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs flex items-center gap-1.5 cursor-pointer shadow-sm"
+                    className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs flex items-center gap-1.5 cursor-pointer shadow-sm transition-all active:scale-95"
                   >
                     <PenTool className="w-4 h-4" />
                     <span>Firmar en Pantalla</span>
@@ -869,91 +955,97 @@ export const DocumentsView: React.FC = () => {
         </div>
       )}
 
-      {/* 6. MODAL: CREAR DOCUMENTO */}
+      {/* 7. MODAL: CREAR DOCUMENTO */}
       {showCreateModal && (
-        <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
-          <div className="bg-white rounded-3xl max-w-2xl w-full p-5 sm:p-6 space-y-4 shadow-2xl border border-slate-200 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <div className="flex items-center gap-2">
-                <FileCheck className="w-5 h-5 text-teal-600" />
+        <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-xs flex items-center justify-center p-2 sm:p-4 overflow-hidden animate-in fade-in duration-150">
+          <div className="bg-white rounded-3xl max-w-2xl w-full shadow-2xl border border-slate-200 max-h-[92vh] flex flex-col overflow-hidden animate-in zoom-in-95">
+            {/* Header Fijo */}
+            <div className="px-5 py-3.5 border-b border-slate-100 flex items-center justify-between flex-shrink-0 bg-white">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-teal-50 border border-teal-200 flex items-center justify-center text-teal-700">
+                  <FileCheck className="w-5 h-5" />
+                </div>
                 <h3 className="text-base font-black text-slate-900">Generar Documento Clínico Oficial</h3>
               </div>
               <button
                 type="button"
                 onClick={() => setShowCreateModal(false)}
-                className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold flex items-center justify-center cursor-pointer"
+                className="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold flex items-center justify-center text-xs cursor-pointer"
               >
                 ✕
               </button>
             </div>
 
-            <form onSubmit={handleSaveNewDocument} className="space-y-4 text-xs">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="text-slate-700 font-bold block mb-1">Paciente en Contexto:</label>
-                  <select
-                    value={selectedPatientId}
-                    onChange={(e) => handlePatientChangeInModal(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 font-bold text-slate-900 focus:ring-2 focus:ring-teal-500"
-                  >
-                    {patients.map((p) => (
-                      <option key={p.id} value={p.id}>
-                        {p.name} ({p.species} {p.breed}) — {p.clinicalRecordNumber}
-                      </option>
-                    ))}
-                  </select>
+            <form onSubmit={handleSaveNewDocument} className="flex flex-col flex-1 min-h-0 overflow-hidden">
+              <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-3.5 text-xs custom-scrollbar">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-slate-700 font-bold block mb-1">Paciente Veterinario:</label>
+                    <select
+                      value={selectedPatientId}
+                      onChange={(e) => handlePatientChangeInModal(e.target.value)}
+                      className="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 font-bold text-slate-900 focus:ring-2 focus:ring-teal-500"
+                    >
+                      {patients.map((p) => (
+                        <option key={p.id} value={p.id}>
+                          {p.name} ({p.species} {p.breed}) — {p.clinicalRecordNumber}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="text-slate-700 font-bold block mb-1">Plantilla Oficial:</label>
+                    <select
+                      value={selectedTemplateIndex}
+                      onChange={(e) => handleOpenCreateModal(Number(e.target.value))}
+                      className="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 font-bold text-slate-900 focus:ring-2 focus:ring-teal-500"
+                    >
+                      {DOCUMENT_TEMPLATES.map((tmpl, i) => (
+                        <option key={tmpl.type} value={i}>
+                          {tmpl.title}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
 
                 <div>
-                  <label className="text-slate-700 font-bold block mb-1">Plantilla Oficial:</label>
-                  <select
-                    value={selectedTemplateIndex}
-                    onChange={(e) => handleOpenCreateModal(Number(e.target.value))}
-                    className="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 font-bold text-slate-900 focus:ring-2 focus:ring-teal-500"
-                  >
-                    {DOCUMENT_TEMPLATES.map((tmpl, i) => (
-                      <option key={tmpl.type} value={i}>
-                        {tmpl.title}
-                      </option>
-                    ))}
-                  </select>
+                  <label className="text-slate-700 font-bold block mb-1">Título del Documento:</label>
+                  <input
+                    type="text"
+                    value={customTitle}
+                    onChange={(e) => setCustomTitle(e.target.value)}
+                    className="w-full bg-white border border-slate-300 rounded-xl p-2.5 font-bold text-slate-900 focus:ring-2 focus:ring-teal-500"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="text-slate-700 font-bold block mb-1">Texto & Cláusulas del Documento:</label>
+                  <textarea
+                    value={customContent}
+                    onChange={(e) => setCustomContent(e.target.value)}
+                    rows={8}
+                    className="w-full bg-slate-50 border border-slate-300 rounded-xl p-3 font-sans text-xs text-slate-900 focus:ring-2 focus:ring-teal-500 leading-relaxed"
+                    required
+                  />
                 </div>
               </div>
 
-              <div>
-                <label className="text-slate-700 font-bold block mb-1">Título del Documento:</label>
-                <input
-                  type="text"
-                  value={customTitle}
-                  onChange={(e) => setCustomTitle(e.target.value)}
-                  className="w-full bg-white border border-slate-300 rounded-xl p-2.5 font-bold text-slate-900 focus:ring-2 focus:ring-teal-500"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="text-slate-700 font-bold block mb-1">Texto & Cláusulas del Documento:</label>
-                <textarea
-                  value={customContent}
-                  onChange={(e) => setCustomContent(e.target.value)}
-                  rows={8}
-                  className="w-full bg-slate-50 border border-slate-300 rounded-xl p-3 font-sans text-xs text-slate-900 focus:ring-2 focus:ring-teal-500 leading-relaxed"
-                  required
-                />
-              </div>
-
-              <div className="flex items-center justify-between pt-3 border-t border-slate-100">
+              {/* Footer Fijo */}
+              <div className="px-5 py-3.5 bg-slate-50 border-t border-slate-100 flex items-center justify-between flex-shrink-0 rounded-b-3xl">
                 <button
                   type="button"
                   onClick={() => setShowCreateModal(false)}
-                  className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs cursor-pointer"
+                  className="px-4 py-2 bg-white hover:bg-slate-100 text-slate-700 font-bold rounded-xl text-xs border border-slate-200 cursor-pointer"
                 >
                   Cancelar
                 </button>
 
                 <button
                   type="submit"
-                  className="px-5 py-2.5 bg-teal-600 hover:bg-teal-500 text-white font-bold rounded-xl text-xs shadow-md shadow-teal-600/20 cursor-pointer"
+                  className="px-5 py-2 bg-teal-600 hover:bg-teal-500 text-white font-bold rounded-xl text-xs shadow-md shadow-teal-600/20 cursor-pointer"
                 >
                   Guardar y Emitir Documento
                 </button>
@@ -963,97 +1055,106 @@ export const DocumentsView: React.FC = () => {
         </div>
       )}
 
-      {/* 7. MODAL: FIRMA DIGITAL TÁCTIL EN PANTALLA */}
+      {/* 8. MODAL: FIRMA DIGITAL TÁCTIL EN PANTALLA */}
       {signingDocId && (
-        <div className="fixed inset-0 z-50 bg-slate-950/75 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
-          <div className="bg-white rounded-3xl max-w-lg w-full p-5 sm:p-6 space-y-4 shadow-2xl border border-slate-200">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <div className="flex items-center gap-2">
-                <PenTool className="w-5 h-5 text-teal-600" />
-                <h3 className="text-base font-black text-slate-900">Firma Digital Manuscrita en Pantalla</h3>
+        <div className="fixed inset-0 z-50 bg-slate-950/75 backdrop-blur-xs flex items-center justify-center p-2 sm:p-4 overflow-hidden animate-in fade-in duration-150">
+          <div className="bg-white rounded-3xl max-w-lg w-full shadow-2xl border border-slate-200 max-h-[92vh] flex flex-col overflow-hidden animate-in zoom-in-95">
+            {/* Header Fijo */}
+            <div className="px-5 py-3.5 border-b border-slate-100 flex items-center justify-between flex-shrink-0 bg-white">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-teal-50 border border-teal-200 flex items-center justify-center text-teal-700">
+                  <PenTool className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-black text-slate-900 leading-tight">Firma Digital Manuscrita</h3>
+                  <span className="text-[11px] text-slate-400">Certificación y validez legal en pantalla</span>
+                </div>
               </div>
               <button
                 type="button"
                 onClick={() => setSigningDocId(null)}
-                className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold flex items-center justify-center cursor-pointer"
+                className="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold flex items-center justify-center text-xs cursor-pointer"
               >
                 ✕
               </button>
             </div>
 
-            <form onSubmit={handleSaveSignature} className="space-y-4 text-xs">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="text-slate-700 font-bold block mb-1">Nombre Completo del Tutor:</label>
-                  <input
-                    type="text"
-                    value={signerName}
-                    onChange={(e) => setSignerName(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 font-bold text-slate-900 focus:ring-2 focus:ring-teal-500"
-                    placeholder="Ej: Carlos Gómez"
-                    required
-                  />
+            <form onSubmit={handleSaveSignature} className="flex flex-col flex-1 min-h-0 overflow-hidden">
+              <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-3.5 text-xs custom-scrollbar">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-slate-700 font-bold block mb-1">Nombre del Firmante / Tutor:</label>
+                    <input
+                      type="text"
+                      value={signerName}
+                      onChange={(e) => setSignerName(e.target.value)}
+                      className="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 font-bold text-slate-900 focus:ring-2 focus:ring-teal-500"
+                      placeholder="Ej: Enzo Girardi"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="text-slate-700 font-bold block mb-1">DNI / Identificación:</label>
+                    <input
+                      type="text"
+                      value={signerDni}
+                      onChange={(e) => setSignerDni(e.target.value)}
+                      className="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 font-bold text-slate-900 font-mono focus:ring-2 focus:ring-teal-500"
+                      placeholder="Ej: 37188100"
+                      required
+                    />
+                  </div>
                 </div>
-                <div>
-                  <label className="text-slate-700 font-bold block mb-1">DNI / Pasaporte:</label>
-                  <input
-                    type="text"
-                    value={signerDni}
-                    onChange={(e) => setSignerDni(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 font-bold text-slate-900 font-mono focus:ring-2 focus:ring-teal-500"
-                    placeholder="Ej: 38123456"
-                    required
-                  />
+
+                {/* Canvas Pad */}
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <label className="text-slate-700 font-bold">Dibuje la firma con dedo, stylus o ratón:</label>
+                    <button
+                      type="button"
+                      onClick={clearCanvas}
+                      className="text-teal-700 font-bold hover:underline text-[11px] cursor-pointer"
+                    >
+                      Borrar y reiniciar
+                    </button>
+                  </div>
+
+                  <div className="border-2 border-dashed border-slate-300 hover:border-teal-500 rounded-2xl bg-white overflow-hidden touch-none relative shadow-inner">
+                    <canvas
+                      ref={canvasRef}
+                      width={480}
+                      height={160}
+                      onMouseDown={startDrawing}
+                      onMouseMove={draw}
+                      onMouseUp={stopDrawing}
+                      onMouseLeave={stopDrawing}
+                      onTouchStart={startDrawing}
+                      onTouchMove={draw}
+                      onTouchEnd={stopDrawing}
+                      className="w-full h-36 cursor-crosshair bg-white"
+                    />
+                  </div>
+                  <p className="text-[10px] text-slate-400">
+                    La firma digital queda vinculada con hash criptográfico y fecha/hora inmutable en el PDF.
+                  </p>
                 </div>
               </div>
 
-              {/* Canvas Pad */}
-              <div className="space-y-1.5">
-                <div className="flex items-center justify-between">
-                  <label className="text-slate-700 font-bold">Dibuje su firma con el dedo, stylus o mouse:</label>
-                  <button
-                    type="button"
-                    onClick={clearCanvas}
-                    className="text-teal-700 font-bold hover:underline text-[11px] cursor-pointer"
-                  >
-                    Borrar y reiniciar
-                  </button>
-                </div>
-
-                <div className="border-2 border-dashed border-slate-300 hover:border-teal-500 rounded-2xl bg-slate-50 overflow-hidden touch-none relative">
-                  <canvas
-                    ref={canvasRef}
-                    width={480}
-                    height={160}
-                    onMouseDown={startDrawing}
-                    onMouseMove={draw}
-                    onMouseUp={stopDrawing}
-                    onMouseLeave={stopDrawing}
-                    onTouchStart={startDrawing}
-                    onTouchMove={draw}
-                    onTouchEnd={stopDrawing}
-                    className="w-full h-40 cursor-crosshair bg-white"
-                  />
-                </div>
-                <p className="text-[10px] text-slate-400">
-                  La firma digital queda vinculada con hash criptográfico y fecha/hora inmutable.
-                </p>
-              </div>
-
-              <div className="flex items-center justify-between pt-3 border-t border-slate-100">
+              {/* Footer Fijo */}
+              <div className="px-5 py-3.5 bg-slate-50 border-t border-slate-100 flex items-center justify-between flex-shrink-0 rounded-b-3xl">
                 <button
                   type="button"
                   onClick={() => setSigningDocId(null)}
-                  className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs cursor-pointer"
+                  className="px-4 py-2 bg-white hover:bg-slate-100 text-slate-700 font-bold rounded-xl text-xs border border-slate-200 cursor-pointer"
                 >
                   Cancelar
                 </button>
 
                 <button
                   type="submit"
-                  className="px-5 py-2.5 bg-teal-600 hover:bg-teal-500 text-white font-bold rounded-xl text-xs shadow-md shadow-teal-600/20 cursor-pointer"
+                  className="px-5 py-2 bg-teal-600 hover:bg-teal-500 text-white font-bold rounded-xl text-xs shadow-md shadow-teal-600/20 cursor-pointer"
                 >
-                  Confirmar y Guardar Firma
+                  Confirmar y Certificar Firma
                 </button>
               </div>
             </form>

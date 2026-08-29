@@ -1105,25 +1105,45 @@ export function generateClinicalDocumentPdf(data: PrintableClinicalDocumentData)
     { maxWidth: 174 }
   );
 
-  currentY += 28;
+  currentY += 24;
+
+  if (currentY > 245) {
+    doc.addPage();
+    currentY = 30;
+  }
 
   // Signatures
   doc.setDrawColor(100, 116, 139);
 
   // Left Signature: Tutor
+  // Embed digital handwritten signature image if available
+  if (data.signatureDataUrl && data.signatureDataUrl.startsWith('data:image/')) {
+    try {
+      const format = data.signatureDataUrl.includes('image/jpeg') ? 'JPEG' : 'PNG';
+      // Center 40mm wide signature over the 60mm line (x=25 to x=85, center=55 -> x=35)
+      doc.addImage(data.signatureDataUrl, format, 35, currentY - 1, 40, 14);
+    } catch (err) {
+      console.error('Error rendering signature image in PDF:', err);
+    }
+  }
+
   doc.line(25, currentY + 14, 85, currentY + 14);
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(8);
   doc.setTextColor(30, 41, 59);
-  doc.text(data.isSigned ? (data.signedByOwnerName || data.ownerName) : data.ownerName, 55, currentY + 19, { align: 'center' });
+  const signerDisplayName = data.signedByOwnerName || data.ownerName || 'Tutor Responsable';
+  doc.text(signerDisplayName, 55, currentY + 19, { align: 'center' });
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(7);
   doc.setTextColor(100, 116, 139);
-  doc.text(`Firma del Tutor (DNI ${data.ownerDni || '___'})`, 55, currentY + 23, { align: 'center' });
+  const signerDniDisplay = (data.signedByOwnerDni && data.signedByOwnerDni !== 'S/D')
+    ? data.signedByOwnerDni
+    : (data.ownerDni && data.ownerDni !== 'S/D' ? data.ownerDni : '');
+  doc.text(signerDniDisplay ? `Firma del Tutor (DNI ${signerDniDisplay})` : 'Firma del Tutor / Responsable Legal', 55, currentY + 23, { align: 'center' });
   if (data.isSigned) {
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(22, 101, 52);
-    doc.text(`[FIRMADO DIGITALMENTE ${data.signedAt || ''}]`, 55, currentY + 27, { align: 'center' });
+    doc.text(`[FIRMADO DIGITALMENTE ${data.signedAt || data.date || ''}]`, 55, currentY + 27, { align: 'center' });
   } else {
     doc.setTextColor(148, 163, 184);
     doc.text('(Firma en papel / Manuscrita)', 55, currentY + 27, { align: 'center' });
