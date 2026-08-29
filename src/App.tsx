@@ -68,28 +68,29 @@ const PublicLandingView = lazyRetry(() => import('./components/PublicLandingView
 const DocumentsView = lazyRetry(() => import('./components/DocumentsView').then((m) => ({ default: m.DocumentsView })));
 const PrescriptionsView = lazyRetry(() => import('./components/PrescriptionsView').then((m) => ({ default: m.PrescriptionsView })));
 
-// Sleek iOS-style Non-Jarring Skeleton Fallback
+// Sleek iOS-style Non-Jarring Skeleton Fallback with Stable Height
 const ViewLoadingFallback: React.FC = () => (
-  <div className="space-y-4 animate-in fade-in duration-100 w-full max-w-full p-2">
+  <div className="space-y-4 animate-in fade-in duration-150 w-full max-w-full p-2 min-h-[400px]">
     {/* Micro progress line */}
-    <div className="h-1 w-full bg-slate-100/80 rounded-full overflow-hidden">
+    <div className="h-1 w-full bg-slate-200/80 rounded-full overflow-hidden">
       <div className="h-full bg-teal-600/80 rounded-full w-1/3 animate-pulse" />
     </div>
     {/* Header Skeleton */}
-    <div className="h-16 bg-slate-200/50 rounded-2xl w-full animate-pulse" />
+    <div className="h-16 bg-slate-200/60 rounded-2xl w-full animate-pulse" />
     {/* KPI Cards Skeleton */}
     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
-      <div className="h-24 bg-slate-200/40 rounded-2xl animate-pulse" />
-      <div className="h-24 bg-slate-200/40 rounded-2xl animate-pulse" />
-      <div className="h-24 bg-slate-200/40 rounded-2xl animate-pulse" />
-      <div className="h-24 bg-slate-200/40 rounded-2xl animate-pulse" />
+      <div className="h-24 bg-slate-200/50 rounded-2xl animate-pulse" />
+      <div className="h-24 bg-slate-200/50 rounded-2xl animate-pulse" />
+      <div className="h-24 bg-slate-200/50 rounded-2xl animate-pulse" />
+      <div className="h-24 bg-slate-200/50 rounded-2xl animate-pulse" />
     </div>
     {/* Main Content Skeleton */}
-    <div className="h-64 bg-slate-200/30 rounded-3xl w-full animate-pulse" />
+    <div className="h-72 bg-slate-200/40 rounded-3xl w-full animate-pulse" />
   </div>
 );
 
 const MainLayout: React.FC = () => {
+  const mainContentRef = React.useRef<HTMLElement | null>(null);
 
   const {
     activeView,
@@ -174,6 +175,14 @@ const MainLayout: React.FC = () => {
       window.history.replaceState(null, '', targetHash);
     }
   }, [activeView]);
+
+  // Reseteo instantáneo de scroll de main y window al cambiar de módulo para prevenir saltos
+  React.useEffect(() => {
+    if (mainContentRef.current) {
+      mainContentRef.current.scrollTop = 0;
+    }
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+  }, [activeView, selectedPatientId]);
 
   const activeHospitalCount = (hospitalizations || []).filter((h) => h.status === 'ACTIVA').length;
   const waitingTriageCount = (triageList || []).filter((t) => t.status === 'EN_ESPERA').length;
@@ -283,12 +292,12 @@ const MainLayout: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen min-h-[100dvh] bg-[#F1F5F9] text-[#1E293B] flex flex-col font-sans selection:bg-teal-500 selection:text-white w-full max-w-full">
+    <div className="h-screen h-[100dvh] max-h-screen max-h-[100dvh] overflow-hidden bg-[#F1F5F9] text-[#1E293B] flex flex-col font-sans selection:bg-teal-500 selection:text-white w-full max-w-full">
       {/* Top Navbar */}
       <Navbar onToggleMobileMenu={() => setIsMobileMenuOpen(!isMobileMenuOpen)} />
 
       {/* Main App Container */}
-      <div className="flex-1 flex min-h-0 overflow-hidden relative w-full max-w-full">
+      <div className="flex-1 flex min-h-0 min-w-0 overflow-hidden relative w-full max-w-full">
         {/* Left Sidebar */}
         <Sidebar
           isMobileMenuOpen={isMobileMenuOpen}
@@ -296,9 +305,12 @@ const MainLayout: React.FC = () => {
         />
 
         {/* Central Dynamic Content Area */}
-        <main className="flex-1 flex flex-col min-w-0 overflow-y-auto w-full relative bg-[#F8FAFC] main-content-pad p-3 sm:p-5 lg:p-6 box-border">
+        <main
+          ref={mainContentRef}
+          className="flex-1 flex flex-col min-w-0 h-full overflow-y-auto overflow-x-hidden relative bg-[#F8FAFC] main-content-pad p-3 sm:p-5 lg:p-6 box-border"
+        >
           <Suspense fallback={<ViewLoadingFallback />}>
-            <div className="w-full">
+            <div className="w-full min-h-full">
               {renderActiveView()}
             </div>
           </Suspense>

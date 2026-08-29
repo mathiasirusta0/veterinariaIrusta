@@ -103,8 +103,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
       {/* Main Sidebar Container - Clean Light Medical Theme */}
       <aside
         className={`
-          fixed md:sticky top-0 md:top-16 inset-y-0 left-0 z-50
-          w-72 max-w-[85vw] h-full md:h-[calc(100vh-4rem)] md:h-[calc(100dvh-4rem)]
+          fixed md:relative top-0 md:top-0 inset-y-0 left-0 z-50 md:z-auto
+          w-72 max-w-[85vw] h-full md:h-full
           bg-white text-slate-800 flex flex-col justify-between
           transition-transform duration-300 ease-in-out border-r border-slate-200/90
           ${isDrawerOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
