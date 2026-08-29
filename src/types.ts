@@ -279,6 +279,19 @@ export interface Prescription {
   dispensationBatch?: string;
   pdfGenerated?: boolean;
   digitalSignatureHash?: string;
+
+  // Datos para pacientes y tutores externos / no registrados previamente:
+  isExternalPatient?: boolean;
+  patientName?: string;
+  patientSpecies?: string;
+  patientBreed?: string;
+  patientWeight?: string;
+  patientAge?: string;
+  patientHc?: string;
+  ownerName?: string;
+  ownerDni?: string; // No obligatorio
+  ownerPhone?: string;
+  ownerAddress?: string;
 }
 
 // HOSPITALIZACIÓN E INTERNACIÓN

@@ -53,7 +53,7 @@ export async function calculatePrescriptionSha256(data: {
   patientId: string;
   vetName: string;
   vetLicense: string;
-  items: Array<{ medicationName: string; dosage: string; frequency: string; duration: string }>;
+  items: Array<{ medicationName: string; dose?: string; dosage?: string; frequency?: string; duration?: string; [key: string]: any }>;
   date: string;
 }): Promise<string> {
   const payload = JSON.stringify({

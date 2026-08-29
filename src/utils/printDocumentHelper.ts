@@ -2587,8 +2587,8 @@ export function printA4Prescription(data: PrintablePrescriptionData) {
           <div class="info-card">
             <div class="card-title">Datos del Tutor Responsable</div>
             <div><b>Tutor:</b> ${data.owner.name}</div>
-            <div><b>DNI:</b> ${data.owner.dni} · <b>Tel:</b> ${data.owner.phone}</div>
-            <div><b>Domicilio:</b> ${data.owner.address}</div>
+            <div>${data.owner.dni && data.owner.dni !== 'N/A' && data.owner.dni !== 'No informado' ? `<b>DNI:</b> ${data.owner.dni} · ` : ''}<b>Tel:</b> ${data.owner.phone && data.owner.phone !== 'N/A' ? data.owner.phone : 'No registrado'}</div>
+            <div><b>Domicilio:</b> ${data.owner.address || 'Las Lajas, Neuquén'}</div>
           </div>
         </div>
 
