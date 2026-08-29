@@ -300,7 +300,7 @@ export const AppointmentsView: React.FC = () => {
   const weekAppointmentsCount = appointments.filter((a) => isDateInThisWeek(a.date)).length;
 
   return (
-    <div className="space-y-5 pb-12 w-full max-w-full">
+    <div className="space-y-3.5 pb-10 w-full max-w-full">
       {/* 1. Header */}
       <PageHeader
         category="Agenda Médica, Quirófano & Citas"

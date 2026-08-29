@@ -463,7 +463,7 @@ export const FinancesUnifiedView: React.FC = () => {
   }, [estimates, historySearch, patients, owners]);
 
   return (
-    <div className="space-y-6 pb-12 w-full max-w-full">
+    <div className="space-y-3.5 pb-10 w-full max-w-full">
       {/* Header */}
       <PageHeader
         category="Administración & Caja"

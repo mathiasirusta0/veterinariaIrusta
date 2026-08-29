@@ -385,7 +385,7 @@ export const InventoryView: React.FC = () => {
   ];
 
   return (
-    <div className="space-y-5 pb-16 w-full max-w-full">
+    <div className="space-y-3.5 pb-10 w-full max-w-full">
       {/* 1. Header */}
       <PageHeader
         category="Farmacia Hospitalaria, Insumos & Trazabilidad SENASA"

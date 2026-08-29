@@ -125,7 +125,7 @@ export const SurgeriesView: React.FC = () => {
   ];
 
   return (
-    <div className="space-y-5 pb-12 w-full max-w-full">
+    <div className="space-y-3.5 pb-10 w-full max-w-full">
       {/* 1. Header */}
       <PageHeader
         category="Centro Quirúrgico, Anestesiología & Recuperación"

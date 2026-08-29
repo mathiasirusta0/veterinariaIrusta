@@ -307,7 +307,7 @@ const MainLayout: React.FC = () => {
         {/* Central Dynamic Content Area */}
         <main
           ref={mainContentRef}
-          className="flex-1 flex flex-col min-w-0 h-full overflow-y-auto overflow-x-hidden relative bg-[#F8FAFC] main-content-pad p-3 sm:p-5 lg:p-6 box-border"
+          className="flex-1 flex flex-col min-w-0 h-full overflow-y-auto overflow-x-hidden relative bg-[#F8FAFC] main-content-pad p-2.5 sm:p-4 lg:p-4.5 pt-2.5 sm:pt-3.5 lg:pt-3.5 box-border"
         >
           <Suspense fallback={<ViewLoadingFallback />}>
             <div className="w-full min-h-full">

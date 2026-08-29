@@ -417,7 +417,7 @@ export const DocumentsView: React.FC = () => {
   }, [documents, searchTerm, filterType, patients, owners]);
 
   return (
-    <div className="space-y-6 pb-20 w-full max-w-full">
+    <div className="space-y-3.5 pb-10 w-full max-w-full">
       {/* 1. Header */}
       <PageHeader
         category="Gestión Legal & Expedición de Certificados"

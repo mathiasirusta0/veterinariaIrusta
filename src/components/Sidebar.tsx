@@ -112,18 +112,18 @@ export const Sidebar: React.FC<SidebarProps> = ({
         `}
       >
         {/* Header / Brand Logo */}
-        <div className="p-4 sm:p-5 border-b border-slate-100 flex items-center justify-between bg-white">
-          <div className="flex items-center gap-3">
+        <div className="p-3 sm:p-3.5 border-b border-slate-100 flex items-center justify-between bg-white flex-shrink-0">
+          <div className="flex items-center gap-2.5">
             <img
               src="/logo-ranquel.png"
               alt="Veterinaria Ranquel"
-              className="w-10 h-10 rounded-xl object-contain bg-white p-0.5 shadow-2xs border border-slate-200 flex-shrink-0"
+              className="w-8 h-8 rounded-xl object-contain bg-white p-0.5 shadow-2xs border border-slate-200 flex-shrink-0"
             />
             <div>
-              <h1 className="font-black text-slate-900 text-base tracking-tight leading-none">
+              <h1 className="font-black text-slate-900 text-sm tracking-tight leading-none">
                 VET SYSTEM
               </h1>
-              <p className="text-[10px] text-teal-700 font-black uppercase tracking-widest mt-1">
+              <p className="text-[9px] text-teal-700 font-black uppercase tracking-widest mt-0.5">
                 Hospital Veterinario
               </p>
             </div>
