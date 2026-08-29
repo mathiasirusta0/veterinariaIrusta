@@ -159,6 +159,8 @@ interface VetContextType {
   currentUser: User | null;
   isAuthLoading: boolean;
   logout: () => Promise<void>;
+  setCurrentUser: (user: User | null) => void;
+  loginAsDoctor: (email?: string) => void;
   activeBranch: Branch;
   setActiveBranch: (branch: Branch) => void;
   users: User[];
