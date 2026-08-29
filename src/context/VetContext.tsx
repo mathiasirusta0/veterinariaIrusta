@@ -259,6 +259,7 @@ interface VetContextType {
 
   // Lab & Imaging & Vaccines
   addSurgery: (surgery: Omit<SurgeryRecord, 'id'>) => SurgeryRecord;
+  updateSurgery: (id: string, updates: Partial<SurgeryRecord>) => void;
   updateSurgeryStatus: (id: string, status: SurgeryRecord['status']) => void;
   addLabOrder: (order: Omit<LaboratoryOrder, 'id' | 'orderNumber' | 'requestedAt' | 'status'>) => void;
   updateLabResults: (orderId: string, results: LaboratoryOrder['results'], conclusions: string) => void;
@@ -2147,6 +2148,21 @@ export const VetProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return newSurgery;
   };
 
+  const updateSurgery = (id: string, updates: Partial<SurgeryRecord>) => {
+    setSurgeries((prev) =>
+      prev.map((s) => {
+        if (s.id === id) {
+          const updated = { ...s, ...updates };
+          syncSurgeryToSupabase(updated);
+          return updated;
+        }
+        return s;
+      })
+    );
+    showToast('info', 'Cirugía Actualizada', 'Protocolo quirúrgico guardado correctamente');
+    logAudit('ACTUALIZAR_CIRUGIA', 'SurgeryRecord', id, `Datos de cirugía modificados`);
+  };
+
   const updateSurgeryStatus = (id: string, status: SurgeryRecord['status']) => {
     setSurgeries((prev) =>
       prev.map((s) => {
@@ -3046,6 +3062,7 @@ export const VetProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         dischargeHospitalPatient,
 
         addSurgery,
+        updateSurgery,
         updateSurgeryStatus,
         addLabOrder,
         updateLabResults,

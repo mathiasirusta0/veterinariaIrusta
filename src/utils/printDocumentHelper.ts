@@ -2663,6 +2663,356 @@ export function printA4Prescription(data: PrintablePrescriptionData) {
   }, 300);
 }
 
+
+export interface PrintableSurgeryProtocolData {
+  surgeryId: string;
+  procedureName: string;
+  date: string;
+  startTime: string;
+  endTime?: string;
+  status: string;
+  patient: {
+    name: string;
+    species: string;
+    breed: string;
+    age: string;
+    weight: string;
+    hc: string;
+    sex?: string;
+  };
+  owner: {
+    name: string;
+    dni?: string;
+    phone?: string;
+    address?: string;
+  };
+  team: {
+    surgeon: string;
+    surgeonLicense?: string;
+    anesthetist: string;
+    assistant?: string;
+  };
+  preOp: {
+    asaGrade: string;
+    fastingHours: number;
+    labReviewed: boolean;
+    risksAlerts?: string;
+  };
+  anesthesia: {
+    premedication: string;
+    induction: string;
+    maintenance: string;
+    analgesia: string;
+    fluidRateMlPerHour?: number;
+  };
+  technique: string;
+  findings: string;
+  materialsUsed?: Array<{ name: string; quantity: number }>;
+  postOpOrders: string;
+  complications?: string;
+  notes?: string;
+}
+
+export function printA4SurgeryProtocol(data: PrintableSurgeryProtocolData): void {
+  const iframe = document.createElement('iframe');
+  iframe.style.position = 'fixed';
+  iframe.style.right = '0';
+  iframe.style.bottom = '0';
+  iframe.style.width = '0';
+  iframe.style.height = '0';
+  iframe.style.border = '0';
+  document.body.appendChild(iframe);
+
+  const doc = iframe.contentWindow?.document;
+  if (!doc) return;
+
+  const html = `
+    <!DOCTYPE html>
+    <html lang="es">
+      <head>
+        <meta charset="utf-8" />
+        <title>Protocolo Quirúrgico - ${data.procedureName} - ${data.patient.name}</title>
+        <style>
+          @page {
+            size: A4 portrait;
+            margin: 10mm 12mm 10mm 12mm;
+          }
+          * { box-sizing: border-box; margin: 0; padding: 0; }
+          body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            color: #0f172a;
+            background: #ffffff;
+            font-size: 10px;
+            line-height: 1.35;
+          }
+          .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #0f766e;
+            padding-bottom: 8px;
+            margin-bottom: 10px;
+          }
+          .brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+          }
+          .brand-emblem {
+            width: 38px;
+            height: 38px;
+            background: #0f766e;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 20px;
+            font-weight: 900;
+          }
+          .clinic-name {
+            font-size: 16px;
+            font-weight: 900;
+            color: #0f766e;
+            letter-spacing: -0.5px;
+          }
+          .clinic-sub {
+            font-size: 9px;
+            font-weight: 700;
+            color: #475569;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+          }
+          .doc-badge {
+            text-align: right;
+          }
+          .doc-badge-title {
+            font-size: 9px;
+            font-weight: 800;
+            color: #0f766e;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+          }
+          .doc-num {
+            font-size: 14px;
+            font-weight: 900;
+            color: #0f172a;
+            font-family: ui-monospace, monospace;
+            white-space: nowrap;
+          }
+          .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 8px;
+          }
+          .info-card {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            padding: 6px 10px;
+          }
+          .card-title {
+            font-size: 9px;
+            font-weight: 800;
+            text-transform: uppercase;
+            color: #0f766e;
+            margin-bottom: 3px;
+            border-bottom: 1px solid #cbd5e1;
+            padding-bottom: 2px;
+          }
+          .section-block {
+            background: #ffffff;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            overflow: hidden;
+          }
+          .section-header {
+            background: #f1f5f9;
+            padding: 4px 10px;
+            font-size: 9.5px;
+            font-weight: 800;
+            color: #0f766e;
+            text-transform: uppercase;
+            border-bottom: 1px solid #cbd5e1;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+          }
+          .section-content {
+            padding: 8px 10px;
+            font-size: 10px;
+          }
+          .asa-badge {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 800;
+            font-size: 9px;
+            background: #ccfbf1;
+            color: #0f766e;
+            border: 1px solid #99f6e4;
+          }
+          .signatures {
+            display: grid;
+            grid-template-columns: 1.2fr 1fr;
+            gap: 14px;
+            margin-top: 14px;
+            padding-top: 10px;
+            border-top: 1px solid #e2e8f0;
+          }
+          .security-box {
+            font-size: 8.5px;
+            color: #64748b;
+            background: #f8fafc;
+            border: 1px dashed #cbd5e1;
+            border-radius: 6px;
+            padding: 6px 8px;
+          }
+          .sig-box {
+            text-align: center;
+            padding-top: 25px;
+          }
+          .sig-line {
+            width: 170px;
+            margin: 0 auto 4px auto;
+            border-top: 1.5px solid #0f172a;
+          }
+          .footer-note {
+            margin-top: 10px;
+            font-size: 8px;
+            color: #64748b;
+            text-align: center;
+            border-top: 1px solid #f1f5f9;
+            padding-top: 4px;
+          }
+        </style>
+      </head>
+      <body>
+        <!-- Header -->
+        <div class="header">
+          <div class="brand">
+            <div class="brand-emblem">✂️</div>
+            <div>
+              <div class="clinic-name">VETERINARIA RANQUEL</div>
+              <div class="clinic-sub">Hospital Veterinario Quirúrgico & UCI · Dr. Diego Iván Irusta (M.P. 502)</div>
+              <div style="font-size: 8.5px; color: #64748b;">Casa 13, B° Militar, Las Lajas, Neuquén · Tel: +54 9 2942 47-7136</div>
+            </div>
+          </div>
+          <div class="doc-badge">
+            <div class="doc-badge-title">Protocolo Quirúrgico Oficial</div>
+            <div class="doc-num">${data.surgeryId}</div>
+            <div style="font-size: 9px; color: #475569;">Fecha: ${data.date} a las ${data.startTime} hs</div>
+          </div>
+        </div>
+
+        <!-- Info Grid: Paciente y Tutor -->
+        <div class="info-grid">
+          <div class="info-card">
+            <div class="card-title">Datos del Paciente</div>
+            <div><b>Nombre:</b> ${data.patient.name} · <b>Especie:</b> ${data.patient.species}</div>
+            <div><b>Raza:</b> ${data.patient.breed} · <b>Peso:</b> ${data.patient.weight}</div>
+            <div><b>HC:</b> ${data.patient.hc} · <b>Edad:</b> ${data.patient.age}</div>
+          </div>
+          <div class="info-card">
+            <div class="card-title">Datos del Tutor Responsable</div>
+            <div><b>Tutor:</b> ${data.owner.name}</div>
+            <div>${data.owner.dni ? `<b>DNI:</b> ${data.owner.dni} · ` : ''}<b>Tel:</b> ${data.owner.phone || 'No registrado'}</div>
+            <div><b>Domicilio:</b> ${data.owner.address || 'Las Lajas, Neuquén'}</div>
+          </div>
+        </div>
+
+        <!-- Procedimiento & Equipo Quirúrgico -->
+        <div class="section-block">
+          <div class="section-header">
+            <span>PROCEDIMIENTO: ${data.procedureName}</span>
+            <span class="asa-badge">Riesgo ASA: ${data.preOp.asaGrade}</span>
+          </div>
+          <div class="section-content" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px;">
+            <div><b>Cirujano Principal:</b><br/>${data.team.surgeon} ${data.team.surgeonLicense ? `(${data.team.surgeonLicense})` : '(M.P. 502)'}</div>
+            <div><b>Anestesista:</b><br/>${data.team.anesthetist}</div>
+            <div><b>Ayudante / Instrumentista:</b><br/>${data.team.assistant || 'Personal de Quirófano'}</div>
+          </div>
+        </div>
+
+        <!-- Protocolo Anestésico & Fluidoterapia -->
+        <div class="section-block">
+          <div class="section-header">
+            <span>PROTOCOLO ANESTÉSICO & FLUIDOTERAPIA</span>
+            <span style="font-size: 8.5px; color: #475569;">Ayuno: ${data.preOp.fastingHours}h</span>
+          </div>
+          <div class="section-content" style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+            <div>
+              <div><b>Premedicación:</b> ${data.anesthesia.premedication}</div>
+              <div style="margin-top: 2px;"><b>Inducción:</b> ${data.anesthesia.induction}</div>
+            </div>
+            <div>
+              <div><b>Mantenimiento:</b> ${data.anesthesia.maintenance}</div>
+              <div style="margin-top: 2px;"><b>Analgesia Intraop:</b> ${data.anesthesia.analgesia}</div>
+              ${data.anesthesia.fluidRateMlPerHour ? `<div style="margin-top: 2px; color: #0f766e; font-weight: bold;">Fluidoterapia: ${data.anesthesia.fluidRateMlPerHour} ml/h Ringer Lactato</div>` : ''}
+            </div>
+          </div>
+        </div>
+
+        <!-- Técnica Quirúrgica & Hallazgos -->
+        <div class="section-block">
+          <div class="section-header">
+            <span>DESCRIPCIÓN DE LA TÉCNICA QUIRÚRGICA & HALLAZGOS</span>
+          </div>
+          <div class="section-content">
+            <p style="white-space: pre-line; margin-bottom: 6px;"><b>Técnica:</b> ${data.technique}</p>
+            ${data.findings ? `<p style="white-space: pre-line; margin-bottom: 4px; color: #1e293b;"><b>Hallazgos Intraoperatorios:</b> ${data.findings}</p>` : ''}
+            ${data.complications ? `<p style="color: #b91c1c; font-weight: bold;"><b>Incidentes / Complicaciones:</b> ${data.complications}</p>` : ''}
+          </div>
+        </div>
+
+        <!-- Órdenes Posoperatorias & Plan de Recuperación -->
+        <div class="section-block">
+          <div class="section-header">
+            <span>ÓRDENES POSOPERATORIAS, ANALGESIA & CUIDADOS</span>
+          </div>
+          <div class="section-content">
+            <p style="white-space: pre-line;">${data.postOpOrders}</p>
+          </div>
+        </div>
+
+        <!-- Firmas y Seguridad -->
+        <div class="signatures">
+          <div class="security-box">
+            <b>🔒 Protocolo Oficial de Quirófano:</b><br/>
+            Acto médico quirúrgico registrado conforme a las normativas del Colegio Médico Veterinario de Neuquén y estándares de seguridad del paciente.
+          </div>
+          <div class="sig-box">
+            <div class="sig-line"></div>
+            <div style="font-weight: 800; font-size: 11px;">${data.team.surgeon}</div>
+            <div style="font-size: 9px; color: #475569;">Cirujano Veterinario · M.P. 502</div>
+            <div style="font-size: 8.5px; color: #0f766e; font-weight: bold;">Veterinaria Ranquel · Las Lajas</div>
+          </div>
+        </div>
+
+        <!-- Footer Note -->
+        <div class="footer-note">
+          Hospital Veterinario Ranquel · Casa 13, Barrio Militar de Oficiales, Las Lajas, Neuquén (CP 8347) · Tel: +54 9 2942 47-7136
+        </div>
+      </body>
+    </html>
+  `;
+
+  doc.open();
+  doc.write(html);
+  doc.close();
+
+  setTimeout(() => {
+    iframe.contentWindow?.focus();
+    iframe.contentWindow?.print();
+    setTimeout(() => {
+      document.body.removeChild(iframe);
+    }, 2000);
+  }, 300);
+}
+
+
 export interface PrintableLabReportData {
   orderNumber: string;
   testType: string;
