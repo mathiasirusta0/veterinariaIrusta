@@ -3,6 +3,8 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { syncAppointmentToSupabase } from '../../lib/supabaseSync';
 import { Appointment } from '../../types';
 
+import { supabase } from '../../lib/supabase';
+
 describe('Agenda de Turnos - Persistencia y Sincronización', () => {
   beforeEach(() => {
     localStorage.clear();
@@ -36,8 +38,9 @@ describe('Agenda de Turnos - Persistencia y Sincronización', () => {
   });
 
   it('2. La función syncAppointmentToSupabase ejecuta sin errores de schema y maneja vet_name correctamente', async () => {
+    const testId = `app-auto-test-${Date.now()}`;
     const mockApt: Appointment = {
-      id: `app-auto-${Date.now()}`,
+      id: testId,
       patientId: 'pat-duque-001',
       ownerId: 'own-enzo-001',
       vetId: 'usr-1',
@@ -53,5 +56,7 @@ describe('Agenda de Turnos - Persistencia y Sincronización', () => {
 
     // Should execute safely without throwing unhandled exceptions
     await expect(syncAppointmentToSupabase(mockApt)).resolves.not.toThrow();
+    // Clean up immediately so test records never persist into production database
+    await supabase.from('appointments').delete().eq('id', testId);
   });
 });

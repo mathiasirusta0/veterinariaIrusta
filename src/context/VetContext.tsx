@@ -802,12 +802,11 @@ export const VetProvider: React.FC<{ children: React.ReactNode }> = ({ children 
                   return [...cloudData.vaccinations!, ...localOnly];
                 });
               }
-              if (cloudData.appointments && cloudData.appointments.length > 0) {
-                setAppointments((prev) => {
-                  const cloudIds = new Set(cloudData.appointments!.map((a) => a.id));
-                  const localOnly = prev.filter((a) => !cloudIds.has(a.id));
-                  return [...cloudData.appointments!, ...localOnly];
-                });
+              if (cloudData.appointments !== undefined) {
+                setAppointments(cloudData.appointments);
+                try {
+                  localStorage.setItem('vetsys_appointments', JSON.stringify(cloudData.appointments));
+                } catch {}
               }
               if (cloudData.triageList && cloudData.triageList.length > 0) {
                 setTriageList((prev) => {
@@ -2420,8 +2419,16 @@ export const VetProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (apt) {
       logAudit('ELIMINAR_TURNO', 'Appointment', aptId, `Turno del ${apt.date} ${apt.time} eliminado`);
       showToast('success', 'Turno Eliminado', 'La cita fue eliminada de la agenda.');
-      Promise.resolve(supabase.from('appointments').delete().eq('id', aptId)).catch(() => {});
     }
+    // Borrado definitivo en Supabase Cloud
+    supabase
+      .from('appointments')
+      .delete()
+      .eq('id', aptId)
+      .then(({ error }) => {
+        if (error) console.error('[SUPABASE] Error al eliminar turno:', error);
+      })
+      .catch((err) => console.error('[SUPABASE] Error de red al eliminar turno:', err));
   };
 
   const deleteConsultation = (consultationId: string) => {
