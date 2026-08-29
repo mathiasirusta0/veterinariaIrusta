@@ -6,7 +6,12 @@
 -- 1. Habilitar extensión criptográfica
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
--- 2. Asegurar que las sucursales principales existan
+-- 2. Asegurar columnas en profiles
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS phone TEXT;
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS license_number TEXT;
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS active BOOLEAN DEFAULT true;
+
+-- 3. Asegurar que las sucursales principales existan
 INSERT INTO public.branches (id, name, address, phone, email, is_main)
 VALUES 
   ('branch-1', 'Sede Central Las Lajas', 'Casa 13, Barrio Militar de Oficiales, Las Lajas, Neuquén', '+54 9 2942 47-7136', 'contacto@veterinariaranquel.com.ar', true),
@@ -16,7 +21,7 @@ ON CONFLICT (id) DO UPDATE SET
   address = EXCLUDED.address,
   phone = EXCLUDED.phone;
 
--- 3. Crear o actualizar el usuario en auth.users con contraseña 'admin1998' y correo 100% confirmado
+-- 4. Crear o actualizar el usuario en auth.users con contraseña 'admin1998' y correo 100% confirmado
 DO $$
 DECLARE
   v_user_id UUID;
@@ -64,7 +69,7 @@ BEGIN
     WHERE id = v_user_id;
   END IF;
 
-  -- 4. Crear o actualizar en public.profiles
+  -- 5. Crear o actualizar en public.profiles
   INSERT INTO public.profiles (
     id,
     name,
@@ -72,7 +77,6 @@ BEGIN
     role,
     branch_id,
     license_number,
-    phone,
     active
   ) VALUES (
     v_user_id,
@@ -81,7 +85,6 @@ BEGIN
     'DIRECTOR_MEDICO',
     'branch-1',
     'M.P. 502 (Neuquén)',
-    '+54 9 2942 47-7136',
     true
   )
   ON CONFLICT (id) DO UPDATE SET
@@ -92,7 +95,7 @@ BEGIN
     license_number = EXCLUDED.license_number,
     active = true;
 
-  -- 5. Crear o actualizar en public.users
+  -- 6. Crear o actualizar en public.users
   INSERT INTO public.users (
     id,
     name,
@@ -118,6 +121,7 @@ BEGIN
     role = EXCLUDED.role,
     branch_id = EXCLUDED.branch_id,
     license_number = EXCLUDED.license_number,
+    phone = EXCLUDED.phone,
     active = true;
 
 END $$;
