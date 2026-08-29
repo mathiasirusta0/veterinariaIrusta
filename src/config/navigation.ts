@@ -144,15 +144,6 @@ export const NAVIGATION_ITEMS: NavItemConfig[] = [
     icon: FileText,
     group: 'ADMINISTRACION',
   },
-  {
-    id: 'CENTRO_QA',
-    label: 'Centro QA & Diagnóstico',
-    shortLabel: 'QA & Test',
-    description: 'Suite de validación operativa, test de integridad y auditoría técnica',
-    icon: Cpu,
-    group: 'ADMINISTRACION',
-    allowedRoles: ['SUPERADMIN', 'DIRECTOR_MEDICO', 'AUDITOR'],
-  },
 ];
 
 export const getNavLabel = (viewId: SystemView): string => {

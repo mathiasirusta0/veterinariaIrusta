@@ -2,10 +2,10 @@ import { describe, it, expect } from 'vitest';
 import { hasViewPermission, getDefaultViewForRole, hasQuickActionPermission } from '../../utils/rbac';
 
 describe('RBAC Permissions Matrix Unit Tests', () => {
-  it('SUPERADMIN and ADMINISTRADOR should have access to all modules including CIRUGIAS and CENTRO_QA', () => {
-    expect(hasViewPermission('SUPERADMIN', 'CENTRO_QA')).toBe(true);
+  it('SUPERADMIN and ADMINISTRADOR should have access to all modules including CIRUGIAS and DOCUMENTOS', () => {
+    expect(hasViewPermission('SUPERADMIN', 'DOCUMENTOS')).toBe(true);
     expect(hasViewPermission('SUPERADMIN', 'CIRUGIAS')).toBe(true);
-    expect(hasViewPermission('ADMINISTRADOR', 'CENTRO_QA')).toBe(true);
+    expect(hasViewPermission('ADMINISTRADOR', 'DOCUMENTOS')).toBe(true);
   });
 
   it('RECEPCION must be denied access to CIRUGIAS, LABORATORIO, and INVENTARIO', () => {

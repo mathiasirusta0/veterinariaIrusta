@@ -69,7 +69,6 @@ const LoginView = lazyRetry(() => import('./components/LoginView').then((m) => (
 const PublicLandingView = lazyRetry(() => import('./components/PublicLandingView').then((m) => ({ default: m.PublicLandingView })));
 const DocumentsView = lazyRetry(() => import('./components/DocumentsView').then((m) => ({ default: m.DocumentsView })));
 const PrescriptionsView = lazyRetry(() => import('./components/PrescriptionsView').then((m) => ({ default: m.PrescriptionsView })));
-const SystemQaTestCenterView = lazyRetry(() => import('./components/SystemQaTestCenterView').then((m) => ({ default: m.SystemQaTestCenterView })));
 
 // Sleek iOS-style Non-Jarring Skeleton Fallback
 const ViewLoadingFallback: React.FC = () => (
@@ -164,8 +163,6 @@ const MainLayout: React.FC = () => {
         setActiveView('LABORATORIO');
       } else if (appRoute.includes('imagen')) {
         setActiveView('IMAGENES');
-      } else if (appRoute.includes('qa') || appRoute.includes('test')) {
-        setActiveView('CENTRO_QA');
       } else if (appRoute.includes('inicio') || appRoute.includes('dashboard') || appRoute.includes('operacion')) {
         setActiveView('OPERACION');
       }
@@ -292,14 +289,6 @@ const MainLayout: React.FC = () => {
         return (
           <ModuleErrorBoundary moduleName="Recetario Veterinario Oficial SENASA">
             <PrescriptionsView />
-          </ModuleErrorBoundary>
-        );
-      case 'CENTRO_QA':
-      case 'TESTS':
-      case 'TESTER':
-        return (
-          <ModuleErrorBoundary moduleName="Centro de Pruebas QA">
-            <SystemQaTestCenterView />
           </ModuleErrorBoundary>
         );
       default:

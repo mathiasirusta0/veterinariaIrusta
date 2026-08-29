@@ -15,14 +15,15 @@ describe('Simplificación de Nombres de Navegación & UX', () => {
     expect(getNavLabel('LABORATORIO')).toBe('Laboratorio Clínico');
     expect(getNavLabel('IMAGENES')).toBe('Diagnóstico por Imágenes');
     expect(getNavLabel('RECETAS_OFICIALES')).toBe('Recetario & Prescripciones');
-    expect(getNavLabel('CENTRO_QA')).toBe('Centro QA & Diagnóstico');
   });
 
-  it('no debe incluir la vista ASISTENTE_IA ni CONSULTAS en la configuración de navegación', () => {
+  it('no debe incluir la vista ASISTENTE_IA, CONSULTAS ni CENTRO_QA en la configuración de navegación', () => {
     const aiItem = NAVIGATION_ITEMS.find((n) => (n.id as string) === 'ASISTENTE_IA');
     expect(aiItem).toBeUndefined();
     const consultasItem = NAVIGATION_ITEMS.find((n) => (n.id as string) === 'CONSULTAS');
     expect(consultasItem).toBeUndefined();
+    const qaItem = NAVIGATION_ITEMS.find((n) => (n.id as string) === 'CENTRO_QA');
+    expect(qaItem).toBeUndefined();
   });
 
   it('debe formatear enums técnicos de alertas médicas a texto legible en español', () => {

@@ -29,7 +29,6 @@ const PREFETCH_MAP: Record<string, () => Promise<any>> = {
   DOCUMENTOS: () => import('./DocumentsView'),
   RECETAS_OFICIALES: () => import('./PrescriptionsView'),
   PROPIETARIOS: () => import('./OwnersView'),
-  CENTRO_QA: () => import('./SystemQaTestCenterView'),
 };
 
 export const Sidebar: React.FC<SidebarProps> = ({
