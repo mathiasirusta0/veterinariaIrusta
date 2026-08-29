@@ -532,7 +532,9 @@ export const PrescriptionsView: React.FC = () => {
                         <div key={idx} className="bg-white p-2.5 rounded-xl border border-slate-200/80 shadow-2xs space-y-0.5">
                           <div className="flex items-center justify-between font-bold text-slate-900 text-xs">
                             <span>💊 {item.medicationName}</span>
-                            <span className="text-[10px] text-slate-500 font-normal">({item.presentation})</span>
+                            {item.presentation && (
+                              <span className="text-[10px] text-slate-500 font-normal">({item.presentation})</span>
+                            )}
                           </div>
                           <p className="text-[11px] text-slate-600">
                             <strong>Dosis:</strong> {item.dose} • <strong>Duración:</strong> {item.duration}

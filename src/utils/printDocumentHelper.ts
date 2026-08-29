@@ -2327,7 +2327,7 @@ export function printA4Prescription(data: PrintablePrescriptionData) {
   iframe.style.bottom = '0';
   iframe.style.width = '0';
   iframe.style.height = '0';
-  iframe.style.border = 'none';
+  iframe.style.border = '0';
   document.body.appendChild(iframe);
 
   const doc = iframe.contentWindow?.document;
@@ -2338,60 +2338,95 @@ export function printA4Prescription(data: PrintablePrescriptionData) {
     <html lang="es">
       <head>
         <meta charset="utf-8">
-        <title>Receta Médica — ${data.prescriptionNumber}</title>
+        <title>Receta Médica Veterinaria — ${data.prescriptionNumber}</title>
         <style>
           @page {
             size: A4 portrait;
-            margin: 15mm 12mm;
+            margin: 12mm 15mm;
           }
           * {
             box-sizing: border-box;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             color: #0f172a;
           }
           body {
             margin: 0;
-            padding: 10px;
+            padding: 8px 12px;
             font-size: 11px;
-            line-height: 1.4;
+            line-height: 1.45;
+            background: #ffffff;
           }
           .header {
             display: flex;
             justify-content: space-between;
-            align-items: flex-start;
+            align-items: center;
             border-bottom: 2.5px solid #0f766e;
             padding-bottom: 12px;
-            margin-bottom: 15px;
+            margin-bottom: 14px;
+          }
+          .clinic-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+          }
+          .clinic-logo-badge {
+            width: 50px;
+            height: 50px;
+            border-radius: 10px;
+            background: #0f766e;
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 26px;
+            font-weight: 900;
+            font-family: serif;
+            flex-shrink: 0;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
           }
           .clinic-name {
-            font-size: 18px;
+            font-size: 17px;
             font-weight: 900;
             color: #0f766e;
-            letter-spacing: -0.5px;
+            letter-spacing: -0.3px;
+            text-transform: uppercase;
           }
           .clinic-sub {
             font-size: 10px;
             color: #475569;
             font-weight: 600;
+            margin-top: 1px;
           }
           .rx-badge {
             background: #f0fdfa;
             border: 1.5px solid #0f766e;
-            padding: 6px 12px;
+            padding: 6px 14px;
             border-radius: 8px;
             text-align: right;
+            white-space: nowrap;
+            min-width: 170px;
+            flex-shrink: 0;
+          }
+          .rx-badge-title {
+            font-size: 8.5px;
+            font-weight: 800;
+            color: #0f766e;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
           }
           .rx-num {
-            font-size: 13px;
+            font-size: 13.5px;
             font-weight: 900;
             color: #0f766e;
             font-family: monospace;
+            letter-spacing: 0.5px;
+            margin: 2px 0;
           }
           .info-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 10px;
-            margin-bottom: 15px;
+            margin-bottom: 12px;
           }
           .info-card {
             background: #f8fafc;
@@ -2407,34 +2442,76 @@ export function printA4Prescription(data: PrintablePrescriptionData) {
             margin-bottom: 4px;
             border-bottom: 1px solid #e2e8f0;
             padding-bottom: 2px;
+            letter-spacing: 0.3px;
+          }
+          .diag-card {
+            background: #f8fafc;
+            border-left: 3.5px solid #0f766e;
+            border-top: 1px solid #e2e8f0;
+            border-right: 1px solid #e2e8f0;
+            border-bottom: 1px solid #e2e8f0;
+            border-radius: 6px;
+            padding: 7px 12px;
+            margin-bottom: 14px;
+            font-size: 11px;
           }
           .rp-heading {
-            font-size: 16px;
+            font-size: 14px;
             font-weight: 900;
-            font-serif: serif;
             color: #0f766e;
-            margin-bottom: 8px;
+            margin-bottom: 10px;
             display: flex;
             align-items: center;
             gap: 6px;
+            border-bottom: 1.5px solid #ccfbf1;
+            padding-bottom: 4px;
+          }
+          .med-list {
+            margin-bottom: 14px;
           }
           .med-item {
             background: #ffffff;
             border: 1px solid #e2e8f0;
             border-left: 3.5px solid #0f766e;
             border-radius: 6px;
-            padding: 8px 12px;
+            padding: 9px 12px;
             margin-bottom: 10px;
+            page-break-inside: avoid;
+          }
+          .med-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
           }
           .med-name {
             font-size: 12px;
             font-weight: 800;
             color: #0f172a;
           }
+          .med-presentation {
+            font-size: 11px;
+            font-weight: normal;
+            color: #64748b;
+          }
+          .med-qty {
+            font-weight: 900;
+            font-size: 11px;
+            color: #0f766e;
+            background: #f0fdfa;
+            padding: 1px 6px;
+            border-radius: 4px;
+            border: 1px solid #ccfbf1;
+          }
+          .med-active {
+            font-size: 9.5px;
+            color: #64748b;
+            margin-top: 1px;
+          }
           .med-detail {
             font-size: 10.5px;
             color: #334155;
-            margin-top: 2px;
+            margin-top: 4px;
+            line-height: 1.4;
           }
           .med-instructions {
             font-size: 10px;
@@ -2442,46 +2519,64 @@ export function printA4Prescription(data: PrintablePrescriptionData) {
             font-style: italic;
             margin-top: 4px;
             background: #f0fdfa;
-            padding: 3px 6px;
+            padding: 4px 8px;
             border-radius: 4px;
+            border: 1px solid #ccfbf1;
           }
           .signatures {
-            margin-top: 50px;
+            margin-top: 40px;
             display: flex;
-            justify-content: flex-end;
+            justify-content: space-between;
+            align-items: flex-end;
+            page-break-inside: avoid;
+          }
+          .security-box {
+            font-size: 8.5px;
+            color: #64748b;
+            border: 1px dashed #cbd5e1;
+            padding: 6px 10px;
+            border-radius: 6px;
+            max-width: 280px;
+            line-height: 1.35;
           }
           .sig-box {
-            width: 240px;
+            width: 250px;
             text-align: center;
           }
           .sig-line {
             border-top: 1.5px solid #0f172a;
-            margin-bottom: 4px;
+            margin-bottom: 5px;
           }
           .footer-note {
-            margin-top: 30px;
+            margin-top: 25px;
             border-top: 1px solid #e2e8f0;
             padding-top: 6px;
             font-size: 8.5px;
             color: #94a3b8;
             text-align: center;
+            line-height: 1.3;
           }
         </style>
       </head>
       <body>
+        <!-- Header -->
         <div class="header">
-          <div>
-            <div style="display: flex; align-items: center; gap: 12px;"><img src="/logo-ranquel.png" style="width: 50px; height: 50px; object-fit: contain; border-radius: 10px; border: 1px solid #cbd5e1; background: #fff; padding: 2px; margin-right: 12px; vertical-align: middle;" alt="Logo Ranquel" /><div><div class="clinic-name">CLÍNICA VETERINARIA RANQUEL</div>
-            <div class="clinic-sub">Dirección Médica: ${data.doctor.name} · ${data.doctor.license}</div>
-            <div class="clinic-sub">${data.branch.name} · ${data.branch.address} · Tel: ${data.branch.phone} · Casa 13, Barrio Militar de Oficiales, Las Lajas, Neuquén (CP 8347)</div>
+          <div class="clinic-brand">
+            <div class="clinic-logo-badge">℞</div>
+            <div>
+              <div class="clinic-name">CLÍNICA VETERINARIA RANQUEL</div>
+              <div class="clinic-sub">Dirección Médica: ${data.doctor.name} · ${data.doctor.license}</div>
+              <div class="clinic-sub">Casa 13, Barrio Militar de Oficiales, Las Lajas, Neuquén (CP 8347) · Tel: +54 9 2942 47-7136</div>
+            </div>
           </div>
           <div class="rx-badge">
-            <div style="font-size: 8.5px; font-weight: bold; color: #64748b; text-transform: uppercase;">Receta Médica Veterinaria</div>
+            <div class="rx-badge-title">Receta Médica Veterinaria</div>
             <div class="rx-num">${data.prescriptionNumber}</div>
-            <div style="font-size: 9px; color: #475569; margin-top: 2px;">Fecha: ${data.date}</div>
+            <div style="font-size: 9px; color: #475569;">Fecha: ${data.date}</div>
           </div>
         </div>
 
+        <!-- Info Grid -->
         <div class="info-grid">
           <div class="info-card">
             <div class="card-title">Datos del Paciente</div>
@@ -2497,46 +2592,57 @@ export function printA4Prescription(data: PrintablePrescriptionData) {
           </div>
         </div>
 
-        <div style="margin-bottom: 12px; font-size: 11px;">
-          <b>Diagnóstico Clínico / Motivo:</b> ${data.diagnosis}
+        <!-- Diagnosis Banner -->
+        <div class="diag-card">
+          <b>Diagnóstico Clínico / Motivo:</b> ${data.diagnosis || 'Tratamiento médico ambulatorio'}
         </div>
 
+        <!-- Prescriptions -->
         <div class="rp-heading">
-          <span>℞</span>
-          <span style="font-size: 12px; font-weight: 800; text-transform: uppercase;">Prescripción & Plan Farmacológico</span>
+          <span style="font-size: 16px;">℞</span>
+          <span>PRESCRIPCIÓN & PLAN FARMACOLÓGICO</span>
         </div>
 
         <div class="med-list">
-          ${data.items.map((it, idx) => `
-            <div class="med-item">
-              <div style="display: flex; justify-content: space-between;">
-                <div class="med-name">${idx + 1}. ${it.medicationName} ${it.presentation ? '(${it.presentation})' : ''}</div>
-                <div style="font-weight: 800; font-size: 10.5px; color: #0f766e;">Cant: ${it.quantityPrescribed}</div>
+          ${data.items.map((it, idx) => {
+            const presentationText = it.presentation ? `(${it.presentation})` : '';
+            return `
+              <div class="med-item">
+                <div class="med-header">
+                  <div class="med-name">${idx + 1}. ${it.medicationName} <span class="med-presentation">${presentationText}</span></div>
+                  <div class="med-qty">Cant: ${it.quantityPrescribed}</div>
+                </div>
+                ${it.activeIngredient ? `<div class="med-active">Principio Activo: ${it.activeIngredient}</div>` : ''}
+                <div class="med-detail">
+                  <b>Posología:</b> ${it.dose} · <b>Vía:</b> ${it.route} · <b>Frecuencia:</b> ${it.frequency} · <b>Duración:</b> ${it.duration}
+                </div>
+                ${it.instructions ? `<div class="med-instructions"><b>Indicaciones:</b> ${it.instructions}</div>` : ''}
               </div>
-              ${it.activeIngredient ? `<div style="font-size: 9.5px; color: #64748b;">Principio activo: ${it.activeIngredient}</div>` : ''}
-              <div class="med-detail">
-                <b>Posología:</b> ${it.dose} · <b>Vía:</b> ${it.route} · <b>Frecuencia:</b> ${it.frequency} · <b>Duración:</b> ${it.duration}
-              </div>
-              ${it.instructions ? `<div class="med-instructions"><b>Indicaciones:</b> ${it.instructions}</div>` : ''}
-            </div>
-          `).join('')}
+            `;
+          }).join('')}
         </div>
 
         ${data.notes ? `
-          <div style="margin-top: 10px; padding: 6px 10px; background: #fffbeb; border: 1px solid #fef3c7; border-radius: 6px; font-size: 9.5px; color: #92400e;">
+          <div style="margin-top: 10px; padding: 7px 12px; background: #fffbeb; border: 1px solid #fef3c7; border-radius: 6px; font-size: 9.5px; color: #92400e;">
             <b>Observaciones Adicionales:</b> ${data.notes}
           </div>
         ` : ''}
 
+        <!-- Signatures and Security -->
         <div class="signatures">
+          <div class="security-box">
+            <b>🔒 Validación Profesional & SENASA:</b><br/>
+            Documento médico veterinario con trazabilidad oficial y firma matriculada.
+          </div>
           <div class="sig-box">
             <div class="sig-line"></div>
-            <div style="font-weight: 800; font-size: 11px;">${data.doctor.name}</div>
+            <div style="font-weight: 800; font-size: 11.5px;">${data.doctor.name}</div>
             <div style="font-size: 9.5px; color: #475569;">Médico Veterinario · ${data.doctor.license}</div>
             <div style="font-size: 8.5px; color: #0f766e; font-weight: bold; margin-top: 2px;">Dirección Médica • Veterinaria Ranquel</div>
           </div>
         </div>
 
+        <!-- Footer Note -->
         <div class="footer-note">
           Receta extendida conforme a la Ley de Ejercicio Profesional Veterinario y reglamentación sanitaria SENASA. Válida por 30 días corridos a partir de su emisión.
         </div>
