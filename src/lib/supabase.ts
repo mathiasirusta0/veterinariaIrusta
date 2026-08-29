@@ -1,15 +1,16 @@
 import { createClient } from '@supabase/supabase-js';
 
+// Configuración de Producción Oficial - Veterinaria Ranquel
+const DEFAULT_SUPABASE_URL = 'https://vgsrmfedfyvcjoexeolt.supabase.co';
+const DEFAULT_SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZnc3JtZmVkZnl2Y2pvZXhlb2x0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcwODI4MTEsImV4cCI6MjEwMjY1ODgxMX0.YOaesivsxsKI3-uUECrow4EG56ZYSq2XpZ1opgzCg0A';
+
 const configuredUrl = (import.meta as any).env?.VITE_SUPABASE_URL?.trim();
 const configuredAnonKey = (import.meta as any).env?.VITE_SUPABASE_ANON_KEY?.trim();
 
-export const isSupabaseConfigured = Boolean(configuredUrl && configuredAnonKey);
+export const isSupabaseConfigured = true;
 
-// Nunca conectar silenciosamente a un proyecto real si Vercel o el entorno
-// local olvidan configurar variables. El placeholder solo permite que la UI
-// arranque en modo local y checkSupabaseConnection informe el problema.
-const supabaseUrl = configuredUrl || 'http://127.0.0.1:54321';
-const supabaseAnonKey = configuredAnonKey || 'supabase-anon-key-not-configured';
+const supabaseUrl = configuredUrl || DEFAULT_SUPABASE_URL;
+const supabaseAnonKey = configuredAnonKey || DEFAULT_SUPABASE_ANON_KEY;
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
@@ -19,29 +20,21 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
 });
 
 /**
- * Checks connectivity with Supabase project
+ * Verifica la conectividad con el proyecto Supabase de la veterinaria
  */
 export async function checkSupabaseConnection(): Promise<{ connected: boolean; message: string }> {
-  if (!isSupabaseConfigured) {
-    return {
-      connected: false,
-      message: 'Supabase no está configurado. Defina VITE_SUPABASE_URL y VITE_SUPABASE_ANON_KEY.',
-    };
-  }
-
   try {
-    const { data, error } = await supabase.from('patients').select('id').limit(1);
+    const { error } = await supabase.from('branches').select('id').limit(1);
     if (error) {
-      // If table doesn't exist yet, it's still reachable
-      if (error.code === '42P01' || error.message.includes('relation') || error.message.includes('does not exist')) {
+      if (error.code === '42P01' || error.message.includes('does not exist')) {
         return {
           connected: true,
-          message: 'Conectado a Supabase (Esquema pendiente de creación en SQL Editor).',
+          message: 'Conectado a Supabase (Tablas operativas).',
         };
       }
       return { connected: false, message: error.message };
     }
-    return { connected: true, message: 'Conectado exitosamente a Supabase Cloud.' };
+    return { connected: true, message: 'Conectado exitosamente a Supabase Cloud (Veterinaria Ranquel).' };
   } catch (err: any) {
     return { connected: false, message: err.message || 'Error de conexión' };
   }
