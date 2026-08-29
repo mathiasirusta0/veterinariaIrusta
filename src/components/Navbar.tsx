@@ -67,13 +67,17 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleMobileMenu }) => {
             triggerHaptic('light');
             setIsGlobalSearchOpen(true);
           }}
-          className="relative flex-1 min-w-0 flex items-center bg-slate-100/90 hover:bg-slate-200/80 border border-slate-200/90 hover:border-slate-300 rounded-xl px-2.5 sm:px-3 py-2 text-xs text-slate-500 transition-all shadow-2xs group overflow-hidden"
+          className="relative flex-1 min-w-0 flex items-center bg-slate-50 hover:bg-white border border-slate-200 hover:border-teal-400/80 rounded-xl px-2.5 sm:px-3.5 py-2 text-xs text-slate-500 transition-all shadow-2xs hover:shadow-xs group overflow-hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 cursor-pointer"
+          title="Abrir buscador global y centro de comandos (Ctrl+K)"
+          aria-label="Abrir buscador global"
         >
-          <Search className="w-4 h-4 text-slate-400 mr-1.5 flex-shrink-0 group-hover:text-teal-600 transition-colors" />
-          <span className="truncate font-medium text-slate-600 text-left text-[11px] sm:text-xs">
-            Buscar paciente, tutor, microchip, DNI...
+          <div className="w-5 h-5 rounded-lg bg-slate-100 group-hover:bg-teal-50 flex items-center justify-center mr-2 flex-shrink-0 transition-colors">
+            <Search className="w-3.5 h-3.5 text-slate-400 group-hover:text-teal-600 transition-colors" />
+          </div>
+          <span className="truncate font-semibold text-slate-600 group-hover:text-slate-900 text-left text-[11px] sm:text-xs transition-colors">
+            Buscar paciente, tutor, DNI, turno, receta...
           </span>
-          <span className="hidden md:flex items-center gap-1 ml-auto text-[10px] text-slate-500 border border-slate-300 bg-white px-2 py-0.5 rounded-md font-mono font-semibold shadow-2xs flex-shrink-0">
+          <span className="hidden md:flex items-center gap-1 ml-auto text-[10px] text-slate-500 border border-slate-200/90 bg-white px-2 py-0.5 rounded-lg font-mono font-bold shadow-2xs flex-shrink-0 group-hover:border-teal-200 group-hover:text-teal-700 transition-colors">
             <Command className="w-2.5 h-2.5" /> K
           </span>
         </button>
