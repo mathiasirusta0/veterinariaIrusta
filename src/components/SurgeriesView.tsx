@@ -835,12 +835,12 @@ export const SurgeriesView: React.FC = () => {
         )}
       </div>
 
-      {/* 5. Modal de Creación de Cirugía con Presets Quirúrgicos y Diseño Impecable */}
+      {/* 5. Modal de Creación de Cirugía con Presets Quirúrgicos, Scroll Visible y Footer Fijo */}
       {showNewSurgeryModal && (
-        <div className="fixed inset-0 bg-slate-950/60 backdrop-blur-xs flex items-center justify-center z-50 p-2 sm:p-4 overflow-y-auto animate-in fade-in duration-150">
-          <div className="bg-white rounded-3xl p-4 sm:p-6 border border-slate-200 max-w-3xl w-full shadow-2xl space-y-4 my-auto animate-in zoom-in-95 max-h-[92vh] overflow-y-auto custom-scrollbar">
-            {/* Header del Modal */}
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+        <div className="fixed inset-0 bg-slate-950/60 backdrop-blur-xs flex items-center justify-center z-50 p-2 sm:p-4 overflow-hidden animate-in fade-in duration-150">
+          <div className="bg-white rounded-3xl border border-slate-200 max-w-3xl w-full shadow-2xl flex flex-col max-h-[92vh] animate-in zoom-in-95 overflow-hidden">
+            {/* Header del Modal - Fijo / Sticky */}
+            <div className="px-5 py-3.5 border-b border-slate-100 flex items-center justify-between flex-shrink-0 bg-white">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-2xl bg-teal-50 border border-teal-200 flex items-center justify-center text-teal-700 shadow-2xs">
                   <Scissors className="w-5 h-5" />
@@ -863,285 +863,295 @@ export const SurgeriesView: React.FC = () => {
               </button>
             </div>
 
-            {/* Presets Quirúrgicos de 1 Clic */}
-            <div className="bg-gradient-to-r from-teal-50 to-emerald-50 border border-teal-200/90 p-3.5 rounded-2xl space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-[11px] font-black uppercase text-teal-900 tracking-wider flex items-center gap-1.5">
-                  <Sparkles className="w-3.5 h-3.5 text-teal-700" />
-                  Plantillas Quirúrgicas Frecuentes (1-Clic Presets):
-                </span>
-                {selectedPresetId && (
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-teal-200/80 text-teal-900">
-                    Plantilla Activa
-                  </span>
-                )}
-              </div>
-              <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
-                {SURGERY_PRESETS.map((preset) => {
-                  const isSelected = selectedPresetId === preset.id;
-                  return (
-                    <button
-                      key={preset.id}
-                      type="button"
-                      onClick={() => handleApplyPreset(preset.id)}
-                      className={'px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all flex items-center gap-1.5 cursor-pointer shadow-2xs ' +
-                        (isSelected
-                          ? 'bg-teal-700 text-white shadow-sm ring-2 ring-teal-500 font-black'
-                          : 'bg-white text-slate-700 hover:bg-teal-100 hover:border-teal-300 border border-teal-200')}
-                    >
-                      <span>{preset.name.split('(')[0].trim()}</span>
-                      <span className={'text-[10px] px-1.5 py-0.2 rounded-md ' + (isSelected ? 'bg-teal-800 text-teal-100' : 'bg-slate-100 text-slate-600')}>
-                        {preset.durationMinutes}m
+            {/* Formulario completo con Contenedor Scrollable y Footer Sticky */}
+            <form onSubmit={handleCreateSurgery} className="flex flex-col flex-1 min-h-0 overflow-hidden">
+              {/* Body con Scroll Claro y Visible */}
+              <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4 custom-scrollbar">
+                {/* Presets Quirúrgicos */}
+                <div className="bg-gradient-to-r from-teal-50 to-emerald-50 border border-teal-200/90 p-3.5 rounded-2xl space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] font-black uppercase text-teal-900 tracking-wider flex items-center gap-1.5">
+                      <Sparkles className="w-3.5 h-3.5 text-teal-700" />
+                      Plantillas Quirúrgicas Frecuentes (1-Clic Presets):
+                    </span>
+                    {selectedPresetId && (
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-teal-200/80 text-teal-900">
+                        Plantilla Activa
                       </span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            <form onSubmit={handleCreateSurgery} className="space-y-4 text-xs">
-              {/* Sección 1: Paciente y Procedimiento */}
-              <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-2xl space-y-3">
-                <div className="flex items-center gap-2 text-slate-800 font-black text-xs border-b border-slate-200 pb-1.5">
-                  <Stethoscope className="w-3.5 h-3.5 text-teal-700" />
-                  <span>1. Paciente & Procedimiento</span>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div>
-                    <label className="text-slate-700 block font-bold mb-1">Paciente Veterinario:</label>
-                    <select
-                      value={surgPatientId}
-                      onChange={(e) => setSurgPatientId(e.target.value)}
-                      required
-                      className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-slate-900 font-semibold focus:ring-2 focus:ring-teal-500 shadow-2xs"
-                    >
-                      {patients.map((p) => (
-                        <option key={p.id} value={p.id}>
-                          {p.name} ({p.species} - {p.breed}) • {p.weight ? formatWeight(p.weight) : 'S/P'}
-                        </option>
-                      ))}
-                    </select>
+                    )}
                   </div>
-
-                  <div>
-                    <label className="text-slate-700 block font-bold mb-1">Procedimiento Quirúrgico:</label>
-                    <input
-                      type="text"
-                      value={surgProcedureName}
-                      onChange={(e) => setSurgProcedureName(e.target.value)}
-                      placeholder="ej: Ovariohisterectomía / Osteosíntesis"
-                      required
-                      className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-slate-900 font-semibold focus:ring-2 focus:ring-teal-500 shadow-2xs"
-                    />
+                  <div className="flex items-center gap-2 overflow-x-auto pb-1.5 custom-scrollbar">
+                    {SURGERY_PRESETS.map((preset) => {
+                      const isSelected = selectedPresetId === preset.id;
+                      return (
+                        <button
+                          key={preset.id}
+                          type="button"
+                          onClick={() => handleApplyPreset(preset.id)}
+                          className={'px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all flex items-center gap-1.5 cursor-pointer shadow-2xs ' +
+                            (isSelected
+                              ? 'bg-teal-700 text-white shadow-sm ring-2 ring-teal-500 font-black'
+                              : 'bg-white text-slate-700 hover:bg-teal-100 hover:border-teal-300 border border-teal-200')}
+                        >
+                          <span>{preset.name.split('(')[0].trim()}</span>
+                          <span className={'text-[10px] px-1.5 py-0.2 rounded-md ' + (isSelected ? 'bg-teal-800 text-teal-100' : 'bg-slate-100 text-slate-600')}>
+                            {preset.durationMinutes}m
+                          </span>
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
 
-                {/* Banner de Fluidos Dinámicos por Peso */}
-                {selectedModalPatient && (
-                  <div className="p-2.5 bg-teal-50/80 border border-teal-200 rounded-xl flex items-center justify-between gap-2 text-xs">
-                    <div className="flex items-center gap-2 text-teal-900 font-semibold">
-                      <Droplets className="w-4 h-4 text-teal-600 flex-shrink-0" />
-                      <span>
-                        Paciente: <strong>{selectedModalPatient.name}</strong> ({modalPatientWeight} kg)
-                      </span>
+                {/* Sección 1: Paciente y Procedimiento */}
+                <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-2xl space-y-3">
+                  <div className="flex items-center gap-2 text-slate-800 font-black text-xs border-b border-slate-200 pb-1.5">
+                    <Stethoscope className="w-3.5 h-3.5 text-teal-700" />
+                    <span>1. Paciente & Procedimiento</span>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                    <div>
+                      <label className="text-slate-700 block font-bold mb-1">Paciente Veterinario:</label>
+                      <select
+                        value={surgPatientId}
+                        onChange={(e) => setSurgPatientId(e.target.value)}
+                        required
+                        className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-slate-900 font-semibold focus:ring-2 focus:ring-teal-500 shadow-2xs"
+                      >
+                        {patients.map((p) => (
+                          <option key={p.id} value={p.id}>
+                            {p.name} ({p.species} - {p.breed}) • {p.weight ? formatWeight(p.weight) : 'S/P'}
+                          </option>
+                        ))}
+                      </select>
                     </div>
-                    <div className="text-teal-800 font-mono font-bold">
-                      Fluidoterapia sugerida: <span className="text-teal-950 font-black">{modalCalculatedFluids} ml/h</span> (Ringer Lactato)
+
+                    <div>
+                      <label className="text-slate-700 block font-bold mb-1">Procedimiento Quirúrgico:</label>
+                      <input
+                        type="text"
+                        value={surgProcedureName}
+                        onChange={(e) => setSurgProcedureName(e.target.value)}
+                        placeholder="ej: Ovariohisterectomía / Osteosíntesis"
+                        required
+                        className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-slate-900 font-semibold focus:ring-2 focus:ring-teal-500 shadow-2xs"
+                      />
                     </div>
                   </div>
-                )}
+
+                  {/* Banner de Fluidos Dinámicos por Peso */}
+                  {selectedModalPatient && (
+                    <div className="p-2.5 bg-teal-50/80 border border-teal-200 rounded-xl flex items-center justify-between gap-2 text-xs flex-wrap">
+                      <div className="flex items-center gap-2 text-teal-900 font-semibold">
+                        <Droplets className="w-4 h-4 text-teal-600 flex-shrink-0" />
+                        <span>
+                          Paciente: <strong>{selectedModalPatient.name}</strong> ({modalPatientWeight} kg)
+                        </span>
+                      </div>
+                      <div className="text-teal-800 font-mono font-bold">
+                        Fluidoterapia sugerida: <span className="text-teal-950 font-black">{modalCalculatedFluids} ml/h</span> (Ringer Lactato)
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Sección 2: Equipo Quirúrgico y Programación */}
+                <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-2xl space-y-3">
+                  <div className="flex items-center gap-2 text-slate-800 font-black text-xs border-b border-slate-200 pb-1.5">
+                    <User className="w-3.5 h-3.5 text-teal-700" />
+                    <span>2. Equipo Quirúrgico, Fecha & Riesgo ASA</span>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+                    <div>
+                      <label className="text-slate-700 block font-bold mb-1">Cirujano Principal:</label>
+                      <input
+                        type="text"
+                        value={surgSurgeon}
+                        onChange={(e) => setSurgSurgeon(e.target.value)}
+                        required
+                        className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-slate-900 font-medium shadow-2xs"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-slate-700 block font-bold mb-1">Anestesista:</label>
+                      <input
+                        type="text"
+                        value={surgAnesthetist}
+                        onChange={(e) => setSurgAnesthetist(e.target.value)}
+                        required
+                        className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-slate-900 font-medium shadow-2xs"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-slate-700 block font-bold mb-1">Ayudante / Instrumentista:</label>
+                      <input
+                        type="text"
+                        value={surgAssistant}
+                        onChange={(e) => setSurgAssistant(e.target.value)}
+                        placeholder="Opcional"
+                        className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-slate-900 font-medium shadow-2xs"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+                    <div>
+                      <label className="text-slate-700 block font-bold mb-1">Fecha:</label>
+                      <input
+                        type="date"
+                        value={surgDate}
+                        onChange={(e) => setSurgDate(e.target.value)}
+                        required
+                        className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-slate-900 font-mono shadow-2xs"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-slate-700 block font-bold mb-1">Hora Inicio:</label>
+                      <input
+                        type="time"
+                        value={surgStartTime}
+                        onChange={(e) => setSurgStartTime(e.target.value)}
+                        required
+                        className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-slate-900 font-mono shadow-2xs"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-slate-700 block font-bold mb-1">Duración (min):</label>
+                      <input
+                        type="number"
+                        value={surgDuration}
+                        onChange={(e) => setSurgDuration(Number(e.target.value))}
+                        required
+                        min={10}
+                        className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-slate-900 font-mono font-bold shadow-2xs"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-slate-700 block font-bold mb-1">Riesgo ASA:</label>
+                      <select
+                        value={surgAsa}
+                        onChange={(e) => setSurgAsa(e.target.value as any)}
+                        className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-slate-900 font-bold shadow-2xs"
+                      >
+                        <option value="I">ASA I - Sano</option>
+                        <option value="II">ASA II - Leve</option>
+                        <option value="III">ASA III - Moderada</option>
+                        <option value="IV">ASA IV - Grave</option>
+                        <option value="V">ASA V - Moribundo</option>
+                        <option value="E">ASA E - Emergencia</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Sección 3: Protocolo Anestésico */}
+                <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-2xl space-y-3">
+                  <div className="flex items-center gap-2 text-slate-800 font-black text-xs border-b border-slate-200 pb-1.5">
+                    <Pill className="w-3.5 h-3.5 text-teal-700" />
+                    <span>3. Protocolo Anestésico & Farmacológico</span>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                    <div>
+                      <label className="text-slate-700 block font-bold mb-0.5">Premedicación:</label>
+                      <input
+                        type="text"
+                        value={surgPremedication}
+                        onChange={(e) => setSurgPremedication(e.target.value)}
+                        className="w-full bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-slate-900 shadow-2xs"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-slate-700 block font-bold mb-0.5">Inducción:</label>
+                      <input
+                        type="text"
+                        value={surgInduction}
+                        onChange={(e) => setSurgInduction(e.target.value)}
+                        className="w-full bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-slate-900 shadow-2xs"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-slate-700 block font-bold mb-0.5">Mantenimiento:</label>
+                      <input
+                        type="text"
+                        value={surgMaintenance}
+                        onChange={(e) => setSurgMaintenance(e.target.value)}
+                        className="w-full bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-slate-900 shadow-2xs"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-slate-700 block font-bold mb-0.5">Analgesia Perioperatoria:</label>
+                      <input
+                        type="text"
+                        value={surgAnalgesia}
+                        onChange={(e) => setSurgAnalgesia(e.target.value)}
+                        className="w-full bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-slate-900 shadow-2xs"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Sección 4: Técnica y Órdenes */}
+                <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-2xl space-y-3">
+                  <div className="flex items-center gap-2 text-slate-800 font-black text-xs border-b border-slate-200 pb-1.5">
+                    <FileText className="w-3.5 h-3.5 text-teal-700" />
+                    <span>4. Técnica Quirúrgica & Indicaciones Postoperatorias</span>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                    <div>
+                      <label className="text-slate-700 block font-bold mb-1">Técnica Quirúrgica Prevista:</label>
+                      <textarea
+                        rows={3}
+                        value={surgTechnique}
+                        onChange={(e) => setSurgTechnique(e.target.value)}
+                        placeholder="Descripción del abordaje y técnica de síntesis..."
+                        className="w-full bg-white border border-slate-200 rounded-xl p-2.5 text-slate-900 shadow-2xs leading-relaxed"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-slate-700 block font-bold mb-1">Órdenes Posoperatorias & Alta:</label>
+                      <textarea
+                        rows={3}
+                        value={surgPostOpOrders}
+                        onChange={(e) => setSurgPostOpOrders(e.target.value)}
+                        placeholder="Reposo, medicación postquirúrgica y cuidados..."
+                        className="w-full bg-white border border-slate-200 rounded-xl p-2.5 text-slate-900 shadow-2xs leading-relaxed"
+                      />
+                    </div>
+                  </div>
+                </div>
               </div>
 
-              {/* Sección 2: Equipo Quirúrgico y Programación */}
-              <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-2xl space-y-3">
-                <div className="flex items-center gap-2 text-slate-800 font-black text-xs border-b border-slate-200 pb-1.5">
-                  <User className="w-3.5 h-3.5 text-teal-700" />
-                  <span>2. Equipo Quirúrgico, Fecha & Riesgo ASA</span>
+              {/* Footer Fijo con Acciones Siempre Visibles */}
+              <div className="px-5 py-3.5 bg-slate-50 border-t border-slate-200 flex items-center justify-between flex-shrink-0 rounded-b-3xl">
+                <div className="hidden sm:flex items-center gap-2 text-xs text-slate-500 font-medium">
+                  <span className="w-2 h-2 rounded-full bg-teal-500" />
+                  <span>Riesgo ASA {surgAsa} • {surgDuration} min • {modalCalculatedFluids} ml/h fluidos</span>
                 </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  <div>
-                    <label className="text-slate-700 block font-bold mb-1">Cirujano Principal:</label>
-                    <input
-                      type="text"
-                      value={surgSurgeon}
-                      onChange={(e) => setSurgSurgeon(e.target.value)}
-                      required
-                      className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-slate-900 font-medium shadow-2xs"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="text-slate-700 block font-bold mb-1">Anestesista:</label>
-                    <input
-                      type="text"
-                      value={surgAnesthetist}
-                      onChange={(e) => setSurgAnesthetist(e.target.value)}
-                      required
-                      className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-slate-900 font-medium shadow-2xs"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="text-slate-700 block font-bold mb-1">Ayudante / Instrumentista:</label>
-                    <input
-                      type="text"
-                      value={surgAssistant}
-                      onChange={(e) => setSurgAssistant(e.target.value)}
-                      placeholder="Opcional"
-                      className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-slate-900 font-medium shadow-2xs"
-                    />
-                  </div>
+                <div className="flex items-center gap-2.5 ml-auto">
+                  <button
+                    type="button"
+                    onClick={() => setShowNewSurgeryModal(false)}
+                    className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl transition-colors cursor-pointer text-xs"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-5 py-2 bg-teal-600 hover:bg-teal-500 text-white font-black rounded-xl shadow-md transition-all active:scale-95 flex items-center gap-1.5 cursor-pointer text-xs"
+                  >
+                    <Check className="w-4 h-4" />
+                    <span>Programar e Ingresar a Quirófano</span>
+                  </button>
                 </div>
-
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                  <div>
-                    <label className="text-slate-700 block font-bold mb-1">Fecha:</label>
-                    <input
-                      type="date"
-                      value={surgDate}
-                      onChange={(e) => setSurgDate(e.target.value)}
-                      required
-                      className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-slate-900 font-mono shadow-2xs"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="text-slate-700 block font-bold mb-1">Hora Inicio:</label>
-                    <input
-                      type="time"
-                      value={surgStartTime}
-                      onChange={(e) => setSurgStartTime(e.target.value)}
-                      required
-                      className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-slate-900 font-mono shadow-2xs"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="text-slate-700 block font-bold mb-1">Duración (min):</label>
-                    <input
-                      type="number"
-                      value={surgDuration}
-                      onChange={(e) => setSurgDuration(Number(e.target.value))}
-                      required
-                      min={10}
-                      className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-slate-900 font-mono font-bold shadow-2xs"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="text-slate-700 block font-bold mb-1">Riesgo ASA:</label>
-                    <select
-                      value={surgAsa}
-                      onChange={(e) => setSurgAsa(e.target.value as any)}
-                      className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-slate-900 font-bold shadow-2xs"
-                    >
-                      <option value="I">ASA I - Sano</option>
-                      <option value="II">ASA II - Leve</option>
-                      <option value="III">ASA III - Moderada</option>
-                      <option value="IV">ASA IV - Grave</option>
-                      <option value="V">ASA V - Moribundo</option>
-                      <option value="E">ASA E - Emergencia</option>
-                    </select>
-                  </div>
-                </div>
-              </div>
-
-              {/* Sección 3: Protocolo Anestésico */}
-              <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-2xl space-y-3">
-                <div className="flex items-center gap-2 text-slate-800 font-black text-xs border-b border-slate-200 pb-1.5">
-                  <Pill className="w-3.5 h-3.5 text-teal-700" />
-                  <span>3. Protocolo Anestésico & Farmacológico</span>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div>
-                    <label className="text-slate-700 block font-bold mb-0.5">Premedicación:</label>
-                    <input
-                      type="text"
-                      value={surgPremedication}
-                      onChange={(e) => setSurgPremedication(e.target.value)}
-                      className="w-full bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-slate-900 shadow-2xs"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-slate-700 block font-bold mb-0.5">Inducción:</label>
-                    <input
-                      type="text"
-                      value={surgInduction}
-                      onChange={(e) => setSurgInduction(e.target.value)}
-                      className="w-full bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-slate-900 shadow-2xs"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-slate-700 block font-bold mb-0.5">Mantenimiento:</label>
-                    <input
-                      type="text"
-                      value={surgMaintenance}
-                      onChange={(e) => setSurgMaintenance(e.target.value)}
-                      className="w-full bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-slate-900 shadow-2xs"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-slate-700 block font-bold mb-0.5">Analgesia Perioperatoria:</label>
-                    <input
-                      type="text"
-                      value={surgAnalgesia}
-                      onChange={(e) => setSurgAnalgesia(e.target.value)}
-                      className="w-full bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-slate-900 shadow-2xs"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Sección 4: Técnica y Órdenes */}
-              <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-2xl space-y-3">
-                <div className="flex items-center gap-2 text-slate-800 font-black text-xs border-b border-slate-200 pb-1.5">
-                  <FileText className="w-3.5 h-3.5 text-teal-700" />
-                  <span>4. Técnica Quirúrgica & Indicaciones Postoperatorias</span>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div>
-                    <label className="text-slate-700 block font-bold mb-1">Técnica Quirúrgica Prevista:</label>
-                    <textarea
-                      rows={3}
-                      value={surgTechnique}
-                      onChange={(e) => setSurgTechnique(e.target.value)}
-                      placeholder="Descripción del abordaje y técnica de síntesis..."
-                      className="w-full bg-white border border-slate-200 rounded-xl p-2.5 text-slate-900 shadow-2xs leading-relaxed"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-slate-700 block font-bold mb-1">Órdenes Posoperatorias & Alta:</label>
-                    <textarea
-                      rows={3}
-                      value={surgPostOpOrders}
-                      onChange={(e) => setSurgPostOpOrders(e.target.value)}
-                      placeholder="Reposo, medicación postquirúrgica y cuidados..."
-                      className="w-full bg-white border border-slate-200 rounded-xl p-2.5 text-slate-900 shadow-2xs leading-relaxed"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Footer Buttons */}
-              <div className="pt-2 border-t border-slate-100 flex items-center justify-end gap-2.5">
-                <button
-                  type="button"
-                  onClick={() => setShowNewSurgeryModal(false)}
-                  className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl transition-colors cursor-pointer"
-                >
-                  Cancelar
-                </button>
-                <button
-                  type="submit"
-                  className="px-5 py-2 bg-teal-600 hover:bg-teal-500 text-white font-black rounded-xl shadow-md transition-all active:scale-95 flex items-center gap-1.5 cursor-pointer"
-                >
-                  <Check className="w-4 h-4" />
-                  <span>Programar e Ingresar a Quirófano</span>
-                </button>
               </div>
             </form>
           </div>
@@ -1150,9 +1160,10 @@ export const SurgeriesView: React.FC = () => {
 
       {/* 6. Checklist Modal OMS */}
       {showChecklistModal && (
-        <div className="fixed inset-0 bg-slate-950/60 backdrop-blur-xs flex items-center justify-center z-50 p-3 sm:p-4 animate-in fade-in duration-150">
-          <div className="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200 max-w-lg w-full shadow-2xl space-y-4 animate-in zoom-in-95 max-h-[90vh] overflow-y-auto custom-scrollbar">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+        <div className="fixed inset-0 bg-slate-950/60 backdrop-blur-xs flex items-center justify-center z-50 p-3 sm:p-4 overflow-hidden animate-in fade-in duration-150">
+          <div className="bg-white rounded-3xl border border-slate-200 max-w-lg w-full shadow-2xl flex flex-col max-h-[90vh] animate-in zoom-in-95 overflow-hidden">
+            {/* Header Fijo */}
+            <div className="px-5 py-3.5 border-b border-slate-100 flex items-center justify-between flex-shrink-0 bg-white">
               <div className="flex items-center gap-2.5">
                 <div className="w-9 h-9 rounded-xl bg-teal-50 border border-teal-200 flex items-center justify-center text-teal-700">
                   <ShieldCheck className="w-5 h-5" />
@@ -1165,13 +1176,14 @@ export const SurgeriesView: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setShowChecklistModal(null)}
-                className="w-7 h-7 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold text-xs"
+                className="w-7 h-7 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold text-xs cursor-pointer"
               >
                 ✕
               </button>
             </div>
 
-            <div className="space-y-3.5 text-xs">
+            {/* Body Scrollable */}
+            <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-3.5 text-xs custom-scrollbar">
               <div className="p-3 bg-blue-50/70 border border-blue-200/80 rounded-2xl space-y-2">
                 <span className="text-[10px] uppercase font-black text-blue-900 block tracking-wider">
                   1. Sign In (Previo a la inducción anestésica):
@@ -1278,7 +1290,8 @@ export const SurgeriesView: React.FC = () => {
               </div>
             </div>
 
-            <div className="pt-3 border-t border-slate-100 flex justify-end">
+            {/* Footer Fijo */}
+            <div className="px-5 py-3 border-t border-slate-100 flex justify-end flex-shrink-0 bg-slate-50 rounded-b-3xl">
               <button
                 type="button"
                 onClick={() => {
@@ -1297,9 +1310,10 @@ export const SurgeriesView: React.FC = () => {
 
       {/* 7. Consentimiento Informado Quirúrgico Modal */}
       {showConsentModal && (
-        <div className="fixed inset-0 bg-slate-950/60 backdrop-blur-xs flex items-center justify-center z-50 p-3 sm:p-4 animate-in fade-in duration-150">
-          <div className="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200 max-w-xl w-full shadow-2xl space-y-4 animate-in zoom-in-95 max-h-[90vh] overflow-y-auto custom-scrollbar">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+        <div className="fixed inset-0 bg-slate-950/60 backdrop-blur-xs flex items-center justify-center z-50 p-3 sm:p-4 overflow-hidden animate-in fade-in duration-150">
+          <div className="bg-white rounded-3xl border border-slate-200 max-w-xl w-full shadow-2xl flex flex-col max-h-[90vh] animate-in zoom-in-95 overflow-hidden">
+            {/* Header Fijo */}
+            <div className="px-5 py-3.5 border-b border-slate-100 flex items-center justify-between flex-shrink-0 bg-white">
               <div className="flex items-center gap-2.5">
                 <div className="w-9 h-9 rounded-xl bg-teal-50 border border-teal-200 flex items-center justify-center text-teal-700">
                   <FileText className="w-5 h-5" />
@@ -1312,42 +1326,46 @@ export const SurgeriesView: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setShowConsentModal(null)}
-                className="w-7 h-7 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold text-xs"
+                className="w-7 h-7 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold text-xs cursor-pointer"
               >
                 ✕
               </button>
             </div>
 
-            <div className="space-y-3 text-xs text-slate-700 bg-slate-50 p-4 rounded-2xl border border-slate-200">
-              <p className="font-black text-slate-900 text-sm border-b border-slate-200 pb-1">
-                AUTORIZACIÓN PARA INTERVENCIÓN QUIRÚRGICA Y ANESTESIA
-              </p>
-              <p>
-                Por la presente autorizo al equipo veterinario de <strong>Veterinaria Ranquel</strong> a realizar el procedimiento denominado{' '}
-                <strong>{showConsentModal.procedureName}</strong> en el paciente registrado con clasificación de riesgo{' '}
-                <strong>ASA {showConsentModal.preOpAssessment?.asaGrade || 'I'}</strong>.
-              </p>
-              <p>
-                He sido informado de los riesgos inherentes a todo acto anestésico y quirúrgico, de las alternativas terapéuticas, así como de los cuidados
-                posoperatorios requeridos para su adecuada recuperación.
-              </p>
-              <div className="pt-4 grid grid-cols-2 gap-4 border-t border-slate-200 text-[11px]">
-                <div>
-                  <span className="block text-slate-400 font-bold">Cirujano Responsable:</span>
-                  <strong className="text-slate-800">{showConsentModal.surgeonName || 'Dr. Diego Iván Irusta'}</strong>
-                </div>
-                <div>
-                  <span className="block text-slate-400 font-bold">Anestesista:</span>
-                  <strong className="text-slate-800">{showConsentModal.anesthetistName || 'Dr. Diego Iván Irusta'}</strong>
+            {/* Body Scrollable */}
+            <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-3 text-xs text-slate-700 custom-scrollbar">
+              <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-2.5">
+                <p className="font-black text-slate-900 text-sm border-b border-slate-200 pb-1">
+                  AUTORIZACIÓN PARA INTERVENCIÓN QUIRÚRGICA Y ANESTESIA
+                </p>
+                <p>
+                  Por la presente autorizo al equipo veterinario de <strong>Veterinaria Ranquel</strong> a realizar el procedimiento denominado{' '}
+                  <strong>{showConsentModal.procedureName}</strong> en el paciente registrado con clasificación de riesgo{' '}
+                  <strong>ASA {showConsentModal.preOpAssessment?.asaGrade || 'I'}</strong>.
+                </p>
+                <p>
+                  He sido informado de los riesgos inherentes a todo acto anestésico y quirúrgico, de las alternativas terapéuticas, así como de los cuidados
+                  posoperatorios requeridos para su adecuada recuperación.
+                </p>
+                <div className="pt-4 grid grid-cols-2 gap-4 border-t border-slate-200 text-[11px]">
+                  <div>
+                    <span className="block text-slate-400 font-bold">Cirujano Responsable:</span>
+                    <strong className="text-slate-800">{showConsentModal.surgeonName || 'Dr. Diego Iván Irusta'}</strong>
+                  </div>
+                  <div>
+                    <span className="block text-slate-400 font-bold">Anestesista:</span>
+                    <strong className="text-slate-800">{showConsentModal.anesthetistName || 'Dr. Diego Iván Irusta'}</strong>
+                  </div>
                 </div>
               </div>
             </div>
 
-            <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
+            {/* Footer Fijo */}
+            <div className="px-5 py-3 border-t border-slate-100 flex items-center justify-between flex-shrink-0 bg-slate-50 rounded-b-3xl">
               <button
                 type="button"
                 onClick={() => handlePrintProtocol(showConsentModal)}
-                className="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs flex items-center gap-1.5 cursor-pointer"
+                className="px-3.5 py-2 bg-white hover:bg-slate-100 text-slate-700 font-bold rounded-xl text-xs flex items-center gap-1.5 cursor-pointer border border-slate-200"
               >
                 <Printer className="w-4 h-4" />
                 <span>Imprimir Protocolo</span>
