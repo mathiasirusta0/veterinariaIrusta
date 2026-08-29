@@ -2510,8 +2510,8 @@ export const Patient360View: React.FC = () => {
           <div className="bg-white rounded-t-3xl sm:rounded-3xl max-w-md w-full p-5 sm:p-6 space-y-4 shadow-2xl border border-slate-100 text-left text-xs font-mono max-h-[92vh] sm:max-h-[85vh] overflow-y-auto">
             <div className="text-center border-b border-dashed border-slate-300 pb-4 space-y-1">
               <h2 className="font-black text-base tracking-tight text-slate-900">VET SYSTEM HOSPITAL VETERINARIO</h2>
-              <p className="text-[11px] text-slate-500">Sede Central 24 Horas • CUIT 30-71234567-8</p>
-              <p className="text-[10px] text-slate-400">Córdoba, Argentina • Tel: (0351) 480-1234</p>
+              <p className="text-[11px] text-slate-500">Sede Central 24 Horas • CUIT 20-31458920-4</p>
+              <p className="text-[10px] text-slate-400">Las Lajas, Neuquén • Tel: +54 9 2942 47-7136</p>
               <div className="pt-2">
                 <span className="px-3 py-1 bg-slate-100 text-slate-800 rounded-full font-bold text-xs">
                   {billingInvoiceType === 'TICKET_COMUN' ? '📄 TICKET DE GASTOS / RECIBO X' : `🧾 FACTURA ${billingInvoiceType.replace('FACTURA_', '')} (ARCA)`}

@@ -156,7 +156,7 @@ export const FinancesUnifiedView: React.FC = () => {
 
     if (mainTab === 'COBROS') {
       // 1. COBRO REALIZADO
-      const receiptNumber = `REC-2026-${Math.floor(1000 + Math.random() * 9000)}`;
+      const receiptNumber = `REC-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`;
 
       // Financial Movement
       addFinancialMovement({
@@ -169,7 +169,7 @@ export const FinancesUnifiedView: React.FC = () => {
         clientName: ownName,
         status: 'COBRADO',
         notes: `Comprobante ${receiptNumber}. ${chargeNotes.trim()}`,
-        branchId: activeBranch?.id || 'branch-central',
+        branchId: activeBranch?.id || 'branch-1',
       });
 
       // Invoice / Recibo X
@@ -197,7 +197,7 @@ export const FinancesUnifiedView: React.FC = () => {
         totalAmount: numAmount,
         paymentMethod: chargePaymentMethod,
         isPaid: true,
-        branchId: activeBranch?.id || 'branch-central',
+        branchId: activeBranch?.id || 'branch-1',
       });
 
       const docData: PrintableReceiptData = {
@@ -237,12 +237,12 @@ export const FinancesUnifiedView: React.FC = () => {
       );
     } else {
       // 2. PRESUPUESTO CLÍNICO
-      const estimateNumber = `PRES-2026-${Math.floor(100 + Math.random() * 900)}`;
+      const estimateNumber = `PRES-${new Date().getFullYear()}-${Math.floor(100 + Math.random() * 900)}`;
 
       createEstimate({
         patientId: targetPatId || 'pat-gen',
         ownerId: targetOwnerId || 'own-gen',
-        branchId: activeBranch?.id || 'branch-central',
+        branchId: activeBranch?.id || 'branch-1',
         items: [
           {
             id: `est-item-${Date.now()}`,
@@ -303,7 +303,7 @@ export const FinancesUnifiedView: React.FC = () => {
     const pat = patients.find((p) => p.id === est.patientId);
     const own = owners.find((o) => o.id === est.ownerId);
 
-    const receiptNumber = `REC-2026-${Math.floor(1000 + Math.random() * 9000)}`;
+    const receiptNumber = `REC-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`;
     const patName = pat?.name || 'Mascota';
     const ownName = own ? `${own.firstName} ${own.lastName}` : 'Tutor Responsable';
 
@@ -317,7 +317,7 @@ export const FinancesUnifiedView: React.FC = () => {
       clientName: ownName,
       status: 'COBRADO',
       notes: `Comprobante ${receiptNumber} de Presupuesto ${est.estimateNumber}`,
-      branchId: activeBranch?.id || 'branch-central',
+      branchId: activeBranch?.id || 'branch-1',
     });
 
     updateEstimateStatus(est.id, 'ACEPTADO');
@@ -842,7 +842,7 @@ export const FinancesUnifiedView: React.FC = () => {
                 {filteredHistory.map((mov) => {
                   const receiptNum = mov.notes?.includes('REC-2026')
                     ? mov.notes.split('Comprobante ')[1]?.split('.')[0] || 'REC-2026'
-                    : 'REC-2026-0001';
+                    : 'REC-${new Date().getFullYear()}-0001';
                   const patName = mov.concept.split(' - ')[1]?.split(' (')[0] || 'Mascota';
 
                   const docData: PrintableReceiptData = {
@@ -1198,8 +1198,8 @@ export const FinancesUnifiedView: React.FC = () => {
                     triggerHaptic('medium');
                     const newType = currentDocument.type === 'PRESUPUESTO' ? 'COMPROBANTE' : 'PRESUPUESTO';
                     const newNum = newType === 'PRESUPUESTO' 
-                      ? (currentDocument.receiptNumber.startsWith('PRES') ? currentDocument.receiptNumber : `PRES-2026-${Math.floor(100 + Math.random() * 900)}`)
-                      : (currentDocument.receiptNumber.startsWith('REC') ? currentDocument.receiptNumber : `REC-2026-${Math.floor(1000 + Math.random() * 9000)}`);
+                      ? (currentDocument.receiptNumber.startsWith('PRES') ? currentDocument.receiptNumber : `PRES-${new Date().getFullYear()}-${Math.floor(100 + Math.random() * 900)}`)
+                      : (currentDocument.receiptNumber.startsWith('REC') ? currentDocument.receiptNumber : `REC-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`);
                     
                     setCurrentDocument({
                       ...currentDocument,

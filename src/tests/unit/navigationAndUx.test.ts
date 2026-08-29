@@ -1,25 +1,28 @@
 import { describe, it, expect } from 'vitest';
-import { NAVIGATION_ITEMS, getNavLabel, getNavShortLabel } from '../../config/navigation';
+import { NAVIGATION_ITEMS, getNavLabel } from '../../config/navigation';
 import { formatCurrency, formatAlertLabel, maskPhoneNumber, maskDni, formatOwnerBalance } from '../../utils/formatters';
 
-describe('Simplificación de Nombres de Navegación & UX (Fase 1)', () => {
-  it('debe contener los nombres visibles oficiales simplificados en 4 áreas clínicas y administrativas', () => {
-    expect(getNavLabel('PACIENTES')).toBe('Pacientes & Tutores');
+describe('Simplificación de Nombres de Navegación & UX', () => {
+  it('debe contener los nombres visibles oficiales completos en las 4 áreas clínicas y administrativas', () => {
+    expect(getNavLabel('PACIENTES')).toBe('Pacientes & Expediente 360°');
+    expect(getNavLabel('PROPIETARIOS')).toBe('Tutores & Propietarios');
     expect(getNavLabel('AGENDA')).toBe('Agenda de Turnos');
     expect(getNavLabel('CIRUGIAS')).toBe('Cirugía & Quirófano');
     expect(getNavLabel('VACUNAS')).toBe('Plan de Vacunación');
     expect(getNavLabel('INVENTARIO')).toBe('Farmacia & Stock');
-    expect(getNavLabel('CAJA_FACTURACION')).toBe('Finanzas');
-    expect(getNavLabel('DOCUMENTOS')).toBe('Documentos');
+    expect(getNavLabel('CAJA_FACTURACION')).toBe('Finanzas & Facturación');
+    expect(getNavLabel('DOCUMENTOS')).toBe('Documentos & Consentimientos');
+    expect(getNavLabel('LABORATORIO')).toBe('Laboratorio Clínico');
+    expect(getNavLabel('IMAGENES')).toBe('Diagnóstico por Imágenes');
+    expect(getNavLabel('RECETAS_OFICIALES')).toBe('Recetario & Prescripciones');
+    expect(getNavLabel('CENTRO_QA')).toBe('Centro QA & Diagnóstico');
   });
 
-  it('no debe incluir la vista ASISTENTE_IA, CONSULTAS ni INTERNACION en la configuración de navegación', () => {
+  it('no debe incluir la vista ASISTENTE_IA ni CONSULTAS en la configuración de navegación', () => {
     const aiItem = NAVIGATION_ITEMS.find((n) => (n.id as string) === 'ASISTENTE_IA');
     expect(aiItem).toBeUndefined();
     const consultasItem = NAVIGATION_ITEMS.find((n) => (n.id as string) === 'CONSULTAS');
     expect(consultasItem).toBeUndefined();
-    const internacionItem = NAVIGATION_ITEMS.find((n) => (n.id as string) === 'INTERNACION');
-    expect(internacionItem).toBeUndefined();
   });
 
   it('debe formatear enums técnicos de alertas médicas a texto legible en español', () => {

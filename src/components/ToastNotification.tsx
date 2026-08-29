@@ -19,7 +19,7 @@ export const ToastNotification: React.FC<ToastNotificationProps> = ({ toasts, to
   if (!items || items.length === 0) return null;
 
   return (
-    <div className="fixed bottom-5 right-5 z-50 flex flex-col gap-2.5 max-w-sm w-full pointer-events-none">
+    <div role="region" aria-live="polite" aria-label="Notificaciones del sistema" className="fixed bottom-5 right-5 z-50 flex flex-col gap-2.5 max-w-sm w-full pointer-events-none">
       {items.map((t) => {
         let bgClass = 'bg-white border-slate-200 text-slate-900';
         let icon = <Info className="w-5 h-5 text-teal-600 flex-shrink-0" />;
@@ -38,6 +38,7 @@ export const ToastNotification: React.FC<ToastNotificationProps> = ({ toasts, to
         return (
           <div
             key={t.id}
+            role={t.type === "error" ? "alert" : "status"}
             className={`pointer-events-auto border rounded-xl p-3.5 shadow-xl flex items-start gap-3 transition-all animate-in slide-in-from-bottom-5 duration-200 ${bgClass}`}
           >
             {icon}

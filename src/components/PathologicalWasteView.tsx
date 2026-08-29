@@ -82,7 +82,7 @@ export const PathologicalWasteView: React.FC = () => {
               <span>Gestión de Residuos Patológicos & Peligrosos</span>
             </h2>
             <p className="text-xs text-slate-500 font-medium max-w-3xl mt-1">
-              Registro obligatorio de generación, pesaje en origen, manifiestos de retiro y certificados de disposición final según la normativa ambiental de la Provincia de Córdoba y Municipalidad de Las Lajas.
+              Registro obligatorio de generación, pesaje en origen, manifiestos de retiro y certificados de disposición final según la normativa ambiental de la Provincia del Neuquén y Municipalidad de Las Lajas.
             </p>
           </div>
 

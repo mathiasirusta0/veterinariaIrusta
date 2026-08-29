@@ -14,8 +14,8 @@ import {
 } from 'lucide-react';
 import { useVet } from '../context/VetContext';
 import { supabase } from '../lib/supabase';
+import { getVerifiedAppUser } from '../lib/auth';
 import { triggerHaptic } from '../utils/haptics';
-import { UserRole, User } from '../types';
 
 interface LoginViewProps {
   onBackToLanding?: () => void;
@@ -42,7 +42,7 @@ function translateAuthError(errMessage: string): string {
 }
 
 export const LoginView: React.FC<LoginViewProps> = ({ onBackToLanding }) => {
-  const { branches, activeBranch, setActiveBranch, setCurrentUser, showToast } = useVet();
+  const { showToast } = useVet();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -63,12 +63,6 @@ export const LoginView: React.FC<LoginViewProps> = ({ onBackToLanding }) => {
         throw new Error('Por favor complete su correo electrónico y contraseña.');
       }
 
-      // Autenticación con Supabase Auth (Servidor)
-      let authUser: any = null;
-      let userRole: UserRole = 'DIRECTOR_MEDICO';
-      let userName = 'Dr. Diego Iván Irusta';
-      let license = 'M.P. 502';
-
       const { data, error } = await supabase.auth.signInWithPassword({
         email: cleanEmail,
         password,
@@ -76,97 +70,24 @@ export const LoginView: React.FC<LoginViewProps> = ({ onBackToLanding }) => {
 
       if (error) {
         const isEmailNotConfirmed = error.message?.toLowerCase().includes('email not confirmed');
-        const isDoctorAccount = cleanEmail === 'irusta@gmail.com' || cleanEmail.includes('irusta');
-
         if (isEmailNotConfirmed) {
-          // Si es la cuenta original del médico, permitir acceso inmediato de Dirección Médica sin bloquear
-          if (isDoctorAccount) {
-            setCurrentUser({
-              id: 'usr-irusta-director',
-              name: 'Dr. Diego Iván Irusta',
-              email: cleanEmail,
-              role: 'DIRECTOR_MEDICO',
-              branchId: activeBranch?.id || 'branch-1',
-              licenseNumber: 'M.P. 502',
-            });
-            showToast('success', 'Sesión Iniciada', 'Bienvenido Dr. Diego Iván Irusta (Director Médico)');
-            return;
-          }
           supabase.auth.resend({ type: 'signup', email: cleanEmail }).catch(() => {});
           throw new Error('Correo electrónico pendiente de confirmación. Se ha reenviado un enlace de activación a tu casilla.');
         }
-
-        // Si no existe aún en Supabase Auth y es la cuenta del médico, intentar auto-registro en Supabase
-        if (isDoctorAccount && (error.message.includes('Invalid login credentials') || error.message.includes('User not found'))) {
-          const { data: signUpData, error: signUpErr } = await supabase.auth.signUp({
-            email: cleanEmail,
-            password: password,
-            options: {
-              data: {
-                name: 'Dr. Diego Iván Irusta',
-                role: 'DIRECTOR_MEDICO',
-                license_number: 'M.P. 502',
-              },
-            },
-          });
-
-          if (!signUpErr && (signUpData.user || signUpData.session)) {
-            setCurrentUser({
-              id: signUpData.user?.id || 'usr-irusta-director',
-              name: 'Dr. Diego Iván Irusta',
-              email: cleanEmail,
-              role: 'DIRECTOR_MEDICO',
-              branchId: activeBranch?.id || 'branch-1',
-              licenseNumber: 'M.P. 502',
-            });
-            showToast('success', 'Cuenta Sincronizada en Supabase', 'Bienvenido Dr. Diego Iván Irusta (Director Médico)');
-            return;
-          }
-        }
-
         throw new Error(translateAuthError(error.message));
       }
 
-      authUser = data?.user;
-
-      if (!authUser) {
+      if (!data.user || !data.session) {
         throw new Error('Credenciales inválidas. Verifique su usuario y contraseña.');
       }
 
-      // Obtener perfil y rol autorizados desde la base de datos (public.profiles)
-      let role: UserRole = cleanEmail === 'irusta@gmail.com' ? 'DIRECTOR_MEDICO' : 'VETERINARIO';
-      let finalName = authUser.user_metadata?.name || (cleanEmail === 'irusta@gmail.com' ? 'Dr. Diego Iván Irusta' : 'Profesional Veterinario');
-      let finalLicense = authUser.user_metadata?.license_number || 'M.P. 502';
-
       try {
-        const { data: profile, error: profileErr } = await supabase
-          .from('profiles')
-          .select('id, name, role, branch_id, license_number')
-          .eq('id', authUser.id)
-          .maybeSingle();
-
-        if (!profileErr && profile) {
-          if (profile.role) role = profile.role as UserRole;
-          if (profile.name) finalName = profile.name;
-          if (profile.license_number) finalLicense = profile.license_number;
-        } else if (authUser.user_metadata?.role) {
-          role = authUser.user_metadata.role as UserRole;
-        }
-      } catch (err) {
-        console.warn('Profile fetch notice:', err);
+        const verifiedUser = await getVerifiedAppUser(data.user);
+        showToast('success', 'Sesión Iniciada', `Bienvenido ${verifiedUser.name} (${verifiedUser.role})`);
+      } catch (profileError) {
+        await supabase.auth.signOut();
+        throw profileError;
       }
-
-      // Establecer sesión de usuario autenticado
-      setCurrentUser({
-        id: authUser.id,
-        name: finalName,
-        email: authUser.email || cleanEmail,
-        role,
-        branchId: activeBranch?.id || 'branch-1',
-        licenseNumber: finalLicense,
-      });
-
-      showToast('success', 'Sesión Iniciada', `Bienvenido ${userName} (${role})`);
     } catch (err: any) {
       const translated = translateAuthError(err.message);
       setErrorMsg(translated);
@@ -269,26 +190,15 @@ export const LoginView: React.FC<LoginViewProps> = ({ onBackToLanding }) => {
             )}
 
             <form onSubmit={handleLogin} className="space-y-4 text-xs">
-              {/* Sede */}
+              {/* La sede es una autorización del perfil, no una elección del cliente. */}
               <div>
                 <label className="text-[#1C2B1D] font-bold block mb-1 flex items-center gap-1.5">
                   <Building className="w-3.5 h-3.5 text-[#7E3A4D]" />
-                  <span>Sede / Sucursal Hospitalaria:</span>
+                  <span>Sede / Sucursal Hospitalaria</span>
                 </label>
-                <select
-                  value={activeBranch.id}
-                  onChange={(e) => {
-                    const sel = branches.find((b) => b.id === e.target.value);
-                    if (sel) setActiveBranch(sel);
-                  }}
-                  className="w-full bg-[#FDF8F9] border border-[#EEDCE2] rounded-xl p-3 text-[#1C2B1D] font-bold focus:outline-none focus:ring-2 focus:ring-[#7E3A4D]"
-                >
-                  {branches.map((b) => (
-                    <option key={b.id} value={b.id}>
-                      {b.name} — {b.address}
-                    </option>
-                  ))}
-                </select>
+                <div className="w-full bg-[#FDF8F9] border border-[#EEDCE2] rounded-xl p-3 text-[#6B4D56] font-medium">
+                  Se asignará automáticamente según tu perfil profesional verificado.
+                </div>
               </div>
 
               {/* Email */}

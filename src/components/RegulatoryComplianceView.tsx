@@ -53,7 +53,7 @@ export const RegulatoryComplianceView: React.FC = () => {
           <div>
             <div className="flex items-center gap-2 mb-1.5">
               <span className="px-2.5 py-0.5 rounded-full bg-teal-50 text-teal-800 text-[10px] font-extrabold tracking-wider border border-teal-200 uppercase">
-                Marco Legal Argentina & Provincia de Córdoba
+                Marco Legal Argentina & Provincia del Neuquén
               </span>
               <span className="px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-800 text-[10px] font-extrabold tracking-wider border border-blue-200 uppercase">
                 Jurisdicción: Las Lajas
@@ -64,7 +64,7 @@ export const RegulatoryComplianceView: React.FC = () => {
               <span>Centro de Cumplimiento Normativo Veterinario</span>
             </h2>
             <p className="text-xs text-slate-500 font-medium max-w-3xl mt-1">
-              Motor regulatorio integral conforme a la Ley Provincial Córdoba Nº 11.076 / 5.142, Estatuto del Colegio Médico Veterinario de Córdoba (CMVC), SENASA, Ley 25.326, Ley 25.506, Ley 24.051 y ARCA.
+              Motor regulatorio integral conforme a las leyes de ejercicio profesional de la Provincia del Neuquén, Colegio Médico Veterinario de Neuquén (CMVN), SENASA, Ley 25.326, Ley 25.506 y Ley 24.051.
             </p>
           </div>
 
@@ -145,7 +145,7 @@ export const RegulatoryComplianceView: React.FC = () => {
                 className="bg-slate-50 border border-slate-200 text-slate-700 text-xs font-bold rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500"
               >
                 <option value="TODOS">Todos los Módulos Afectados</option>
-                <option value="EJERCICIO_PROFESIONAL">Ejercicio Profesional (Córdoba)</option>
+                <option value="EJERCICIO_PROFESIONAL">Ejercicio Profesional (Neuquén)</option>
                 <option value="RECETARIO_SENASA">Recetario & RVE SENASA</option>
                 <option value="PSICOTROPICOS">Psicotrópicos & Ketamina</option>
                 <option value="RESIDUOS_PATOLOGICOS">Residuos Patológicos (Ley 24.051)</option>
@@ -275,7 +275,7 @@ export const RegulatoryComplianceView: React.FC = () => {
                     </div>
                     <div className="bg-white p-2.5 rounded-xl border border-slate-200/70">
                       <span className="text-[10px] uppercase font-bold text-slate-400 block">Jurisdicción</span>
-                      <span className="font-semibold text-slate-800">{vet.licenseJurisdiction || 'CMVC Córdoba'}</span>
+                      <span className="font-semibold text-slate-800">{vet.licenseJurisdiction || 'CMVN Neuquén'}</span>
                     </div>
                   </div>
 
@@ -298,8 +298,8 @@ export const RegulatoryComplianceView: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           {[
             {
-              name: 'Colegio Médico Veterinario de Córdoba (CMVC)',
-              desc: 'Órgano de matriculación, control deontológico y ética profesional veterinaria en toda la Provincia de Córdoba.',
+              name: 'Colegio Médico Veterinario de Neuquén (CMVN)',
+              desc: 'Órgano de matriculación, control deontológico y ética profesional veterinaria en la Provincia del Neuquén.',
               url: 'https://covetcba.org.ar',
               category: 'Colegiatura & Deontología',
               norma: 'Ley Provincial Nº 11.076 / 5.142',

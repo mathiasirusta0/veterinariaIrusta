@@ -341,3 +341,35 @@ export function getCurrentLocalTimeString(): string {
     return `${h}:${m}`;
   }
 }
+
+/**
+ * Calcula la edad legible y precisa de un paciente a partir de su fecha de nacimiento.
+ * Previene contradicciones como 'Adulto' si la fecha de nacimiento es hoy o reciente.
+ */
+export function calculatePatientAgeString(birthDateVal: unknown): string {
+  if (!birthDateVal) return 'Edad no registrada';
+  try {
+    const birth = new Date(birthDateVal as string | number | Date);
+    if (isNaN(birth.getTime())) return 'Edad no registrada';
+    const now = new Date();
+    const diffMs = now.getTime() - birth.getTime();
+    if (diffMs < 0) return 'Fecha futura no válida';
+
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+    if (diffDays < 30) {
+      return diffDays <= 1 ? 'Cachorro / Recién nacido' : `${diffDays} días`;
+    }
+    const diffMonths = Math.floor(diffDays / 30.4375);
+    if (diffMonths < 12) {
+      return diffMonths === 1 ? '1 mes' : `${diffMonths} meses`;
+    }
+    const years = Math.floor(diffMonths / 12);
+    const remainingMonths = diffMonths % 12;
+    if (remainingMonths === 0) {
+      return years === 1 ? '1 año' : `${years} años`;
+    }
+    return `${years} ${years === 1 ? 'año' : 'años'} y ${remainingMonths} ${remainingMonths === 1 ? 'mes' : 'meses'}`;
+  } catch {
+    return 'Edad no registrada';
+  }
+}

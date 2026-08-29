@@ -1,12 +1,15 @@
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl =
-  (import.meta as any).env?.VITE_SUPABASE_URL ||
-  'https://vgsrmfedfyvcjoexeolt.supabase.co';
+const configuredUrl = (import.meta as any).env?.VITE_SUPABASE_URL?.trim();
+const configuredAnonKey = (import.meta as any).env?.VITE_SUPABASE_ANON_KEY?.trim();
 
-const supabaseAnonKey =
-  (import.meta as any).env?.VITE_SUPABASE_ANON_KEY ||
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZnc3JtZmVkZnl2Y2pvZXhlb2x0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcwODI4MTEsImV4cCI6MjEwMjY1ODgxMX0.YOaesivsxsKI3-uUECrow4EG56ZYSq2XpZ1opgzCg0A';
+export const isSupabaseConfigured = Boolean(configuredUrl && configuredAnonKey);
+
+// Nunca conectar silenciosamente a un proyecto real si Vercel o el entorno
+// local olvidan configurar variables. El placeholder solo permite que la UI
+// arranque en modo local y checkSupabaseConnection informe el problema.
+const supabaseUrl = configuredUrl || 'http://127.0.0.1:54321';
+const supabaseAnonKey = configuredAnonKey || 'supabase-anon-key-not-configured';
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
@@ -19,6 +22,13 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
  * Checks connectivity with Supabase project
  */
 export async function checkSupabaseConnection(): Promise<{ connected: boolean; message: string }> {
+  if (!isSupabaseConfigured) {
+    return {
+      connected: false,
+      message: 'Supabase no está configurado. Defina VITE_SUPABASE_URL y VITE_SUPABASE_ANON_KEY.',
+    };
+  }
+
   try {
     const { data, error } = await supabase.from('patients').select('id').limit(1);
     if (error) {

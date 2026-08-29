@@ -24,6 +24,54 @@ export type SystemView =
   | 'CENTRO_QA'
   | 'CONFIGURACION';
 
+/**
+ * Normaliza rutas históricas y alias de UI a la capacidad que realmente debe
+ * autorizar RBAC. Mantener esta traducción en un único lugar evita que una
+ * pantalla sea permitida por el menú pero rechazada al renderizarse.
+ */
+const VIEW_ALIASES: Record<string, SystemView> = {
+  OPERACION: 'DASHBOARD',
+  DASHBOARD: 'DASHBOARD',
+  INICIO: 'DASHBOARD',
+  ATENCION: 'ATENCION',
+  HOSPITAL: 'HOSPITAL',
+  GESTION: 'GESTION',
+  PACIENTES: 'PACIENTES',
+  PROPIETARIOS: 'PROPIETARIOS',
+  AGENDA: 'AGENDA',
+  SIGNOS_VITALES: 'SIGNOS_VITALES',
+  SIGNOS: 'SIGNOS_VITALES',
+  BIOMETRIA: 'SIGNOS_VITALES',
+  RECETAS_OFICIALES: 'RECETAS_OFICIALES',
+  RECETAS: 'RECETAS_OFICIALES',
+  INTERNACION: 'INTERNACION',
+  SALA_ESPERA: 'INTERNACION',
+  CIRUGIAS: 'CIRUGIAS',
+  LABORATORIO: 'LABORATORIO',
+  IMAGENES: 'IMAGENES',
+  VACUNAS: 'VACUNAS',
+  VACUNACION: 'VACUNAS',
+  INVENTARIO: 'INVENTARIO',
+  FARMACIA: 'INVENTARIO',
+  CAJA_FACTURACION: 'CAJA_FACTURACION',
+  CAJA_FACTURAS: 'CAJA_FACTURACION',
+  CAJA: 'CAJA_FACTURACION',
+  GESTION_ECONOMICA: 'CAJA_FACTURACION',
+  ECONOMIA: 'CAJA_FACTURACION',
+  FINANZAS: 'CAJA_FACTURACION',
+  DOCUMENTOS: 'DOCUMENTOS',
+  CENTRO_QA: 'CENTRO_QA',
+  TESTS: 'CENTRO_QA',
+  TESTER: 'CENTRO_QA',
+  CONFIGURACION: 'CONFIGURACION',
+  AUDITORIA_USUARIOS: 'CONFIGURACION',
+};
+
+export function resolveSystemView(view: string | null | undefined): SystemView {
+  if (!view) return 'DASHBOARD';
+  return VIEW_ALIASES[String(view).trim().toUpperCase()] || 'DASHBOARD';
+}
+
 // Matriz de permisos por Rol
 export const ROLE_PERMISSIONS: Record<UserRole, SystemView[]> = {
   SUPERADMIN: [
@@ -255,4 +303,3 @@ export function hasQuickActionPermission(role: UserRole | undefined, actionId: s
   if (!targetView) return true;
   return hasViewPermission(role, targetView);
 }
-

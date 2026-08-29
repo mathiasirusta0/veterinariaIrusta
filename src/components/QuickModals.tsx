@@ -1,4 +1,4 @@
-import { formatDate } from '../utils/formatters';
+import { formatDate, calculatePatientAgeString } from '../utils/formatters';
 import { triggerHaptic } from '../utils/haptics';
 // Age calculation helper functions
 function computeAgeFromBirthDate(birthDateStr: string): string {
@@ -446,7 +446,7 @@ export const QuickModals: React.FC = () => {
         city: 'Las Lajas',
         taxCondition: 'CONSUMIDOR_FINAL',
         balance: 0,
-        branchId: 'branch-central',
+        branchId: 'branch-1',
       });
       targetOwnerId = createdOwner.id;
       ownerDisplayName = `${createdOwner.firstName} ${createdOwner.lastName}`.trim();
@@ -708,15 +708,18 @@ export const QuickModals: React.FC = () => {
         email: '',
         address: 'Las Lajas, Neuquén',
         city: 'Las Lajas',
-        province: 'Córdoba',
-        postalCode: '5800',
+        province: 'Neuquén',
+        postalCode: '8347',
         taxCondition: 'CONSUMIDOR_FINAL',
         balance: 0,
         createdAt: new Date().toISOString(),
       });
 
-      const newHC = `HC-2026-${Math.floor(1000 + Math.random() * 9000)}`;
-      const newPatId = `pat-${Date.now()}`;
+      const currentYear = new Date().getFullYear();
+      const nextHcSeq = (patients.length + 1).toString().padStart(5, '0');
+      const newHC = `HC-${currentYear}-${nextHcSeq}`;
+      const newPatId = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `pat-${Date.now()}`;
+      const nowIso = new Date().toISOString();
       addPatient({
         id: newPatId,
         name: vacNewPetName.trim(),
@@ -724,15 +727,15 @@ export const QuickModals: React.FC = () => {
         breed: vacNewPetBreed.trim() || 'Mestizo',
         sex: vacNewPetSex,
         reproductiveStatus: 'ENTERO',
-        birthDate: new Date().toISOString(),
-        calculatedAge: 'Adulto',
+        birthDate: nowIso,
+        calculatedAge: calculatePatientAgeString(nowIso),
         weight: Number(vacNewPetWeight) || 10,
         status: 'ACTIVO',
         alerts: [],
         clinicalRecordNumber: newHC,
         ownerId: newOwnerId,
-        branchId: 'branch-central',
-        createdAt: new Date().toISOString(),
+        branchId: activeBranch?.id || 'branch-1',
+        createdAt: nowIso,
       });
 
       targetPatientId = newPatId;

@@ -8,7 +8,7 @@ import { ToastNotification } from './components/ToastNotification';
 import { AccessDeniedView } from './components/AccessDeniedView';
 import { ModuleErrorBoundary } from './components/ModuleErrorBoundary';
 import { MobileBottomNav } from './components/MobileBottomNav';
-import { hasViewPermission, SystemView } from './utils/rbac';
+import { hasViewPermission, resolveSystemView } from './utils/rbac';
 import { triggerHaptic } from './utils/haptics';
 
 // Icons for Mobile Bottom Navigation Bar
@@ -191,22 +191,7 @@ const MainLayout: React.FC = () => {
   const waitingTriageCount = (triageList || []).filter((t) => t.status === 'EN_ESPERA').length;
 
   const renderActiveView = () => {
-    // Normalizar ID de vista
-    let viewKey: SystemView = 'OPERACION';
-    if (activeView === 'OPERACION' || activeView === 'DASHBOARD' || activeView === 'INICIO') viewKey = 'OPERACION';
-    if (activeView === 'PACIENTES') viewKey = 'PACIENTES';
-    else if (activeView === 'PROPIETARIOS') viewKey = 'PROPIETARIOS';
-    else if (activeView === 'INTERNACION' || activeView === 'SALA_ESPERA') viewKey = 'PACIENTES';
-    else if (activeView === 'AGENDA') viewKey = 'AGENDA';
-    else if (activeView === 'SIGNOS_VITALES' || activeView === 'SIGNOS' || activeView === 'BIOMETRIA') viewKey = 'SIGNOS_VITALES';
-    else if (activeView === 'CIRUGIAS') viewKey = 'CIRUGIAS';
-    else if (activeView === 'LABORATORIO') viewKey = 'LABORATORIO';
-    else if (activeView === 'IMAGENES') viewKey = 'IMAGENES';
-    else if (activeView === 'VACUNAS' || activeView === 'VACUNACION') viewKey = 'VACUNAS';
-    else if (activeView === 'INVENTARIO' || activeView === 'FARMACIA') viewKey = 'INVENTARIO';
-    else if (activeView === 'CAJA_FACTURACION' || activeView === 'CAJA_FACTURAS' || activeView === 'CAJA') viewKey = 'CAJA_FACTURACION';
-    else if (activeView === 'DOCUMENTOS') viewKey = 'DOCUMENTOS';
-    else if (activeView === 'CONFIGURACION' || activeView === 'AUDITORIA_USUARIOS') viewKey = 'CONFIGURACION';
+    const viewKey = resolveSystemView(activeView);
 
     // Verificación de RBAC
     if (!hasViewPermission(currentUser?.role, viewKey)) {
@@ -426,8 +411,17 @@ const MainLayout: React.FC = () => {
 };
 
 export const AppContent: React.FC = () => {
-  const { currentUser } = useVet();
+  const { currentUser, isAuthLoading } = useVet();
   const [authViewMode, setAuthViewMode] = useState<'LANDING' | 'LOGIN'>('LANDING');
+
+  if (isAuthLoading) {
+    return (
+      <div className="min-h-screen min-h-[100dvh] bg-slate-50 p-4 sm:p-8" role="status" aria-live="polite">
+        <span className="sr-only">Verificando sesión segura</span>
+        <ViewLoadingFallback />
+      </div>
+    );
+  }
 
   if (!currentUser) {
     if (authViewMode === 'LOGIN') {

@@ -24,6 +24,7 @@ import { Prescription, PrescriptionItem, PrescriptionType, SENASACategory } from
 import { formatDate, formatWeight } from '../utils/formatters';
 import { printA4Prescription } from '../utils/printDocumentHelper';
 import { triggerHaptic } from '../utils/haptics';
+import { calculatePrescriptionSha256 } from '../utils/crypto';
 import { PageHeader, EmptyState, SearchInput, FilterBar } from './ui';
 
 interface PrescriptionPreset {
@@ -248,39 +249,54 @@ export const PrescriptionsView: React.FC = () => {
     setItems(updated);
   };
 
-  const handleCreatePrescription = (e: React.FormEvent) => {
+  const handleCreatePrescription = async (e: React.FormEvent) => {
     e.preventDefault();
     triggerHaptic('medium');
 
     const pat = patients.find((p) => p.id === patientId);
     const ow = pat ? owners.find((o) => o.id === pat.ownerId) : null;
     const vet = users.find((u) => u.role === 'VETERINARIO') || users[0];
+    const currentYear = new Date().getFullYear();
+    const rxSequence = (prescriptions.length + 1).toString().padStart(6, '0');
+    const rxNum = `REC-${currentYear}-${rxSequence}`;
+    const rxDate = new Date().toISOString().split('T')[0];
+
+    const cleanItems = items.map((it, idx) => ({
+      ...it,
+      id: typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `item-${Date.now()}-${idx}`,
+    }));
+
+    const hash = await calculatePrescriptionSha256({
+      prescriptionNumber: rxNum,
+      patientId,
+      vetName: vet?.name || currentUser?.name || 'Dr. Diego Iván Irusta',
+      vetLicense: vet?.licenseNumber || currentUser?.licenseNumber || 'M.P. 502 (Neuquén)',
+      items: cleanItems,
+      date: rxDate,
+    });
 
     const newPrescription: Prescription = {
-      id: 'rx-' + Date.now(),
-      prescriptionNumber: 'REC-2026-' + Math.floor(1000 + Math.random() * 9000),
+      id: typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `rx-${Date.now()}`,
+      prescriptionNumber: rxNum,
       prescriptionType,
       patientId,
       ownerId: ow?.id || 'owner-1',
-      vetId: vet.id,
-      vetName: vet.name,
-      vetLicense: vet.licenseNumber || 'M.P. 502',
-      vetCuit: '20-32458912-8',
-      establishmentName: 'Hospital Veterinario Central 24hs',
-      establishmentAddress: 'Casa 13, Barrio Militar de Oficiales, Las Lajas, Neuquén',
-      date: new Date().toISOString().split('T')[0],
+      vetId: vet?.id || currentUser?.id || 'user-irusta-dir',
+      vetName: vet?.name || currentUser?.name || 'Dr. Diego Iván Irusta',
+      vetLicense: vet?.licenseNumber || currentUser?.licenseNumber || 'M.P. 502 (Neuquén)',
+      vetCuit: '20-31458920-4',
+      establishmentName: 'Veterinaria Ranquel',
+      establishmentAddress: 'Casa 13, Barrio Militar de Oficiales, Las Lajas, Neuquén (CP 8347)',
+      date: rxDate,
       diagnosis,
-      items: items.map((it, idx) => ({
-        ...it,
-        id: 'item-' + Date.now() + '-' + idx,
-      })),
+      items: cleanItems,
       isDispensed: false,
-      digitalSignatureHash: 'SHA256:' + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15),
+      digitalSignatureHash: hash,
     };
 
     addPrescription(newPrescription);
     setIsNewModalOpen(false);
-    showToast('success', 'Receta Emitida con Éxito', 'Receta ' + newPrescription.prescriptionNumber + ' firmada y registrada.');
+    showToast('success', 'Receta Emitida con Éxito', 'Receta ' + newPrescription.prescriptionNumber + ' registrada con hash SHA-256.');
   };
 
 

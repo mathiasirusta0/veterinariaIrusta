@@ -140,7 +140,8 @@ import {
   syncFinancialMovementToSupabase,
   syncAccountDebtToSupabase,
 } from '../lib/supabaseSync';
-import { hasViewPermission, getDefaultViewForRole, SystemView } from '../utils/rbac';
+import { getVerifiedAppUser } from '../lib/auth';
+import { hasViewPermission, getDefaultViewForRole, resolveSystemView } from '../utils/rbac';
 import { computeDoseTimes, computeInitialDoseSlots } from '../utils/medicationScheduleHelper';
 
 interface VetContextType {
@@ -156,8 +157,8 @@ interface VetContextType {
 
   // Active Environment
   currentUser: User | null;
+  isAuthLoading: boolean;
   logout: () => Promise<void>;
-  setCurrentUser: (user: User) => void;
   activeBranch: Branch;
   setActiveBranch: (branch: Branch) => void;
   users: User[];
@@ -410,25 +411,8 @@ export const VetProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [activeBranch, setActiveBranch] = useState<Branch>(INITIAL_BRANCHES[0]);
 
   const [users] = useState<User[]>(INITIAL_USERS);
-  const [currentUser, setCurrentUser] = useState<User | null>(() => {
-    const saved = localStorage.getItem('vetsys_auth_user');
-    if (saved) {
-      try {
-        const u = JSON.parse(saved);
-        if (u && typeof u === 'object' && u.id && u.email && u.role) {
-          return {
-            id: String(u.id),
-            name: String(u.name || 'Profesional'),
-            email: String(u.email),
-            role: u.role,
-            branchId: u.branchId || 'branch-1',
-            licenseNumber: u.licenseNumber,
-          };
-        }
-      } catch {}
-    }
-    return null;
-  });
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [isAuthLoading, setIsAuthLoading] = useState(true);
 
   // Main collections - Dual Persistent: Supabase Cloud + Local Storage Safety Net
   const [owners, setOwners] = useState<Owner[]>(() => sanitizeCleanArray('vetsys_owners', INITIAL_OWNERS));
@@ -660,33 +644,6 @@ export const VetProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setIsWhatsAppHubOpen(false);
     setIsImagingAnnotatorOpen(false);
     setIsGlobalSearchOpen(false);
-  };
-
-  const switchCurrentUser = (newUser: User) => {
-    setCurrentUser(newUser);
-    closeAllModals();
-
-    // Re-evaluar permisos para la vista activa
-    let viewKey: SystemView = 'DASHBOARD';
-    if (activeView === 'PACIENTES') viewKey = 'PACIENTES';
-    else if (activeView === 'PROPIETARIOS') viewKey = 'PROPIETARIOS';
-    else if (activeView === 'INTERNACION') viewKey = 'INTERNACION';
-    else if (activeView === 'SALA_ESPERA') viewKey = 'INTERNACION';
-    else if (activeView === 'AGENDA') viewKey = 'AGENDA';
-    else if (activeView === 'SIGNOS_VITALES') viewKey = 'SIGNOS_VITALES';
-    else if (activeView === 'CIRUGIAS') viewKey = 'CIRUGIAS';
-    else if (activeView === 'LABORATORIO') viewKey = 'LABORATORIO';
-    else if (activeView === 'IMAGENES') viewKey = 'IMAGENES';
-    else if (activeView === 'VACUNAS') viewKey = 'VACUNAS';
-    else if (activeView === 'INVENTARIO') viewKey = 'INVENTARIO';
-    else if (activeView === 'CAJA_FACTURACION' || activeView === 'CAJA_FACTURAS' || activeView === 'CAJA') viewKey = 'CAJA_FACTURACION';
-    else if (activeView === 'DOCUMENTOS') viewKey = 'DOCUMENTOS';
-    else if (activeView === 'CONFIGURACION') viewKey = 'CONFIGURACION';
-
-    if (!hasViewPermission(newUser.role, viewKey)) {
-      const defaultView = getDefaultViewForRole(newUser.role);
-      setActiveView(defaultView);
-    }
   };
 
   const switchActiveBranch = (newBranch: Branch) => {
@@ -1948,7 +1905,7 @@ export const VetProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         medications: [newMed],
         tasks: [],
         hourlySheet: [],
-        branchId: 'branch-central',
+        branchId: 'branch-1',
       };
       setHospitalizations((prev) => [newHosp, ...prev]);
       syncHospitalizationToSupabase(newHosp);
@@ -2920,41 +2877,70 @@ export const VetProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     try {
       await supabase.auth.signOut();
     } catch {}
+    // Eliminar únicamente el artefacto legado de autenticación; los datos
+    // clínicos locales no deben borrarse al cerrar sesión.
     localStorage.removeItem('vetsys_auth_user');
     setCurrentUser(null);
     showToast('info', 'Sesión Finalizada', 'Has cerrado sesión correctamente.');
   };
 
   useEffect(() => {
-    if (currentUser) {
-      localStorage.setItem('vetsys_auth_user', JSON.stringify(currentUser));
-    } else {
-      localStorage.removeItem('vetsys_auth_user');
-    }
-  }, [currentUser]);
+    let isMounted = true;
+    let validationSequence = 0;
 
-  useEffect(() => {
-    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
-      if (session?.user) {
-        const userMeta = session.user.user_metadata || {};
-        const userObj: User = {
-          id: session.user.id,
-          name: userMeta.name || session.user.email?.split('@')[0] || 'Profesional',
-          email: session.user.email || '',
-          role: userMeta.role || 'VETERINARIO',
-          branchId: activeBranch.id,
-          licenseNumber: userMeta.license_number || 'M.P. 502',
-        };
-        setCurrentUser(userObj);
-      } else if (event === 'SIGNED_OUT') {
-        setCurrentUser(null);
+    const applySession = async (session: Awaited<ReturnType<typeof supabase.auth.getSession>>['data']['session']) => {
+      const requestSequence = ++validationSequence;
+
+      if (!session?.user) {
+        if (isMounted && requestSequence === validationSequence) {
+          setCurrentUser(null);
+          setIsAuthLoading(false);
+        }
+        return;
       }
+
+      try {
+        const verifiedUser = await getVerifiedAppUser(session.user);
+        if (!isMounted || requestSequence !== validationSequence) return;
+
+        setCurrentUser(verifiedUser);
+        localStorage.removeItem('vetsys_auth_user');
+
+        const assignedBranch = branches.find((branch) => branch.id === verifiedUser.branchId);
+        if (assignedBranch) setActiveBranch(assignedBranch);
+
+        setActiveView((previousView) =>
+          hasViewPermission(verifiedUser.role, resolveSystemView(previousView))
+            ? previousView
+            : getDefaultViewForRole(verifiedUser.role)
+        );
+      } catch (error) {
+        if (isMounted && requestSequence === validationSequence) {
+          setCurrentUser(null);
+          console.error('[AUTH] Perfil profesional rechazado:', error);
+        }
+        // Una sesión Auth sin perfil profesional válido nunca habilita la UI.
+        void supabase.auth.signOut();
+      } finally {
+        if (isMounted && requestSequence === validationSequence) {
+          setIsAuthLoading(false);
+        }
+      }
+    };
+
+    const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
+      // Diferir la consulta de perfil evita bloquear internamente el callback de Auth.
+      queueMicrotask(() => void applySession(session));
     });
 
+    void supabase.auth.getSession().then(({ data }) => applySession(data.session));
+
     return () => {
+      isMounted = false;
+      validationSequence += 1;
       authListener.subscription.unsubscribe();
     };
-  }, [activeBranch.id]);
+  }, [branches]);
 
   return (
     <VetContext.Provider
@@ -2969,8 +2955,8 @@ export const VetProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setActivePatientTab,
 
         currentUser,
+        isAuthLoading,
         logout,
-        setCurrentUser: switchCurrentUser,
         activeBranch,
         setActiveBranch: switchActiveBranch,
         users,

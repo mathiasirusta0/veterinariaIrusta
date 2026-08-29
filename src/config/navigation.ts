@@ -1,10 +1,9 @@
 // VET SYSTEM — Configuración Centralizada de Navegación en 4 Áreas Clínicas y Administrativas
+// Veterinaria Ranquel — Las Lajas, Neuquén
 
 import {
   PawPrint,
-  Stethoscope,
-  BedDouble,
-  Clock,
+  Users,
   Calendar,
   Scissors,
   Activity,
@@ -14,7 +13,9 @@ import {
   Boxes,
   TrendingUp,
   FileText,
+  FileSignature,
   ShieldCheck,
+  Cpu,
   LucideIcon,
 } from 'lucide-react';
 import { UserRole } from '../types';
@@ -42,10 +43,18 @@ export const NAVIGATION_ITEMS: NavItemConfig[] = [
   // A. ATENCIÓN CLÍNICA
   {
     id: 'PACIENTES',
-    label: 'Pacientes & Tutores',
+    label: 'Pacientes & Expediente 360°',
     shortLabel: 'Pacientes',
-    description: 'Directorio de pacientes, tutores y expediente clínico 360°',
+    description: 'Directorio de pacientes y expediente clínico unificado',
     icon: PawPrint,
+    group: 'ATENCION_CLINICA',
+  },
+  {
+    id: 'PROPIETARIOS',
+    label: 'Tutores & Propietarios',
+    shortLabel: 'Tutores',
+    description: 'Gestión de tutores, datos fiscales de contacto y cuenta corriente',
+    icon: Users,
     group: 'ATENCION_CLINICA',
   },
   {
@@ -56,7 +65,6 @@ export const NAVIGATION_ITEMS: NavItemConfig[] = [
     icon: Calendar,
     group: 'ATENCION_CLINICA',
   },
-
   {
     id: 'VACUNAS',
     label: 'Plan de Vacunación',
@@ -77,7 +85,7 @@ export const NAVIGATION_ITEMS: NavItemConfig[] = [
   },
   {
     id: 'SIGNOS_VITALES',
-    label: 'Signos Vitales',
+    label: 'Signos Vitales & Curvas',
     shortLabel: 'Vitals',
     description: 'Registro histórico y curvas hemodinámicas de monitoreo',
     icon: Activity,
@@ -85,6 +93,30 @@ export const NAVIGATION_ITEMS: NavItemConfig[] = [
   },
 
   // C. SERVICIOS CLÍNICOS
+  {
+    id: 'RECETAS_OFICIALES',
+    label: 'Recetario & Prescripciones',
+    shortLabel: 'Recetas',
+    description: 'Emisión de recetas veterinarias con firma electrónica y hash SHA-256',
+    icon: FileSignature,
+    group: 'SERVICIOS_CLINICOS',
+  },
+  {
+    id: 'LABORATORIO',
+    label: 'Laboratorio Clínico',
+    shortLabel: 'Laboratorio',
+    description: 'Órdenes de bioquímica, hemograma, frotis y perfiles diagnósticos',
+    icon: FlaskConical,
+    group: 'SERVICIOS_CLINICOS',
+  },
+  {
+    id: 'IMAGENES',
+    label: 'Diagnóstico por Imágenes',
+    shortLabel: 'Imágenes',
+    description: 'Estudios de Rayos X, ecografía y visualizador con anotaciones',
+    icon: Scan,
+    group: 'SERVICIOS_CLINICOS',
+  },
   {
     id: 'INVENTARIO',
     label: 'Farmacia & Stock',
@@ -98,17 +130,17 @@ export const NAVIGATION_ITEMS: NavItemConfig[] = [
   // D. ADMINISTRACIÓN
   {
     id: 'CAJA_FACTURACION',
-    label: 'Finanzas',
+    label: 'Finanzas & Facturación',
     shortLabel: 'Finanzas',
-    description: 'Caja, facturación ARCA, movimientos, cuentas a cobrar/pagar y resultados',
+    description: 'Caja diaria, recibos de cobro, cuentas a cobrar/pagar y balances',
     icon: TrendingUp,
     group: 'ADMINISTRACION',
   },
   {
     id: 'DOCUMENTOS',
-    label: 'Documentos',
+    label: 'Documentos & Consentimientos',
     shortLabel: 'Documentos',
-    description: 'Consentimientos informados, actas y certificados legales con firma SHA-256',
+    description: 'Consentimientos informados, actas y certificados con trazabilidad',
     icon: FileText,
     group: 'ADMINISTRACION',
   },
@@ -119,6 +151,15 @@ export const NAVIGATION_ITEMS: NavItemConfig[] = [
     description: 'Usuarios, roles RBAC, sedes hospitalarias y registros de auditoría',
     icon: ShieldCheck,
     group: 'ADMINISTRACION',
+  },
+  {
+    id: 'CENTRO_QA',
+    label: 'Centro QA & Diagnóstico',
+    shortLabel: 'QA & Test',
+    description: 'Suite de validación operativa, test de integridad y auditoría técnica',
+    icon: Cpu,
+    group: 'ADMINISTRACION',
+    allowedRoles: ['SUPERADMIN', 'DIRECTOR_MEDICO', 'AUDITOR'],
   },
 ];
 

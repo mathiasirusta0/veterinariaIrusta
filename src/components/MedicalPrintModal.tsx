@@ -74,7 +74,7 @@ export const MedicalPrintModal: React.FC<{
 
   return (
     <div className="fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
-      <div className="bg-white border border-slate-200 rounded-2xl w-full max-w-3xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh] animate-in zoom-in-95 duration-150 print:m-0 print:p-0 print:border-none print:shadow-none print:max-w-none print:max-h-none print:w-full">
+      <div role="dialog" aria-modal="true" className="bg-white border border-slate-200 rounded-2xl w-full max-w-3xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh] animate-in zoom-in-95 duration-150 print:m-0 print:p-0 print:border-none print:shadow-none print:max-w-none print:max-h-none print:w-full">
         {/* Modal Top Bar (Hidden in Print) */}
         <div className="p-4 border-b border-slate-200 bg-slate-50 flex items-center justify-between print:hidden">
           <div className="flex items-center gap-2">
@@ -308,7 +308,7 @@ export const MedicalPrintModal: React.FC<{
                   </div>
                   <div className="text-right text-xs">
                     <p className="font-bold text-slate-800">Fecha: {invoice.date}</p>
-                    <p className="text-slate-500">CUIT: 30-71829384-9</p>
+                    <p className="text-slate-500">CUIT: 20-31458920-4</p>
                   </div>
                 </div>
 

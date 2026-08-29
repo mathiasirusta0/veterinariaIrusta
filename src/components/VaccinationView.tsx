@@ -36,7 +36,7 @@ import {
 } from 'lucide-react';
 import { useVet } from '../context/VetContext';
 import { VaccinationRecord, Patient, Species, Sex } from '../types';
-import { formatDate, formatWeight } from '../utils/formatters';
+import { formatDate, calculatePatientAgeString, formatWeight } from '../utils/formatters';
 import { printA4VaccineCertificate, downloadVaccineCertificatePdf, downloadCompleteVaccinationBookletPdf } from '../utils/printDocumentHelper';
 import { triggerHaptic } from '../utils/haptics';
 import { PageHeader, EmptyState, SearchInput, StatCard } from './ui';
@@ -491,15 +491,18 @@ export const VaccinationView: React.FC = () => {
         email: '',
         address: 'Las Lajas, Neuquén',
         city: 'Las Lajas',
-        province: 'Córdoba',
-        postalCode: '5800',
+        province: 'Neuquén',
+        postalCode: '8347',
         taxCondition: 'CONSUMIDOR_FINAL',
         balance: 0,
         createdAt: new Date().toISOString(),
       });
 
-      const newHC = `HC-2026-${Math.floor(1000 + Math.random() * 9000)}`;
-      const newPatId = `pat-${Date.now()}`;
+      const currentYear = new Date().getFullYear();
+      const nextHcSeq = (patients.length + 1).toString().padStart(5, '0');
+      const newHC = `HC-${currentYear}-${nextHcSeq}`;
+      const newPatId = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `pat-${Date.now()}`;
+      const nowIso = new Date().toISOString();
       addPatient({
         id: newPatId,
         name: newPetName.trim(),
@@ -508,15 +511,15 @@ export const VaccinationView: React.FC = () => {
         sex: newPetSex,
         reproductiveStatus: 'ENTERO',
         color: 'No especificado',
-        birthDate: new Date().toISOString(),
-        calculatedAge: 'Adulto',
+        birthDate: nowIso,
+        calculatedAge: calculatePatientAgeString(nowIso),
         weight: Number(newPetWeight) || 10,
         status: 'ACTIVO',
         alerts: [],
         clinicalRecordNumber: newHC,
         ownerId: newOwnerId,
-        branchId: 'branch-central',
-        createdAt: new Date().toISOString(),
+        branchId: activeBranch?.id || 'branch-1',
+        createdAt: nowIso,
       });
 
       targetPatientId = newPatId;

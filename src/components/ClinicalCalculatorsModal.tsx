@@ -482,7 +482,7 @@ export const ClinicalCalculatorsModal: React.FC<ClinicalCalculatorsModalProps> =
         <div className="p-3.5 sm:p-4 bg-[#EFECE3] border-b border-[#E8E3D9] flex flex-wrap items-center justify-between gap-3">
           <div className="flex flex-wrap items-center gap-3 flex-1">
             {/* Patient Context Dropdown */}
-            <div className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-2xl border border-[#DDD7C8] shadow-2xs">
+            <div role="dialog" aria-modal="true" className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-2xl border border-[#DDD7C8] shadow-2xs">
               <span className="text-xs font-bold text-slate-500">Paciente:</span>
               <select
                 value={currentPatientId}

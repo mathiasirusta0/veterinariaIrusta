@@ -501,7 +501,7 @@ ${financialItems.map((it) => `• ${it.description} x${it.quantity} = ${formatCu
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 md:p-6 bg-black/75 backdrop-blur-xs animate-in fade-in duration-200">
-      <div className="bg-white rounded-3xl shadow-2xl max-w-5xl w-full max-h-[96vh] flex flex-col overflow-hidden border border-[#E8E3D9]">
+      <div role="dialog" aria-modal="true" className="bg-white rounded-3xl shadow-2xl max-w-5xl w-full max-h-[96vh] flex flex-col overflow-hidden border border-[#E8E3D9]">
         {/* Action Header Bar (No Print) */}
         <div className="p-3.5 sm:p-5 bg-gradient-to-r from-[#F9F8F5] to-teal-50/40 border-b border-[#E8E3D9] flex flex-wrap items-center justify-between gap-3 print:hidden">
           <div className="flex items-center gap-3">

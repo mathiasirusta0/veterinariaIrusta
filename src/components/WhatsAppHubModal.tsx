@@ -241,7 +241,7 @@ Hola *${ownerName}*, le enviamos el detalle de tratamientos e insumos médicos r
 🏦 *Datos para Transferencia Bancaria:*
 • *Alias:* ${bankAlias}
 • *Titular:* Dr. Diego Iván Irusta
-• *Banco:* Banco de la Provincia de Córdoba / Mercado Pago
+• *Banco:* Banco Provincia del Neuquén (BPN) / Mercado Pago
 
 ⚠️ Por favor, envíe el comprobante de transferencia a este WhatsApp para asentar el pago en la ficha médica de ${petName}. ¡Muchas gracias! 🐾`;
       }
@@ -478,7 +478,7 @@ Quedamos a su entera disposición para coordinar turnos o resolver cualquier dud
 
   return (
     <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
-      <div className="bg-white border border-slate-200 rounded-3xl w-full max-w-2xl max-h-[92vh] flex flex-col shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+      <div role="dialog" aria-modal="true" className="bg-white border border-slate-200 rounded-3xl w-full max-w-2xl max-h-[92vh] flex flex-col shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
         {/* Header */}
         <div className="px-6 py-4 bg-emerald-700 text-white flex items-center justify-between">
           <div className="flex items-center gap-3">
