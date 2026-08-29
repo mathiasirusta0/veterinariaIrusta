@@ -102,22 +102,6 @@ export const NAVIGATION_ITEMS: NavItemConfig[] = [
     group: 'SERVICIOS_CLINICOS',
   },
   {
-    id: 'LABORATORIO',
-    label: 'Laboratorio Clínico',
-    shortLabel: 'Laboratorio',
-    description: 'Órdenes de bioquímica, hemograma, frotis y perfiles diagnósticos',
-    icon: FlaskConical,
-    group: 'SERVICIOS_CLINICOS',
-  },
-  {
-    id: 'IMAGENES',
-    label: 'Diagnóstico por Imágenes',
-    shortLabel: 'Imágenes',
-    description: 'Estudios de Rayos X, ecografía y visualizador con anotaciones',
-    icon: Scan,
-    group: 'SERVICIOS_CLINICOS',
-  },
-  {
     id: 'INVENTARIO',
     label: 'Farmacia & Stock',
     shortLabel: 'Farmacia',

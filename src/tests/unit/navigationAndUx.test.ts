@@ -12,18 +12,20 @@ describe('Simplificación de Nombres de Navegación & UX', () => {
     expect(getNavLabel('INVENTARIO')).toBe('Farmacia & Stock');
     expect(getNavLabel('CAJA_FACTURACION')).toBe('Finanzas & Facturación');
     expect(getNavLabel('DOCUMENTOS')).toBe('Documentos & Consentimientos');
-    expect(getNavLabel('LABORATORIO')).toBe('Laboratorio Clínico');
-    expect(getNavLabel('IMAGENES')).toBe('Diagnóstico por Imágenes');
     expect(getNavLabel('RECETAS_OFICIALES')).toBe('Recetario & Prescripciones');
   });
 
-  it('no debe incluir la vista ASISTENTE_IA, CONSULTAS ni CENTRO_QA en la configuración de navegación', () => {
+  it('no debe incluir la vista ASISTENTE_IA, CONSULTAS, CENTRO_QA, LABORATORIO ni IMAGENES en la configuración de navegación', () => {
     const aiItem = NAVIGATION_ITEMS.find((n) => (n.id as string) === 'ASISTENTE_IA');
     expect(aiItem).toBeUndefined();
     const consultasItem = NAVIGATION_ITEMS.find((n) => (n.id as string) === 'CONSULTAS');
     expect(consultasItem).toBeUndefined();
     const qaItem = NAVIGATION_ITEMS.find((n) => (n.id as string) === 'CENTRO_QA');
     expect(qaItem).toBeUndefined();
+    const labItem = NAVIGATION_ITEMS.find((n) => (n.id as string) === 'LABORATORIO');
+    expect(labItem).toBeUndefined();
+    const imgItem = NAVIGATION_ITEMS.find((n) => (n.id as string) === 'IMAGENES');
+    expect(imgItem).toBeUndefined();
   });
 
   it('debe formatear enums técnicos de alertas médicas a texto legible en español', () => {

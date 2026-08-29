@@ -8,9 +8,8 @@ describe('RBAC Permissions Matrix Unit Tests', () => {
     expect(hasViewPermission('ADMINISTRADOR', 'DOCUMENTOS')).toBe(true);
   });
 
-  it('RECEPCION must be denied access to CIRUGIAS, LABORATORIO, and INVENTARIO', () => {
+  it('RECEPCION must be denied access to CIRUGIAS and INVENTARIO', () => {
     expect(hasViewPermission('RECEPCION', 'CIRUGIAS')).toBe(false);
-    expect(hasViewPermission('RECEPCION', 'LABORATORIO')).toBe(false);
     expect(hasViewPermission('RECEPCION', 'INVENTARIO')).toBe(false);
 
     // Allowed for reception
@@ -22,7 +21,7 @@ describe('RBAC Permissions Matrix Unit Tests', () => {
   it('CAJA must be restricted to financial and document operations', () => {
     expect(hasViewPermission('CAJA', 'CAJA_FACTURACION')).toBe(true);
     expect(hasViewPermission('CAJA', 'CIRUGIAS')).toBe(false);
-    expect(hasViewPermission('CAJA', 'LABORATORIO')).toBe(false);
+    expect(hasViewPermission('CAJA', 'INVENTARIO')).toBe(false);
   });
 
   it('getDefaultViewForRole should return appropriate initial landing page', () => {

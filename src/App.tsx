@@ -60,8 +60,6 @@ const OwnersView = lazyRetry(() => import('./components/OwnersView').then((m) =>
 const AppointmentsView = lazyRetry(() => import('./components/AppointmentsView').then((m) => ({ default: m.AppointmentsView })));
 const VitalSignsView = lazyRetry(() => import('./components/VitalSignsView').then((m) => ({ default: m.VitalSignsView })));
 const SurgeriesView = lazyRetry(() => import('./components/SurgeriesView').then((m) => ({ default: m.SurgeriesView })));
-const LaboratoryView = lazyRetry(() => import('./components/LaboratoryView').then((m) => ({ default: m.LaboratoryView })));
-const ImagingView = lazyRetry(() => import('./components/ImagingView').then((m) => ({ default: m.ImagingView })));
 const VaccinationView = lazyRetry(() => import('./components/VaccinationView').then((m) => ({ default: m.VaccinationView })));
 const InventoryView = lazyRetry(() => import('./components/InventoryView').then((m) => ({ default: m.InventoryView })));
 const FinancesUnifiedView = lazyRetry(() => import('./components/FinancesUnifiedView').then((m) => ({ default: m.FinancesUnifiedView })));
@@ -159,10 +157,6 @@ const MainLayout: React.FC = () => {
         setActiveView('VACUNAS');
       } else if (appRoute.includes('receta')) {
         setActiveView('RECETAS_OFICIALES');
-      } else if (appRoute.includes('laboratorio')) {
-        setActiveView('LABORATORIO');
-      } else if (appRoute.includes('imagen')) {
-        setActiveView('IMAGENES');
       } else if (appRoute.includes('inicio') || appRoute.includes('dashboard') || appRoute.includes('operacion')) {
         setActiveView('OPERACION');
       }
@@ -239,18 +233,6 @@ const MainLayout: React.FC = () => {
         return (
           <ModuleErrorBoundary moduleName="Quirófano & Cirugías">
             <SurgeriesView />
-          </ModuleErrorBoundary>
-        );
-      case 'LABORATORIO':
-        return (
-          <ModuleErrorBoundary moduleName="Laboratorio Clínico">
-            <LaboratoryView />
-          </ModuleErrorBoundary>
-        );
-      case 'IMAGENES':
-        return (
-          <ModuleErrorBoundary moduleName="Diagnóstico por Imágenes">
-            <ImagingView />
           </ModuleErrorBoundary>
         );
       case 'VACUNAS':

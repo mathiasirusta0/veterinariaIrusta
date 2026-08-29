@@ -21,8 +21,6 @@ const PREFETCH_MAP: Record<string, () => Promise<any>> = {
   AGENDA: () => import('./AppointmentsView'),
   SIGNOS_VITALES: () => import('./VitalSignsView'),
   CIRUGIAS: () => import('./SurgeriesView'),
-  LABORATORIO: () => import('./LaboratoryView'),
-  IMAGENES: () => import('./ImagingView'),
   VACUNAS: () => import('./VaccinationView'),
   INVENTARIO: () => import('./InventoryView'),
   CAJA_FACTURACION: () => import('./FinancesUnifiedView'),
