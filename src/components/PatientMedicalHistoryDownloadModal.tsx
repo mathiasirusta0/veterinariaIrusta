@@ -23,7 +23,7 @@ import {
 } from 'lucide-react';
 import { useVet } from '../context/VetContext';
 import { Patient, Owner } from '../types';
-import { formatDate, formatDateTime, formatTime, formatWeight, formatCurrency } from '../utils/formatters';
+import { formatDate, formatDateTime, formatTime, formatWeight, formatCurrency, getPatientCanonicalStatus } from '../utils/formatters';
 import { triggerHaptic } from '../utils/haptics';
 import { printA4MedicalHistory, downloadMedicalHistoryPdf } from '../utils/printDocumentHelper';
 
@@ -300,7 +300,7 @@ export const PatientMedicalHistoryDownloadModal: React.FC<PatientMedicalHistoryD
       color: patient.color,
       microchip: patient.microchip,
       hc: patient.clinicalRecordNumber || patient.id,
-      status: patient.status,
+      status: getPatientCanonicalStatus(patient, hospitalizations).label,
     },
     owner: owner
       ? {

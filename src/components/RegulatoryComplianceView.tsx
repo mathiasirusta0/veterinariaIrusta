@@ -232,7 +232,7 @@ export const RegulatoryComplianceView: React.FC = () => {
                 Padrón de Médicos Veterinarios & Habilitación Profesional
               </h3>
               <p className="text-xs text-slate-500 font-medium">
-                Conforme al Estatuto del Colegio Médico Veterinario de la Provincia de Córdoba (CMVC) y Ley Nº 11.076.
+                Conforme al Estatuto del Colegio Médico Veterinario de la Provincia del Neuquén (CMVN).
               </p>
             </div>
             <span className="text-xs font-bold text-teal-700 bg-teal-50 px-3 py-1.5 rounded-xl border border-teal-200">
@@ -264,7 +264,7 @@ export const RegulatoryComplianceView: React.FC = () => {
                         ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
                         : 'bg-amber-50 text-amber-700 border border-amber-200'
                     }`}>
-                      {isVerified ? 'Habilitado CMVC' : 'Pendiente Validación'}
+                      {isVerified ? 'Habilitado CMVN' : 'Pendiente Validación'}
                     </span>
                   </div>
 
@@ -300,9 +300,9 @@ export const RegulatoryComplianceView: React.FC = () => {
             {
               name: 'Colegio Médico Veterinario de Neuquén (CMVN)',
               desc: 'Órgano de matriculación, control deontológico y ética profesional veterinaria en la Provincia del Neuquén.',
-              url: 'https://covetcba.org.ar',
+              url: 'https://cmvneuquen.com.ar',
               category: 'Colegiatura & Deontología',
-              norma: 'Ley Provincial Nº 11.076 / 5.142',
+              norma: 'Estatuto de Ejercicio Profesional CMVN',
             },
             {
               name: 'SENASA — Sanidad y Calidad Agroalimentaria',
@@ -313,24 +313,24 @@ export const RegulatoryComplianceView: React.FC = () => {
             },
             {
               name: 'ARCA — Agencia de Recaudación y Control Aduanero',
-              desc: 'Emisión de comprobantes fiscales electrónicos (Facturas A, B, C), Web Service Factura Electrónica (WSFEv1) y CAE.',
+              desc: 'Régimen de facturación electrónica y Web Services (WSAA/WSMTXCA) en proceso de homologación.',
               url: 'https://www.arca.gob.ar',
               category: 'Fiscal & Tributario',
               norma: 'RG AFIP/ARCA 4291',
             },
             {
-              name: 'Municipalidad de Las Lajas — Ambiente',
-              desc: 'Registro Municipal de Generadores de Residuos Patogénicos y normativa local de habilitaciones clínicas veterinarias.',
-              url: 'https://www.riocuarto.gov.ar',
+              name: 'Municipalidad de Las Lajas — Bromatología & Zoonosis',
+              desc: 'Habilitación municipal, control zoonótico y gestión de residuos biopatogénicos locales.',
+              url: 'https://laslajas.gob.ar',
               category: 'Municipal / Local',
-              norma: 'Ordenanza Municipal 441/2020',
+              norma: 'Ordenanza Municipal Habilitaciones',
             },
             {
-              name: 'Agencia Córdoba Ambiente (Gobierno de Córdoba)',
-              desc: 'Fiscalización de residuos peligrosos y patógenos en el territorio provincial conforme a la Ley Nacional 24.051.',
-              url: 'https://cba.gov.ar',
+              name: 'Secretaría de Ambiente (Gobierno del Neuquén)',
+              desc: 'Fiscalización de residuos peligrosos y biopatogénicos conforme a la Ley Provincial 1.875 y Ley Nacional 24.051.',
+              url: 'https://neuquen.gov.ar',
               category: 'Ambiente Provincial',
-              norma: 'Ley Provincial 8.973',
+              norma: 'Ley Provincial 1.875 / Ley 24.051',
             },
             {
               name: 'Agencia de Acceso a la Información Pública (AAIP)',
@@ -382,13 +382,13 @@ export const RegulatoryComplianceView: React.FC = () => {
 
           <div className="space-y-3">
             {[
-              { title: 'Ejercicio Profesional & Matrícula Colegial', desc: 'Validación obligatoria de matrícula profesional en toda prescripción y acto clínico.', status: 'CUMPLIDO', law: 'Ley 11.076 CMVC' },
-              { title: 'Inalterabilidad de Historias Clínicas', desc: 'Consultas cerradas protegidas con enmiendas cronológicas inmutables.', status: 'CUMPLIDO', law: 'Código de Ética CMVC' },
+              { title: 'Ejercicio Profesional & Matrícula Colegial', desc: 'Validación obligatoria de matrícula profesional en toda prescripción y acto clínico.', status: 'CUMPLIDO', law: 'CMVN Neuquén M.P. 502' },
+              { title: 'Inalterabilidad de Historias Clínicas', desc: 'Consultas cerradas protegidas con enmiendas cronológicas inmutables.', status: 'CUMPLIDO', law: 'Código de Ética CMVN' },
               { title: 'Libro Digital de Psicotrópicos & Ketamina', desc: 'Trazabilidad estricta de entradas, salidas y recetas oficiales sin borrado físico.', status: 'CUMPLIDO', law: 'Leyes 17.818 / 19.303' },
-              { title: 'Gestión de Residuos Patológicos', desc: 'Manifiestos de retiro y certificados de disposición final con pesaje registrado.', status: 'CUMPLIDO', law: 'Ley 24.051 / Las Lajas' },
+              { title: 'Gestión de Residuos Patológicos', desc: 'Manifiestos de retiro y certificados de disposición final con pesaje registrado.', status: 'CUMPLIDO', law: 'Ley 24.051 / Ley 1.875 Neuquén' },
               { title: 'Protección de Datos Personales', desc: 'Consentimiento de privacidad y confidencialidad de tutores sin uso de datos para entrenamiento no autorizado.', status: 'CUMPLIDO', law: 'Ley 25.326' },
               { title: 'Firma Electrónica & Trazabilidad Criptográfica', desc: 'Almacenamiento de hash criptográfico, autor y timestamp en cada documento emitido.', status: 'CUMPLIDO', law: 'Ley 25.506' },
-              { title: 'Facturación Electrónica ARCA (Modo Homologación / Producción)', desc: 'Integración oficial con CAE y QR fiscal sin simulación falsa.', status: 'CUMPLIDO', law: 'RG ARCA 4291' },
+              { title: 'Régimen de Comprobantes & Web Services ARCA', desc: 'Comprobantes internos no fiscales activos; Web Services WSAA/WSMTXCA en homologación protegida.', status: 'HOMOLOGACION', law: 'RG ARCA 4291' },
               { title: 'Bienestar y Protección Animal', desc: 'Registro formal de sospechas de maltrato con respaldo fotográfico y pericial.', status: 'CUMPLIDO', law: 'Ley 14.346' },
             ].map((item, idx) => (
               <div

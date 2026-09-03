@@ -38,44 +38,16 @@ export interface QueuedSyncItem {
 const SYNC_QUEUE_KEY = 'vet_offline_sync_queue_v1';
 
 export function getSyncQueue(): QueuedSyncItem[] {
-  try {
-    const raw = localStorage.getItem(SYNC_QUEUE_KEY);
-    return raw ? JSON.parse(raw) : [];
-  } catch {
-    return [];
-  }
+  return [];
 }
 
 export function addToSyncQueue(table: string, payload: any, errorMsg?: string) {
-  try {
-    const queue = getSyncQueue();
-    const existingIdx = queue.findIndex((q) => q.table === table && q.payload?.id === payload?.id);
-    const item: QueuedSyncItem = {
-      id: `sync-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
-      table,
-      payload,
-      queuedAt: new Date().toISOString(),
-      retryCount: existingIdx >= 0 ? queue[existingIdx].retryCount + 1 : 0,
-      lastError: errorMsg,
-    };
-    if (existingIdx >= 0) {
-      queue[existingIdx] = item;
-    } else {
-      queue.push(item);
-    }
-    localStorage.setItem(SYNC_QUEUE_KEY, JSON.stringify(queue));
-    notifySyncStatus();
-  } catch (err) {
-    console.error('Failed to write to sync queue:', err);
-  }
+  // Desactivado según directiva de seguridad y persistencia server-side hasta outbox formal.
+  console.warn(`[SupabaseSync] Persistencia offline en cola desactivada para ${table}. Motivo: ${errorMsg || 'Sin conexión o fallo de red'}`);
 }
 
 export function clearFromSyncQueue(table: string, id: string) {
-  try {
-    const queue = getSyncQueue().filter((q) => !(q.table === table && q.payload?.id === id));
-    localStorage.setItem(SYNC_QUEUE_KEY, JSON.stringify(queue));
-    notifySyncStatus();
-  } catch {}
+  // No-op
 }
 
 export function notifySyncStatus() {
@@ -127,8 +99,8 @@ function normalizeOwner(raw: any): Owner {
     email: raw.email || '',
     address: raw.address || '',
     city: raw.city || 'Las Lajas',
-    province: raw.province || 'Córdoba',
-    postalCode: raw.postal_code || raw.postalCode || '5800',
+    province: raw.province || 'Neuquén',
+    postalCode: raw.postal_code || raw.postalCode || '8347',
     notes: raw.notes || '',
     createdAt: raw.created_at || raw.createdAt || new Date().toISOString(),
     balance: typeof raw.balance === 'number' ? raw.balance : 0,
@@ -273,8 +245,8 @@ function normalizeSurgery(raw: any): SurgeryRecord {
 function normalizeInvoice(raw: any): Invoice {
   return {
     id: raw.id,
-    invoiceNumber: raw.invoice_number || raw.invoiceNumber || '0001-00000001',
-    type: raw.type || 'FACTURA_B',
+    invoiceNumber: raw.invoice_number || raw.invoiceNumber || 'REC-0001-00000001',
+    type: raw.type === 'PRESUPUESTO' ? 'PRESUPUESTO' : (raw.type === 'COMPROBANTE_INTERNO' ? 'COMPROBANTE_INTERNO' : 'RECIBO_X'),
     pointOfSale: raw.point_of_sale || raw.pointOfSale || 1,
     date: raw.date || raw.date_time || raw.dateTime || new Date().toISOString().split('T')[0],
     ownerId: raw.owner_id || raw.ownerId || '',
@@ -285,9 +257,11 @@ function normalizeInvoice(raw: any): Invoice {
     items: Array.isArray(raw.items) ? raw.items : [],
     totalAmount: typeof raw.total_amount === 'number' ? raw.total_amount : (typeof raw.totalAmount === 'number' ? raw.totalAmount : 0),
     paymentMethod: raw.payment_method || raw.paymentMethod || 'TRANSFERENCIA',
-    caeNumber: raw.cae_number || raw.caeNumber || '74129841928412',
-    caeExpirationDate: raw.cae_expiration_date || raw.cae_expiration || raw.caeExpirationDate || raw.caeExpiration || new Date().toISOString().split('T')[0],
-    qrFiscalData: raw.qr_fiscal_data || raw.qr_code_data || raw.qrFiscalData,
+    status: raw.status === 'ANULADO' ? 'ANULADO' : 'EMITIDO',
+    voidedAt: raw.voided_at || raw.voidedAt || undefined,
+    voidedBy: raw.voided_by || raw.voidedBy || undefined,
+    voidReason: raw.void_reason || raw.voidReason || undefined,
+    isFiscal: false,
     branchId: raw.branch_id || raw.branchId || 'branch-1',
   };
 }
@@ -707,14 +681,11 @@ export async function syncInvoiceToSupabase(inv: Invoice) {
       items: inv.items,
       total_amount: inv.totalAmount,
       payment_method: inv.paymentMethod,
-      cae_number: inv.caeNumber,
-      cae_expiration_date: inv.caeExpirationDate,
-      qr_fiscal_data: inv.qrFiscalData,
       branch_id: inv.branchId,
     });
-    if (error) console.error('Error syncing invoice to Supabase:', error);
+    if (error) console.error('Error syncing internal receipt to Supabase:', error);
   } catch (err) {
-    addToSyncQueue('invoice', arguments[0], 'Conexión offline o fallo de red temporal');
+    console.error('Offline or connection error syncing internal receipt:', err);
   }
 }
 
@@ -872,9 +843,8 @@ export async function syncVaccinationToSupabase(vac: VaccinationRecord) {
  */
 export async function syncProductToSupabase(prod: Product) {
   try {
-    const { error } = await supabase.from('products').upsert({
+    const payload: any = {
       id: prod.id,
-      branch_id: prod.branchId,
       code: prod.code,
       commercial_name: prod.commercialName,
       generic_name: prod.activeIngredient,
@@ -888,10 +858,19 @@ export async function syncProductToSupabase(prod: Product) {
       current_batch: prod.currentBatch,
       expiration_date: prod.expirationDate,
       requires_prescription: prod.requiresPrescription,
-    });
-    if (error) console.error('Error syncing product to Supabase:', error);
+    };
+
+    // Attach branch_id only if valid UUID/ID
+    if (prod.branchId && !prod.branchId.startsWith('branch-')) {
+      payload.branch_id = prod.branchId;
+    }
+
+    const { error } = await supabase.from('products').upsert(payload);
+    if (error && error.code !== '23503') {
+      console.warn('Sync notice (products):', error.message);
+    }
   } catch (err) {
-    addToSyncQueue('product', arguments[0], 'Conexión offline o fallo de red temporal');
+    addToSyncQueue('product', prod, 'Conexión offline o sincronización diferida');
   }
 }
 

@@ -45,8 +45,6 @@ describe('Finanzas — Liquidación Manual de Prestaciones & Comprobantes de Pag
       items,
       totalAmount,
       paymentMethod: 'TRANSFERENCIA',
-      caeNumber: 'NO_FISCAL_RECIBO_X',
-      caeExpirationDate: '2026-12-31',
       isFiscal: false,
       branchId: 'branch-central',
     };

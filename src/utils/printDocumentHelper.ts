@@ -1,3 +1,4 @@
+import { escapeHtml } from './formatters';
 
 export function triggerIframePrint(html: string) {
   if (typeof document === 'undefined') return;
@@ -802,10 +803,10 @@ export function printA4ClinicalDocument(data: PrintableClinicalDocumentData) {
   const doc = iframe.contentWindow?.document;
   if (!doc) return;
 
-  // Format content paragraphs
+  // Format content paragraphs with XSS defense
   const formattedContent = data.content
     .split('\n\n')
-    .map((p) => `<p style="margin: 0 0 12px 0; text-align: justify; line-height: 1.6;">${p.replace(/\n/g, '<br />')}</p>`)
+    .map((p) => `<p style="margin: 0 0 12px 0; text-align: justify; line-height: 1.6;">${escapeHtml(p).replace(/\n/g, '<br />')}</p>`)
     .join('');
 
   const html = `
@@ -1019,33 +1020,51 @@ export function generateClinicalDocumentPdf(data: PrintableClinicalDocumentData)
     format: 'a4',
   });
 
-  // Header Banner
+  // Sanitize license and doctor name from data
+  let cleanContent = (data.content || '').replace(/<[^>]+>/g, '')
+    .replace(/MP\s*8412(\s*-\s*Dirección\s*Médica)?/gi, 'M.P. 502 - Dirección Médica')
+    .replace(/8412/g, '502')
+    .replace(/Dr\.\s*Diego\s*Irusta(?!\s*Iván)/g, 'Dr. Diego Iván Irusta');
+
+  let sanitizedTitle = (data.title || 'Documento Clínico')
+    .replace(/MP\s*8412/gi, 'M.P. 502')
+    .replace(/8412/g, '502')
+    .replace(/Dr\.\s*Diego\s*Irusta(?!\s*Iván)/g, 'Dr. Diego Iván Irusta');
+
+  // Header Banner with generous height (26mm) and clear separation
   doc.setFillColor(15, 118, 110);
-  doc.rect(0, 0, 210, 24, 'F');
+  doc.rect(0, 0, 210, 26, 'F');
 
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(14);
+  doc.setFontSize(13);
   doc.setTextColor(255, 255, 255);
-  doc.text('CLÍNICA VETERINARIA RANQUEL', 14, 11);
+  doc.text('CLÍNICA VETERINARIA RANQUEL', 14, 9);
 
   doc.setFont('helvetica', 'normal');
-  doc.setFontSize(8);
-  doc.setTextColor(204, 251, 241);
-  doc.text('Grandes y Pequeños Animales • Cuidados Críticos & Cirugía 24 Hs • Casa 13, Barrio Militar de Oficiales, Las Lajas, Neuquén (CP 8347)', 14, 16);
-  doc.text('Dirección Médica: Dr. Diego Iván Irusta — Matrícula Profesional: M.P. 502', 14, 21);
-
-  // Document Title Badge Right
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(9);
-  doc.setTextColor(255, 255, 255);
-  doc.text(data.title.toUpperCase(), 196, 11, { align: 'right' });
   doc.setFontSize(7.5);
+  doc.setTextColor(204, 251, 241);
+  doc.text('Grandes y Pequeños Animales • Cuidados Críticos & Cirugía 24 Hs', 14, 14);
+  doc.text('Casa 13, Barrio Militar de Oficiales, Las Lajas, Neuquén (CP 8347)', 14, 18.5);
+  doc.setFont('helvetica', 'bold');
+  doc.text('Dirección Médica: Dr. Diego Iván Irusta — Matrícula Profesional: M.P. 502', 14, 23);
+
+  // Document Title & Date Right (No overlap)
+  const shortTitle = sanitizedTitle.toUpperCase();
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(8.5);
+  doc.setTextColor(255, 255, 255);
+  const titleLines = doc.splitTextToSize(shortTitle, 75);
+  doc.text(titleLines, 196, 9, { align: 'right' });
+
+  doc.setFontSize(7);
   doc.setFont('helvetica', 'normal');
-  doc.text(`Fecha: ${data.date} ${data.time || ''}`, 196, 17, { align: 'right' });
+  const cleanTime = (data.time || '').replace(/p\.\s*m\./gi, 'hs').replace(/hs\s*hs/gi, 'hs').trim();
+  const timeDisplay = cleanTime ? (cleanTime.includes('hs') ? cleanTime : `${cleanTime} hs`) : '';
+  doc.text(`Fecha: ${data.date} ${timeDisplay}`.trim(), 196, 23, { align: 'right' });
 
   // Patient & Owner Info Box
   autoTable(doc, {
-    startY: 28,
+    startY: 29,
     margin: { left: 14, right: 14 },
     head: [['DATOS DEL PACIENTE', 'DATOS DEL TUTOR TITULAR']],
     body: [
@@ -1061,24 +1080,109 @@ export function generateClinicalDocumentPdf(data: PrintableClinicalDocumentData)
 
   let currentY = (doc as any).lastAutoTable.finalY + 6;
 
-  // Document Title Header
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(11);
-  doc.setTextColor(15, 23, 42);
-  doc.text(data.title, 14, currentY);
+  // Check if content is a Structured Evolution
+  const isEvolution = cleanContent.includes('EVALUACIÓN MÉDICA:') || cleanContent.includes('PLAN TERAPÉUTICO');
 
-  currentY += 6;
+  if (isEvolution) {
+    // Extract metadata
+    const sectorMatch = cleanContent.match(/Sector:\s*([^\r\n]+)/i);
+    const shiftMatch = cleanContent.match(/Turno:\s*([^\r\n]+)/i);
+    const sector = sectorMatch ? sectorMatch[1].trim() : 'UCI Canil 01';
+    const shift = shiftMatch ? shiftMatch[1].trim() : 'DIURNO';
 
-  // Document Body Paragraphs
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(9);
-  doc.setTextColor(51, 65, 85);
+    // Parse sections
+    let assessment = '';
+    let plan = '';
+    let notes = '';
 
-  const cleanContent = data.content.replace(/<[^>]+>/g, '');
-  const splitText = doc.splitTextToSize(cleanContent, 182);
-  doc.text(splitText, 14, currentY);
+    const evalIndex = cleanContent.indexOf('EVALUACIÓN MÉDICA:');
+    const planIndex = cleanContent.indexOf('PLAN TERAPÉUTICO & INDICACIONES:');
+    const obsIndex = cleanContent.indexOf('OBSERVACIONES:');
 
-  currentY += splitText.length * 4.5 + 12;
+    if (evalIndex !== -1) {
+      const endEval = planIndex !== -1 ? planIndex : (obsIndex !== -1 ? obsIndex : cleanContent.length);
+      assessment = cleanContent.substring(evalIndex + 'EVALUACIÓN MÉDICA:'.length, endEval).trim();
+    }
+    if (planIndex !== -1) {
+      const endPlan = obsIndex !== -1 ? obsIndex : cleanContent.length;
+      plan = cleanContent.substring(planIndex + 'PLAN TERAPÉUTICO & INDICACIONES:'.length, endPlan).trim();
+    }
+    if (obsIndex !== -1) {
+      notes = cleanContent.substring(obsIndex + 'OBSERVACIONES:'.length).trim();
+    }
+
+    // Evolution Header Card
+    doc.setFillColor(241, 245, 249);
+    doc.roundedRect(14, currentY, 182, 12, 1.5, 1.5, 'F');
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(9);
+    doc.setTextColor(15, 23, 42);
+    doc.text('EVOLUCIÓN MÉDICA INTEGRAL & CONTROL DE GUARDIA', 18, currentY + 5);
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(7.5);
+    doc.setTextColor(71, 85, 105);
+    doc.text(`Sector: ${sector}   |   Turno: ${shift}   |   Profesional: Dr. Diego Iván Irusta (M.P. 502 - Dirección Médica)`, 18, currentY + 9.5);
+
+    currentY += 16;
+
+    // Table of Clinical Evaluation
+    autoTable(doc, {
+      startY: currentY,
+      margin: { left: 14, right: 14 },
+      head: [['EVALUACIÓN MÉDICA & EXAMEN FÍSICO']],
+      body: [[assessment || 'Paciente compensado, sin particularidades clínicas.']],
+      theme: 'grid',
+      headStyles: { fillColor: [15, 118, 110], textColor: [255, 255, 255], fontSize: 8, fontStyle: 'bold' },
+      bodyStyles: { fontSize: 8.5, cellPadding: 3.5, textColor: [30, 41, 59] },
+    });
+
+    currentY = (doc as any).lastAutoTable.finalY + 4;
+
+    // Table of Therapeutic Plan
+    autoTable(doc, {
+      startY: currentY,
+      margin: { left: 14, right: 14 },
+      head: [['PLAN TERAPÉUTICO & INDICACIONES FARMACOLÓGICAS']],
+      body: [[plan || 'Mantener indicaciones previas y control de constantes.']],
+      theme: 'grid',
+      headStyles: { fillColor: [51, 65, 85], textColor: [255, 255, 255], fontSize: 8, fontStyle: 'bold' },
+      bodyStyles: { fontSize: 8.5, cellPadding: 3.5, textColor: [30, 41, 59] },
+    });
+
+    currentY = (doc as any).lastAutoTable.finalY + 4;
+
+    if (notes) {
+      autoTable(doc, {
+        startY: currentY,
+        margin: { left: 14, right: 14 },
+        head: [['OBSERVACIONES ADICIONALES']],
+        body: [[notes]],
+        theme: 'grid',
+        headStyles: { fillColor: [100, 116, 139], textColor: [255, 255, 255], fontSize: 8, fontStyle: 'bold' },
+        bodyStyles: { fontSize: 8.5, cellPadding: 3, textColor: [30, 41, 59] },
+      });
+      currentY = (doc as any).lastAutoTable.finalY + 4;
+    }
+  } else {
+    // Standard Document Title Header
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(11);
+    doc.setTextColor(15, 23, 42);
+    doc.text(sanitizedTitle, 14, currentY);
+
+    currentY += 6;
+
+    // Document Body Paragraphs
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9);
+    doc.setTextColor(51, 65, 85);
+
+    const splitText = doc.splitTextToSize(cleanContent, 182);
+    doc.text(splitText, 14, currentY);
+
+    currentY += splitText.length * 4.5 + 8;
+  }
 
   if (currentY > 230) {
     doc.addPage();
@@ -1792,7 +1896,7 @@ export function generateMedicalHistoryPdfDocument(data: PrintableMedicalHistoryD
     `Nombre: ${data.owner?.name || 'Sin tutor asignado'}`,
     `Teléfono / WhatsApp: ${data.owner?.phone || 'S/D'}`,
     `DNI / CUIT: ${data.owner?.dni || 'S/D'}`,
-    `Dirección: ${data.owner?.address || 'Casa 13, Barrio Militar de Oficiales, Las Lajas, Neuquén (CP 8347)'}`,
+    `Dirección: ${data.owner?.address || 'Las Lajas, Neuquén (Sin domicilio registrado)'}`,
     `Cuenta Corriente: ${data.owner?.balance !== undefined ? '$ ' + Number(data.owner.balance).toLocaleString('es-AR', { minimumFractionDigits: 2 }) : '$ 0,00'}`,
     `Veterinario a Cargo: ${data.doctor.name} (${data.doctor.license})`,
   ].join('\n');
@@ -2014,27 +2118,8 @@ export async function downloadMedicalHistoryPdf(
     const hcCode = (data.patient.hc || 'HC').replace(/[^a-zA-Z0-9_-]/g, '_');
     const fileName = customFileName || `Historia_Clinica_${petName}_${hcCode}.pdf`;
 
-    // 1. Trigger Direct Download with jsPDF
+    // Direct jsPDF save
     doc.save(fileName);
-
-    // 2. Blob fallback for universal mobile & web compatibility
-    if (typeof window !== 'undefined' && typeof document !== 'undefined') {
-      try {
-        const pdfBlob = doc.output('blob');
-        const blobUrl = URL.createObjectURL(pdfBlob);
-        const link = document.createElement('a');
-        link.href = blobUrl;
-        link.download = fileName;
-        link.style.display = 'none';
-        document.body.appendChild(link);
-        link.click();
-        setTimeout(() => {
-          document.body.removeChild(link);
-          URL.revokeObjectURL(blobUrl);
-        }, 1500);
-      } catch {}
-    }
-
     return true;
   } catch (err) {
     console.error('Error generating and downloading medical history PDF:', err);

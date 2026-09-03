@@ -227,12 +227,13 @@ export const PrescriptionsView: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [typeFilter, setTypeFilter] = useState<string>('TODOS');
   const [isNewModalOpen, setIsNewModalOpen] = useState(false);
+  const [isSubmittingRx, setIsSubmittingRx] = useState(false);
 
   // Form Mode: Registered Patient vs New/External Unregistered Patient
   const [patientMode, setPatientMode] = useState<'REGISTERED' | 'EXTERNAL'>('REGISTERED');
 
   // Registered Patient Form State
-  const [patientId, setPatientId] = useState(patients[0]?.id || '');
+  const [patientId, setPatientId] = useState('');
 
   // External / Walk-in Patient Form State
   const [extPatientName, setExtPatientName] = useState('');
@@ -248,23 +249,9 @@ export const PrescriptionsView: React.FC = () => {
 
   // Common Prescription Form State
   const [prescriptionType, setPrescriptionType] = useState<PrescriptionType>('RECETA_COMUN');
-  const [diagnosis, setDiagnosis] = useState('Gastroenteritis aguda / Tratamiento sintomático');
+  const [diagnosis, setDiagnosis] = useState('');
   const [notes, setNotes] = useState('');
-  const [items, setItems] = useState<Omit<PrescriptionItem, 'id'>[]>([
-    {
-      medicationName: 'Cerenia 16mg',
-      activeIngredient: 'Maropitant Citrato',
-      presentation: 'Comprimidos',
-      dose: '1 comp cada 24 horas',
-      route: 'ORAL',
-      frequency: 'Cada 24 horas',
-      duration: '3 días',
-      quantityPrescribed: 1,
-      senasaCategory: 'CAT_III_RECETA',
-      requiresRVE: false,
-      instructions: 'Administrar con una pequeña porción de comida.',
-    },
-  ]);
+  const [items, setItems] = useState<Omit<PrescriptionItem, 'id'>[]>([]);
 
   const filteredPrescriptions = prescriptions.filter((p) => {
     const q = (searchQuery || '').toLowerCase();
@@ -358,6 +345,7 @@ export const PrescriptionsView: React.FC = () => {
       isExternal = true;
       if (!extPatientName.trim() || !extOwnerName.trim()) {
         showToast('error', 'Campos Obligatorios', 'Por favor ingresa el nombre del paciente y el nombre del tutor.');
+        setIsSubmittingRx(false);
         return;
       }
 
@@ -451,6 +439,7 @@ export const PrescriptionsView: React.FC = () => {
     };
 
     addPrescription(newPrescription);
+    setIsSubmittingRx(false);
     setIsNewModalOpen(false);
 
     // Reset form fields
@@ -578,7 +567,7 @@ export const PrescriptionsView: React.FC = () => {
       <PageHeader
         category="Farmacología, Prescripciones & Terapéutica"
         title="Recetario Digital & Prescripciones Oficiales"
-        description="Confección de recetas médicas veterinarias oficiales para pacientes registrados y clientes nuevos externos, con membrete oficial, validación SENASA, firma digital matriculada y envío por WhatsApp"
+        description="Confección de recetas médicas veterinarias oficiales para pacientes registrados y clientes nuevos externos, con membrete oficial, validación SENASA, firma profesional matriculada y envío por WhatsApp"
         icon={FileText}
         actions={[
           {

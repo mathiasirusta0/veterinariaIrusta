@@ -165,7 +165,7 @@ export const HospitalizationWhiteboardView: React.FC = () => {
   // Billing Modal
   const [showBillModal, setShowBillModal] = useState(false);
   const [billPayMethod, setBillPayMethod] = useState<PaymentMethod>('EFECTIVO');
-  const [billInvType, setBillInvType] = useState<InvoiceType>('FACTURA_B');
+  const [billInvType, setBillInvType] = useState<InvoiceType>('RECIBO_X');
   const [billDiscount, setBillDiscount] = useState<number>(0);
 
   // Discharge modal
@@ -823,7 +823,7 @@ export const HospitalizationWhiteboardView: React.FC = () => {
                       <div className="bg-slate-50 p-3 rounded-2xl border border-slate-100">
                         <span className="text-[10px] text-slate-400 block font-bold">Presión Arterial</span>
                         <strong className="text-lg font-black text-slate-900 font-mono">
-                          {encounterVitals[0].systolicBP || 120}/{encounterVitals[0].diastolicBP || 80}
+                          {encounterVitals[0].systolicBP && encounterVitals[0].diastolicBP ? `${encounterVitals[0].systolicBP}/${encounterVitals[0].diastolicBP}` : '-'}
                         </strong>
                       </div>
                     </div>
@@ -919,7 +919,7 @@ export const HospitalizationWhiteboardView: React.FC = () => {
                         </div>
                         <div className="bg-slate-50 p-2 rounded-xl">
                           <span className="text-[9px] text-slate-400 block uppercase">PA</span>
-                          <strong className="text-slate-900">{v.systolicBP || 120}/{v.diastolicBP || 80}</strong>
+                          <strong className="text-slate-900">{v.systolicBP && v.diastolicBP ? `${v.systolicBP}/${v.diastolicBP}` : '-'}</strong>
                         </div>
                         <div className="bg-slate-50 p-2 rounded-xl">
                           <span className="text-[9px] text-slate-400 block uppercase">SpO2</span>
@@ -2182,15 +2182,14 @@ export const HospitalizationWhiteboardView: React.FC = () => {
               </div>
 
               <div>
-                <label className="text-slate-700 font-bold block mb-1">Tipo de Factura:</label>
+                <label className="text-slate-700 font-bold block mb-1">Tipo de Comprobante:</label>
                 <select
                   value={billInvType}
                   onChange={(e) => setBillInvType(e.target.value as any)}
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-slate-900 font-bold"
                 >
-                  <option value="FACTURA_B">Factura B (Consumidor Final)</option>
-                  <option value="FACTURA_A">Factura A (Resp. Inscripto)</option>
-                  <option value="RECIBO_X">Recibo X (Interno)</option>
+                  <option value="RECIBO_X">Recibo X (No Fiscal)</option>
+                  <option value="COMPROBANTE_INTERNO">Comprobante Interno</option>
                 </select>
               </div>
             </div>
@@ -2207,7 +2206,7 @@ export const HospitalizationWhiteboardView: React.FC = () => {
                 type="submit"
                 className="px-5 py-2 bg-teal-600 hover:bg-teal-500 text-white font-black rounded-xl text-xs shadow-md"
               >
-                Emitir Factura con CAE
+                Emitir Recibo de Cobranza
               </button>
             </div>
           </form>

@@ -232,10 +232,10 @@ export const QuickModals: React.FC = () => {
   const [prodPrice, setProdPrice] = useState(5000);
   const [prodCategory, setProdCategory] = useState<any>('FARMACO');
 
-  // Invoice AFIP State
+  // Invoice State (Comprobantes Internos No Fiscales)
   const [invCustName, setInvCustName] = useState('');
   const [invCustDni, setInvCustDni] = useState('');
-  const [invType, setInvType] = useState<'FACTURA_B' | 'FACTURA_A' | 'FACTURA_C' | 'RECIBO_X'>('FACTURA_B');
+  const [invType, setInvType] = useState<'RECIBO_X' | 'COMPROBANTE_INTERNO'>('RECIBO_X');
   const [invItemDesc, setInvItemDesc] = useState('Consulta clínica veterinaria diurna');
   const [invItemAmount, setInvItemAmount] = useState<number>(15000);
   const [invPayMethod, setInvPayMethod] = useState<any>('TARJETA_DEBITO');
@@ -877,7 +877,7 @@ export const QuickModals: React.FC = () => {
             {quickModal === 'NUEVA_IMAGEN' && '🔍 Solicitar Estudio de Imagen'}
             {quickModal === 'NUEVA_VACUNA' && '💉 Aplicar Vacuna & Libreta'}
             {quickModal === 'NUEVO_PRODUCTO' && '📦 Alta de Producto / Medicamento'}
-            {quickModal === 'NUEVA_FACTURA' && (invType === 'RECIBO_X' ? '📄 Emitir Ticket Común' : '🧾 Emitir Factura ARCA (AFIP)')}
+            {quickModal === 'NUEVA_FACTURA' && '🧾 Emitir Recibo de Cobranza (No Fiscal)'}
             {quickModal === 'NUEVO_PRESUPUESTO' && '📋 Generar Nuevo Presupuesto Clínico'}
             {quickModal === 'NUEVO_CONSENTIMIENTO' && '📑 Generar Consentimiento Informado'}
           </h3>
@@ -901,7 +901,7 @@ export const QuickModals: React.FC = () => {
               { id: 'NUEVO_LAB', label: 'Laboratorio', icon: FlaskConical, color: 'bg-purple-600' },
               { id: 'NUEVA_IMAGEN', label: 'Estudio de Imagen', icon: Scan, color: 'bg-sky-600' },
               { id: 'NUEVA_VACUNA', label: 'Aplicar Vacuna', icon: Syringe, color: 'bg-emerald-600' },
-              { id: 'NUEVA_FACTURA', label: 'Factura AFIP', icon: Receipt, color: 'bg-emerald-700' },
+              { id: 'NUEVA_FACTURA', label: 'Recibo Cobranza', icon: Receipt, color: 'bg-emerald-700' },
               { id: 'NUEVO_CONSENTIMIENTO', label: 'Consentimiento', icon: FileText, color: 'bg-slate-800' },
             ]
               .filter((action) => hasQuickActionPermission(currentUser?.role, action.id))
@@ -2910,10 +2910,8 @@ export const QuickModals: React.FC = () => {
                   onChange={(e) => setInvType(e.target.value as any)}
                   className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-slate-900 font-bold"
                 >
-                  <option value="FACTURA_B">🧾 Factura B (ARCA - Consumidor Final)</option>
-                  <option value="FACTURA_A">🧾 Factura A (ARCA - Resp. Inscripto)</option>
-                  <option value="FACTURA_C">🧾 Factura C (ARCA - Monotributo)</option>
-                  <option value="RECIBO_X">📄 Ticket Común / Recibo X (Sin ARCA)</option>
+                  <option value="RECIBO_X">📄 Recibo de Cobranza (Recibo X) • Documento No Fiscal</option>
+                  <option value="COMPROBANTE_INTERNO">📋 Comprobante Interno de Mostrador</option>
                 </select>
               </div>
 
@@ -2984,15 +2982,9 @@ export const QuickModals: React.FC = () => {
             </div>
 
             <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-[11px] text-slate-600">
-              {invType === 'RECIBO_X' ? (
-                <span className="text-slate-700 font-medium">
-                  ℹ️ Se emitirá un <strong>Ticket / Recibo interno no fiscal</strong> para control y liberación de gasto del propietario sin conexión a ARCA.
-                </span>
-              ) : (
-                <span className="text-emerald-800 font-medium">
-                  🔒 Se emitirá un <strong>comprobante fiscal oficial homologado por ARCA (AFIP)</strong> con generación automática de CAE y código QR fiscal.
-                </span>
-              )}
+              <span className="text-slate-700 font-medium">
+                ℹ️ <strong>DOCUMENTO NO FISCAL:</strong> Se emitirá un Recibo de Cobranza / Comprobante Interno para control de caja y registro del tutor.
+              </span>
             </div>
 
             <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
@@ -3007,7 +2999,7 @@ export const QuickModals: React.FC = () => {
                 type="submit"
                 className="px-5 py-2 rounded-xl bg-teal-600 hover:bg-teal-500 text-white font-black shadow-md shadow-teal-600/20 active:scale-95 transition-all"
               >
-                {invType === 'RECIBO_X' ? '✓ Emitir Ticket Común' : '✓ Emitir Factura ARCA (CAE)'}
+                ✓ Emitir Recibo de Cobranza
               </button>
             </div>
           </form>

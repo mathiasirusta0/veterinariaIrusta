@@ -30,13 +30,13 @@ describe('Expediente Clínico 360° — Estación Central de Atención Integral'
       phone: '+54 9 358 438-2824',
       whatsapp: '+54 9 358 438-2824',
       email: 'enzo@veterinariairusta.com',
-      address: 'Río Cuarto, Córdoba',
-      city: 'Río Cuarto',
+      address: 'Las Lajas, Neuquén',
+      city: 'Las Lajas',
       taxCondition: 'CONSUMIDOR_FINAL',
       balance: 0,
       notes: 'Tutor responsable',
-      province: 'Córdoba',
-      postalCode: '5800',
+      province: 'Neuquén',
+      postalCode: '8347',
       createdAt: '2026-08-25T00:00:00.000Z',
     };
 

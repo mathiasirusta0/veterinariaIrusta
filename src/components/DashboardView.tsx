@@ -100,7 +100,7 @@ export const DashboardView: React.FC = () => {
               month: 'long',
               year: 'numeric',
             })}{' '}
-            | Guardia Hospitalaria 24hs Activa
+            | Atención por Consulta & Turno Previo
           </p>
         </div>
                 <div className="flex flex-wrap items-center gap-2">
@@ -108,7 +108,7 @@ export const DashboardView: React.FC = () => {
           <div className="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200 mr-2">
             {[
               { id: 'MI_TRABAJO', label: '⚡ Mi Trabajo' },
-              { id: 'SERVICIO', label: '🏥 Servicio 24h' },
+              { id: 'SERVICIO', label: '🏥 Hospitalización' },
               { id: 'ANALITICA', label: '📊 Analítica' },
             ].map((tab) => (
               <button
@@ -166,7 +166,7 @@ export const DashboardView: React.FC = () => {
             <span className="text-[11px] text-rose-600 font-bold flex items-center gap-1">
               {criticalPatients.length > 0 ? '⚠️ Atención Inmediata' : '✓ Estables en UCI'}
             </span>
-            <span className="text-[10px] text-slate-400 font-medium">UCI 24hs</span>
+            <span className="text-[10px] text-slate-400 font-medium">Monitoreo UCI</span>
           </div>
         </div>
 
@@ -502,7 +502,7 @@ export const DashboardView: React.FC = () => {
                   <span>Turnos Programados del Día ({todayAppointments.length})</span>
                 </h3>
                 <p className="text-[11px] text-slate-500 font-medium">
-                  {waitingTriage.length} {waitingTriage.length === 1 ? 'ingreso espontáneo en espera' : 'ingresos espontáneos en espera'} (Triage 24hs)
+                  {waitingTriage.length} {waitingTriage.length === 1 ? 'ingreso espontáneo en espera' : 'ingresos espontáneos en espera'} (Triage Clínico)
                 </p>
               </div>
               <button

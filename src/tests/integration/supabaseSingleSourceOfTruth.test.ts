@@ -21,9 +21,9 @@ describe('Supabase Single Source of Truth & RLS Security Tests', () => {
     whatsapp: '+54 358 4123456',
     email: 'martin.gonzalez@email.com',
     address: 'Av. Marcelo T. de Alvear 1240',
-    city: 'Río Cuarto',
-    province: 'Córdoba',
-    postalCode: '5800',
+    city: 'Las Lajas',
+    province: 'Neuquén',
+    postalCode: '8347',
     createdAt: new Date().toISOString(),
     balance: 0,
   };
@@ -81,18 +81,18 @@ describe('Supabase Single Source of Truth & RLS Security Tests', () => {
     } else {
       expect(ownerRes.data).toBeDefined();
     }
-  });
+  }, 15000);
 
   it('4. Criterio de Aceptación: Si Supabase rechaza la operación, el repositorio retorna error controlado', async () => {
     const invalidPat: any = { id: null, name: null };
     const failRes = await patientRepository.create(invalidPat);
     expect(failRes.data).toBeNull();
     expect(failRes.error).not.toBeNull();
-  });
+  }, 15000);
 
   it('5. Criterio de Aceptación: El Dry Run y Limpieza validan frases de confirmación estrictas', async () => {
     const wrongPhrase = await executeDemoCleanupRPC(false, 'BORRAR TODO');
     expect(wrongPhrase.success).toBe(false);
     expect(wrongPhrase.message).toContain('Frase de confirmación');
-  });
+  }, 15000);
 });

@@ -138,8 +138,8 @@ export const LoginView: React.FC<LoginViewProps> = ({ onBackToLanding }) => {
                   <p className="text-xs text-[#6B4D56] font-medium">Las Lajas • Neuquén (CP 8347)</p>
                 </div>
               </div>
-              <span className="text-xs font-black bg-amber-100 text-amber-900 px-2.5 py-1 rounded-full border border-amber-200">
-                Guardia 24hs
+              <span className="text-xs font-black bg-teal-50 text-teal-800 px-2.5 py-1 rounded-full border border-teal-200">
+                Atención por Consulta
               </span>
             </div>
           </div>

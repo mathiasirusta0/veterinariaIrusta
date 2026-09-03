@@ -50,8 +50,8 @@ import {
 } from 'lucide-react';
 import { useVet } from '../context/VetContext';
 import { computeDoseTimes, computeInitialDoseSlots, getShiftFromTime, formatDoseSlotLabel } from '../utils/medicationScheduleHelper';
-import { ProblemStatus, PatientProblem, Species, Sex, ReproductiveStatus, PatientStatus, PatientAlert, Patient, LaboratoryOrder } from '../types';
-import { formatDate, formatDateTime, formatTime, formatWeight, formatOwnerBalance } from '../utils/formatters';
+import { ProblemStatus, PatientProblem, Species, Sex, ReproductiveStatus, PatientStatus, PatientAlert, Patient, LaboratoryOrder, Invoice, Product } from '../types';
+import { formatDate, formatDateTime, formatTime, formatWeight, formatOwnerBalance, calculateMeanArterialPressure, getPatientCanonicalStatus } from '../utils/formatters';
 import { triggerHaptic } from '../utils/haptics';
 import { EmptyState, StatusBadge, ClinicalAlert, StatCard } from './ui';
 import { PatientFullReportView } from './PatientFullReportView';
@@ -107,6 +107,14 @@ export const Patient360View: React.FC = () => {
     addVitalSigns,
     addLabOrder,
     deleteConsultation,
+    products,
+    encounterConsumptions,
+    addPatientMedicationConsumption,
+    getPatientPendingConsumptions,
+    billPatientPendingConsumptions,
+    createInvoice,
+    masterVademecum,
+    getSuggestedConsumablesForRoute,
   } = useVet();
 
   const [isDischargeModalOpen, setIsDischargeModalOpen] = useState(false);
@@ -180,8 +188,13 @@ export const Patient360View: React.FC = () => {
   // Medication Shift Filter State
   const [medShiftFilter, setMedShiftFilter] = useState<'TODOS' | 'MAÑANA' | 'TARDE' | 'NOCHE'>('TODOS');
 
-  // New Medication Indication state
+  // New Medication Indication state & Pharmacy Autocomplete
   const [newDrugName, setNewDrugName] = useState('');
+  const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
+  const [newDrugChargeToAccount, setNewDrugChargeToAccount] = useState(true);
+  const [newDrugIncludeConsumables, setNewDrugIncludeConsumables] = useState(true);
+  const [newDrugQuantity, setNewDrugQuantity] = useState(1);
+  const [showDrugSuggestions, setShowDrugSuggestions] = useState(false);
   const [newDrugDose, setNewDrugDose] = useState('');
   const [newDrugRoute, setNewDrugRoute] = useState<'IV' | 'IM' | 'SC' | 'PO' | 'TOPICA'>('IV');
   const [newDrugFreq, setNewDrugFreq] = useState('Cada 8 hs');
@@ -261,17 +274,37 @@ export const Patient360View: React.FC = () => {
   const [showWeightModal, setShowWeightModal] = useState(false);
   const [newWeightValue, setNewWeightValue] = useState<string>('');
 
-  // Facturación ARCA vs Ticket Común Modal State
+  // Cobranza Interna & Comprobante Modal State
   const [showBillingModal, setShowBillingModal] = useState(false);
-  const [billingInvoiceType, setBillingInvoiceType] = useState<'TICKET_COMUN' | 'FACTURA_B' | 'FACTURA_A' | 'FACTURA_C'>('TICKET_COMUN');
+  const [billingInvoiceType, setBillingInvoiceType] = useState<'RECIBO_X' | 'COMPROBANTE_INTERNO'>('RECIBO_X');
   const [billingPaymentMethod, setBillingPaymentMethod] = useState<'EFECTIVO' | 'TRANSFERENCIA' | 'MERCADOPAGO_QR' | 'TARJETA_DEBITO'>('EFECTIVO');
-  const [billingItems, setBillingItems] = useState<{ id: string; desc: string; amount: number }[]>([
-    { id: '1', desc: 'Atención Médica & Guardia Hospitalaria 24hs', amount: 15000 },
-    { id: '2', desc: 'Fluidoterapia Ringer Lactato & Vía Endovenosa', amount: 8500 },
-    { id: '3', desc: 'Fármacos & Insumos Descartables UCI (Maropitant, Jeringas)', amount: 6200 },
+  const [billingItems, setBillingItems] = useState<{ id: string; desc: string; amount: number; isFromConsumption?: boolean }[]>([
+    { id: '1', desc: 'Consulta Médica & Atención Clínica', amount: 15000 },
   ]);
   const [showTicketPreview, setShowTicketPreview] = useState(false);
   const [generatedTicketNumber, setGeneratedTicketNumber] = useState('');
+
+  // Helper para abrir modal de cobro sincronizado con los consumos reales no facturados
+  const openBillingModalWithPatientConsumptions = () => {
+    const unbilled = encounterConsumptions.filter(
+      (c) => c.patientId === patient?.id && c.status !== 'ANULADO' && !c.isBilled
+    );
+    if (unbilled.length === 0) {
+      setBillingItems([
+        { id: 'item-cons-default', desc: 'Consulta Médica General & Honorarios Clínicos', amount: 18000 },
+      ]);
+    } else {
+      setBillingItems(
+        unbilled.map((c) => ({
+          id: c.id,
+          desc: `${c.concept} (x${c.quantity})`,
+          amount: c.subtotal,
+          isFromConsumption: true,
+        }))
+      );
+    }
+    setShowBillingModal(true);
+  };
 
   if (!patient) {
     return (
@@ -748,17 +781,14 @@ export const Patient360View: React.FC = () => {
                 <span className="text-xs font-mono font-bold px-2 py-0.5 rounded-lg bg-slate-100 text-slate-700 border border-slate-200">
                   HC: {patient.clinicalRecordNumber || 'HC-0000'}
                 </span>
-                <span
-                  className={`text-xs font-bold px-2.5 py-0.5 rounded-full uppercase ${
-                    patient.status === 'ALTA'
-                      ? 'bg-slate-100 text-slate-700 border border-slate-200'
-                      : patient.status === 'EN_TRATAMIENTO'
-                      ? 'bg-amber-50 text-amber-800 border border-amber-200 font-black'
-                      : 'bg-emerald-50 text-emerald-700 border border-emerald-200 font-black'
-                  }`}
-                >
-                  {patient.status === 'ALTA' ? '⚪ ALTA MÉDICA' : patient.status === 'EN_TRATAMIENTO' ? '🟡 EN TRATAMIENTO' : '🟢 EN ATENCIÓN CLÍNICA'}
-                </span>
+                {(() => {
+                  const canStatus = getPatientCanonicalStatus(patient, hospitalizations);
+                  return (
+                    <span className={`text-xs font-black px-2.5 py-0.5 rounded-full uppercase border ${canStatus.badgeClass}`}>
+                      {canStatus.label}
+                    </span>
+                  );
+                })()}
               </div>
 
               <p className="text-xs text-slate-600 font-medium">
@@ -1100,7 +1130,7 @@ export const Patient360View: React.FC = () => {
                         </td>
                         <td className="p-3 font-mono">{v.heartRate ? `${v.heartRate} lpm` : '-'}</td>
                         <td className="p-3 font-mono">{v.respiratoryRate ? `${v.respiratoryRate} rpm` : '-'}</td>
-                        <td className="p-3 font-mono">{v.systolicBP && v.diastolicBP ? `${v.systolicBP}/${v.diastolicBP} mmHg` : '120/75'}</td>
+                        <td className="p-3 font-mono">{v.systolicBP && v.diastolicBP ? `${v.systolicBP}/${v.diastolicBP} mmHg (PAM: ${calculateMeanArterialPressure(v.systolicBP, v.diastolicBP) || v.meanBP || '-'})` : '-'}</td>
                         <td className="p-3 font-mono">{v.spo2 ? `${v.spo2}%` : '-'}</td>
                         <td className="p-3 font-mono">{v.bloodGlucose ? `${v.bloodGlucose} mg/dl` : '-'}</td>
                         <td className="p-3 font-mono font-bold text-teal-800">{v.weight ? `${v.weight} kg` : '-'}</td>
@@ -1189,6 +1219,57 @@ export const Patient360View: React.FC = () => {
                 </div>
               </div>
 
+              {/* ⚡ Catálogo Visual de Fármacos e Insumos Frecuentes (1-Clic) */}
+              <div className="space-y-2 bg-gradient-to-r from-teal-50/60 to-emerald-50/40 border border-teal-200/80 p-3.5 rounded-2xl">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-black text-teal-950 uppercase tracking-wider flex items-center gap-1.5">
+                    <span>⚡ Fármacos & Insumos de Uso Frecuente (1-Clic):</span>
+                  </span>
+                  <span className="text-[10px] text-teal-700 font-bold hidden sm:inline">
+                    Clic para autocompletar nombre, dosis, vía e insumos descartables
+                  </span>
+                </div>
+                <div className="flex flex-wrap gap-1.5">
+                  {[
+                    { name: 'Dipirona 500mg/ml Inyectable', dose: '500 mg/ml', route: 'IV', freq: 'Cada 8 hs', price: 5200, icon: '💉' },
+                    { name: 'Metoclopramida 10mg/ml Inyectable', dose: '10 mg/ml', route: 'IV', freq: 'Cada 8 hs', price: 4900, icon: '💉' },
+                    { name: 'Metoclopramida 5mg/ml Gotas/Inyectable', dose: '5 mg/ml', route: 'SC', freq: 'Cada 8 hs', price: 4400, icon: '💉' },
+                    { name: 'Cerenia / Maropitant 10mg/ml Inyectable', dose: '10 mg/ml (1mg/kg)', route: 'SC', freq: 'Cada 24 hs', price: 16500, icon: '💉' },
+                    { name: 'Meloxicam 0.5% Inyectable', dose: '0.5% (0.2mg/kg)', route: 'SC', freq: 'Cada 24 hs', price: 12500, icon: '💉' },
+                    { name: 'Tramadol 50mg/ml Inyectable', dose: '50 mg/ml (2-4mg/kg)', route: 'IV', freq: 'Cada 8 hs', price: 5900, icon: '💉' },
+                    { name: 'Dexametasona 2mg/ml Inyectable', dose: '2 mg/ml', route: 'IV', freq: 'Dosis única', price: 5600, icon: '💉' },
+                    { name: 'Solución Ringer Lactato 500ml', dose: '500 ml infusión continua', route: 'IV', freq: 'Cada 24 hs', price: 3900, icon: '💧' },
+                    { name: 'Solución Fisiológica NaCl 0.9% 500ml', dose: '500 ml infusión continua', route: 'IV', freq: 'Cada 24 hs', price: 3800, icon: '💧' },
+                    { name: 'Furosemida 5% Inyectable (Lasix)', dose: '50 mg/ml', route: 'IV', freq: 'Cada 12 hs', price: 6500, icon: '💉' },
+                  ].map((item, idx) => {
+                    const prodMatch = products.find(p => p.commercialName.toLowerCase().includes(item.name.toLowerCase().slice(0, 10)));
+                    return (
+                      <button
+                        key={idx}
+                        type="button"
+                        onClick={() => {
+                          triggerHaptic('light');
+                          setNewDrugName(prodMatch ? prodMatch.commercialName : item.name);
+                          setSelectedProductId(prodMatch?.id || null);
+                          setNewDrugDose(item.dose);
+                          setNewDrugRoute(item.route as any);
+                          setNewDrugFreq(item.freq);
+                          setNewDrugIncludeConsumables(item.route === 'IV' || item.route === 'SC');
+                          setShowDrugSuggestions(false);
+                        }}
+                        className="px-2.5 py-1.5 bg-white hover:bg-teal-50 hover:border-teal-400 text-slate-800 rounded-xl border border-slate-200 text-xs font-bold transition-all active:scale-95 flex items-center gap-1.5 shadow-2xs cursor-pointer group"
+                      >
+                        <span>{item.icon}</span>
+                        <span className="group-hover:text-teal-900">{item.name.split(' ')[0]} {item.name.split(' ')[1] || ''}</span>
+                        <span className="text-[10px] font-black text-teal-700 bg-teal-50 px-1.5 py-0.5 rounded-md font-mono">
+                          ${(prodMatch?.salePrice || item.price).toLocaleString('es-AR')}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
               <form
                 onSubmit={(e) => {
                   e.preventDefault();
@@ -1197,46 +1278,197 @@ export const Patient360View: React.FC = () => {
                     return;
                   }
 
+                  const selectedProd = products.find(
+                    (p) =>
+                      p.id === selectedProductId ||
+                      p.commercialName.toLowerCase() === newDrugName.trim().toLowerCase()
+                  );
+
+                  const vadItem = masterVademecum.find(
+                    (v) =>
+                      v.commercialName.toLowerCase() === newDrugName.trim().toLowerCase() ||
+                      v.activeIngredient.toLowerCase() === newDrugName.trim().toLowerCase()
+                  );
+
                   addHospitalMedication(patient.id, {
-                    drugName: newDrugName,
+                    drugName: selectedProd ? selectedProd.commercialName : newDrugName,
                     dose: newDrugDose,
                     route: newDrugRoute,
                     frequency: newDrugFreq,
                     scheduledTime: newDrugSchedule,
                     status: 'PENDIENTE',
+                    productId: selectedProd?.id,
                   });
+
+                  if (newDrugChargeToAccount) {
+                    addPatientMedicationConsumption(
+                      patient.id,
+                      selectedProd?.id || newDrugName,
+                      newDrugQuantity,
+                      {
+                        dose: newDrugDose,
+                        route: newDrugRoute,
+                        unitPriceOverride: selectedProd?.salePrice || vadItem?.suggestedSalePrice,
+                        includeConsumables: newDrugIncludeConsumables,
+                      }
+                    );
+                  }
 
                   showToast(
                     'success',
-                    'Indicación Guardada',
-                    `${newDrugName} (${newDrugDose}) programado a las: ${liveCalculatedTimes.join(', ')} hs.`
+                    'Indicación & Consumos Registrados',
+                    `${newDrugName} (${newDrugDose}) programado y cargado a la cuenta${
+                      newDrugIncludeConsumables ? ' con kit de insumos descartables' : ''
+                    }.`
                   );
                   setNewDrugName('');
                   setNewDrugDose('');
+                  setSelectedProductId(null);
+                  setShowDrugSuggestions(false);
                 }}
                 className="space-y-4 text-xs"
               >
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3">
-                  <div className="lg:col-span-2">
-                    <label className="font-bold text-slate-700 block mb-1">Nombre del Fármaco / Principio:</label>
+                  <div className="lg:col-span-2 relative">
+                    <label className="font-bold text-slate-700 block mb-1">
+                      Fármaco (Stock & Vademécum Maestro):
+                    </label>
                     <input
                       type="text"
                       required
                       value={newDrugName}
-                      onChange={(e) => setNewDrugName(e.target.value)}
-                      placeholder="ej: Maropitant, Tramadol, Metoclopramida..."
+                      onChange={(e) => {
+                        setNewDrugName(e.target.value);
+                        setShowDrugSuggestions(true);
+                        setSelectedProductId(null);
+                      }}
+                      onFocus={() => setShowDrugSuggestions(true)}
+                      placeholder="Buscar Dipirona, Metoclopramida, Cerenia..."
                       className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 font-bold text-slate-900 focus:ring-2 focus:ring-teal-500"
                     />
+
+                    {/* Autocompletado inteligente de Farmacia Activa & Vademécum Maestro */}
+                    {showDrugSuggestions && (
+                      <div className="absolute left-0 right-0 top-full mt-1 bg-white border border-slate-200 rounded-2xl shadow-xl z-30 max-h-64 overflow-y-auto divide-y divide-slate-100">
+                        {/* 1. Coincidencias en Stock Activo */}
+                        {products
+                          .filter(
+                            (p) =>
+                              !p.isArchived &&
+                              (p.commercialName.toLowerCase().includes(newDrugName.toLowerCase()) ||
+                                p.activeIngredient.toLowerCase().includes(newDrugName.toLowerCase()))
+                          )
+                          .slice(0, 4)
+                          .map((prod) => (
+                            <button
+                              key={prod.id}
+                              type="button"
+                              onClick={() => {
+                                setNewDrugName(prod.commercialName);
+                                setSelectedProductId(prod.id);
+                                setShowDrugSuggestions(false);
+                                if (prod.concentration && !newDrugDose) {
+                                  setNewDrugDose(prod.concentration);
+                                }
+                              }}
+                              className="w-full text-left p-2.5 hover:bg-teal-50 transition-colors flex items-center justify-between gap-2 text-xs cursor-pointer"
+                            >
+                              <div>
+                                <div className="flex items-center gap-1.5">
+                                  <span className="px-1.5 py-0.5 bg-teal-100 text-teal-800 rounded text-[9px] font-black">
+                                    EN STOCK
+                                  </span>
+                                  <p className="font-bold text-slate-900">{prod.commercialName}</p>
+                                </div>
+                                <p className="text-[11px] text-slate-500">
+                                  {prod.activeIngredient} • {prod.presentation || prod.concentration}
+                                </p>
+                              </div>
+                              <div className="text-right">
+                                <span className="font-black text-teal-700 block font-mono">
+                                  ${prod.salePrice.toLocaleString('es-AR')}
+                                </span>
+                                <span
+                                  className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
+                                    prod.currentStock > 5
+                                      ? 'bg-emerald-100 text-emerald-800'
+                                      : prod.currentStock > 0
+                                      ? 'bg-amber-100 text-amber-800'
+                                      : 'bg-rose-100 text-rose-800'
+                                  }`}
+                                >
+                                  Stock: {prod.currentStock}
+                                </span>
+                              </div>
+                            </button>
+                          ))}
+
+                        {/* 2. Coincidencias en Vademécum Maestro */}
+                        {masterVademecum
+                          .filter(
+                            (v) =>
+                              (v.commercialName.toLowerCase().includes(newDrugName.toLowerCase()) ||
+                                v.activeIngredient.toLowerCase().includes(newDrugName.toLowerCase())) &&
+                              !products.some(
+                                (p) => p.commercialName.toLowerCase() === v.commercialName.toLowerCase()
+                              )
+                          )
+                          .slice(0, 4)
+                          .map((vad) => (
+                            <button
+                              key={vad.id}
+                              type="button"
+                              onClick={() => {
+                                setNewDrugName(vad.commercialName);
+                                setSelectedProductId(null);
+                                setShowDrugSuggestions(false);
+                                if (vad.concentration) {
+                                  setNewDrugDose(vad.concentration);
+                                }
+                                if (vad.defaultRoute && ['IV', 'IM', 'SC', 'PO', 'TOPICA'].includes(vad.defaultRoute)) {
+                                  setNewDrugRoute(vad.defaultRoute as any);
+                                }
+                                if (vad.defaultFrequency) {
+                                  setNewDrugFreq(vad.defaultFrequency);
+                                }
+                              }}
+                              className="w-full text-left p-2.5 hover:bg-indigo-50 transition-colors flex items-center justify-between gap-2 text-xs cursor-pointer bg-indigo-50/30"
+                            >
+                              <div>
+                                <div className="flex items-center gap-1.5">
+                                  <span className="px-1.5 py-0.5 bg-indigo-100 text-indigo-800 rounded text-[9px] font-black">
+                                    📚 VADEMÉCUM
+                                  </span>
+                                  <p className="font-bold text-slate-900">{vad.commercialName}</p>
+                                </div>
+                                <p className="text-[11px] text-slate-500">
+                                  {vad.activeIngredient} • {vad.presentation} • Vía: {vad.defaultRoute}
+                                </p>
+                              </div>
+                              <div className="text-right">
+                                <span className="font-black text-indigo-700 block font-mono">
+                                  ${vad.suggestedSalePrice.toLocaleString('es-AR')}
+                                </span>
+                                <span className="text-[10px] font-bold text-indigo-600">
+                                  Precarga auto
+                                </span>
+                              </div>
+                            </button>
+                          ))}
+                      </div>
+                    )}
                   </div>
 
                   <div>
-                    <label className="font-bold text-slate-700 block mb-1">Dosis Exacta:</label>
+                    <label className="font-bold text-slate-700 block mb-1">
+                      Dosis / Concentración (Editable):
+                    </label>
                     <input
                       type="text"
                       required
                       value={newDrugDose}
                       onChange={(e) => setNewDrugDose(e.target.value)}
-                      placeholder="ej: 1.2 ml IV, 50 mg"
+                      placeholder="ej: 1.2 ml, 10 mg, 5 mg"
                       className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 font-bold text-slate-900"
                     />
                   </div>
@@ -1246,7 +1478,7 @@ export const Patient360View: React.FC = () => {
                     <select
                       value={newDrugRoute}
                       onChange={(e) => setNewDrugRoute(e.target.value as any)}
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 font-bold text-slate-900"
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 font-bold text-slate-900 cursor-pointer"
                     >
                       <option value="IV">Endovenosa (IV)</option>
                       <option value="IM">Intramuscular (IM)</option>
@@ -1282,25 +1514,103 @@ export const Patient360View: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Previsualización en vivo de los horarios calculados */}
-                <div className="p-3 bg-teal-50/70 border border-teal-100 rounded-2xl flex flex-wrap items-center justify-between gap-2">
+                {/* Previsualización en vivo de los horarios calculados & Carga automática a cuenta */}
+                <div className="p-3 bg-teal-50/70 border border-teal-100 rounded-2xl flex flex-wrap items-center justify-between gap-3">
                   <div className="flex items-center gap-2">
-                    <span className="text-teal-700 font-bold">⏰ Horarios Calculados de Ronda:</span>
+                    <span className="text-teal-700 font-bold">⏰ Horarios Calculados:</span>
                     <div className="flex flex-wrap gap-1.5">
                       {liveCalculatedTimes.map((t, idx) => (
                         <span
                           key={idx}
                           className="px-2.5 py-0.5 bg-white border border-teal-200 text-teal-900 font-mono font-black rounded-lg text-[11px] shadow-2xs"
                         >
-                          Toma {idx + 1}: {t} hs ({getShiftFromTime(t)})
+                          Toma {idx + 1}: {t} hs
                         </span>
                       ))}
                     </div>
                   </div>
-                  <span className="text-[11px] text-teal-800 font-semibold">
-                    Total: {liveCalculatedTimes.length} toma{liveCalculatedTimes.length === 1 ? '' : 's'} por ciclo diario
-                  </span>
+
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+                    <label className="flex items-center gap-2 cursor-pointer select-none">
+                      <input
+                        type="checkbox"
+                        checked={newDrugChargeToAccount}
+                        onChange={(e) => setNewDrugChargeToAccount(e.target.checked)}
+                        className="w-4 h-4 text-teal-600 rounded-lg focus:ring-teal-500"
+                      />
+                      <span className="text-xs font-bold text-slate-800">
+                        💳 Cargar a cuenta
+                      </span>
+                    </label>
+
+                    <label className="flex items-center gap-2 cursor-pointer select-none">
+                      <input
+                        type="checkbox"
+                        checked={newDrugIncludeConsumables}
+                        onChange={(e) => setNewDrugIncludeConsumables(e.target.checked)}
+                        className="w-4 h-4 text-indigo-600 rounded-lg focus:ring-indigo-500"
+                      />
+                      <span className="text-xs font-bold text-indigo-900">
+                        📦 Incluir descartables automáticos ({newDrugRoute === 'IV' ? 'Jeringa + Aguja 25/8' : newDrugRoute === 'SC' ? 'Jeringa + Aguja 21/5' : 'Jeringa'})
+                      </span>
+                    </label>
+
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-[11px] text-slate-600 font-bold">Cantidad:</span>
+                      <input
+                        type="number"
+                        min="1"
+                        max="99"
+                        value={newDrugQuantity}
+                        onChange={(e) => setNewDrugQuantity(Math.max(1, Number(e.target.value) || 1))}
+                        className="w-14 bg-white border border-slate-200 rounded-lg p-1 text-center font-bold text-slate-900"
+                      />
+                    </div>
+                  </div>
                 </div>
+
+                {/* Previsualización en vivo del gasto a facturar */}
+                {(() => {
+                  const currentProd = products.find(p => p.id === selectedProductId || p.commercialName.toLowerCase() === newDrugName.trim().toLowerCase());
+                  const drugUnitPrice = currentProd?.salePrice || 0;
+                  const drugTotal = drugUnitPrice * newDrugQuantity;
+                  let consumablesTotal = 0;
+                  if (newDrugIncludeConsumables) {
+                    if (newDrugRoute === 'IV') {
+                      consumablesTotal = 400 + 200; // Jeringa 3ml ($400) + Aguja 25/8 ($200)
+                    } else if (newDrugRoute === 'SC') {
+                      consumablesTotal = 400 + 200; // Jeringa 3ml ($400) + Aguja 21/5 ($200)
+                    } else if (newDrugRoute === 'IM') {
+                      consumablesTotal = 400 + 200;
+                    }
+                  }
+                  const appTotal = drugTotal + (consumablesTotal * newDrugQuantity);
+
+                  return (
+                    <div className="p-3 bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200 rounded-2xl flex flex-wrap items-center justify-between gap-2 shadow-2xs">
+                      <div className="flex items-center gap-2">
+                        <span className="p-1.5 bg-emerald-100 text-emerald-800 rounded-lg text-sm font-black">💰</span>
+                        <div>
+                          <span className="text-xs font-bold text-slate-800">
+                            Presupuesto de esta Aplicación:
+                          </span>
+                          <p className="text-[11px] text-slate-600">
+                            Fármaco: <strong className="font-mono text-slate-900">${drugTotal.toLocaleString('es-AR')}</strong>
+                            {newDrugIncludeConsumables && (
+                              <> + Descartables ({newDrugRoute}): <strong className="font-mono text-slate-900">${(consumablesTotal * newDrugQuantity).toLocaleString('es-AR')}</strong></>
+                            )}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-slate-500 font-bold">Total a cuenta:</span>
+                        <span className="px-3 py-1 bg-emerald-600 text-white font-mono font-black rounded-xl text-sm shadow-xs">
+                          ${appTotal.toLocaleString('es-AR')}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })()}
 
                 <div className="flex items-center justify-between pt-1">
                   <span className="text-xs text-slate-500">
@@ -1308,11 +1618,10 @@ export const Patient360View: React.FC = () => {
                   </span>
                   <button
                     type="submit"
-                    onClick={() => triggerHaptic('success')}
-                    className="btn-physical btn-physical-teal px-6 py-2.5 text-white font-black text-xs rounded-xl shadow-md flex items-center gap-2 cursor-pointer"
+                    className="px-5 py-2.5 bg-teal-600 hover:bg-teal-500 text-white font-black rounded-xl shadow-md shadow-teal-600/20 active:scale-95 transition-all flex items-center gap-2 cursor-pointer"
                   >
-                    <Plus className="w-4 h-4 stroke-[3]" />
-                    <span>+ Indicar Plan de Medicación</span>
+                    <Plus className="w-4 h-4" />
+                    <span>Guardar Indicación & Cargar Consumo</span>
                   </button>
                 </div>
               </form>
@@ -1581,6 +1890,92 @@ export const Patient360View: React.FC = () => {
                 </div>
               )}
             </div>
+
+            {/* 🐾 Resumen de Cuenta & Gastos Clínicos del Paciente con Enlace a Finanzas */}
+            {(() => {
+              const patientConsumptions = encounterConsumptions.filter(c => c.patientId === patient.id && !c.isBilled && c.status !== 'ANULADO');
+              const patientPendingTotal = patientConsumptions.reduce((acc, c) => acc + c.subtotal, 0);
+
+              return (
+                <div className="bg-white rounded-3xl p-6 border-2 border-teal-200 shadow-sm space-y-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-teal-100 pb-3">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-10 h-10 rounded-2xl bg-teal-100 text-teal-800 flex items-center justify-center font-black text-lg">
+                        🐾
+                      </div>
+                      <div>
+                        <h4 className="text-base font-black text-slate-900">
+                          Estado de Cuenta & Gastos Clínicos de {patient.name}
+                        </h4>
+                        <p className="text-xs text-slate-500">
+                          Medicamentos, descartables e internación pendientes de liquidación ({patientConsumptions.length} consumos registrados)
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-3">
+                      <div className="text-right">
+                        <span className="text-[11px] font-bold text-slate-500 block uppercase">Saldo Pendiente:</span>
+                        <span className="text-xl font-black text-teal-800 font-mono">
+                          ${patientPendingTotal.toLocaleString('es-AR')}
+                        </span>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          triggerHaptic('medium');
+                          setActiveView('FINANZAS');
+                        }}
+                        className="px-4 py-2.5 bg-teal-700 hover:bg-teal-600 text-white font-black text-xs rounded-xl shadow-md flex items-center gap-2 transition-all active:scale-95 cursor-pointer"
+                      >
+                        <Receipt className="w-4 h-4" />
+                        <span>💳 Liquidar & Cobrar en Finanzas →</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  {patientConsumptions.length > 0 ? (
+                    <div className="overflow-x-auto max-h-60 custom-scrollbar divide-y divide-slate-100">
+                      <table className="w-full text-left text-xs">
+                        <thead className="bg-slate-50 text-[10px] text-slate-500 font-bold uppercase tracking-wider">
+                          <tr>
+                            <th className="p-2.5">Fecha/Hora</th>
+                            <th className="p-2.5">Tipo</th>
+                            <th className="p-2.5">Concepto / Fármaco</th>
+                            <th className="p-2.5 text-center">Cant.</th>
+                            <th className="p-2.5 text-right">Unitario</th>
+                            <th className="p-2.5 text-right">Subtotal</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100">
+                          {patientConsumptions.map((c) => (
+                            <tr key={c.id} className="hover:bg-slate-50/80">
+                              <td className="p-2.5 font-mono text-slate-500 text-[11px]">{formatDate(c.performedAt || c.recordedAt)}</td>
+                              <td className="p-2.5">
+                                <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold ${
+                                  c.sourceType === 'INSUMO' ? 'bg-indigo-50 text-indigo-700 border border-indigo-200' : 'bg-teal-50 text-teal-800 border border-teal-200'
+                                }`}>
+                                  {c.sourceType === 'INSUMO' ? '📦 INSUMO' : '💊 MEDICAMENTO'}
+                                </span>
+                              </td>
+                              <td className="p-2.5 font-bold text-slate-900">{c.concept || c.itemName}</td>
+                              <td className="p-2.5 text-center font-mono font-bold">{c.quantity}</td>
+                              <td className="p-2.5 text-right font-mono text-slate-700">${c.unitPrice.toLocaleString('es-AR')}</td>
+                              <td className="p-2.5 text-right font-mono font-black text-teal-800">${c.subtotal.toLocaleString('es-AR')}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  ) : (
+                    <div className="p-4 bg-slate-50 rounded-2xl text-center text-slate-500 text-xs">
+                      No hay consumos pendientes de cobro para {patient.name}. Todos los medicamentos aplicados se encuentran al día o no se han indicado consumos aún.
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
           </div>
         );
       })()}
@@ -2309,8 +2704,8 @@ export const Patient360View: React.FC = () => {
 
                 <button
                   type="button"
-                  onClick={() => setShowBillingModal(true)}
-                  className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-xl shadow-xs flex items-center gap-2 active:scale-95 transition-all"
+                  onClick={() => openBillingModalWithPatientConsumptions()}
+                  className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-xl shadow-xs flex items-center gap-2 active:scale-95 transition-all cursor-pointer"
                 >
                   <Receipt className="w-3.5 h-3.5 text-teal-400" />
                   <span>Liquidación / Emitir Comprobante</span>
@@ -2340,60 +2735,40 @@ export const Patient360View: React.FC = () => {
               </button>
             </div>
 
-            {/* Selector: Factura ARCA vs Ticket Común */}
+            {/* Selector: Tipo de Comprobante Interno */}
             <div className="space-y-2">
               <label className="font-bold text-slate-700 block">Tipo de Comprobante:</label>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 <button
                   type="button"
-                  onClick={() => setBillingInvoiceType('TICKET_COMUN')}
+                  onClick={() => setBillingInvoiceType('RECIBO_X')}
                   className={`p-3 rounded-2xl border text-left transition-all ${
-                    billingInvoiceType === 'TICKET_COMUN'
+                    billingInvoiceType === 'RECIBO_X'
                       ? 'border-teal-500 bg-teal-50/50 text-teal-950 shadow-2xs font-bold'
                       : 'border-slate-200 hover:bg-slate-50 text-slate-700'
                   }`}
                 >
                   <div className="flex items-center gap-2 font-black text-xs">
-                    <span>📄 Ticket Común / Recibo X</span>
+                    <span>📄 Recibo X / Comprobante de Cobranza</span>
                   </div>
-                  <p className="text-[11px] text-slate-500 mt-1">Comprobante no fiscal para control y liberación de gasto del tutor.</p>
+                  <p className="text-[11px] text-slate-500 mt-1">Comprobante interno no fiscal de control de cobro y registro hospitalario.</p>
                 </button>
 
                 <button
                   type="button"
-                  onClick={() => setBillingInvoiceType('FACTURA_B')}
+                  onClick={() => setBillingInvoiceType('COMPROBANTE_INTERNO')}
                   className={`p-3 rounded-2xl border text-left transition-all ${
-                    billingInvoiceType !== 'TICKET_COMUN'
+                    billingInvoiceType === 'COMPROBANTE_INTERNO'
                       ? 'border-teal-500 bg-teal-50/50 text-teal-950 shadow-2xs font-bold'
                       : 'border-slate-200 hover:bg-slate-50 text-slate-700'
                   }`}
                 >
                   <div className="flex items-center gap-2 font-black text-xs">
-                    <span>🧾 Factura Electrónica ARCA (AFIP)</span>
+                    <span>📋 Comprobante Interno de Mostrador</span>
                   </div>
-                  <p className="text-[11px] text-slate-500 mt-1">Factura oficial A/B/C con CAE y código QR fiscal de AFIP.</p>
+                  <p className="text-[11px] text-slate-500 mt-1">Detalle interno de prestaciones para archivo y control administrativo.</p>
                 </button>
               </div>
-
-              {billingInvoiceType !== 'TICKET_COMUN' && (
-                <div className="pt-2 flex items-center gap-2">
-                  <span className="font-bold text-slate-600">Tipo de Factura Fiscal:</span>
-                  {['FACTURA_B', 'FACTURA_A', 'FACTURA_C'].map((t) => (
-                    <button
-                      key={t}
-                      type="button"
-                      onClick={() => setBillingInvoiceType(t as any)}
-                      className={`px-3 py-1 rounded-xl text-xs font-bold border ${
-                        billingInvoiceType === t
-                          ? 'bg-teal-600 text-white border-teal-600 shadow-2xs'
-                          : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
-                      }`}
-                    >
-                      {t.replace('_', ' ')}
-                    </button>
-                  ))}
-                </div>
-              )}
             </div>
 
             {/* Tutor Information */}
@@ -2410,7 +2785,7 @@ export const Patient360View: React.FC = () => {
             {/* Detailed Items Breakdown Table */}
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <span className="font-bold text-slate-700">Desglose Detallado de Gastos:</span>
+                <span className="font-bold text-slate-700">Desglose Detallado de Gastos & Fármacos:</span>
                 <button
                   type="button"
                   onClick={() => {
@@ -2489,13 +2864,46 @@ export const Patient360View: React.FC = () => {
               <button
                 type="button"
                 onClick={() => {
-                  const num = billingInvoiceType === 'TICKET_COMUN' ? `TKT-${Math.floor(1000 + Math.random() * 9000)}` : `0001-0000${Math.floor(1000 + Math.random() * 9000)}`;
-                  setGeneratedTicketNumber(num);
-                  setShowBillingModal(false);
-                  setShowTicketPreview(true);
-                  showToast('success', 'Cobro Registrado', `Comprobante ${num} generado exitosamente.`);
+                  try {
+                    const unbilled = encounterConsumptions.filter(
+                      (c) => c.patientId === patient?.id && c.status !== 'ANULADO' && !c.isBilled
+                    );
+                    let invoice: Invoice;
+                    if (unbilled.length > 0) {
+                      invoice = billPatientPendingConsumptions(
+                        patient.id,
+                        billingPaymentMethod as any,
+                        billingInvoiceType
+                      );
+                    } else {
+                      invoice = createInvoice({
+                        type: billingInvoiceType,
+                        pointOfSale: 1,
+                        ownerId: owner?.id || 'owner-general',
+                        patientId: patient.id,
+                        customerName: owner ? `${owner.firstName} ${owner.lastName}` : 'Consumidor Final',
+                        customerDniCuit: owner?.dni || '00.000.000',
+                        customerTaxCondition: owner?.taxCondition || 'Consumidor Final',
+                        items: billingItems.map((bi) => ({
+                          id: bi.id,
+                          description: bi.desc,
+                          quantity: 1,
+                          unitPrice: bi.amount,
+                          subtotal: bi.amount,
+                        })),
+                        totalAmount: billingItems.reduce((sum, i) => sum + i.amount, 0),
+                        paymentMethod: billingPaymentMethod as any,
+                        isFiscal: false,
+                      });
+                    }
+                    setGeneratedTicketNumber(invoice.invoiceNumber);
+                    setShowBillingModal(false);
+                    setShowTicketPreview(true);
+                  } catch (err: any) {
+                    showToast('error', 'Error al facturar', err.message || 'No se pudo generar el comprobante.');
+                  }
                 }}
-                className="px-6 py-2.5 bg-teal-600 hover:bg-teal-500 text-white rounded-xl font-black shadow-md shadow-teal-600/20 active:scale-95"
+                className="px-6 py-2.5 bg-teal-600 hover:bg-teal-500 text-white rounded-xl font-black shadow-md shadow-teal-600/20 active:scale-95 cursor-pointer"
               >
                 ✓ Cobrar & Ver Ticket
               </button>
@@ -2514,7 +2922,7 @@ export const Patient360View: React.FC = () => {
               <p className="text-[10px] text-slate-400">Las Lajas, Neuquén • Tel: +54 9 2942 47-7136</p>
               <div className="pt-2">
                 <span className="px-3 py-1 bg-slate-100 text-slate-800 rounded-full font-bold text-xs">
-                  {billingInvoiceType === 'TICKET_COMUN' ? '📄 TICKET DE GASTOS / RECIBO X' : `🧾 FACTURA ${billingInvoiceType.replace('FACTURA_', '')} (ARCA)`}
+                  {billingInvoiceType === 'RECIBO_X' ? '📄 TICKET INTERNO / RECIBO X' : '📋 COMPROBANTE INTERNO DE MOSTRADOR'}
                 </span>
                 <p className="text-xs font-bold text-slate-800 mt-1">N° {generatedTicketNumber}</p>
                 <p className="text-[10px] text-slate-400">{new Date().toLocaleString('es-AR')}</p>
@@ -2545,7 +2953,7 @@ export const Patient360View: React.FC = () => {
 
             {/* Total */}
             <div className="border-b border-dashed border-slate-300 pb-3 flex justify-between items-center text-sm font-black">
-              <span>TOTAL PAGADO:</span>
+              <span>TOTAL REGISTRADO:</span>
               <span className="text-base text-teal-800">
                 ${billingItems.reduce((sum, i) => sum + i.amount, 0).toLocaleString('es-AR')}
               </span>
@@ -2553,11 +2961,7 @@ export const Patient360View: React.FC = () => {
 
             <div className="text-[10px] text-slate-500 space-y-0.5">
               <div><strong>Medio de Pago:</strong> {billingPaymentMethod}</div>
-              {billingInvoiceType !== 'TICKET_COMUN' ? (
-                <div className="text-emerald-700 font-bold">CAE: 74218942198421 • Vto CAE: {new Date().toLocaleDateString('es-AR')}</div>
-              ) : (
-                <div className="text-slate-400">Comprobante no fiscal de control interno. Gasto liberado.</div>
-              )}
+              <div className="text-slate-500 font-semibold">COMPROBANTE INTERNO NO FISCAL • NO VÁLIDO COMO FACTURA • Uso y control hospitalario.</div>
             </div>
 
             {/* Buttons */}
@@ -2583,7 +2987,7 @@ export const Patient360View: React.FC = () => {
                       ownerPhone: owner.phone,
                       type: 'COBRO_INSUMO',
                       details: {
-                        supplyName: `Ticket de Gastos y Factura N° ${generatedTicketNumber} de ${patient.name}`,
+                        supplyName: `Recibo Interno N° ${generatedTicketNumber} de ${patient.name}`,
                         supplyAmount: billingItems.reduce((sum, i) => sum + i.amount, 0),
                       },
                     });

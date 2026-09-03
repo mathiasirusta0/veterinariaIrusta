@@ -54,7 +54,7 @@ import {
   PatientProblem,
   ClinicalEvolutionEntry,
 } from '../types';
-import { formatDate, formatDateTime, formatWeight, formatCurrency } from '../utils/formatters';
+import { formatDate, formatDateTime, formatWeight, formatCurrency, getPatientCanonicalStatus } from '../utils/formatters';
 import { triggerHaptic } from '../utils/haptics';
 import { EmptyState, StatusBadge } from './ui';
 
@@ -93,6 +93,7 @@ export const PatientFullReportView: React.FC<PatientFullReportViewProps> = ({ pa
     vitals,
     consultations,
     hospitalizations,
+    encounterConsumptions,
     problems,
     labOrders,
     imagingStudies,
@@ -160,10 +161,24 @@ export const PatientFullReportView: React.FC<PatientFullReportViewProps> = ({ pa
   const patientVaccinations = useMemo(() => vaccinations.filter((v) => v.patientId === patient.id), [vaccinations, patient.id]);
   const patientSurgeries = useMemo(() => surgeries.filter((s) => s.patientId === patient.id), [surgeries, patient.id]);
   const patientPrescriptions = useMemo(() => prescriptions.filter((p) => p.patientId === patient.id), [prescriptions, patient.id]);
+
+  const patientHospitalMeds = useMemo(() => {
+    return patientHospitalizations.flatMap((h) =>
+      (h.medications || []).map((m) => ({ ...m, hospSector: h.sector || 'UCI', kennelNumber: h.kennelNumber || '01' }))
+    );
+  }, [patientHospitalizations]);
+
+  const patientConsumptionsMeds = useMemo(() => {
+    return (encounterConsumptions || []).filter(
+      (c) => c.patientId === patient.id && (c.sourceType === 'MEDICAMENTO' || c.sourceType === 'INSUMO')
+    );
+  }, [encounterConsumptions, patient.id]);
+
+  const totalMedsCount = patientPrescriptions.length + patientHospitalMeds.length + patientConsumptionsMeds.length;
   const patientDocuments = useMemo(() => documents.filter((d) => d.patientId === patient.id), [documents, patient.id]);
   const patientEvolutions = useMemo(() => clinicalEvolutions.filter((e) => e.patientId === patient.id), [clinicalEvolutions, patient.id]);
 
-  const activeHospitalization = patientHospitalizations.find((h) => h.status === 'INTERNADO');
+  const activeHospitalization = patientHospitalizations.find((h) => h.status === 'ACTIVA');
 
   // Unified Chronological Timeline Builder
   const timelineEvents = useMemo(() => {
@@ -719,7 +734,7 @@ export const PatientFullReportView: React.FC<PatientFullReportViewProps> = ({ pa
             <div className="bg-white p-3 rounded-xl border border-slate-200 space-y-0.5">
               <span className="text-[10px] text-slate-400 font-bold uppercase">Estado de Internación:</span>
               <p className="font-bold text-slate-900">
-                {activeHospitalization ? '🏥 ' + activeHospitalization.sector : 'Ambulatorio'}
+                {activeHospitalization ? `🏥 Internado (${activeHospitalization.sector || 'UCI'} - Box ${activeHospitalization.kennelNumber || '01'})` : 'Ambulatorio / Sin Internación'}
               </p>
             </div>
           </div>
@@ -1102,7 +1117,7 @@ export const PatientFullReportView: React.FC<PatientFullReportViewProps> = ({ pa
         )}
       </div>
 
-      {/* 11. SECCIÓN: MEDICACIÓN & RECETAS */}
+      {/* 11. SECCIÓN: MEDICACIÓN & FARMACOTERAPIA INTEGRAL */}
       <div id="sec-medicacion" className="bg-white border border-slate-200 rounded-3xl p-5 sm:p-6 shadow-xs space-y-4">
         <div
           onClick={() => toggleSection('MEDICACION')}
@@ -1111,7 +1126,7 @@ export const PatientFullReportView: React.FC<PatientFullReportViewProps> = ({ pa
           <div className="flex items-center gap-2">
             <Pill className="w-5 h-5 text-amber-600" />
             <h3 className="text-base font-black text-slate-900">
-              Medicación Actual & Recetario ({patientPrescriptions.length})
+              Farmacoterapia, Indicaciones Hospitalarias & Recetario ({totalMedsCount})
             </h3>
           </div>
           <button type="button" className="text-slate-400 hover:text-slate-700">
@@ -1120,34 +1135,110 @@ export const PatientFullReportView: React.FC<PatientFullReportViewProps> = ({ pa
         </div>
 
         {expandedSections.MEDICACION && (
-          <div className="space-y-3">
-            {patientPrescriptions.length === 0 ? (
-              <p className="text-xs text-slate-400 italic">No existen recetas registradas.</p>
-            ) : (
-              patientPrescriptions.map((presc) => (
-                <div key={presc.id} className="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-2 text-xs">
-                  <div className="flex items-center justify-between border-b border-slate-200/80 pb-2">
-                    <span className="font-bold text-slate-900 font-mono">Receta #{presc.prescriptionNumber}</span>
-                    <span className="font-mono text-slate-500">{formatDate(presc.date)} • Dr/a: {presc.vetName}</span>
-                  </div>
-                  <div className="space-y-1.5">
-                    {presc.items.map((it, idx) => (
-                      <div key={idx} className="bg-white p-2.5 rounded-xl border border-slate-200 flex items-center justify-between gap-2">
-                        <div>
-                          <strong className="text-slate-900 text-sm block">{it.drugName}</strong>
-                          <span className="text-slate-600">Dosis: {it.dose} • Vía: {it.route} • Frecuencia: {it.frequency} x {it.duration}</span>
-                        </div>
-                        {it.batchNumber && (
-                          <span className="font-mono text-[10px] bg-slate-100 text-slate-600 px-2 py-1 rounded">
-                            Lote: {it.batchNumber}
+          <div className="space-y-4 text-xs">
+            {/* 1. Hospital Medication Schedules */}
+            {patientHospitalMeds.length > 0 && (
+              <div className="space-y-2">
+                <span className="text-[11px] font-black uppercase tracking-wider text-amber-800 flex items-center gap-1.5">
+                  <span>🏥 Indicaciones & Fármacos Intrahospitalarios ({patientHospitalMeds.length})</span>
+                </span>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+                  {patientHospitalMeds.map((med) => {
+                    const doneDoses = (med.doseSlots || []).filter((s) => s.status === 'REALIZADA' || s.administeredAt);
+                    return (
+                      <div key={med.id} className="bg-amber-50/50 border border-amber-200 rounded-2xl p-3.5 space-y-2">
+                        <div className="flex items-center justify-between">
+                          <strong className="text-slate-900 text-sm font-black">{med.drugName}</strong>
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-200">
+                            Box {med.kennelNumber} • {med.hospSector}
                           </span>
-                        )}
+                        </div>
+                        <p className="text-slate-700 font-medium">
+                          Dosis: <span className="font-bold text-slate-900">{med.dose || 'Según protocolo'}</span> • Vía:{' '}
+                          <span className="font-bold text-slate-900">{med.route}</span> • Frecuencia:{' '}
+                          <span className="font-bold text-slate-900">{med.frequency}</span>
+                        </p>
+                        <div className="flex items-center justify-between text-[11px] pt-1 border-t border-amber-200/60 font-mono">
+                          <span className="text-slate-600">Dosis aplicadas: {doneDoses.length} / {(med.doseSlots || []).length || 1}</span>
+                          <span className="text-emerald-700 font-bold">{med.status === 'REALIZADA' ? '✓ Completado' : '⏳ En curso'}</span>
+                        </div>
                       </div>
-                    ))}
-                  </div>
+                    );
+                  })}
                 </div>
-              ))
+              </div>
             )}
+
+            {/* 2. Administered Doses and Consumptions */}
+            {patientConsumptionsMeds.length > 0 && (
+              <div className="space-y-2">
+                <span className="text-[11px] font-black uppercase tracking-wider text-teal-800 flex items-center gap-1.5">
+                  <span>💉 Administraciones & Consumos Clínicos Registrados ({patientConsumptionsMeds.length})</span>
+                </span>
+                <div className="border border-slate-200 rounded-2xl overflow-hidden bg-white">
+                  <table className="w-full text-left text-xs">
+                    <thead className="bg-slate-50 text-slate-500 font-bold border-b border-slate-200 text-[10px] uppercase">
+                      <tr>
+                        <th className="p-2.5">Fecha / Hora</th>
+                        <th className="p-2.5">Concepto / Fármaco</th>
+                        <th className="p-2.5 text-center">Cantidad</th>
+                        <th className="p-2.5 text-right">Estado</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {patientConsumptionsMeds.map((cons) => (
+                        <tr key={cons.id} className="hover:bg-slate-50/60 font-mono">
+                          <td className="p-2.5 text-slate-500 text-[11px]">{formatDateTime(cons.performedAt)}</td>
+                          <td className="p-2.5 font-sans font-bold text-slate-900">{cons.concept}</td>
+                          <td className="p-2.5 text-center font-bold">{cons.quantity} unid</td>
+                          <td className="p-2.5 text-right font-sans">
+                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200">
+                              {cons.isBilled ? 'Facturado' : 'Pendiente'}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+
+            {/* 3. Outpatient Prescriptions */}
+            <div className="space-y-2">
+              <span className="text-[11px] font-black uppercase tracking-wider text-slate-600 flex items-center gap-1.5">
+                <span>📜 Recetas Oficiales Ambulatorias ({patientPrescriptions.length})</span>
+              </span>
+              {patientPrescriptions.length === 0 ? (
+                <p className="text-xs text-slate-400 italic bg-slate-50 p-3 rounded-xl border border-slate-100">
+                  Sin recetas ambulatorias externas emitidas.
+                </p>
+              ) : (
+                patientPrescriptions.map((presc) => (
+                  <div key={presc.id} className="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-2 text-xs">
+                    <div className="flex items-center justify-between border-b border-slate-200/80 pb-2">
+                      <span className="font-bold text-slate-900 font-mono">Receta #{presc.prescriptionNumber}</span>
+                      <span className="font-mono text-slate-500">{formatDate(presc.date)} • Dr/a: {presc.vetName}</span>
+                    </div>
+                    <div className="space-y-1.5">
+                      {presc.items.map((it, idx) => (
+                        <div key={idx} className="bg-white p-2.5 rounded-xl border border-slate-200 flex items-center justify-between gap-2">
+                          <div>
+                            <strong className="text-slate-900 text-sm block">{it.drugName}</strong>
+                            <span className="text-slate-600">Dosis: {it.dose} • Vía: {it.route} • Frecuencia: {it.frequency} x {it.duration}</span>
+                          </div>
+                          {it.batchNumber && (
+                            <span className="font-mono text-[10px] bg-slate-100 text-slate-600 px-2 py-1 rounded">
+                              Lote: {it.batchNumber}
+                            </span>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
           </div>
         )}
       </div>

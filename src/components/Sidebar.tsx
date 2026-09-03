@@ -96,19 +96,19 @@ export const Sidebar: React.FC<SidebarProps> = ({
       {isDrawerOpen && (
         <div
           onClick={handleClose}
-          className="fixed inset-0 bg-slate-950/40 z-40 md:hidden backdrop-blur-xs transition-opacity"
+          className="fixed inset-0 bg-slate-950/40 z-40 lg:hidden backdrop-blur-xs transition-opacity"
         />
       )}
 
       {/* Main Sidebar Container - Clean Light Medical Theme */}
       <aside
         className={`
-          fixed md:relative top-0 md:top-0 inset-y-0 left-0 z-50 md:z-auto
-          w-72 max-w-[85vw] h-full md:h-full
+          fixed lg:relative top-0 lg:top-0 inset-y-0 left-0 z-50 lg:z-auto
+          w-72 max-w-[85vw] h-full lg:h-full
           bg-white text-slate-800 flex flex-col justify-between
           transition-transform duration-300 ease-in-out border-r border-slate-200/90
-          ${isDrawerOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
-          shadow-xl md:shadow-none select-none overflow-hidden flex-shrink-0
+          ${isDrawerOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+          shadow-xl lg:shadow-none select-none overflow-hidden flex-shrink-0
         `}
       >
         {/* Header / Brand Logo */}
@@ -133,7 +133,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           <button
             type="button"
             onClick={handleClose}
-            className="md:hidden p-2 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
+            className="lg:hidden p-2 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
             title="Cerrar menú lateral"
           >
             <X className="w-5 h-5" />

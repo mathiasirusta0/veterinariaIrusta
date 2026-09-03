@@ -327,14 +327,15 @@ export const VaccinationView: React.FC = () => {
 
   // New Vaccination Form Modal Dual Mode State
   const [isNewModalOpen, setIsNewModalOpen] = useState(false);
+  const [isSubmittingVac, setIsSubmittingVac] = useState(false);
   const [vacMode, setVacMode] = useState<'EXISTING' | 'NEW'>('EXISTING');
-  const [formPatientId, setFormPatientId] = useState(patients[0]?.id || '');
+  const [formPatientId, setFormPatientId] = useState('');
   
   // 100% MANUAL EDITABLE BIOLOGICAL FIELDS
-  const [formVaccineName, setFormVaccineName] = useState('Séxtuple Canina (DHPPI-L)');
-  const [formType, setFormType] = useState('Plan Sanitario Anual');
-  const [formManufacturer, setFormManufacturer] = useState('Zoetis Vanguard / Nobivac');
-  const [formBatchNumber, setFormBatchNumber] = useState('LT-VAC-' + Math.floor(1000 + Math.random() * 9000));
+  const [formVaccineName, setFormVaccineName] = useState('');
+  const [formType, setFormType] = useState('');
+  const [formManufacturer, setFormManufacturer] = useState('');
+  const [formBatchNumber, setFormBatchNumber] = useState('');
   const [formAdminDate, setFormAdminDate] = useState(new Date().toISOString().split('T')[0]);
   const [formExpDate, setFormExpDate] = useState(new Date(Date.now() + 730 * 24 * 3600 * 1000).toISOString().split('T')[0]);
   
@@ -347,7 +348,7 @@ export const VaccinationView: React.FC = () => {
   const [formRoute, setFormRoute] = useState('Subcutánea (SC)');
   const [formVetName, setFormVetName] = useState(currentUser?.name || 'Dr. Diego Iván Irusta');
   const [formVetLicense, setFormVetLicense] = useState('M.P. 502');
-  const [formNotes, setFormNotes] = useState('Paciente examinado clínicamente apto para inmunización. Normotérmico y sin signos de enfermedad infecciosa.');
+  const [formNotes, setFormNotes] = useState('');
 
   // New Patient & Owner on-the-fly fields
   const [newPetName, setNewPetName] = useState('');
@@ -465,6 +466,8 @@ export const VaccinationView: React.FC = () => {
 
   const handleSaveVaccination = (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSubmittingVac) return;
+    setIsSubmittingVac(true);
     triggerHaptic('medium');
 
     let targetPatientId = formPatientId;
@@ -473,10 +476,12 @@ export const VaccinationView: React.FC = () => {
     if (vacMode === 'NEW') {
       if (!newPetName.trim()) {
         showToast('error', 'Nombre Requerido', 'Por favor ingrese el nombre del paciente a vacunar.');
+        setIsSubmittingVac(false);
         return;
       }
       if (!newOwnerFirstName.trim() || !newOwnerPhone.trim()) {
         showToast('error', 'Tutor Requerido', 'Por favor ingrese nombre y teléfono del tutor responsable.');
+        setIsSubmittingVac(false);
         return;
       }
 
@@ -546,6 +551,7 @@ export const VaccinationView: React.FC = () => {
       notes: formNotes.trim(),
     });
 
+    setIsSubmittingVac(false);
     setIsNewModalOpen(false);
     showToast(
       'success',

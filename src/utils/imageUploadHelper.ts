@@ -40,7 +40,11 @@ export async function processImageFile(file: File, maxDimension: number = 800, q
         }
 
         ctx.drawImage(img, 0, 0, width, height);
-        const dataUrl = canvas.toDataURL('image/jpeg', quality);
+        // Intenta compresión WebP para 40% menor peso; fallback automático a JPEG
+        let dataUrl = canvas.toDataURL('image/webp', quality);
+        if (!dataUrl.startsWith('data:image/webp')) {
+          dataUrl = canvas.toDataURL('image/jpeg', quality);
+        }
         resolve(dataUrl);
       };
       img.src = event.target?.result as string;

@@ -1,11 +1,12 @@
 import { describe, it, expect } from 'vitest';
 import { TEST_REGULATORY_RULES, TEST_CONTROLLED_MOVEMENTS } from '../fixtures/testData';
 
-describe('Marco Regulatorio de Córdoba & Leyes Nacionales', () => {
-  it('debe contener las normas fundamentales de ejercicio profesional de Córdoba (Ley 11.076 / 5.142)', () => {
-    const cordobaRule = TEST_REGULATORY_RULES.find((r) => r.lawNumber?.includes('11.076') || r.lawTitle.includes('11.076'));
-    expect(cordobaRule).toBeDefined();
-    expect(cordobaRule?.organism).toBe('COLEGIO_VETERINARIO_CORDOBA');
+describe('Marco Regulatorio de Neuquén & Leyes Nacionales', () => {
+  it('debe contener las normas fundamentales de ejercicio profesional de Neuquén (CMVN)', () => {
+    const neuquenRule = TEST_REGULATORY_RULES.find((r) => r.organism === 'COLEGIO_MEDICO_VETERINARIO_NEUQUEN');
+    expect(neuquenRule).toBeDefined();
+    expect(neuquenRule?.province).toBe('Neuquén');
+    expect(neuquenRule?.municipality).toBe('Las Lajas');
   });
 
   it('debe incluir normativa de SENASA para Receta Veterinaria Electrónica (RVE)', () => {
@@ -14,10 +15,10 @@ describe('Marco Regulatorio de Córdoba & Leyes Nacionales', () => {
     expect(senasaRule?.status).toBe('VIGENTE');
   });
 
-  it('debe incluir regulación de Residuos Patológicos Ley 24.051 y Ordenanza de Río Cuarto', () => {
+  it('debe incluir regulación de Residuos Patológicos Ley Provincial 1.875 y Ley 24.051 en Las Lajas', () => {
     const wasteRule = TEST_REGULATORY_RULES.find((r) => r.affectedModule === 'RESIDUOS_PATOLOGICOS');
     expect(wasteRule).toBeDefined();
-    expect(wasteRule?.municipality).toBe('Río Cuarto');
+    expect(wasteRule?.municipality).toBe('Las Lajas');
   });
 
   it('debe cumplir con la Ley 25.326 de Protección de Datos Personales', () => {

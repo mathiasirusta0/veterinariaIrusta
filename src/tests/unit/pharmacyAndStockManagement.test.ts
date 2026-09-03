@@ -147,4 +147,44 @@ describe('Módulo de Farmacia & Gestión de Stock', () => {
     expect(newMargin).toBe(100);
     expect(p.salePrice - p.costPrice).toBe(6000);
   });
+
+  it('8. Debe verificar que el catálogo predeterminado INITIAL_PRODUCTS contiene toda la medicación, fluidos e insumos precargados con precios y stock activo', async () => {
+    const { INITIAL_PRODUCTS } = await import('../../mockData');
+    expect(INITIAL_PRODUCTS.length).toBeGreaterThanOrEqual(35);
+
+    // Todos los productos deben tener costo, precio de venta positivo, stock > 0 y lote
+    INITIAL_PRODUCTS.forEach((prod) => {
+      expect(prod.costPrice).toBeGreaterThan(0);
+      expect(prod.salePrice).toBeGreaterThan(prod.costPrice);
+      expect(prod.currentStock).toBeGreaterThan(0);
+      expect(prod.currentBatch).toBeDefined();
+      expect(prod.expirationDate).toBeDefined();
+      expect(prod.branchId).toBe('branch-1');
+    });
+
+    // Fármacos e insumos esenciales incluidos
+    const dipirona = INITIAL_PRODUCTS.find((p) => p.commercialName.includes('Dipirona'));
+    expect(dipirona).toBeDefined();
+    expect(dipirona?.salePrice).toBe(5200);
+
+    const metoclopramida = INITIAL_PRODUCTS.find((p) => p.commercialName.includes('Metoclopramida 10mg'));
+    expect(metoclopramida).toBeDefined();
+    expect(metoclopramida?.salePrice).toBe(4900);
+
+    const cerenia = INITIAL_PRODUCTS.find((p) => p.commercialName.includes('Cerenia'));
+    expect(cerenia).toBeDefined();
+    expect(cerenia?.salePrice).toBe(16500);
+
+    const ringer = INITIAL_PRODUCTS.find((p) => p.commercialName.includes('Ringer Lactato'));
+    expect(ringer).toBeDefined();
+    expect(ringer?.salePrice).toBe(3900);
+
+    const jeringa3 = INITIAL_PRODUCTS.find((p) => p.commercialName.includes('Jeringa 3ml'));
+    expect(jeringa3).toBeDefined();
+    expect(jeringa3?.currentStock).toBeGreaterThanOrEqual(100);
+
+    const aguja258 = INITIAL_PRODUCTS.find((p) => p.commercialName.includes('25/8'));
+    expect(aguja258).toBeDefined();
+    expect(aguja258?.salePrice).toBe(200);
+  });
 });

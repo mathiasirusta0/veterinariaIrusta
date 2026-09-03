@@ -15,6 +15,7 @@ import {
   ReproductiveStatus,
   PatientStatus,
   PatientAlert,
+  ARCA_FISCAL_ENABLED,
 } from '../types';
 
 /**
@@ -217,9 +218,9 @@ export function normalizeProduct(raw: any): Product {
 export function normalizeInvoice(raw: any): Invoice {
   return {
     id: safeString(raw?.id, `inv-${Date.now()}`),
-    invoiceNumber: safeString(raw?.invoiceNumber || raw?.invoice_number, '0001-00000001'),
+    invoiceNumber: safeString(raw?.invoiceNumber || raw?.invoice_number, 'REC-0001-00000001'),
     pointOfSale: safeNumber(raw?.pointOfSale || raw?.point_of_sale, 1),
-    type: raw?.type || raw?.invoiceType || 'FACTURA_B',
+    type: raw?.type === 'PRESUPUESTO' ? 'PRESUPUESTO' : (raw?.type === 'COMPROBANTE_INTERNO' ? 'COMPROBANTE_INTERNO' : 'RECIBO_X'),
     customerName: safeString(raw?.customerName || raw?.customer_name || raw?.clientName, 'Consumidor Final'),
     customerDniCuit: safeString(raw?.customerDniCuit || raw?.customer_dni_cuit, '00000000'),
     customerTaxCondition: safeString(raw?.customerTaxCondition, 'Consumidor Final'),
@@ -235,8 +236,12 @@ export function normalizeInvoice(raw: any): Invoice {
     })),
     totalAmount: Math.max(0, safeNumber(raw?.totalAmount || raw?.total, 0)),
     paymentMethod: raw?.paymentMethod || 'EFECTIVO',
-    caeNumber: safeString(raw?.caeNumber || raw?.cae_number, '74182938491029'),
-    caeExpirationDate: safeString(raw?.caeExpirationDate || raw?.cae_expiration, '2026-12-31'),
+    status: raw?.status === 'ANULADO' ? 'ANULADO' : 'EMITIDO',
+    voidedAt: raw?.voidedAt || raw?.voided_at || undefined,
+    voidedBy: raw?.voidedBy || raw?.voided_by || undefined,
+    voidReason: raw?.voidReason || raw?.void_reason || undefined,
+    isFiscal: false,
     branchId: safeString(raw?.branchId || raw?.branch_id, 'branch-01'),
+    notes: safeString(raw?.notes, ''),
   };
 }

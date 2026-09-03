@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import {
   Boxes,
+  BookOpen,
   Plus,
   Search,
   AlertTriangle,
@@ -26,7 +27,7 @@ import {
   Utensils,
 } from 'lucide-react';
 import { useVet } from '../context/VetContext';
-import { Product, InventoryMovement, SENASACategory } from '../types';
+import { Product, InventoryMovement, SENASACategory, MasterVademecumItem } from '../types';
 import { formatExpirationDate, formatDate, formatDateTime } from '../utils/formatters';
 import { triggerHaptic } from '../utils/haptics';
 import { PharmacyMobileCard } from './PharmacyMobileCard';
@@ -41,12 +42,35 @@ export const InventoryView: React.FC = () => {
     updateProductStock,
     deleteProduct,
     showToast,
+    dispenseCounterProduct,
+    getPharmacyFinancialSummary,
+    openPrintModal,
+    openWhatsAppHub,
+    masterVademecum,
+    importVademecumProduct,
+    seedFullVademecumToInventory,
   } = useVet();
 
-  const [activeTab, setActiveTab] = useState<'CATALOGO' | 'PSICOTROPICOS' | 'KARDEX'>('CATALOGO');
+  const [activeTab, setActiveTab] = useState<'CATALOGO' | 'VADEMECUM_MAESTRO' | 'PSICOTROPICOS' | 'KARDEX'>('CATALOGO');
+  const [vademecumSearch, setVademecumSearch] = useState('');
+  const [vademecumCategoryFilter, setVademecumCategoryFilter] = useState('TODOS');
+  const [selectedVademecumItem, setSelectedVademecumItem] = useState<MasterVademecumItem | null>(null);
+  const [showVademecumModal, setShowVademecumModal] = useState(false);
+  const [vademecumCostPrice, setVademecumCostPrice] = useState(0);
+  const [vademecumSalePrice, setVademecumSalePrice] = useState(0);
+  const [vademecumInitialStock, setVademecumInitialStock] = useState(15);
+  const [vademecumLocation, setVademecumLocation] = useState('Farmacia Central');
   const [search, setSearch] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('TODOS');
   const [filterCriticalOnly, setFilterCriticalOnly] = useState(false);
+
+  // Quick Counter Sale Modal State
+  const [showCounterSaleModal, setShowCounterSaleModal] = useState(false);
+  const [saleProductId, setSaleProductId] = useState('');
+  const [saleQuantity, setSaleQuantity] = useState(1);
+  const [salePaymentMethod, setSalePaymentMethod] = useState<'EFECTIVO' | 'TRANSFERENCIA' | 'MERCADOPAGO_QR' | 'TARJETA_DEBITO'>('EFECTIVO');
+  const [saleCustomerName, setSaleCustomerName] = useState('Cliente Mostrador');
+  const [saleReceiptData, setSaleReceiptData] = useState<{ invoiceNumber: string; amount: number; productName: string } | null>(null);
 
   // New Product Modal State
   const [showNewProductModal, setShowNewProductModal] = useState(false);
@@ -116,6 +140,7 @@ export const InventoryView: React.FC = () => {
     const matchesCategory =
       categoryFilter === 'TODOS' ||
       p.category === categoryFilter ||
+      (categoryFilter === 'VACUNA' && (p.category === 'VACUNA' || p.category === 'BIOLOGICO' || p.category === 'BIOLOGICOS')) ||
       (categoryFilter === 'FARMACO' &&
         (p.category === 'MEDICAMENTO' ||
           p.category === 'PSICOTROPICO' ||
@@ -370,7 +395,7 @@ export const InventoryView: React.FC = () => {
     {
       id: 'VACUNA',
       label: '💉 Biológicos / Vacunas',
-      badge: products.filter((p) => p.category === 'VACUNA').length,
+      badge: products.filter((p) => p.category === 'VACUNA' || p.category === 'BIOLOGICO' || p.category === 'BIOLOGICOS').length,
     },
     {
       id: 'PSICOTROPICO',
@@ -398,6 +423,27 @@ export const InventoryView: React.FC = () => {
           ) : undefined
         }
         actions={[
+          {
+            label: '📚 Vademécum Maestro (65+)',
+            icon: BookOpen,
+            onClick: () => {
+              triggerHaptic('light');
+              setActiveTab('VADEMECUM_MAESTRO');
+            },
+            variant: 'secondary',
+          },
+          {
+            label: '⚡ Venta Mostrador',
+            icon: DollarSign,
+            onClick: () => {
+              triggerHaptic('light');
+              if (products.length > 0) {
+                setSaleProductId(products[0].id);
+              }
+              setShowCounterSaleModal(true);
+            },
+            variant: 'secondary',
+          },
           {
             label: '+ Nuevo Fármaco / Insumo',
             icon: Plus,
@@ -464,44 +510,49 @@ export const InventoryView: React.FC = () => {
         </button>
       </div>
 
-      {/* 3. Metrics Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 text-xs">
-        <StatCard
-          title="Total en Catálogo"
-          value={products.length.toString()}
-          subtitle={totalStockUnits + ' unidades físicas disponibles'}
-          icon={Package}
-          variant="teal"
-        />
+      {/* 3. Metrics Cards & Sincronización Financiera */}
+      {(() => {
+        const finSummary = getPharmacyFinancialSummary();
+        return (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 text-xs">
+            <StatCard
+              title="Total en Catálogo"
+              value={finSummary.totalProductsCount.toString()}
+              subtitle={`${finSummary.totalUnitsInStock} unidades físicas en stock`}
+              icon={Package}
+              variant="teal"
+            />
 
-        <StatCard
-          title="Valoración del Stock"
-          value={'$' + totalSaleValuation.toLocaleString('es-AR')}
-          subtitle={'Costo: $' + totalCostValuation.toLocaleString('es-AR') + ' | Margen activo'}
-          icon={DollarSign}
-          variant="emerald"
-        />
+            <StatCard
+              title="Valoración de Stock"
+              value={'$' + finSummary.totalSaleValue.toLocaleString('es-AR')}
+              subtitle={`Costo: $${finSummary.totalCostValue.toLocaleString('es-AR')} | Margen: +${finSummary.projectedMarginPercentage}%`}
+              icon={DollarSign}
+              variant="emerald"
+            />
 
-        <StatCard
-          title="Alertas de Reposición"
-          value={lowStockCount + ' críticos'}
-          subtitle={
-            lowStockCount > 0 ? 'Requieren orden de compra urgente' : 'Nivel de existencias óptimo'
-          }
-          icon={AlertTriangle}
-          variant={lowStockCount > 0 ? 'rose' : 'slate'}
-        />
+            <StatCard
+              title="Margen Proyectado"
+              value={'$' + finSummary.projectedProfit.toLocaleString('es-AR')}
+              subtitle={`+${finSummary.projectedMarginPercentage}% de rentabilidad bruta`}
+              icon={TrendingUp}
+              variant="indigo"
+            />
 
-        <StatCard
-          title="Control FEFO / Vencimientos"
-          value={expiringSoonCount + ' lotes'}
-          subtitle={
-            expiringSoonCount > 0 ? 'Lotes por vencer (<60d) o vencidos' : 'Sin alertas de vencimiento'
-          }
-          icon={Clock}
-          variant={expiringSoonCount > 0 ? 'amber' : 'slate'}
-        />
-      </div>
+            <StatCard
+              title="Alertas & Existencias"
+              value={finSummary.lowStockCount + ' críticos'}
+              subtitle={
+                finSummary.lowStockCount > 0
+                  ? `${finSummary.lowStockCount} con stock bajo / ${finSummary.outOfStockCount} agotados`
+                  : 'Nivel de existencias óptimo'
+              }
+              icon={AlertTriangle}
+              variant={finSummary.lowStockCount > 0 ? 'rose' : 'slate'}
+            />
+          </div>
+        );
+      })()}
 
       {/* 4. Tab 1: Inventario General */}
       {activeTab === 'CATALOGO' && (
@@ -1479,6 +1530,355 @@ export const InventoryView: React.FC = () => {
                 Sí, Eliminar
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* 🌟 11. MODAL: VENTA RÁPIDA DE MOSTRADOR CON RECIBO NO FISCAL */}
+      {showCounterSaleModal && (
+        <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-xs flex items-center justify-center z-50 p-4 animate-in fade-in">
+          <div className="bg-white rounded-3xl p-6 border border-slate-200 max-w-md w-full shadow-2xl space-y-5 text-left text-xs">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div>
+                <span className="text-[10px] font-black uppercase tracking-wider text-teal-800 bg-teal-50 px-2 py-0.5 rounded-full border border-teal-200">
+                  Farmacia & Finanzas
+                </span>
+                <h3 className="text-base font-black text-slate-900 mt-1">Venta Rápida Mostrador</h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowCounterSaleModal(false);
+                  setSaleReceiptData(null);
+                }}
+                className="text-slate-400 hover:text-slate-600 font-bold text-base p-1"
+              >
+                ✕
+              </button>
+            </div>
+
+            {saleReceiptData ? (
+              <div className="space-y-4 text-center py-2">
+                <div className="w-12 h-12 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center mx-auto">
+                  <CheckCircle2 className="w-6 h-6" />
+                </div>
+                <div>
+                  <h4 className="text-base font-black text-slate-900">Venta Registrada Exitosamente</h4>
+                  <p className="text-xs text-slate-600 mt-1 font-mono font-bold">
+                    Comprobante N° {saleReceiptData.invoiceNumber}
+                  </p>
+                  <p className="text-sm font-black text-teal-700 mt-1">
+                    ${saleReceiptData.amount.toLocaleString('es-AR')}
+                  </p>
+                </div>
+
+                <div className="p-3 bg-slate-50 border border-slate-200 rounded-2xl text-[11px] text-slate-600 text-left space-y-1 font-mono">
+                  <p>• Concepto: {saleReceiptData.productName}</p>
+                  <p>• Stock descontado automáticamente de Farmacia</p>
+                  <p>• Ingreso asentado en Finanzas & Caja</p>
+                  <p>• Comprobante interno no fiscal emitido</p>
+                </div>
+
+                <div className="flex items-center gap-2 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      window.print();
+                    }}
+                    className="flex-1 py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl flex items-center justify-center gap-1.5 cursor-pointer"
+                  >
+                    <Printer className="w-3.5 h-3.5" />
+                    <span>Imprimir Ticket</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowCounterSaleModal(false);
+                      setSaleReceiptData(null);
+                    }}
+                    className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl cursor-pointer"
+                  >
+                    Listo
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  if (!saleProductId) {
+                    showToast('error', 'Seleccione un producto', 'Debe elegir un ítem del inventario.');
+                    return;
+                  }
+                  try {
+                    const res = dispenseCounterProduct(
+                      saleProductId,
+                      saleQuantity,
+                      salePaymentMethod,
+                      saleCustomerName
+                    );
+                    const prod = products.find((p) => p.id === saleProductId);
+                    setSaleReceiptData({
+                      invoiceNumber: res.invoice.invoiceNumber,
+                      amount: res.invoice.totalAmount,
+                      productName: `${prod?.commercialName || 'Fármaco'} x${saleQuantity}`,
+                    });
+                  } catch (err: any) {
+                    showToast('error', 'Error al vender', err.message || 'No se pudo completar la venta.');
+                  }
+                }}
+                className="space-y-4"
+              >
+                <div>
+                  <label className="font-bold text-slate-700 block mb-1">Producto / Fármaco:</label>
+                  <select
+                    value={saleProductId}
+                    onChange={(e) => setSaleProductId(e.target.value)}
+                    required
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 font-bold text-slate-900 cursor-pointer"
+                  >
+                    {products
+                      .filter((p) => !p.isArchived)
+                      .map((p) => (
+                        <option key={p.id} value={p.id}>
+                          {p.commercialName} ({p.presentation || p.concentration}) • Stock: {p.currentStock} • ${p.salePrice.toLocaleString('es-AR')}
+                        </option>
+                      ))}
+                  </select>
+                </div>
+
+                {(() => {
+                  const sel = products.find((p) => p.id === saleProductId);
+                  if (!sel) return null;
+                  const total = sel.salePrice * saleQuantity;
+                  return (
+                    <div className="p-3 bg-teal-50 border border-teal-200 rounded-2xl space-y-1">
+                      <div className="flex justify-between font-bold text-slate-800">
+                        <span>Precio Unitario:</span>
+                        <span className="font-mono">${sel.salePrice.toLocaleString('es-AR')}</span>
+                      </div>
+                      <div className="flex justify-between font-bold text-slate-800">
+                        <span>Stock Disponible:</span>
+                        <span className={`font-mono ${sel.currentStock < saleQuantity ? 'text-rose-600 font-black' : 'text-emerald-700'}`}>
+                          {sel.currentStock} un.
+                        </span>
+                      </div>
+                      <div className="flex justify-between font-black text-sm text-teal-950 pt-1 border-t border-teal-200">
+                        <span>TOTAL A COBRAR:</span>
+                        <span className="font-mono text-base">${total.toLocaleString('es-AR')}</span>
+                      </div>
+                    </div>
+                  );
+                })()}
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="font-bold text-slate-700 block mb-1">Cantidad:</label>
+                    <input
+                      type="number"
+                      min="1"
+                      max="99"
+                      value={saleQuantity}
+                      onChange={(e) => setSaleQuantity(Math.max(1, Number(e.target.value) || 1))}
+                      required
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 font-bold text-slate-900 text-center"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="font-bold text-slate-700 block mb-1">Medio de Pago:</label>
+                    <select
+                      value={salePaymentMethod}
+                      onChange={(e) => setSalePaymentMethod(e.target.value as any)}
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 font-bold text-slate-900 cursor-pointer"
+                    >
+                      <option value="EFECTIVO">💵 Efectivo</option>
+                      <option value="TRANSFERENCIA">🏦 Transferencia</option>
+                      <option value="MERCADOPAGO_QR">📱 QR / MP</option>
+                      <option value="TARJETA_DEBITO">💳 Débito</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="font-bold text-slate-700 block mb-1">Nombre del Cliente / Tutor:</label>
+                  <input
+                    type="text"
+                    value={saleCustomerName}
+                    onChange={(e) => setSaleCustomerName(e.target.value)}
+                    placeholder="Cliente Mostrador"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 font-bold text-slate-900"
+                  />
+                </div>
+
+                <div className="pt-2 flex items-center justify-end gap-2 border-t border-slate-100">
+                  <button
+                    type="button"
+                    onClick={() => setShowCounterSaleModal(false)}
+                    className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-xl font-bold cursor-pointer"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-5 py-2 bg-teal-600 hover:bg-teal-500 text-white font-black rounded-xl shadow-md shadow-teal-600/20 active:scale-95 transition-all cursor-pointer"
+                  >
+                    ✓ Confirmar Venta y Cobro
+                  </button>
+                </div>
+              </form>
+            )}
+          </div>
+        </div>
+      )}
+      {/* MODAL DE ACTIVACIÓN / AJUSTE DE VADEMÉCUM MAESTRO */}
+      {showVademecumModal && selectedVademecumItem && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-fade-in">
+          <div className="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl space-y-4 border border-indigo-200 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div className="flex items-center gap-2.5">
+                <div className="w-10 h-10 rounded-2xl bg-indigo-100 text-indigo-800 flex items-center justify-center font-bold">
+                  📚
+                </div>
+                <div>
+                  <h3 className="font-black text-slate-900 text-base">
+                    Activar Fármaco del Vademécum
+                  </h3>
+                  <p className="text-xs text-slate-500 font-medium">
+                    {selectedVademecumItem.commercialName} ({selectedVademecumItem.code})
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowVademecumModal(false)}
+                className="text-slate-400 hover:text-slate-600 p-1 cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                importVademecumProduct(selectedVademecumItem.id, {
+                  costPrice: Number(vademecumCostPrice),
+                  salePrice: Number(vademecumSalePrice),
+                  currentStock: Number(vademecumInitialStock),
+                  location: vademecumLocation,
+                });
+                setShowVademecumModal(false);
+              }}
+              className="space-y-4 text-xs"
+            >
+              {/* Product Info Card */}
+              <div className="p-3.5 bg-indigo-50/70 border border-indigo-200 rounded-2xl space-y-1.5">
+                <div className="flex justify-between font-bold text-slate-800">
+                  <span>Principio Activo:</span>
+                  <span className="text-indigo-950 font-black">{selectedVademecumItem.activeIngredient}</span>
+                </div>
+                <div className="flex justify-between text-slate-700">
+                  <span>Concentración / Presentación:</span>
+                  <span>{selectedVademecumItem.concentration} • {selectedVademecumItem.presentation}</span>
+                </div>
+                <div className="flex justify-between text-slate-700">
+                  <span>Vía / Frecuencia:</span>
+                  <span className="font-semibold">{selectedVademecumItem.defaultRoute} • {selectedVademecumItem.defaultFrequency}</span>
+                </div>
+                {selectedVademecumItem.associatedConsumableNames && (
+                  <div className="text-[11px] text-teal-800 font-bold pt-1 border-t border-indigo-200">
+                    📦 Kit Descartable Asociado: {selectedVademecumItem.associatedConsumableNames.join(' + ')}
+                  </div>
+                )}
+              </div>
+
+              {/* Price and Stock Inputs */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="font-bold text-slate-800 block mb-1">Precio de Costo ($): *</label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="any"
+                    required
+                    value={vademecumCostPrice}
+                    onChange={(e) => setVademecumCostPrice(Number(e.target.value))}
+                    className="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 font-bold font-mono text-slate-900"
+                  />
+                </div>
+
+                <div>
+                  <label className="font-bold text-slate-800 block mb-1">Precio de Venta ($): *</label>
+                  <input
+                    type="number"
+                    min="0.01"
+                    step="any"
+                    required
+                    value={vademecumSalePrice}
+                    onChange={(e) => setVademecumSalePrice(Number(e.target.value))}
+                    className="w-full bg-emerald-50 border-2 border-emerald-400 rounded-xl p-2.5 font-black font-mono text-emerald-950"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="font-bold text-slate-800 block mb-1">Stock Inicial (unidades): *</label>
+                  <input
+                    type="number"
+                    min="0"
+                    required
+                    value={vademecumInitialStock}
+                    onChange={(e) => setVademecumInitialStock(Number(e.target.value))}
+                    className="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 font-bold font-mono text-slate-900"
+                  />
+                </div>
+
+                <div>
+                  <label className="font-bold text-slate-800 block mb-1">Ubicación / Estante:</label>
+                  <input
+                    type="text"
+                    value={vademecumLocation}
+                    onChange={(e) => setVademecumLocation(e.target.value)}
+                    placeholder="Farmacia Central / Heladera"
+                    className="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 font-bold text-slate-900"
+                  />
+                </div>
+              </div>
+
+              {/* Profit & Margin Calculator */}
+              {(() => {
+                const cost = Number(vademecumCostPrice) || 0;
+                const sale = Number(vademecumSalePrice) || 0;
+                const profit = Math.max(0, sale - cost);
+                const margin = cost > 0 ? Math.round((profit / cost) * 100) : 0;
+                return (
+                  <div className="p-3 bg-slate-50 border border-slate-200 rounded-2xl flex items-center justify-between text-xs font-bold">
+                    <span className="text-slate-600">Margen de Rentabilidad:</span>
+                    <span className="text-emerald-800 font-mono font-black">
+                      +${profit.toLocaleString('es-AR')} ({margin}%)
+                    </span>
+                  </div>
+                );
+              })()}
+
+              <div className="pt-2 flex items-center justify-end gap-2 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setShowVademecumModal(false)}
+                  className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-xl font-bold cursor-pointer"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 bg-indigo-700 hover:bg-indigo-600 text-white font-black rounded-xl shadow-md active:scale-95 transition-all cursor-pointer flex items-center gap-1.5"
+                >
+                  <CheckCircle2 className="w-4 h-4" />
+                  <span>✓ Guardar y Activar en Farmacia</span>
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

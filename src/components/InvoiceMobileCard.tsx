@@ -47,12 +47,12 @@ export const InvoiceMobileCard: React.FC<InvoiceMobileCardProps> = ({
           <div className="flex items-center gap-1.5 flex-wrap">
             <span
               className={`text-[10px] font-black px-2 py-0.5 rounded-md uppercase tracking-wider ${
-                isTicket
-                  ? 'bg-amber-50 text-amber-800 border border-amber-200'
-                  : 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                invoice.status === 'ANULADO'
+                  ? 'bg-rose-50 text-rose-800 border border-rose-200'
+                  : 'bg-teal-50 text-teal-800 border border-teal-200'
               }`}
             >
-              {isTicket ? '📄 TICKET COMÚN' : `🧾 ${invoice.type.replace('_', ' ')}`}
+              {invoice.status === 'ANULADO' ? '⚠️ ANULADO' : (isTicket ? '📄 RECIBO X (NO FISCAL)' : '📋 COMPROBANTE INTERNO')}
             </span>
             <span className="font-mono font-bold text-slate-900 text-xs">
               #{invoice.invoiceNumber}
@@ -87,12 +87,10 @@ export const InvoiceMobileCard: React.FC<InvoiceMobileCardProps> = ({
           DNI / CUIT: <strong className="text-slate-700">{invoice.customerDniCuit || 'N/D'}</strong>
         </div>
 
-        {!isTicket && invoice.caeNumber && (
-          <div className="pt-1 border-t border-slate-200/60 flex items-center justify-between text-[10px] font-mono text-slate-500">
-            <span>CAE ARCA: <strong className="text-emerald-700">{invoice.caeNumber}</strong></span>
-            {invoice.caeExpirationDate && <span>Vto: {invoice.caeExpirationDate}</span>}
-          </div>
-        )}
+        <div className="pt-1 border-t border-slate-200/60 flex items-center justify-between text-[10px] font-bold text-slate-500">
+          <span>DOCUMENTO NO FISCAL</span>
+          <span>{invoice.status === 'ANULADO' ? 'ANULADO' : 'USO INTERNO'}</span>
+        </div>
       </div>
 
       {/* 3. Items list preview (collapsed/compact) */}

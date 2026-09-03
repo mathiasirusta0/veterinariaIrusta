@@ -94,7 +94,7 @@ Autorizo la colocación de accesos vasculares, fluidoterapia endovenosa continua
     badgeColor: 'bg-slate-100 text-slate-800 border-slate-300',
     icon: HeartHandshake,
     defaultContent: (p) =>
-      `Yo, ${p.ownerName} (DNI ${p.ownerDni}), en pleno uso de mis facultades y tras haber recibido el asesoramiento profesional del Dr/a. ${p.vetName} (${p.vetLicense}) sobre el pronóstico irreversible e inviable de ${p.name} (HC ${p.hc}), solicito y autorizo de forma irrevocable la práctica del procedimiento de Eutanasia Humanitaria bajo protocolo farmacológico que garantice la ausencia total de dolor y sufrimiento animal.`,
+      `Yo, ${p.ownerName} (DNI ${p.ownerDni}), en pleno uso de mis facultades y tras haber recibido el asesoramiento profesional del ${p.vetName?.startsWith('Dr') ? p.vetName : `Dr/a. ${p.vetName}`} (${p.vetLicense}) sobre el pronóstico irreversible e inviable de ${p.name} (HC ${p.hc}), solicito y presto mi pleno consentimiento informado para la práctica del procedimiento de Eutanasia Humanitaria bajo protocolo farmacológico compasivo que garantiza la ausencia total de dolor y sufrimiento animal.`,
   },
   {
     type: 'CERTIFICADO_SALUD_VIAJE',
@@ -104,7 +104,7 @@ Autorizo la colocación de accesos vasculares, fluidoterapia endovenosa continua
     badgeColor: 'bg-teal-50 text-teal-800 border-teal-200',
     icon: Award,
     defaultContent: (p) =>
-      `El/La profesional que suscribe, Dr/a. ${p.vetName} (${p.vetLicense}), CERTIFICA que en el día de la fecha ha examinado clínicamente al paciente ${p.name} (${p.species}, ${p.breed}, HC ${p.hc}), perteneciente al tutor ${p.ownerName} (DNI ${p.ownerDni}), encontrándolo en EXCELENTE ESTADO GENERAL DE SALUD, sin signos clínicos compatibles con enfermedades infectocontagiosas o parasitarias de denuncia obligatoria, encontrándose APTO para el traslado y tránsito interjurisdiccional.`,
+      `El/La profesional que suscribe, ${p.vetName?.startsWith('Dr') ? p.vetName : `Dr/a. ${p.vetName}`} (${p.vetLicense}), CERTIFICA que en el día de la fecha ha examinado clínicamente al paciente ${p.name} (${p.species}, ${p.breed}, HC ${p.hc}), perteneciente al tutor ${p.ownerName} (DNI ${p.ownerDni}), encontrándolo en EXCELENTE ESTADO GENERAL DE SALUD, sin signos clínicos compatibles con enfermedades infectocontagiosas o parasitarias de denuncia obligatoria, encontrándose APTO para el traslado y tránsito interjurisdiccional.`,
   },
   {
     type: 'CERTIFICADO_VACUNACION_ANTIRRABICA',
@@ -118,7 +118,7 @@ Autorizo la colocación de accesos vasculares, fluidoterapia endovenosa continua
 
 Paciente: ${p.name} (${p.species} ${p.breed}, HC ${p.hc})
 Tutor: ${p.ownerName} (DNI ${p.ownerDni})
-Veterinario actuante: Dr/a. ${p.vetName} (${p.vetLicense})
+Veterinario actuante: ${p.vetName?.startsWith('Dr') ? p.vetName : `Dr/a. ${p.vetName}`} (${p.vetLicense})
 
 Se certifica la aplicación conforme a la legislación sanitaria vigente, biológico con fecha de vigencia por 12 meses calendario a partir de la emisión del presente.`,
   },
@@ -175,8 +175,9 @@ export const DocumentsView: React.FC = () => {
 
   // Generation Modal State
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [isSubmittingDoc, setIsSubmittingDoc] = useState(false);
   const [selectedTemplateIndex, setSelectedTemplateIndex] = useState(0);
-  const [selectedPatientId, setSelectedPatientId] = useState(patients[0]?.id || '');
+  const [selectedPatientId, setSelectedPatientId] = useState('');
   const [customTitle, setCustomTitle] = useState('');
   const [customContent, setCustomContent] = useState('');
 
@@ -242,9 +243,14 @@ export const DocumentsView: React.FC = () => {
 
   const handleSaveNewDocument = (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSubmittingDoc) return;
+    setIsSubmittingDoc(true);
     triggerHaptic('medium');
     const pat = patients.find((p) => p.id === selectedPatientId) || patients[0];
-    if (!pat) return;
+    if (!pat) {
+      setIsSubmittingDoc(false);
+      return;
+    }
     const tmpl = DOCUMENT_TEMPLATES[selectedTemplateIndex];
 
     addDocument({
@@ -258,6 +264,7 @@ export const DocumentsView: React.FC = () => {
     });
 
     showToast('success', 'Documento Generado', `"${customTitle}" creado exitosamente.`);
+    setIsSubmittingDoc(false);
     setShowCreateModal(false);
   };
 
@@ -315,6 +322,19 @@ export const DocumentsView: React.FC = () => {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
   };
 
+  const isCanvasBlank = (canvas: HTMLCanvasElement): boolean => {
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return true;
+    try {
+      const pixelBuffer = new Uint32Array(
+        ctx.getImageData(0, 0, canvas.width, canvas.height).data.buffer
+      );
+      return !pixelBuffer.some((color) => color !== 0);
+    } catch {
+      return false;
+    }
+  };
+
   const handleOpenSignatureModal = (doc: ClinicalDocument) => {
     triggerHaptic('medium');
     const own = owners.find((o) => o.id === doc.ownerId);
@@ -331,9 +351,14 @@ export const DocumentsView: React.FC = () => {
       return;
     }
     const canvas = canvasRef.current;
-    const dataUrl = canvas ? canvas.toDataURL('image/png') : '';
+    if (!canvas || isCanvasBlank(canvas)) {
+      showToast('error', 'Firma Requerida', 'Por favor, dibuje la firma manuscrita en el recuadro antes de confirmar.');
+      return;
+    }
+
+    const dataUrl = canvas.toDataURL('image/png');
     signDocument(signingDocId, signerName.trim(), signerDni.trim(), dataUrl);
-    showToast('success', 'Firma Digital Registrada', 'El documento quedó legalmente firmado con certificado digital.');
+    showToast('success', 'Firma Manuscrita Registrada', 'El documento quedó firmado y guardado correctamente.');
     setSigningDocId(null);
     setSignerName('');
     setSignerDni('');
@@ -377,11 +402,22 @@ OBSERVACIONES:
 ${parsed.data.notes}` : ''}`;
     }
 
-    const effectiveOwnerName = doc.signedByOwnerName || (owner ? `${owner.firstName} ${owner.lastName}` : (doc.ownerName || 'Tutor Responsable'));
-    const effectiveOwnerDni = doc.signedByOwnerDni || owner?.dni || doc.ownerDni || '';
+    // Sanitize any residual fake license numbers like 8412 or incomplete names
+    cleanText = cleanText
+      .replace(/MP\s*8412(\s*-\s*Dirección\s*Médica)?/gi, 'M.P. 502 - Dirección Médica')
+      .replace(/8412/g, '502')
+      .replace(/Dr\.\s*Diego\s*Irusta(?!\s*Iván)/g, 'Dr. Diego Iván Irusta');
+
+    const effectiveOwnerName = doc.signedByOwnerName || (owner ? `${owner.firstName} ${owner.lastName}`.trim() : (doc.ownerName && doc.ownerName !== 'Tutor Responsable' && doc.ownerName !== 'S/D' ? doc.ownerName : 'Tutor Responsable'));
+    const effectiveOwnerDni = doc.signedByOwnerDni || owner?.dni || (doc.ownerDni && doc.ownerDni !== 'S/D' ? doc.ownerDni : '');
+
+    const sanitizedDocTitle = (doc.title || 'Documento Clínico')
+      .replace(/Dr\.\s*Diego\s*Irusta(?!\s*Iván)/g, 'Dr. Diego Iván Irusta')
+      .replace(/MP\s*8412/gi, 'M.P. 502')
+      .replace(/8412/g, '502');
 
     return {
-      title: doc.title,
+      title: sanitizedDocTitle,
       type: doc.type,
       patientName: patient?.name || doc.patientName || 'Paciente',
       species: patient?.species || 'Canino',
@@ -393,7 +429,7 @@ ${parsed.data.notes}` : ''}`;
       date: formatDate(doc.createdAt),
       time: new Date(doc.createdAt).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' }),
       content: cleanText,
-      vetName: doc.vetName || 'Dr. Diego Iván Irusta',
+      vetName: 'Dr. Diego Iván Irusta',
       vetLicense: 'M.P. 502',
       isSigned: doc.isSigned,
       signedByOwnerName: doc.signedByOwnerName || effectiveOwnerName,
@@ -412,7 +448,7 @@ ${parsed.data.notes}` : ''}`;
     triggerHaptic('light');
     const data = preparePrintableData(doc);
     downloadClinicalDocumentPdf(data);
-    showToast('info', 'Generando PDF', 'Descargando documento oficial con firma digital.');
+    showToast('info', 'Generando PDF', 'Descargando documento clínico en PDF.');
   };
 
   const handleSendWhatsApp = (doc: ClinicalDocument) => {
@@ -466,7 +502,7 @@ ${parsed.data.notes}` : ''}`;
       <PageHeader
         category="Gestión Legal & Expedición de Certificados"
         title="Documentos Clínicos & Legales"
-        description="Emisión de consentimientos informados, certificados oficiales SENASA, evoluciones y firma digital táctil con descarga en PDF oficial."
+        description="Emisión de consentimientos informados, certificados emitidos por el profesional, evoluciones y firma manuscrita capturada en pantalla con descarga en PDF."
         icon={FileText}
         actions={[
           {
@@ -726,7 +762,7 @@ ${parsed.data.notes}` : ''}`;
                       type="button"
                       onClick={() => handleDownloadPdf(doc)}
                       className="px-3 py-1.5 bg-teal-50 hover:bg-teal-100 text-teal-800 font-bold rounded-xl border border-teal-200 flex items-center gap-1 transition-colors cursor-pointer"
-                      title="Descargar documento oficial en PDF con firma digital"
+                      title="Descargar documento en PDF con firma manuscrita registrada"
                     >
                       <Download className="w-3.5 h-3.5 text-teal-600" />
                       <span>PDF</span>
@@ -737,7 +773,7 @@ ${parsed.data.notes}` : ''}`;
                       type="button"
                       onClick={() => handlePrintDoc(doc)}
                       className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl border border-slate-200 flex items-center gap-1 transition-colors cursor-pointer"
-                      title="Imprimir documento oficial"
+                      title="Imprimir documento clínico"
                     >
                       <Printer className="w-3.5 h-3.5" />
                       <span>Imprimir</span>
@@ -927,7 +963,7 @@ ${parsed.data.notes}` : ''}`;
                   className="px-4 py-2 bg-teal-600 hover:bg-teal-500 text-white font-bold rounded-xl text-xs flex items-center gap-1.5 cursor-pointer shadow-sm transition-all active:scale-95"
                 >
                   <Download className="w-4 h-4" />
-                  <span>Descargar PDF con Firma</span>
+                  <span>{previewDoc.isSigned ? 'Descargar Documento Firmado (PDF)' : 'Descargar Borrador Oficial (PDF)'}</span>
                 </button>
 
                 <button
@@ -986,7 +1022,7 @@ ${parsed.data.notes}` : ''}`;
                       onChange={(e) => handlePatientChangeInModal(e.target.value)}
                       className="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 font-bold text-slate-900 focus:ring-2 focus:ring-teal-500"
                     >
-                      {patients.map((p) => (
+                      {patients.filter((p) => p.status !== 'ARCHIVADO' && !p.isArchived).map((p) => (
                         <option key={p.id} value={p.id}>
                           {p.name} ({p.species} {p.breed}) — {p.clinicalRecordNumber}
                         </option>
@@ -1134,8 +1170,8 @@ ${parsed.data.notes}` : ''}`;
                       className="w-full h-36 cursor-crosshair bg-white"
                     />
                   </div>
-                  <p className="text-[10px] text-slate-400">
-                    La firma digital queda vinculada con hash criptográfico y fecha/hora inmutable en el PDF.
+                  <p className="text-[10px] text-slate-500">
+                    La firma manuscrita capturada queda registrada en la ficha médica del paciente y adjuntada al PDF del documento.
                   </p>
                 </div>
               </div>
@@ -1154,7 +1190,7 @@ ${parsed.data.notes}` : ''}`;
                   type="submit"
                   className="px-5 py-2 bg-teal-600 hover:bg-teal-500 text-white font-bold rounded-xl text-xs shadow-md shadow-teal-600/20 cursor-pointer"
                 >
-                  Confirmar y Certificar Firma
+                  Confirmar y Guardar Firma Manuscrita
                 </button>
               </div>
             </form>

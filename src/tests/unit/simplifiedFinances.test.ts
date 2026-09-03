@@ -57,8 +57,6 @@ describe('Finanzas — Módulo Simplificado de Cobro Rápido y Emisión de Compr
       ],
       totalAmount: 18500,
       paymentMethod: 'TRANSFERENCIA',
-      caeNumber: 'NO_FISCAL_RECIBO_X',
-      caeExpirationDate: '2026-12-31',
       isFiscal: false,
       branchId: 'branch-central',
     };

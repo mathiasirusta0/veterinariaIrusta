@@ -33,10 +33,11 @@ describe('Flujo Hospitalario E2E de Seguridad Clínica & Facturación', () => {
     expect(hosp?.fluidTherapy?.isActive).toBe(true);
     expect(hosp?.fluidTherapy?.rateMlPerHour).toBe(80);
 
-    // 5. Verificar Factura con CAE
+    // 5. Verificar Recibo de Cobranza Interno
     const invoice = TEST_INVOICES.find((inv) => inv.patientId === patient?.id);
     expect(invoice).toBeDefined();
-    expect(invoice?.caeNumber).toBeTruthy();
+    expect(invoice?.type).toBe('RECIBO_X');
+    expect(invoice?.isFiscal).toBe(false);
     expect(invoice?.totalAmount).toBeGreaterThan(0);
   });
 });

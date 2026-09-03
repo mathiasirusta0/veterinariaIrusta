@@ -23,9 +23,9 @@ CREATE TABLE IF NOT EXISTS public.owners (
   whatsapp TEXT,
   email TEXT,
   address TEXT,
-  city TEXT DEFAULT 'Río Cuarto',
-  province TEXT DEFAULT 'Córdoba',
-  postal_code TEXT DEFAULT '5800',
+  city TEXT DEFAULT 'Las Lajas',
+  province TEXT DEFAULT 'Neuquén',
+  postal_code TEXT DEFAULT '8347',
   notes TEXT,
   balance NUMERIC DEFAULT 0,
   created_at TIMESTAMPTZ DEFAULT NOW()

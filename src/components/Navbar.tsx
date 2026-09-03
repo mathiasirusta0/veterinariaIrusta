@@ -43,7 +43,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleMobileMenu }) => {
       {/* Left: Mobile Menu Trigger & Sleek Global Search Bar */}
       <div className="flex items-center gap-1.5 sm:gap-3 flex-1 min-w-0 max-w-lg">
         {/* Mobile & Tablet Compact Logo */}
-        <div className="hidden sm:flex md:hidden items-center gap-2 flex-shrink-0">
+        <div className="hidden sm:flex lg:hidden items-center gap-2 flex-shrink-0">
           <img src="/logo-ranquel.png" alt="Ranquel" className="w-8 h-8 rounded-xl object-contain bg-white p-0.5 border border-slate-200 shadow-2xs" />
         </div>
         {onToggleMobileMenu && (
@@ -53,7 +53,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleMobileMenu }) => {
               triggerHaptic('light');
               onToggleMobileMenu();
             }}
-            className="md:hidden p-2 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors flex-shrink-0 touch-manipulation min-w-[40px] min-h-[40px] flex items-center justify-center"
+            className="lg:hidden p-2 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors flex-shrink-0 touch-manipulation min-w-[40px] min-h-[40px] flex items-center justify-center"
             title="Abrir menú"
             aria-label="Abrir menú de navegación"
           >
@@ -77,7 +77,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleMobileMenu }) => {
           <span className="truncate font-semibold text-slate-600 group-hover:text-slate-900 text-left text-[11px] sm:text-xs transition-colors">
             Buscar paciente, tutor, DNI, turno, receta...
           </span>
-          <span className="hidden md:flex items-center gap-1 ml-auto text-[10px] text-slate-500 border border-slate-200/90 bg-white px-2 py-0.5 rounded-lg font-mono font-bold shadow-2xs flex-shrink-0 group-hover:border-teal-200 group-hover:text-teal-700 transition-colors">
+          <span className="hidden lg:flex items-center gap-1 ml-auto text-[10px] text-slate-500 border border-slate-200/90 bg-white px-2 py-0.5 rounded-lg font-mono font-bold shadow-2xs flex-shrink-0 group-hover:border-teal-200 group-hover:text-teal-700 transition-colors">
             <Command className="w-2.5 h-2.5" /> K
           </span>
         </button>

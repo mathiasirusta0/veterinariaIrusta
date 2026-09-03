@@ -92,6 +92,7 @@ export const PatientInformedConsentModal: React.FC<PatientInformedConsentModalPr
   const [hasSignature, setHasSignature] = useState(false);
   const [signerName, setSignerName] = useState(owner ? `${owner.firstName} ${owner.lastName}` : '');
   const [signerDni, setSignerDni] = useState(owner?.dni || '');
+  const [isSubmittingConsent, setIsSubmittingConsent] = useState(false);
 
   const activeTemplate = CONSENT_TEMPLATES[selectedTemplateIndex];
 
@@ -183,6 +184,8 @@ export const PatientInformedConsentModal: React.FC<PatientInformedConsentModalPr
   };
 
   const handleSaveDigitalConsent = () => {
+    if (isSubmittingConsent) return;
+    setIsSubmittingConsent(true);
     triggerHaptic('medium');
     let signatureUrl = '';
     if (canvasRef.current && hasSignature) {
@@ -207,6 +210,7 @@ export const PatientInformedConsentModal: React.FC<PatientInformedConsentModalPr
     });
 
     showToast('success', 'Consentimiento Firmado', `Consentimiento informado para ${patient.name} guardado con éxito.`);
+    setIsSubmittingConsent(false);
     onClose();
   };
 

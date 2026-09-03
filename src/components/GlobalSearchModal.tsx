@@ -18,7 +18,7 @@ import {
 } from 'lucide-react';
 import { useVet } from '../context/VetContext';
 import { triggerHaptic } from '../utils/haptics';
-import { formatDate } from '../utils/formatters';
+import { formatDate, maskPhoneNumber, maskDni } from '../utils/formatters';
 
 export type CategoryFilter = 'TODOS' | 'PACIENTES' | 'TUTORES' | 'TURNOS' | 'FARMACIA' | 'RECETAS' | 'ACCIONES';
 
@@ -51,6 +51,7 @@ export const GlobalSearchModal: React.FC = () => {
     setActivePatientTab,
     setQuickModal,
     openWhatsAppHub,
+    currentUser,
   } = useVet();
 
   const [query, setQuery] = useState('');
@@ -191,7 +192,7 @@ export const GlobalSearchModal: React.FC = () => {
 
   // Filtrado de Entidades con Normalización Inteligente
   const filteredPatients = useMemo(() => {
-    if (!q) return (patients || []).slice(0, 5);
+    if (!q) return (patients || []).filter((p) => p.status !== 'ARCHIVADO' && !p.isArchived);
     return (patients || []).filter((p) => {
       const name = normalizeSearchText(p.name);
       const hc = normalizeSearchText(p.clinicalRecordNumber);
@@ -213,7 +214,7 @@ export const GlobalSearchModal: React.FC = () => {
   }, [patients, owners, q, qDigits]);
 
   const filteredOwners = useMemo(() => {
-    if (!q) return (owners || []).slice(0, 4);
+    if (!q) return (owners || []);
     return (owners || []).filter((o) => {
       const fullName = normalizeSearchText(`${o.firstName || ''} ${o.lastName || ''}`);
       const email = normalizeSearchText(o.email);
@@ -719,11 +720,11 @@ export const GlobalSearchModal: React.FC = () => {
                                 {o.firstName} {o.lastName}
                               </span>
                               <span className="text-[10px] text-slate-500 font-mono font-bold px-2 py-0.5 rounded-lg bg-slate-100 border border-slate-200">
-                                DNI: {o.dni || 'S/D'}
+                                DNI: {maskDni(o.dni, currentUser?.role === 'SUPERADMIN' || currentUser?.role === 'VETERINARIO')}
                               </span>
                             </div>
                             <p className="text-xs text-slate-500 mt-0.5">
-                              Tel: <span className="font-mono font-medium text-slate-800">{o.phone || 'No registrado'}</span> • Mascotas:{' '}
+                              Tel: <span className="font-mono font-medium text-slate-800">{maskPhoneNumber(o.phone, currentUser?.role === 'SUPERADMIN' || currentUser?.role === 'VETERINARIO')}</span> • Mascotas:{' '}
                               <span className="font-bold text-teal-700">
                                 {linkedPets.map((pt) => pt.name).join(', ') || 'Sin mascotas registradas'}
                               </span>

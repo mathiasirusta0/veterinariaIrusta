@@ -74,20 +74,20 @@ const DEFAULT_FISCAL_CONFIG: FiscalConfig = {
   businessName: 'Veterinaria Ranquel S.R.L.',
   fantasyName: 'Hospital Veterinario Irusta',
   taxCondition: 'IVA Responsable Inscripto',
-  fiscalAddress: 'Av. San Martín 1420, Las Lajas, Neuquén',
+  fiscalAddress: 'Casa 13, Barrio Militar de Oficiales, Las Lajas, Neuquén (CP 8347)',
   iibb: '904-812391-2 (Convenio Multilateral)',
   startDate: '01/03/2018',
   pointOfSaleMain: 1,
   pointOfSaleTickets: 2,
   pointOfSaleGuard: 3,
-  environment: 'PRODUCCION',
-  certStatus: 'Válido y Verificado por ARCA / AFIP',
-  certExpiration: '15/12/2028',
+  environment: 'HOMOLOGACION',
+  certStatus: 'Módulo de Comprobantes Internos (Pendiente Homologación ARCA)',
+  certExpiration: 'Pendiente de Certificado',
   defaultPaymentDiscountCash: 10,
   creditCardSurcharges: { 1: 0, 3: 15, 6: 25 },
   cbuAlias: 'VETERINARIA.IRUSTA.MP',
   cbuNumber: '0000003100012839482912',
-  autoCAE: true,
+  autoCAE: false,
 };
 
 export const CashAndBillingView: React.FC = () => {
@@ -100,6 +100,7 @@ export const CashAndBillingView: React.FC = () => {
     patients,
     updateOwner,
     convertEstimateToInvoice,
+    voidInvoice,
     setQuickModal,
     openPrintModal,
     openWhatsAppHub,
@@ -107,7 +108,7 @@ export const CashAndBillingView: React.FC = () => {
     logAudit,
   } = useVet();
 
-  const [activeTab, setActiveTab] = useState<'FACTURAS' | 'PRESUPUESTOS' | 'CUENTAS_CORRIENTES' | 'EGRESOS' | 'CAJA' | 'CONFIGURACION_FISCAL'>('FACTURAS');
+  const [activeTab, setActiveTab] = useState<'FACTURAS' | 'PRESUPUESTOS' | 'CUENTAS_CORRIENTES' | 'EGRESOS' | 'CAJA' | 'CONFIGURACION_ESTABLECIMIENTO'>('FACTURAS');
 
   // Search and Filter States
   const [searchTerm, setSearchTerm] = useState('');
@@ -244,8 +245,8 @@ export const CashAndBillingView: React.FC = () => {
   const handleSaveFiscalConfig = (e: React.FormEvent) => {
     e.preventDefault();
     localStorage.setItem('vetsys_fiscal_config', JSON.stringify(fiscalConfig));
-    showToast('success', 'Configuración Fiscal Guardada', 'Los parámetros de ARCA / AFIP y medios de cobro se actualizaron correctamente.');
-    logAudit('ACTUALIZACION_CONFIG_FISCAL', 'FiscalConfig', fiscalConfig.cuit, 'Actualización de parámetros ARCA y puntos de venta.');
+    showToast('success', 'Configuración Guardada', 'Los datos del establecimiento y medios de cobro se actualizaron correctamente.');
+    logAudit('ACTUALIZACION_CONFIG_ESTABLECIMIENTO', 'FiscalConfig', fiscalConfig.cuit, 'Actualización de datos del establecimiento y puntos de emisión.');
   };
 
   const handleOpenCashSession = () => {
@@ -273,14 +274,13 @@ export const CashAndBillingView: React.FC = () => {
       ownerName: inv.customerName,
       ownerPhone: inv.customerDniCuit,
       vetName: currentUser.name,
-      vetLicense: 'MP-8941',
+      vetLicense: 'M.P. 502',
       date: inv.date,
       headerData: {
-        'Tipo Comprobante': inv.type.replace('_', ' '),
+        'Tipo Comprobante': inv.type === 'RECIBO_X' ? 'Recibo X (No Fiscal)' : inv.type.replace('_', ' '),
         'Punto de Venta': `PV ${inv.pointOfSale.toString().padStart(4, '0')}`,
         'Nº Comprobante': inv.invoiceNumber,
-        'CAE ARCA': inv.caeNumber || 'Ticket Interno',
-        'Vto. CAE': inv.caeExpirationDate || 'N/A',
+        'Condición': 'DOCUMENTO NO FISCAL',
         'Medio de Cobro': inv.paymentMethod.replace('_', ' '),
       },
       contentSections: [
@@ -289,12 +289,12 @@ export const CashAndBillingView: React.FC = () => {
           body: inv.items.map((it) => `• ${it.description} (x${it.quantity}) — Unit: ${formatCurrency(it.unitPrice)} | Subtotal: ${formatCurrency(it.subtotal)}`).join('\n'),
         },
         {
-          heading: 'Resumen Liquidación Fiscal',
-          body: `Subtotal Neto: ${formatCurrency(inv.totalAmount * 0.79)}\nIVA Débito Fiscal (21%): ${formatCurrency(inv.totalAmount * 0.21)}\nTOTAL ABONADO: ${formatCurrency(inv.totalAmount)}`,
+          heading: 'Resumen de Cobro',
+          body: `Subtotal: ${formatCurrency(inv.totalAmount)}\nTOTAL ABONADO: ${formatCurrency(inv.totalAmount)}`,
         },
       ],
-      qrValue: `https://www.afip.gob.ar/fe/qr/?p=${btoa(JSON.stringify({ ver: 1, fecha: inv.date, cuit: fiscalConfig.cuit, ptoVta: inv.pointOfSale, tipoCmp: inv.type, nroCmp: inv.invoiceNumber, importe: inv.totalAmount, cae: inv.caeNumber }))}`,
-      footerNotice: inv.type === 'RECIBO_X' ? 'Documento no válido como factura fiscal. Comprobante de uso interno y control de gastos.' : 'Comprobante Oficial Autorizado Electrónicamente por ARCA (Agencia de Recaudación y Control Aduanero - AFIP).',
+      qrValue: '',
+      footerNotice: 'DOCUMENTO NO FISCAL — COMPROBANTE DE COBRANZA Y CONTROL INTERNO HOSPITALARIO.',
     });
   };
 
@@ -302,9 +302,9 @@ export const CashAndBillingView: React.FC = () => {
     <div className="space-y-5 pb-2 w-full max-w-full">
       {/* Top Header */}
       <PageHeader
-        category="ARCA (AFIP) Facturación Electrónica Homologada & Ticket Común"
-        title="Caja, Facturación ARCA & Finanzas"
-        description="Emisión de Facturas Oficiales A/B/C con CAE, Tickets Mostrador (Recibo X), Arqueo Z con conteo ciego y configuración fiscal."
+        category="Gestión Hospitalaria & Control de Caja"
+        title="Caja & Comprobantes de Cobranza"
+        description="Emisión de Recibos de Cobranza (Recibo X), Presupuestos, Control de Cuentas Corrientes, Arqueo de Caja y Egresos."
         icon={Receipt}
         badge={
           <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-teal-50 text-teal-800 border border-teal-200">
@@ -414,16 +414,16 @@ export const CashAndBillingView: React.FC = () => {
           <button
             onClick={() => {
               triggerHaptic('light');
-              setActiveTab('CONFIGURACION_FISCAL');
+              setActiveTab('CONFIGURACION_ESTABLECIMIENTO');
             }}
             className={`flex-shrink-0 snap-start px-3.5 py-2 rounded-xl font-black transition-all flex items-center gap-1.5 ${
-              activeTab === 'CONFIGURACION_FISCAL'
+              activeTab === 'CONFIGURACION_ESTABLECIMIENTO'
                 ? 'bg-white text-teal-800 shadow-sm border border-slate-200'
                 : 'text-slate-600 hover:text-slate-900'
             }`}
           >
             <Settings className="w-4 h-4 text-slate-700" />
-            <span>Configuración Fiscal & ARCA</span>
+            <span>Datos de la Clínica & Cobros</span>
           </button>
         </div>
       </div>
@@ -434,25 +434,25 @@ export const CashAndBillingView: React.FC = () => {
           {/* Summary KPIs (Fluid Responsive Grid) */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4 text-xs w-full max-w-full">
             <StatCard
-              title="Total Facturado Global"
+              title="Total Cobranzas"
               value={formatCurrency(totalInvoiced)}
-              subtitle="Facturas A, B, C y Tickets"
+              subtitle="Recibos X y comprobantes"
               icon={Receipt}
               variant="slate"
             />
 
             <StatCard
-              title="Facturación ARCA (CAE)"
-              value={formatCurrency(totalInvoicedWithCAE)}
-              subtitle="Comprobantes oficiales AFIP"
+              title="Recibos de Cobranza"
+              value={formatCurrency(totalInvoicedTickets || totalInvoiced)}
+              subtitle="Comprobantes internos"
               icon={Building}
               variant="emerald"
             />
 
             <StatCard
-              title="Tickets Mostrador (Recibo X)"
-              value={formatCurrency(totalInvoicedTickets)}
-              subtitle="Gastos internos sin ARCA"
+              title="Presupuestos Activos"
+              value={formatCurrency(estimates.reduce((acc, curr) => acc + (curr.totalAmount || 0), 0))}
+              subtitle="Estimaciones emitidas"
               icon={Receipt}
               variant="amber"
             />
@@ -486,10 +486,8 @@ export const CashAndBillingView: React.FC = () => {
                 className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-teal-500 min-h-[40px]"
               >
                 <option value="TODOS">Todos los Tipos de Comprobante</option>
-                <option value="FACTURA_B">Factura B (Consumidor Final)</option>
-                <option value="FACTURA_A">Factura A (Resp. Inscripto)</option>
-                <option value="FACTURA_C">Factura C (Monotributo)</option>
-                <option value="RECIBO_X">Ticket Común (Recibo X)</option>
+                <option value="RECIBO_X">Recibo de Cobranza (Recibo X)</option>
+                <option value="COMPROBANTE_INTERNO">Comprobante Interno de Mostrador</option>
               </select>
 
               <select
@@ -532,15 +530,15 @@ export const CashAndBillingView: React.FC = () => {
                   onWhatsApp={(i) => {
                     triggerHaptic('light');
                     openWhatsAppHub({
-                      patientName: i.customerName,
+                      patientName: 'Paciente',
                       ownerName: i.customerName,
                       ownerPhone: i.customerDniCuit || '',
-                      type: 'FACTURA_COMPROBANTE',
+                      type: 'COBRO_INSUMO',
                       details: {
                         invoiceNumber: i.invoiceNumber,
-                        totalAmount: formatCurrency(i.totalAmount),
+                        supplyName: `Recibo de Cobranza #${i.invoiceNumber}`,
+                        supplyAmount: i.totalAmount,
                         paymentMethod: i.paymentMethod,
-                        caeNumber: i.caeNumber || 'N/A',
                       },
                     });
                   }}
@@ -571,28 +569,27 @@ export const CashAndBillingView: React.FC = () => {
                         {inv.invoiceNumber}
                       </td>
                       <td className="p-3.5">
-                        {inv.type === 'RECIBO_X' ? (
-                          <span className="inline-flex items-center gap-1 bg-amber-50 text-amber-800 border border-amber-200 px-2.5 py-0.5 rounded-full font-bold text-[10px]">
-                            📄 Ticket Común
+                        <div className="space-y-0.5">
+                          <span
+                            className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full font-bold text-[10px] border ${
+                              inv.status === 'ANULADO'
+                                ? 'bg-rose-50 text-rose-800 border-rose-200'
+                                : 'bg-teal-50 text-teal-800 border-teal-200'
+                            }`}
+                          >
+                            {inv.status === 'ANULADO' ? '⚠️ Anulado' : (inv.type === 'PRESUPUESTO' ? '📋 Presupuesto' : '📄 Recibo X (No Fiscal)')}
                           </span>
-                        ) : (
-                          <div className="space-y-0.5">
-                            <span className="inline-flex items-center gap-1 bg-emerald-50 text-emerald-700 border border-emerald-200 px-2.5 py-0.5 rounded-full font-bold text-[10px]">
-                              🧾 {inv.type.replace('_', ' ')}
-                            </span>
-                            <span className="block text-[9px] font-mono text-slate-400">
-                              CAE: {inv.caeNumber}
-                            </span>
-                          </div>
-                        )}
+                        </div>
+                      </td>
+                      <td className="p-3.5 font-semibold text-slate-900">
+                        <div>{inv.customerName}</div>
+                        <div className="text-[10px] text-slate-400 font-mono">DNI: {inv.customerDniCuit}</div>
+                      </td>
+                      <td className="p-3.5 font-mono text-slate-600">
+                        {formatDate(inv.date)}
                       </td>
                       <td className="p-3.5">
-                        <div className="font-bold text-slate-900">{inv.customerName}</div>
-                        <div className="text-[10px] text-slate-400 font-mono">DNI/CUIT: {inv.customerDniCuit}</div>
-                      </td>
-                      <td className="p-3.5 font-mono text-slate-600">{formatDate(inv.date)}</td>
-                      <td className="p-3.5">
-                        <span className="bg-slate-100 px-2.5 py-1 rounded-lg text-slate-700 font-semibold text-[11px]">
+                        <span className="font-semibold text-slate-700">
                           {inv.paymentMethod === 'EFECTIVO' ? '💵 Efectivo' :
                            inv.paymentMethod === 'TARJETA_DEBITO' || (inv.paymentMethod as string) === 'DEBITO' ? '💳 Débito' :
                            inv.paymentMethod === 'TARJETA_CREDITO' || (inv.paymentMethod as string) === 'CREDITO' ? '💳 Crédito' :
@@ -607,20 +604,45 @@ export const CashAndBillingView: React.FC = () => {
                           <button
                             onClick={() => handlePrintInvoice(inv)}
                             className="p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors"
-                            title="Reimprimir Comprobante Oficial (Térmico 80mm o A4)"
+                            title="Reimprimir Comprobante Interno (Térmico 80mm o A4)"
                           >
                             <Printer className="w-3.5 h-3.5" />
                           </button>
                           <button
                             onClick={() => {
                               triggerHaptic('light');
-                              showToast('info', 'Enviado por WhatsApp', `Comprobante ${inv.invoiceNumber} enviado al tutor.`);
+                              openWhatsAppHub({
+                                patientName: 'Paciente',
+                                ownerName: inv.customerName,
+                                ownerPhone: inv.customerDniCuit || '',
+                                type: 'COBRO_INSUMO',
+                                details: {
+                                  invoiceNumber: inv.invoiceNumber,
+                                  supplyName: `Recibo de Cobranza #${inv.invoiceNumber}`,
+                                  supplyAmount: inv.totalAmount,
+                                  paymentMethod: inv.paymentMethod,
+                                },
+                              });
                             }}
                             className="p-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 transition-colors"
                             title="Enviar Comprobante por WhatsApp"
                           >
                             <Send className="w-3.5 h-3.5" />
                           </button>
+                          {inv.status !== 'ANULADO' && (
+                            <button
+                              onClick={() => {
+                                const reason = window.prompt(`Ingrese motivo de anulación del comprobante ${inv.invoiceNumber}:`);
+                                if (reason && reason.trim()) {
+                                  voidInvoice(inv.id, reason.trim());
+                                }
+                              }}
+                              className="p-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 transition-colors"
+                              title="Anular Recibo Interno"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          )}
                         </div>
                       </td>
                     </tr>
@@ -1013,19 +1035,19 @@ export const CashAndBillingView: React.FC = () => {
         </div>
       )}
 
-      {/* 5. CONFIGURACIÓN FISCAL ARCA (AFIP) */}
-      {activeTab === 'CONFIGURACION_FISCAL' && (
+      {/* 5. CONFIGURACIÓN DEL ESTABLECIMIENTO & MEDIOS DE COBRO */}
+      {activeTab === 'CONFIGURACION_ESTABLECIMIENTO' && (
         <form onSubmit={handleSaveFiscalConfig} className="space-y-6 animate-in fade-in duration-150 text-xs">
           {/* Card 1: Fiscal Information */}
           <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-4">
             <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2 border-b border-slate-100 pb-3">
               <Building className="w-4 h-4 text-teal-600" />
-              <span>Datos Fiscales de la Empresa / Clínica Veterinaria</span>
+              <span>Datos del Establecimiento / Clínica Veterinaria</span>
             </h3>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div>
-                <label className="text-slate-700 block font-bold mb-1">CUIT Emisor (ARCA/AFIP):</label>
+                <label className="text-slate-700 block font-bold mb-1">CUIT / Identificación Tributaria:</label>
                 <input
                   type="text"
                   value={fiscalConfig.cuit}
@@ -1059,7 +1081,7 @@ export const CashAndBillingView: React.FC = () => {
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div>
-                <label className="text-slate-700 block font-bold mb-1">Condición Fiscal ante el IVA:</label>
+                <label className="text-slate-700 block font-bold mb-1">Condición Impositiva:</label>
                 <select
                   value={fiscalConfig.taxCondition}
                   onChange={(e) => setFiscalConfig({ ...fiscalConfig, taxCondition: e.target.value })}
@@ -1093,7 +1115,7 @@ export const CashAndBillingView: React.FC = () => {
             </div>
 
             <div>
-              <label className="text-slate-700 block font-bold mb-1">Domicilio Fiscal Comercial:</label>
+              <label className="text-slate-700 block font-bold mb-1">Domicilio Comercial:</label>
               <input
                 type="text"
                 value={fiscalConfig.fiscalAddress}
@@ -1103,38 +1125,38 @@ export const CashAndBillingView: React.FC = () => {
             </div>
           </div>
 
-          {/* Card 2: Points of Sale & Web Services */}
+          {/* Card 2: Internal Points of Sale */}
           <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-4">
             <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2 border-b border-slate-100 pb-3">
               <ShieldCheck className="w-4 h-4 text-emerald-600" />
-              <span>Puntos de Venta (PV) & Facturación Electrónica ARCA Web Services</span>
+              <span>Puntos de Emisión de Comprobantes Internos</span>
             </h3>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div className="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-1">
-                <label className="text-slate-700 block font-bold text-[11px]">PV 1 — Web Services ARCA (A/B/C):</label>
+                <label className="text-slate-700 block font-bold text-[11px]">PV 1 — Mostrador Principal (Recibos X):</label>
                 <input
                   type="number"
                   value={fiscalConfig.pointOfSaleMain}
                   onChange={(e) => setFiscalConfig({ ...fiscalConfig, pointOfSaleMain: parseInt(e.target.value) || 1 })}
                   className="w-full bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 font-mono font-bold text-slate-900"
                 />
-                <span className="text-[10px] text-slate-400">Emisión online con CAE</span>
+                <span className="text-[10px] text-slate-400">Comprobantes no fiscales de caja</span>
               </div>
 
               <div className="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-1">
-                <label className="text-slate-700 block font-bold text-[11px]">PV 2 — Mostrador (Recibo X / Tickets):</label>
+                <label className="text-slate-700 block font-bold text-[11px]">PV 2 — Consultorios / Mostrador:</label>
                 <input
                   type="number"
                   value={fiscalConfig.pointOfSaleTickets}
                   onChange={(e) => setFiscalConfig({ ...fiscalConfig, pointOfSaleTickets: parseInt(e.target.value) || 2 })}
                   className="w-full bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 font-mono font-bold text-slate-900"
                 />
-                <span className="text-[10px] text-slate-400">Control interno sin ARCA</span>
+                <span className="text-[10px] text-slate-400">Control interno</span>
               </div>
 
               <div className="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-1">
-                <label className="text-slate-700 block font-bold text-[11px]">PV 3 — Urgencias / Guardia 24hs:</label>
+                <label className="text-slate-700 block font-bold text-[11px]">PV 3 — Consultas Médicas y Especiales:</label>
                 <input
                   type="number"
                   value={fiscalConfig.pointOfSaleGuard}
@@ -1142,28 +1164,6 @@ export const CashAndBillingView: React.FC = () => {
                   className="w-full bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 font-mono font-bold text-slate-900"
                 />
                 <span className="text-[10px] text-slate-400">Internación y guardia</span>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div>
-                <label className="text-slate-700 block font-bold mb-1">Ambiente de Conexión:</label>
-                <select
-                  value={fiscalConfig.environment}
-                  onChange={(e) => setFiscalConfig({ ...fiscalConfig, environment: e.target.value as any })}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 font-bold text-slate-900"
-                >
-                  <option value="PRODUCCION">🟢 Producción Oficial ARCA (AFIP)</option>
-                  <option value="HOMOLOGACION">🟡 Testing / Homologación (Ambiente de Pruebas)</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="text-slate-700 block font-bold mb-1">Certificado Digital X.509:</label>
-                <div className="bg-emerald-50 border border-emerald-200 rounded-xl px-3 py-2 flex items-center justify-between text-emerald-800 font-bold">
-                  <span>✅ {fiscalConfig.certStatus}</span>
-                  <span className="text-[10px] font-mono">Vence: {fiscalConfig.certExpiration}</span>
-                </div>
               </div>
             </div>
           </div>

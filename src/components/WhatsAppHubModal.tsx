@@ -175,7 +175,7 @@ ${evoText}
 ${activeMeds || '• Medicación y fluidoterapia administradas según prescripción médica.'}
 
 ⏰ *Horario de Visitas de Internación:* Hoy de 16:00 a 18:00 hs.
-📱 *WhatsApp de Guardia 24hs:* +54 9 2942 47-7136
+📱 *WhatsApp de Consultas:* +54 9 2942 47-7136
 
 ¡Estamos acompañando y cuidando a ${petName} con la máxima dedicación! 🐾❤️`;
       }
@@ -230,13 +230,15 @@ Ante cualquier efecto adverso o duda sobre la administración, comuníquese con 
         const bankAlias = initialData?.details?.bankAlias || 'VET.RANQUEL.PAGOS';
 
         return `🐾 *CLÍNICA VETERINARIA RANQUEL* 🏥
-*Comprobante de Prestaciones & Detalle de Saldo* 🧾
+*RECIBO INTERNO DE PAGO — COMPROBANTE NO FISCAL* 🧾
 
-Hola *${ownerName}*, le enviamos el detalle de tratamientos e insumos médicos realizados a *${petName}*:
+Hola *${ownerName}*, le enviamos el detalle de prestaciones e insumos aplicados a *${petName}*:
 
 🐶 *Paciente:* ${petName} ${petDesc}
 📄 *Detalle:* ${concept}
 💵 *Monto Total:* $${amount.toLocaleString('es-AR')}
+🧾 *Estado:* Pago Registrado
+📋 *Comprobante:* Recibo Interno No Fiscal (Uso y control interno)
 
 🏦 *Datos para Transferencia Bancaria:*
 • *Alias:* ${bankAlias}

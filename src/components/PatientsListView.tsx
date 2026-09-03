@@ -27,10 +27,11 @@ import {
   Copy,
   Filter,
   FileText,
+  MoreVertical,
 } from 'lucide-react';
 import { useVet } from '../context/VetContext';
 import { Patient } from '../types';
-import { formatWeight, formatOwnerBalance, formatAlertLabel, maskPhoneNumber } from '../utils/formatters';
+import { formatWeight, formatOwnerBalance, formatAlertLabel, maskPhoneNumber, getPatientCanonicalStatus } from '../utils/formatters';
 import { triggerHaptic } from '../utils/haptics';
 import { PatientMobileCard } from './PatientMobileCard';
 import { PatientDischargeModal } from './PatientDischargeModal';
@@ -66,6 +67,14 @@ export const PatientsListView: React.FC = () => {
   const [dischargeModalPatient, setDischargeModalPatient] = useState<Patient | null>(null);
   const [historyDownloadModalPatient, setHistoryDownloadModalPatient] = useState<Patient | null>(null);
   const [selectedConsentPatient, setSelectedConsentPatient] = useState<Patient | null>(null);
+  const [openActionMenuId, setOpenActionMenuId] = useState<string | null>(null);
+
+  // Close action dropdown on click outside
+  React.useEffect(() => {
+    const handleClickOutside = () => setOpenActionMenuId(null);
+    window.addEventListener('click', handleClickOutside);
+    return () => window.removeEventListener('click', handleClickOutside);
+  }, []);
 
   // Filter logic
   const filteredPatients = patients
@@ -548,7 +557,7 @@ export const PatientsListView: React.FC = () => {
               : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
           }`}
         >
-          Todos ({patients.length})
+          Todos ({activePatients.length})
         </button>
 
         <button
@@ -921,7 +930,7 @@ export const PatientsListView: React.FC = () => {
         /* TABLE MODE (SMART RESPONSIVE: CARDS ON MOBILE < sm, CONDENSED/FULL TABLE ON >= sm) */
         <div className="space-y-3 w-full max-w-full">
           {/* 1. Mobile Patient Cards View (< sm / < 640px) */}
-          <div className="block sm:hidden space-y-3 w-full">
+          <div className="block md:hidden space-y-3 w-full">
             {filteredPatients.map((patient) => {
               const owner = owners.find((o) => o.id === patient.ownerId);
               const isInterned =
@@ -948,187 +957,247 @@ export const PatientsListView: React.FC = () => {
             })}
           </div>
 
-          {/* 2. Desktop & Tablet Table (>= sm / >= 640px) */}
-          <div className="hidden sm:block bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-sm w-full">
-            <div className="overflow-x-auto w-full">
+          {/* 2. Desktop & Tablet Responsive Table (>= md / >= 768px) */}
+          <div className="hidden md:block bg-white border border-slate-200 rounded-3xl overflow-visible shadow-xs w-full max-w-full">
+            <div className="w-full">
               <table className="w-full text-left border-collapse text-xs">
-                <thead className="bg-slate-50 border-b border-slate-200 text-[10px] uppercase text-slate-500 font-bold tracking-wider">
+                <thead className="bg-slate-50/80 border-b border-slate-200 text-[10px] uppercase text-slate-500 font-bold tracking-wider">
                   <tr>
-                    <th className="p-3.5">Paciente & HC</th>
-                    <th className="p-3.5">Especie / Raza</th>
-                    <th className="p-3.5">Sexo & Edad</th>
-                    <th className="p-3.5 text-center">Peso (kg)</th>
-                    <th className="p-3.5">Microchip ISO</th>
-                    <th className="p-3.5">Estado</th>
-                    <th className="p-3.5">Tutor Responsable</th>
-                    <th className="p-3.5">Alertas</th>
-                    <th className="p-3.5 text-right">Acciones</th>
+                    <th className="py-3.5 px-4 w-[30%]">Paciente & Ficha</th>
+                    <th className="py-3.5 px-3 w-[22%]">Datos Clínicos & Biometría</th>
+                    <th className="py-3.5 px-3 w-[18%]">Estado & Alertas</th>
+                    <th className="py-3.5 px-3 w-[18%]">Tutor & Contacto</th>
+                    <th className="py-3.5 px-4 w-[12%] text-right">Acciones</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 font-medium text-slate-700">
                   {filteredPatients.map((patient) => {
                     const owner = owners.find((o) => o.id === patient.ownerId);
-                    const isInterned = patient.status === 'INTERNADO' || hospitalizations.some((h) => h.patientId === patient.id && h.status === 'ACTIVA');
+                    const canStatus = getPatientCanonicalStatus(patient, hospitalizations);
                     const hasCriticalAlerts = patient.alerts && patient.alerts.length > 0;
+                    const isMenuOpen = openActionMenuId === patient.id;
+
+                    const speciesEmoji =
+                      patient.species === 'Canino' ? '🐕' : patient.species === 'Felino' ? '🐈' : '🦜';
 
                     return (
                       <tr
                         key={patient.id}
                         onClick={() => handleOpenPatient(patient.id)}
-                        className="hover:bg-slate-50/80 transition-colors cursor-pointer"
+                        className="hover:bg-teal-50/40 transition-colors cursor-pointer group relative"
                       >
-                        {/* Patient & Avatar */}
-                        <td className="p-3.5">
-                          <div className="flex items-center gap-2.5">
-                            <img
-                              src={patient.photoUrl || 'https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=100'}
-                              alt={patient.name}
-                              className="w-9 h-9 rounded-xl object-cover border border-slate-200"
-                              referrerPolicy="no-referrer"
-                            />
-                            <div>
-                              <span className="font-bold text-slate-900 block">{patient.name}</span>
-                              <span className="text-[10px] font-mono text-teal-700">{patient.clinicalRecordNumber}</span>
+                        {/* 1. Paciente, Avatar & Raza */}
+                        <td className="py-3.5 px-4">
+                          <div className="flex items-center gap-3">
+                            <div className="relative flex-shrink-0">
+                              <img
+                                src={patient.photoUrl || 'https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=120'}
+                                alt={patient.name}
+                                className="w-11 h-11 rounded-2xl object-cover border border-slate-200 shadow-2xs group-hover:border-teal-500 transition-colors"
+                                referrerPolicy="no-referrer"
+                              />
+                              <span className="absolute -bottom-1 -right-1 text-[10px] bg-white rounded-full p-0.5 shadow-2xs border border-slate-100">
+                                {speciesEmoji}
+                              </span>
+                            </div>
+
+                            <div className="min-w-0">
+                              <div className="flex items-center gap-2">
+                                <span className="font-black text-sm text-slate-900 block truncate group-hover:text-teal-800 transition-colors">
+                                  {patient.name}
+                                </span>
+                                <span className="text-[10px] font-mono font-bold text-teal-800 bg-teal-50 px-1.5 py-0.5 rounded border border-teal-200 inline-block">
+                                  {patient.clinicalRecordNumber || 'HC-0000'}
+                                </span>
+                              </div>
+                              <p className="text-[11px] text-slate-500 truncate mt-0.5 font-normal">
+                                <strong className="text-slate-700">{patient.species}</strong> • {[patient.breed, patient.color ? `(${patient.color})` : null].filter(Boolean).join(' ')}
+                              </p>
                             </div>
                           </div>
                         </td>
 
-                        {/* Species & Breed */}
-                        <td className="p-3.5">
-                          <span className="font-bold text-slate-900 block">{patient.species}</span>
-                          <span className="text-[11px] text-slate-500">{[patient.breed, patient.color ? `(${patient.color})` : null].filter(Boolean).join(' ')}</span>
+                        {/* 2. Biometría & Sexo/Edad */}
+                        <td className="py-3.5 px-3">
+                          <div className="space-y-1">
+                            <div className="flex items-center gap-2">
+                              <span className="text-slate-800 font-semibold">
+                                {patient.sex} {patient.reproductiveStatus ? `(${patient.reproductiveStatus})` : ''}
+                              </span>
+                              <span className="text-[11px] text-slate-400 font-normal">
+                                • {patient.calculatedAge || 'Edad S/D'}
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-1.5 text-[11px]">
+                              <span className="font-mono font-black text-teal-800 bg-teal-50 px-2 py-0.5 rounded-lg border border-teal-200 inline-flex items-center gap-1">
+                                <span>⚖️</span>
+                                <span>{formatWeight(patient.weight)}</span>
+                              </span>
+                              {patient.microchip && (
+                                <span className="font-mono text-[10px] text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200 truncate max-w-[90px]" title={`Microchip: ${patient.microchip}`}>
+                                  #{patient.microchip}
+                                </span>
+                              )}
+                            </div>
+                          </div>
                         </td>
 
-                        {/* Sex & Age */}
-                        <td className="p-3.5">
-                          <span className="text-slate-800 block">{patient.sex} {patient.reproductiveStatus ? `(${patient.reproductiveStatus})` : ''}</span>
-                          <span className="text-[11px] text-slate-400">{patient.calculatedAge}</span>
-                        </td>
-
-                        {/* Weight */}
-                        <td className="p-3.5 text-center font-mono font-bold text-slate-900">
-                          {patient.weight} kg
-                        </td>
-
-                        {/* Microchip */}
-                        <td className="p-3.5 font-mono text-[11px] text-slate-600">
-                          {patient.microchip ? (
-                            <span className="bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
-                              {patient.microchip}
+                        {/* 3. Estado Clínico & Alertas */}
+                        <td className="py-3.5 px-3">
+                          <div className="space-y-1">
+                            <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase border inline-flex items-center gap-1 whitespace-nowrap ${canStatus.badgeClass}`}>
+                              {canStatus.label}
                             </span>
-                          ) : (
-                            <span className="text-slate-400 text-[10px]">Sin Chip</span>
-                          )}
+                            <div>
+                              {hasCriticalAlerts ? (
+                                <span className="text-[10px] font-bold px-2 py-0.5 rounded-lg bg-red-50 text-red-700 border border-red-200 inline-flex items-center gap-1 truncate max-w-[160px]">
+                                  <span>⚠️</span>
+                                  <span className="truncate">{formatAlertLabel(patient.alerts[0].type)}</span>
+                                </span>
+                              ) : (
+                                <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-lg border border-emerald-200 inline-block">
+                                  ✓ Sin Alergias
+                                </span>
+                              )}
+                            </div>
+                          </div>
                         </td>
 
-                        {/* Status */}
-                        <td className="p-3.5">
-                          <span
-                            className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase ${
-                              isInterned
-                                ? 'bg-red-50 text-red-600 border border-red-200 font-black animate-pulse'
-                                : 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                            }`}
-                          >
-                            {isInterned ? 'INTERNADO' : patient.status}
-                          </span>
-                        </td>
-
-                        {/* Owner */}
-                        <td className="p-3.5">
-                          <span className="font-bold text-slate-900 block">
-                            {owner ? `${owner.firstName} ${owner.lastName}` : 'N/A'}
-                          </span>
-                          <span className="text-[11px] font-mono text-slate-500">{maskPhoneNumber(owner?.phone, currentUser?.role === 'SUPERADMIN' || currentUser?.role === 'VETERINARIO')}</span>
-                        </td>
-
-                        {/* Alerts */}
-                        <td className="p-3.5">
-                          {hasCriticalAlerts ? (
-                            <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-red-50 text-red-700 border border-red-200 block truncate max-w-[150px]">
-                              ⚠️ {formatAlertLabel(patient.alerts[0].type)}
-                            </span>
-                          ) : (
-                            <span className="text-[10px] font-bold text-emerald-600">Sin Alergias</span>
-                          )}
-                        </td>
-
-                        {/* Actions */}
-                        <td className="p-3.5 text-right">
-                          <div className="flex items-center justify-end gap-2" onClick={(e) => e.stopPropagation()}>
-                            {owner && (
+                        {/* 4. Tutor Titular & Contacto */}
+                        <td className="py-3.5 px-3">
+                          <div className="flex items-center justify-between gap-1.5">
+                            <div className="min-w-0 flex-1">
+                              <span className="font-bold text-slate-900 block truncate text-xs">
+                                {owner ? `${owner.firstName} ${owner.lastName}` : 'Tutor S/D'}
+                              </span>
+                              <span className="text-[11px] font-mono text-slate-500 block truncate">
+                                {maskPhoneNumber(owner?.phone, currentUser?.role === 'SUPERADMIN' || currentUser?.role === 'VETERINARIO')}
+                              </span>
+                            </div>
+                            {owner && (owner.phone || owner.whatsapp) && (
                               <button
-                                onClick={() =>
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
                                   openWhatsAppHub({
                                     patientName: patient.name,
                                     species: patient.species,
                                     ownerName: `${owner.firstName} ${owner.lastName}`,
-                                    ownerPhone: owner.phone,
-                                    diagnosis: 'Control general en clínica veterinaria',
-                                  })
-                                }
-                                className="p-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 transition-colors"
-                                title="Enviar WhatsApp al tutor"
+                                    ownerPhone: owner.whatsapp || owner.phone,
+                                    diagnosis: 'Control médico hospitalario',
+                                  });
+                                }}
+                                className="p-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 transition-all flex-shrink-0 active:scale-95"
+                                title="Enviar mensaje de WhatsApp al tutor"
                               >
                                 <MessageSquare className="w-3.5 h-3.5" />
                               </button>
                             )}
-                            <button
-                              onClick={() => setSelectedConsentPatient(patient)}
-                              className="px-2.5 py-1.5 rounded-lg bg-teal-50 hover:bg-teal-100 text-teal-900 font-bold text-xs border border-teal-300 transition-colors flex items-center gap-1 shadow-2xs"
-                              title="Generar, visualizar y firmar consentimiento informado oficial (Digital o Papel PDF)"
-                            >
-                              <FileText className="w-3.5 h-3.5 text-teal-700" />
-                              <span>Consentimiento</span>
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => setDischargeModalPatient(patient)}
-                              className="px-2.5 py-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-bold text-xs border border-emerald-300 transition-colors flex items-center gap-1 shadow-2xs cursor-pointer"
-                              title="Dar de Alta Médica y Archivar"
-                            >
-                              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                              <span>Alta Médica</span>
-                            </button>
+                          </div>
+                        </td>
+
+                        {/* 5. Acciones Fluidas */}
+                        <td className="py-3.5 px-4 text-right">
+                          <div className="flex items-center justify-end gap-1.5 relative" onClick={(e) => e.stopPropagation()}>
+                            {/* Primary Button */}
                             <button
                               type="button"
-                              onClick={() => {
-                                if (window.confirm(`¿Archivar la ficha de ${patient.name}? Pasará a Pacientes Archivados.`)) {
-                                  archivePatient(patient.id);
-                                }
-                              }}
-                              className="px-2.5 py-1.5 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-900 font-bold text-xs border border-amber-200 transition-colors flex items-center gap-1 shadow-2xs cursor-pointer"
-                              title="Archivar ficha del paciente"
-                            >
-                              <Archive className="w-3.5 h-3.5 text-amber-700" />
-                              <span>Archivar</span>
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                if (window.confirm(`¿Está seguro de eliminar definitivamente a ${patient.name}? Esta acción borrará al paciente de la base de datos.`)) {
-                                  deletePatient(patient.id);
-                                }
-                              }}
-                              className="px-2 py-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-xs border border-rose-200 transition-colors flex items-center gap-1 shadow-2xs cursor-pointer"
-                              title="Eliminar paciente de la base de datos"
-                            >
-                              <Trash2 className="w-3.5 h-3.5 text-rose-600" />
-                            </button>
-                            <button
-                              onClick={() => setHistoryDownloadModalPatient(patient)}
-                              className="px-2.5 py-1.5 rounded-lg bg-[#FAF8F5] hover:bg-[#EFECE3] text-[#1C2B1D] font-bold text-xs border border-[#DDD7C8] transition-colors flex items-center gap-1 shadow-2xs"
-                              title="Descargar Historia Clínica Completa"
-                            >
-                              <FileText className="w-3.5 h-3.5 text-[#5F7359]" />
-                              <span>Historia Clínica</span>
-                            </button>
-                            <button
                               onClick={() => handleOpenPatient(patient.id)}
-                              className="px-3 py-1.5 bg-[#5F7359] hover:bg-[#4D5E48] text-white font-bold rounded-lg text-xs transition-colors shadow-2xs"
+                              className="px-3 py-1.5 bg-teal-600 hover:bg-teal-500 text-white font-black text-xs rounded-xl shadow-2xs flex items-center gap-1 active:scale-95 transition-all cursor-pointer flex-shrink-0"
+                              title="Abrir Ficha 360° del Paciente"
                             >
-                              Ficha 360° →
+                              <span>Ficha 360°</span>
+                              <ArrowRight className="w-3.5 h-3.5" />
                             </button>
+
+                            {/* Secondary Consent Shortcut */}
+                            <button
+                              type="button"
+                              onClick={() => setSelectedConsentPatient(patient)}
+                              className="p-1.5 rounded-xl bg-slate-100 hover:bg-teal-50 text-slate-700 hover:text-teal-800 border border-slate-200 transition-all active:scale-95 cursor-pointer flex-shrink-0"
+                              title="Consentimiento Informado"
+                            >
+                              <FileText className="w-4 h-4 text-slate-600" />
+                            </button>
+
+                            {/* Dropdown Menu Toggle for More Actions */}
+                            <div className="relative">
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setOpenActionMenuId(isMenuOpen ? null : patient.id);
+                                }}
+                                className={`p-1.5 rounded-xl border transition-all active:scale-95 cursor-pointer flex-shrink-0 ${
+                                  isMenuOpen ? 'bg-slate-900 text-white border-slate-900' : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-200'
+                                }`}
+                                title="Más opciones clínicas y administrativas"
+                              >
+                                <MoreVertical className="w-4 h-4" />
+                              </button>
+
+                              {/* Floating Menu Popover */}
+                              {isMenuOpen && (
+                                <div
+                                  onClick={(e) => e.stopPropagation()}
+                                  className="absolute right-0 top-full mt-1.5 w-56 bg-white border border-slate-200 rounded-2xl shadow-xl z-50 p-1.5 space-y-1 animate-in fade-in zoom-in-95 text-left"
+                                >
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setOpenActionMenuId(null);
+                                      setHistoryDownloadModalPatient(patient);
+                                    }}
+                                    className="w-full text-left px-3 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 hover:text-teal-800 rounded-xl flex items-center gap-2 transition-colors cursor-pointer"
+                                  >
+                                    <Download className="w-3.5 h-3.5 text-teal-600" />
+                                    <span>Descargar Historia Clínica</span>
+                                  </button>
+
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setOpenActionMenuId(null);
+                                      setDischargeModalPatient(patient);
+                                    }}
+                                    className="w-full text-left px-3 py-2 text-xs font-bold text-emerald-800 hover:bg-emerald-50 rounded-xl flex items-center gap-2 transition-colors cursor-pointer"
+                                  >
+                                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                                    <span>Dar de Alta Médica</span>
+                                  </button>
+
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setOpenActionMenuId(null);
+                                      if (window.confirm(`¿Archivar la ficha de ${patient.name}? Pasará a Pacientes Archivados.`)) {
+                                        archivePatient(patient.id);
+                                      }
+                                    }}
+                                    className="w-full text-left px-3 py-2 text-xs font-bold text-amber-900 hover:bg-amber-50 rounded-xl flex items-center gap-2 transition-colors cursor-pointer"
+                                  >
+                                    <Archive className="w-3.5 h-3.5 text-amber-700" />
+                                    <span>Archivar Paciente</span>
+                                  </button>
+
+                                  <div className="border-t border-slate-100 my-1"></div>
+
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setOpenActionMenuId(null);
+                                      if (window.confirm(`¿Está seguro de eliminar definitivamente a ${patient.name}? Esta acción borrará al paciente de la base de datos.`)) {
+                                        deletePatient(patient.id);
+                                      }
+                                    }}
+                                    className="w-full text-left px-3 py-2 text-xs font-bold text-rose-700 hover:bg-rose-50 rounded-xl flex items-center gap-2 transition-colors cursor-pointer"
+                                  >
+                                    <Trash2 className="w-3.5 h-3.5 text-rose-600" />
+                                    <span>Eliminar Paciente</span>
+                                  </button>
+                                </div>
+                              )}
+                            </div>
                           </div>
                         </td>
                       </tr>

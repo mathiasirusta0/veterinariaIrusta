@@ -185,17 +185,17 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({
         <div className="flex items-center gap-2 max-w-full truncate">
           <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse flex-shrink-0" />
           <span className="font-bold tracking-wide uppercase text-[10px] sm:text-xs">
-            Atención Médica Veterinaria & Urgencias 24hs — Las Lajas, Neuquén
+            Atención Médica Veterinaria por Consulta — Las Lajas, Neuquén
           </span>
         </div>
         <div className="flex items-center gap-3 text-xs">
           <a
             href={`tel:${EMERGENCY_PHONE}`}
-            className="flex items-center gap-1.5 bg-red-700/80 hover:bg-red-600 text-white font-bold px-2.5 py-0.5 rounded-lg border border-red-500 transition-colors"
-            title="Llamar a Urgencias Médicas"
+            className="flex items-center gap-1.5 bg-teal-800/90 hover:bg-teal-700 text-white font-bold px-2.5 py-0.5 rounded-lg border border-teal-600 transition-colors"
+            title="Llamar para Consultas"
           >
             <Phone className="w-3 h-3 text-white" />
-            <span>Guardia: {WHATSAPP_DISPLAY}</span>
+            <span>Consultas: {WHATSAPP_DISPLAY}</span>
           </a>
           <button
             onClick={handleOpenLogin}
@@ -254,7 +254,7 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({
               className="hidden sm:flex px-3.5 py-2 bg-[#7E3A4D] hover:bg-[#632C3B] text-white text-xs font-bold rounded-xl items-center gap-1.5 shadow-sm active:scale-95 transition-all"
             >
               <Phone className="w-3.5 h-3.5 text-rose-200" />
-              <span>Llamar Urgencia</span>
+              <span>Contacto Telefónico</span>
             </a>
 
             <button
@@ -303,7 +303,7 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({
                 className="w-full sm:w-auto px-6 py-3.5 bg-[#7E3A4D] hover:bg-[#632C3B] text-white font-black text-xs sm:text-sm rounded-2xl flex items-center justify-center gap-2 shadow-lg shadow-[#7E3A4D]/20 active:scale-95 transition-all cursor-pointer"
               >
                 <Phone className="w-4 h-4 text-rose-200" />
-                <span>Tengo una Urgencia — Llamar Ahora</span>
+                <span>Llamar para Consulta — Turnos</span>
               </a>
             </div>
 
@@ -427,9 +427,9 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({
             <p className="text-[11px] text-[#8C6D76]">Neuquén y zona rural</p>
           </div>
           <div className="space-y-1">
-            <span className="text-xl sm:text-2xl font-display font-black text-[#7E3A4D]">24 Horas</span>
-            <p className="text-xs font-bold text-[#26141A]">Guardia de Urgencias</p>
-            <p className="text-[11px] text-[#8C6D76]">Atención médica continua</p>
+            <span className="text-xl sm:text-2xl font-display font-black text-[#7E3A4D]">Por Consulta</span>
+            <p className="text-xs font-bold text-[#26141A]">Atención Personalizada</p>
+            <p className="text-[11px] text-[#8C6D76]">Turnos y coordinación previa</p>
           </div>
           <div className="space-y-1">
             <span className="text-xl sm:text-2xl font-display font-black text-[#7E3A4D]">Grandes & Pequeños</span>
@@ -439,48 +439,48 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({
         </div>
       </section>
 
-      {/* 🚨 PROTOCOLO DE URGENCIAS 24HS */}
-      <section id="urgencias" className="py-14 px-4 sm:px-8 max-w-7xl mx-auto space-y-6 scroll-mt-20">
-        <div className="bg-gradient-to-br from-red-50 to-rose-50 rounded-3xl p-6 sm:p-8 border-2 border-red-200 shadow-sm space-y-6">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-red-200 pb-4">
+      {/* 🩺 ATENCIÓN POR CONSULTA Y COORDINACIÓN PREVIA */}
+      <section id="consultas" className="py-14 px-4 sm:px-8 max-w-7xl mx-auto space-y-6 scroll-mt-20">
+        <div className="bg-gradient-to-br from-teal-50/80 to-slate-50 rounded-3xl p-6 sm:p-8 border-2 border-teal-200 shadow-sm space-y-6">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-teal-200 pb-4">
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-2xl bg-red-600 text-white flex items-center justify-center text-xl font-bold shadow-md">
-                🚨
+              <div className="w-12 h-12 rounded-2xl bg-teal-700 text-white flex items-center justify-center text-xl font-bold shadow-md">
+                🩺
               </div>
               <div>
-                <span className="text-[10px] font-bold text-red-800 uppercase tracking-widest block">
-                  Servicio de Guardia Activa
+                <span className="text-[10px] font-bold text-teal-800 uppercase tracking-widest block">
+                  Atención Médica Veterinaria
                 </span>
                 <h2 className="text-xl sm:text-2xl font-display font-bold text-[#26141A]">
-                  Protocolo ante una Urgencia Veterinaria
+                  Protocolo de Atención por Consulta y Turno Previo
                 </h2>
               </div>
             </div>
 
             <a
               href={`tel:${EMERGENCY_PHONE}`}
-              className="px-5 py-2.5 bg-red-600 hover:bg-red-500 text-white font-bold text-xs rounded-xl flex items-center gap-2 shadow-md shadow-red-600/20 active:scale-95 transition-all"
+              className="px-5 py-2.5 bg-teal-700 hover:bg-teal-600 text-white font-bold text-xs rounded-xl flex items-center gap-2 shadow-md shadow-teal-700/20 active:scale-95 transition-all"
             >
               <Phone className="w-4 h-4" />
-              <span>Llamar a Urgencias ({WHATSAPP_DISPLAY})</span>
+              <span>Llamar para Consulta ({WHATSAPP_DISPLAY})</span>
             </a>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
-            <div className="bg-white p-4 rounded-2xl border border-red-100 space-y-2 shadow-2xs">
-              <span className="font-bold text-red-700 text-sm">1. Llamar antes de salir</span>
+            <div className="bg-white p-4 rounded-2xl border border-teal-100 space-y-2 shadow-2xs">
+              <span className="font-bold text-teal-800 text-sm">1. Coordinar antes de concurrir</span>
               <p className="text-[#6B4D56] leading-relaxed">
-                Comunicate telefónicamente para describir brevemente la situación. Esto permite que el veterinario prepare la sala de primera intervención y medicación de rescate.
+                Comunicate telefónicamente o por WhatsApp para describir brevemente el motivo de atención de tu mascota y acordar el turno en consultorio.
               </p>
             </div>
-            <div className="bg-white p-4 rounded-2xl border border-red-100 space-y-2 shadow-2xs">
-              <span className="font-bold text-red-700 text-sm">2. Traslado seguro</span>
+            <div className="bg-white p-4 rounded-2xl border border-teal-100 space-y-2 shadow-2xs">
+              <span className="font-bold text-teal-800 text-sm">2. Traslado seguro</span>
               <p className="text-[#6B4D56] leading-relaxed">
                 Mantené al animal en un ambiente templado y sin movimientos bruscos. Si sufrió un traumatismo, trasladalo sobre una superficie plana o manta firme.
               </p>
             </div>
-            <div className="bg-white p-4 rounded-2xl border border-red-100 space-y-2 shadow-2xs">
-              <span className="font-bold text-red-700 text-sm">3. No automedicar</span>
+            <div className="bg-white p-4 rounded-2xl border border-teal-100 space-y-2 shadow-2xs">
+              <span className="font-bold text-teal-800 text-sm">3. No automedicar</span>
               <p className="text-[#6B4D56] leading-relaxed">
                 Nunca administres analgésicos humanos (como ibuprofeno o paracetamol), ya que resultan altamente tóxicos y potencialmente letales para caninos y felinos.
               </p>
@@ -783,7 +783,7 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({
               <Clock className="w-4 h-4 text-[#7E3A4D] flex-shrink-0 mt-0.5" />
               <div>
                 <strong className="block text-[#26141A]">Horarios:</strong>
-                <span>Lunes a Sábados • Guardia de Urgencias 24hs</span>
+                <span>Lunes a Sábados • Atención por Consulta y Turno Previo</span>
               </div>
             </div>
             <div className="flex items-start gap-2.5">
@@ -798,7 +798,7 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({
             <div className="flex items-start gap-2.5">
               <Phone className="w-4 h-4 text-red-600 flex-shrink-0 mt-0.5" />
               <div>
-                <strong className="block text-[#26141A]">Línea de Urgencias:</strong>
+                <strong className="block text-[#26141A]">Consultas & Urgencias:</strong>
                 <a href={`tel:${EMERGENCY_PHONE}`} className="text-red-700 font-bold hover:underline">
                   {WHATSAPP_DISPLAY}
                 </a>
@@ -902,7 +902,7 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({
           className="flex-1 py-2.5 bg-red-600 text-white text-xs font-black rounded-xl flex items-center justify-center gap-1.5 shadow-xs"
         >
           <Phone className="w-3.5 h-3.5" />
-          <span>Llamar Urgencia</span>
+          <span>Contacto Telefónico</span>
         </a>
         <a
           href={getWhatsAppLink(WA_TURNO_MSG)}

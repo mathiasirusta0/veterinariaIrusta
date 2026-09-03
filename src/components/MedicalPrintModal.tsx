@@ -116,7 +116,7 @@ export const MedicalPrintModal: React.FC<{
                   Centro Hospitalario & Cuidados Intensivos Veterinarios
                 </p>
                 <p className="text-[11px] text-slate-500">
-                  {activeBranch.address} • Tel. Guardia 24hs: {activeBranch.phone}
+                  {activeBranch.address} • Tel. Consultas / Turnos: {activeBranch.phone}
                 </p>
               </div>
             </div>
@@ -209,7 +209,7 @@ export const MedicalPrintModal: React.FC<{
 
               <div className="p-3 bg-amber-50/70 border border-amber-200 rounded-xl text-[11px] text-amber-900 space-y-1">
                 <span className="font-bold block">⚠️ Cuidados y Advertencias Generales:</span>
-                <p>Cumplir los horarios de administración. En caso de vómitos, decaimiento agudo o reacciones alérgicas, suspender y concurrir inmediatamente a la guardia 24hs.</p>
+                <p>Cumplir los horarios de administración. En caso de vómitos, decaimiento agudo o reacciones alérgicas, suspender y comunicarse inmediatamente para coordinar consulta médica.</p>
               </div>
             </div>
           )}
@@ -297,7 +297,7 @@ export const MedicalPrintModal: React.FC<{
             </div>
           )}
 
-          {/* 4. FACTURA AFIP */}
+          {/* 4. RECIBO INTERNO DE COBRANZA */}
           {printData.type === 'FACTURA' && invoice && (
             <div className="space-y-4 pt-2">
               <div className="border border-slate-300 rounded-xl p-4 space-y-3">
@@ -340,12 +340,12 @@ export const MedicalPrintModal: React.FC<{
 
                 <div className="border-t border-slate-200 pt-3 flex items-center justify-between text-xs bg-slate-50 p-3 rounded-lg">
                   <div>
-                    <span className="font-bold text-slate-800 block">CAE N°: {invoice.caeNumber}</span>
-                    <span className="text-slate-500 block text-[11px]">Vencimiento CAE: {invoice.caeExpirationDate}</span>
+                    <span className="font-bold text-slate-900 block">COMPROBANTE INTERNO NO FISCAL</span>
+                    <span className="text-slate-500 block text-[11px]">NO VÁLIDO COMO FACTURA — USO Y CONTROL INTERNO HOSPITALARIO</span>
                   </div>
                   <div className="text-right">
                     <span className="px-2.5 py-1 rounded bg-teal-100 text-teal-900 font-bold font-mono text-[11px]">
-                      PAGO: {invoice.paymentMethod}
+                      PAGO REGISTRADO: {invoice.paymentMethod}
                     </span>
                   </div>
                 </div>

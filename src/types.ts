@@ -1,5 +1,5 @@
 // VET SYSTEM - Tipos de Datos y Modelos Hospitalarios Veterinarios
-// Conforme a Ley Provincial Córdoba Nº 11.076 / 5.142, CMVC, SENASA, Ley 25.326, Ley 25.506, Ley 24.051, ARCA
+// Conforme a Normativas Nacionales SENASA, Ley 22.953 (Antirrábica), Ley 25.326 (Habeas Data), Ley 24.051 (Residuos Patológicos), Colegio Médico Veterinario de Neuquén
 
 export type UserRole =
   | 'SUPERADMIN'
@@ -23,7 +23,7 @@ export interface User {
   dni?: string;
   cuit?: string;
   licenseNumber?: string; // Matrícula profesional (ej: M.P. 502)
-  licenseJurisdiction?: string; // ej: Colegio Médico Veterinario de Córdoba (CMVC)
+  licenseJurisdiction?: string; // ej: Colegio Médico Veterinario de Neuquén
   licenseCategory?: string; // ej: Clínica & Cirugía Menores, Especialista
   licenseValidUntil?: string; // ISO date
   isLicenseVerified?: boolean;
@@ -567,6 +567,7 @@ export interface VaccinationRecord {
 export type StockMovementType =
   | 'ENTRADA'
   | 'VENTA'
+  | 'VENTA_MOSTRADOR'
   | 'USO_CONSULTA'
   | 'USO_INTERNACION'
   | 'CIRUGIA'
@@ -599,6 +600,36 @@ export interface Product {
   requiresPrescription?: boolean;
   requiresOfficialArchive?: boolean;
   branchId: string;
+  vademecumSourceId?: string;
+}
+
+export interface MasterVademecumItem {
+  id: string;
+  code: string;
+  commercialName: string;
+  activeIngredient: string;
+  category: 'MEDICAMENTO' | 'PSICOTROPICO' | 'ESTUPEFACIENTE' | 'VACUNA' | 'DESCARTABLE' | 'INSUMO_QUIRURGICO' | 'ALIMENTO' | 'HIGIENE';
+  therapeuticClass: string; // ej: 'Analgésico / AINE', 'Antibiótico / Betalactámico', 'Antiemético / Procinético'
+  concentration: string; // ej: '500 mg/ml', '10 mg/ml', '5 mg/ml'
+  presentation: string; // ej: 'Frasco ampolla 50 ml', 'Comprimidos x 10', 'Sachet 500 ml'
+  laboratory: string; // ej: 'Richmond Vet', 'Zoetis', 'B. Braun'
+  defaultRoute: 'IV' | 'SC' | 'IM' | 'PO' | 'TOPICA' | 'OTICA' | 'OFTALMICA' | 'INHALATORIA';
+  defaultDoseDescription: string; // ej: '25 mg/kg (0.05 ml/kg cada 8h)'
+  defaultFrequency: string; // ej: 'Cada 8 hs', 'Cada 12 hs', 'Cada 24 hs'
+  suggestedCostPrice: number;
+  suggestedSalePrice: number;
+  suggestedMinStock: number;
+  isPsychotropic?: boolean;
+  isNarcotic?: boolean;
+  requiresPrescription?: boolean;
+  associatedConsumableNames?: string[]; // ej: ['Jeringa 3ml cono luer', 'Aguja hipodérmica 25/8']
+}
+
+export interface RouteConsumableRule {
+  route: 'IV' | 'SC' | 'IM' | 'PO' | 'TOPICA' | 'FLUIDO';
+  suggestedSyringe: string;
+  suggestedNeedleOrCatheter: string;
+  additionalSupplies?: string[];
 }
 
 export interface InventoryMovement {
@@ -615,6 +646,17 @@ export interface InventoryMovement {
   reason: string;
   performedBy: string;
   timestamp: string;
+}
+
+export interface PharmacyFinancialSummary {
+  totalProductsCount: number;
+  totalUnitsInStock: number;
+  totalCostValue: number;
+  totalSaleValue: number;
+  projectedProfit: number;
+  projectedMarginPercentage: number;
+  lowStockCount: number;
+  outOfStockCount: number;
 }
 
 // CONTROL DE PSICOTRÓPICOS Y KETAMINA (Leyes 17.818 y 19.303)
@@ -684,7 +726,7 @@ export interface PathologicalWasteRecord {
   finalDisposalFacility?: string;
   disposalCertificateNumber?: string;
   disposalCertificateDate?: string;
-  municipalGeneratorRegistry: string; // ej: Registro Municipal Río Cuarto
+  municipalGeneratorRegistry: string; // ej: Registro Municipal Las Lajas
   status: 'ALMACENADO_TRANSITORIO' | 'RETIRADO_EN_TRANSITO' | 'DISPOSICION_FINAL_CERTIFICADA';
   registeredBy: string;
   branchId: string;
@@ -698,13 +740,13 @@ export interface RegulatoryRule {
   country: string;
   province: string;
   municipality: string;
-  organism: 'COLEGIO_VETERINARIO_CORDOBA' | 'SENASA' | 'ARCA_AFIP' | 'GOBIERNO_CORDOBA' | 'MUNICIPALIDAD_RIO_CUARTO' | 'MINISTERIO_SALUD';
+  organism: 'COLEGIO_MEDICO_VETERINARIO_NEUQUEN' | 'SENASA' | 'ARCA_AFIP' | 'SECRETARIA_AMBIENTE_NEUQUEN' | 'MUNICIPALIDAD_LAS_LAJAS' | 'MINISTERIO_SALUD' | string;
   lawTitle: string;
   lawNumber: string;
   articleSection: string;
   description: string;
   clinicalImpactSummary: string;
-  affectedModule: 'EJERCICIO_PROFESIONAL' | 'RECETARIO_SENASA' | 'PSICOTROPICOS' | 'RESIDUOS_PATOLOGICOS' | 'PROTECCION_DATOS' | 'BIENESTAR_ANIMAL' | 'FACTURACION_ARCA';
+  affectedModule: 'EJERCICIO_PROFESIONAL' | 'RECETARIO_SENASA' | 'PSICOTROPICOS' | 'RESIDUOS_PATOLOGICOS' | 'PROTECCION_DATOS' | 'BIENESTAR_ANIMAL' | 'COMPROBANTES_INTERNOS';
   isMandatory: boolean;
   effectiveDate: string;
   expirationDate?: string;
@@ -837,8 +879,10 @@ export interface TriageEntry {
   status: 'EN_ESPERA' | 'LLAMADO' | 'ATENDIDO' | 'DERIVADO_INTERNACION';
 }
 
-// CAJA, FACTURACIÓN Y PRESUPUESTOS
-export type InvoiceType = 'FACTURA_A' | 'FACTURA_B' | 'FACTURA_C' | 'RECIBO_X' | 'X';
+// CAJA, COMPROBANTES INTERNOS Y PRESUPUESTOS (DOCUMENTOS NO FISCALES)
+export const ARCA_FISCAL_ENABLED = false; // Emisión estrictamente no fiscal / comprobantes internos
+
+export type InvoiceType = 'RECIBO_X' | 'COMPROBANTE_INTERNO' | 'PRESUPUESTO' | 'X';
 export type PaymentMethod = 'EFECTIVO' | 'TRANSFERENCIA' | 'TARJETA_DEBITO' | 'TARJETA_CREDITO' | 'MERCADOPAGO_QR';
 
 export interface InvoiceItem {
@@ -852,7 +896,7 @@ export interface InvoiceItem {
 
 export interface Invoice {
   id: string;
-  invoiceNumber: string; // 0001-00004921
+  invoiceNumber: string; // ej: REC-0001-00004921
   type: InvoiceType;
   pointOfSale: number; // ej: 1
   date: string;
@@ -864,12 +908,13 @@ export interface Invoice {
   items: InvoiceItem[];
   totalAmount: number;
   paymentMethod: PaymentMethod;
-  caeNumber: string; // CAE simulado ARCA/AFIP
-  caeExpirationDate: string;
-  isFiscal?: boolean;
-  qrFiscalData?: string;
-  isHomologationMode?: boolean;
+  status?: 'EMITIDO' | 'ANULADO';
+  voidedAt?: string;
+  voidedBy?: string;
+  voidReason?: string;
   branchId: string;
+  notes?: string;
+  isFiscal?: boolean; // Siempre false (documentos no fiscales de uso interno)
 }
 
 export type EstimateStatus = 'BORRADOR' | 'ENVIADO' | 'ACEPTADO' | 'RECHAZADO' | 'VENCIDO';
@@ -1132,12 +1177,15 @@ export interface EncounterConsumptionItem {
   concept: string;
   quantity: number;
   unitPrice: number;
+  costPrice?: number;
   subtotal: number;
   status: 'PENDIENTE' | 'CONFIRMADO' | 'ANULADO';
   performedAt: string;
   performedBy: string;
   isBilled: boolean;
   invoiceId?: string;
+  productId?: string;
+  batchNumber?: string;
 }
 
 export interface ServicePriceItem {

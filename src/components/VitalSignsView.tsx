@@ -24,7 +24,7 @@ import {
 } from 'lucide-react';
 import { useVet } from '../context/VetContext';
 import { VitalSigns, Patient } from '../types';
-import { formatDate, formatTime, formatDateTime, formatWeight, getTodayLocalDateString } from '../utils/formatters';
+import { formatDate, formatTime, formatDateTime, formatWeight, getTodayLocalDateString, calculateMeanArterialPressure } from '../utils/formatters';
 
 // Physiological normal reference ranges by species
 export const SPECIES_RANGES = {
@@ -598,7 +598,7 @@ export const VitalSignsView: React.FC = () => {
                         <td className="p-3.5 font-mono text-slate-500 text-[11px]">
                           <div>{formatDate(v.recordedAt)}</div>
                           <div className="text-[10px] text-slate-400">
-                            {formatTime(v.recordedAt)} hs
+                            {formatTime(v.recordedAt)}
                           </div>
                         </td>
 
@@ -649,7 +649,7 @@ export const VitalSignsView: React.FC = () => {
                             {v.systolicBP && v.diastolicBP ? `${v.systolicBP}/${v.diastolicBP}` : '-'}
                           </span>
                           <span className="text-[10px] text-teal-700 font-semibold block">
-                            PAM: {v.meanBP || '-'} mmHg
+                            PAM: {v.meanBP || calculateMeanArterialPressure(v.systolicBP, v.diastolicBP) || '-'} mmHg
                           </span>
                         </td>
 
@@ -730,7 +730,7 @@ export const VitalSignsView: React.FC = () => {
                             <button
                               type="button"
                               onClick={() => {
-                                if (window.confirm(`¿Está seguro de eliminar este registro de signos vitales de ${patient.name} (${formatDate(v.recordedAt)} ${formatTime(v.recordedAt)} hs)?`)) {
+                                if (window.confirm(`¿Está seguro de eliminar este registro de signos vitales de ${patient.name} (${formatDate(v.recordedAt)} ${formatTime(v.recordedAt)})?`)) {
                                   deleteVitalSign(v.id);
                                 }
                               }}

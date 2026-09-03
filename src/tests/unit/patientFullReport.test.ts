@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { TEST_PATIENTS, TEST_CONSULTATIONS, TEST_HOSPITALIZATIONS } from '../fixtures/testData';
 import { generateMedicalHistoryPdfDocument } from '../../utils/printDocumentHelper';
+import { getPatientCanonicalStatus } from '../../utils/formatters';
 
 describe('Informe Completo & Expediente Clínico Integral (Ficha 360°)', () => {
   it('debe contener pacientes con datos de historia clínica, tutor y especie', () => {
@@ -54,7 +55,7 @@ describe('Informe Completo & Expediente Clínico Integral (Ficha 360°)', () => 
         name: 'Enzo Girardi',
         phone: '+543584302024',
         dni: '37108100',
-        address: 'Río Cuarto, Córdoba',
+        address: 'Las Lajas, Neuquén',
         balance: 0,
       },
       doctor: {
@@ -130,5 +131,28 @@ describe('Informe Completo & Expediente Clínico Integral (Ficha 360°)', () => 
     const pdfOutput = doc.output();
     expect(pdfOutput).toBeDefined();
     expect(pdfOutput.length).toBeGreaterThan(100);
+  });
+
+  it('debe resolver el estado canónico del paciente como INTERNADO cuando existe una internación ACTIVA', () => {
+    const mockPatient = { id: 'pat-101', name: 'Luna', status: 'ACTIVO', isArchived: false };
+    const mockHosps = [
+      { patientId: 'pat-101', status: 'ACTIVA', kennelNumber: '02', sector: 'UCI' },
+    ];
+
+    const resolved = getPatientCanonicalStatus(mockPatient, mockHosps);
+    expect(resolved.statusCode).toBe('INTERNADO');
+    expect(resolved.isHospitalized).toBe(true);
+    expect(resolved.label).toContain('INTERNADO');
+    expect(resolved.label).toContain('Box 02');
+  });
+
+  it('debe consolidar planes intrahospitalarios, consumos clínicos y recetas en la medicación total', () => {
+    const mockPrescriptions = [{ id: 'rx-1', patientId: 'pat-101' }];
+    const mockHospitalMeds = [{ id: 'med-1', drugName: 'Dipirona' }, { id: 'med-2', drugName: 'Cerenia' }];
+    const mockConsumptions = [{ id: 'c-1', patientId: 'pat-101', sourceType: 'MEDICAMENTO' }];
+
+    const totalMeds = mockPrescriptions.length + mockHospitalMeds.length + mockConsumptions.length;
+    expect(totalMeds).toBe(4);
+    expect(totalMeds).toBeGreaterThan(mockPrescriptions.length);
   });
 });

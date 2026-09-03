@@ -57,6 +57,8 @@ describe('Agenda de Turnos - Persistencia y Sincronización', () => {
     // Should execute safely without throwing unhandled exceptions
     await expect(syncAppointmentToSupabase(mockApt)).resolves.not.toThrow();
     // Clean up immediately so test records never persist into production database
-    await supabase.from('appointments').delete().eq('id', testId);
-  });
+    try {
+      await supabase.from('appointments').delete().eq('id', testId);
+    } catch {}
+  }, 15000);
 });

@@ -52,7 +52,7 @@ export function formatDateTime(val: unknown, fallback = 'S/D'): string {
 }
 
 /**
- * Formatea solo la hora en formato 24hs (HH:MM hs).
+ * Formatea solo la hora en formato 24hs (HH:mm hs).
  */
 export function formatTime(val: unknown, fallback = '--:--'): string {
   if (!val) return fallback;
@@ -65,6 +65,19 @@ export function formatTime(val: unknown, fallback = '--:--'): string {
   } catch {
     return fallback;
   }
+}
+
+/**
+ * Calcula la Presión Arterial Media (PAM) en mmHg según la fórmula clínica estándar:
+ * PAM = (TAS + 2 * TAD) / 3
+ * Valida que TAS > TAD y ambos sean números positivos mayores a cero.
+ */
+export function calculateMeanArterialPressure(tas?: number | null, tad?: number | null): number | undefined {
+  if (tas === undefined || tas === null || tad === undefined || tad === null) return undefined;
+  const s = Number(tas);
+  const d = Number(tad);
+  if (isNaN(s) || isNaN(d) || s <= 0 || d <= 0 || s <= d) return undefined;
+  return Math.round((s + 2 * d) / 3);
 }
 
 /**
@@ -193,7 +206,7 @@ export function formatTemperature(temp: unknown, fallback = '-- °C'): string {
 }
 
 /**
- * Formatea número de comprobante fiscal AFIP (ej: B-0002-00004120).
+ * Formatea número de comprobante interno (ej: REC-0001-00004120).
  */
 export function formatInvoiceNumber(
   type: string,
@@ -372,4 +385,94 @@ export function calculatePatientAgeString(birthDateVal: unknown): string {
   } catch {
     return 'Edad no registrada';
   }
+}
+
+/**
+ * Resuelve el estado clínico canónico único e inmutable de un paciente
+ * cruzando datos del paciente y sus internaciones activas para evitar inconsistencias.
+ */
+export function getPatientCanonicalStatus(
+  patient: { id?: string; status?: string; isArchived?: boolean } | null | undefined,
+  hospitalizations: Array<{ patientId: string; status: string; kennelNumber?: string; sector?: string }> = []
+): {
+  statusCode: 'INTERNADO' | 'ACTIVO' | 'ARCHIVADO' | 'ALTA_MEDICA' | 'FALLECIDO' | 'DERIVADO';
+  label: string;
+  badgeClass: string;
+  isHospitalized: boolean;
+  kennelNumber?: string;
+  sector?: string;
+} {
+  if (!patient) {
+    return {
+      statusCode: 'ACTIVO',
+      label: 'Ambulatorio / Activo',
+      badgeClass: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+      isHospitalized: false,
+    };
+  }
+
+  if (patient.status === 'ARCHIVADO' || patient.isArchived) {
+    return {
+      statusCode: 'ARCHIVADO',
+      label: 'Archivado',
+      badgeClass: 'bg-slate-100 text-slate-600 border-slate-300',
+      isHospitalized: false,
+    };
+  }
+
+  if (patient.status === 'FALLECIDO') {
+    return {
+      statusCode: 'FALLECIDO',
+      label: 'Fallecido',
+      badgeClass: 'bg-rose-100 text-rose-900 border-rose-300',
+      isHospitalized: false,
+    };
+  }
+
+  // Verificar internación activa en curso
+  const activeHosp = patient.id
+    ? hospitalizations.find((h) => h.patientId === patient.id && h.status === 'ACTIVA')
+    : undefined;
+
+  if (activeHosp) {
+    const box = activeHosp.kennelNumber ? `Box ${activeHosp.kennelNumber}` : 'UCI';
+    const sec = activeHosp.sector || 'Cuidados Críticos';
+    return {
+      statusCode: 'INTERNADO',
+      label: `🏥 INTERNADO (${box} - ${sec})`,
+      badgeClass: 'bg-amber-100 text-amber-900 border-amber-300 font-black',
+      isHospitalized: true,
+      kennelNumber: activeHosp.kennelNumber,
+      sector: activeHosp.sector,
+    };
+  }
+
+  if (patient.status === 'ALTA_MEDICA' || patient.status === 'ALTA') {
+    return {
+      statusCode: 'ALTA_MEDICA',
+      label: 'Alta Médica',
+      badgeClass: 'bg-blue-50 text-blue-700 border-blue-200',
+      isHospitalized: false,
+    };
+  }
+
+  return {
+    statusCode: 'ACTIVO',
+    label: '🟢 EN ATENCIÓN CLÍNICA',
+    badgeClass: 'bg-emerald-50 text-emerald-700 border-emerald-200 font-bold',
+    isHospitalized: false,
+  };
+}
+
+/**
+ * Escapes HTML special characters to neutralize XSS in print templates, PDF generation, and DOM injection.
+ */
+export function escapeHtml(str: string | number | undefined | null): string {
+  if (str === undefined || str === null) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
 }

@@ -34,9 +34,9 @@ CREATE TABLE IF NOT EXISTS public.owners (
   whatsapp TEXT,
   email TEXT,
   address TEXT,
-  city TEXT DEFAULT 'Río Cuarto',
-  province TEXT DEFAULT 'Córdoba',
-  postal_code TEXT DEFAULT '5800',
+  city TEXT DEFAULT 'Las Lajas',
+  province TEXT DEFAULT 'Neuquén',
+  postal_code TEXT DEFAULT '8347',
   notes TEXT,
   balance NUMERIC DEFAULT 0,
   created_at TIMESTAMPTZ DEFAULT NOW()
@@ -243,22 +243,20 @@ CREATE TABLE IF NOT EXISTS public.financial_transactions (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 14. TABLA DE FACTURAS Y COMPROBANTES
+-- 14. TABLA DE COMPROBANTES Y RECIBOS INTERNOS (NO FISCALES)
 CREATE TABLE IF NOT EXISTS public.invoices (
   id TEXT PRIMARY KEY,
   invoice_number TEXT NOT NULL,
-  type TEXT NOT NULL DEFAULT 'FACTURA_B',
+  type TEXT NOT NULL DEFAULT 'RECIBO_X',
   point_of_sale INTEGER DEFAULT 1,
   date DATE NOT NULL DEFAULT CURRENT_DATE,
   owner_id TEXT,
   patient_id TEXT,
   items JSONB NOT NULL DEFAULT '[]'::jsonb,
   total_amount NUMERIC NOT NULL,
-  status TEXT DEFAULT 'EMITIDA',
+  status TEXT DEFAULT 'EMITIDO',
   payment_method TEXT NOT NULL,
-  cae_number TEXT,
-  cae_expiration_date DATE,
-  branch_id TEXT NOT NULL DEFAULT 'branch-1',
+  branch_id TEXT DEFAULT 'branch-01',
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 

@@ -104,7 +104,7 @@ describe('Receipts, Thermal Tickets, and Estimates System', () => {
         name: 'Enzo Girardi',
         phone: '+543584302024',
         dni: '37108100',
-        address: 'Río Cuarto, Córdoba',
+        address: 'Las Lajas, Neuquén',
         balance: 0,
       },
       doctor: {

@@ -16,6 +16,30 @@ function sanitizeCleanArray<T>(key: string, fallback: T[]): T[] {
   }
 }
 
+function sanitizeProductsArray(key: string, fallback: Product[]): Product[] {
+  try {
+    const raw = localStorage.getItem(key);
+    if (!raw) return fallback;
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed) || parsed.length === 0) return fallback;
+    const merged = [...parsed];
+    fallback.forEach((f) => {
+      const exists = merged.some(
+        (m: Product) =>
+          m.id === f.id ||
+          m.code === f.code ||
+          m.commercialName?.toLowerCase() === f.commercialName?.toLowerCase()
+      );
+      if (!exists) {
+        merged.push(f);
+      }
+    });
+    return merged;
+  } catch {
+    return fallback;
+  }
+}
+
 import { supabase } from '../lib/supabase';
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import {
@@ -65,7 +89,11 @@ import {
   FinancialPaymentMethod,
   FinancialMovementStatus,
   PaymentInstallment,
+  PharmacyFinancialSummary,
+  MasterVademecumItem,
+  RouteConsumableRule,
 } from '../types';
+import { MASTER_VADEMECUM, ROUTE_CONSUMABLE_RULES } from '../data/vademecumData';
 import {
   INITIAL_BRANCHES,
   INITIAL_USERS,
@@ -300,8 +328,9 @@ interface VetContextType {
   updateTriageStatus: (id: string, status: TriageEntry['status']) => void;
   updateTriagePriority: (id: string, priority: TriagePriority) => void;
 
-  // Billing & Cash
-  createInvoice: (inv: Omit<Invoice, 'id' | 'invoiceNumber' | 'date' | 'caeNumber' | 'caeExpirationDate' | 'branchId'>) => Invoice;
+  // Billing & Cash (Comprobantes Internos)
+  createInvoice: (inv: Omit<Invoice, 'id' | 'invoiceNumber' | 'date' | 'branchId'>) => Invoice;
+  voidInvoice: (invoiceId: string, reason: string) => boolean;
   createEstimate: (est: Omit<Estimate, 'id' | 'estimateNumber' | 'date' | 'status'>) => Estimate;
   convertEstimateToInvoice: (estimateId: string, paymentMethod: Invoice['paymentMethod']) => Invoice | null;
 
@@ -333,6 +362,41 @@ interface VetContextType {
   getEncounterPreInvoice: (encounterId: string) => { items: { id: string; concept: string; quantity: number; unitPrice: number; subtotal: number; sourceType: string }[]; totalAmount: number };
   billEncounter: (encounterId: string, paymentMethod: PaymentMethod, invoiceType?: InvoiceType, discountAmount?: number) => Invoice;
   updateServicePrice: (id: string, newPrice: number) => void;
+
+  // Farmacia & Integración de Consumos Clínicos
+  addPatientMedicationConsumption: (
+    patientId: string,
+    medicationNameOrId: string,
+    quantity?: number,
+    options?: {
+      encounterId?: string;
+      notes?: string;
+      route?: string;
+      dose?: string;
+      unitPriceOverride?: number;
+      includeConsumables?: boolean;
+    }
+  ) => { success: boolean; consumption?: EncounterConsumptionItem; message: string };
+  getPatientPendingConsumptions: (patientId: string) => EncounterConsumptionItem[];
+  billPatientPendingConsumptions: (
+    patientId: string,
+    paymentMethod: PaymentMethod,
+    invoiceType?: InvoiceType,
+    discountAmount?: number
+  ) => Invoice;
+  dispenseCounterProduct: (
+    productId: string,
+    quantity: number,
+    paymentMethod: PaymentMethod,
+    customerName?: string
+  ) => { invoice: Invoice; movement: InventoryMovement };
+  getPharmacyFinancialSummary: () => PharmacyFinancialSummary;
+
+  // Vademécum Maestro Veterinario
+  masterVademecum: MasterVademecumItem[];
+  importVademecumProduct: (vademecumId: string, customConfig?: Partial<Product>) => Product;
+  seedFullVademecumToInventory: (categoryFilter?: string) => { addedCount: number; totalCount: number };
+  getSuggestedConsumablesForRoute: (route: string, volumeMl?: number) => { name: string; quantity: number; product?: Product; defaultPrice: number }[];
 
 
   // AI Assistant helper
@@ -427,8 +491,23 @@ export const VetProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [labOrders, setLabOrders] = useState<LaboratoryOrder[]>(() => sanitizeCleanArray('vetsys_lab_orders', INITIAL_LAB_ORDERS));
   const [imagingStudies, setImagingStudies] = useState<ImagingStudy[]>(() => sanitizeCleanArray('vetsys_imaging', INITIAL_IMAGING));
   const [vaccinations, setVaccinations] = useState<VaccinationRecord[]>(() => sanitizeCleanArray('vetsys_vaccinations', INITIAL_VACCINATIONS));
-  const [products, setProducts] = useState<Product[]>(() => sanitizeCleanArray('vetsys_products', INITIAL_PRODUCTS));
-  const [inventoryMovements, setInventoryMovements] = useState<InventoryMovement[]>([]);
+  const [products, setProducts] = useState<Product[]>(() => sanitizeProductsArray('vetsys_products', INITIAL_PRODUCTS));
+  const [inventoryMovements, setInventoryMovements] = useState<InventoryMovement[]>(() => {
+    return INITIAL_PRODUCTS.map((p) => ({
+      id: `mov-init-${p.id}`,
+      productId: p.id,
+      productName: p.commercialName,
+      type: 'INGRESO_COMPRA' as const,
+      quantity: p.currentStock,
+      previousStock: 0,
+      newStock: p.currentStock,
+      reason: `Stock inicial en farmacia & lote ${p.currentBatch || 'L-2026'}`,
+      batchNumber: p.currentBatch,
+      expirationDate: p.expirationDate,
+      performedBy: 'Dr. Diego Iván Irusta',
+      timestamp: '2026-08-25T08:00:00Z',
+    }));
+  });
   const [appointments, setAppointments] = useState<Appointment[]>(() => sanitizeCleanArray('vetsys_appointments', INITIAL_APPOINTMENTS));
   const [triageList, setTriageList] = useState<TriageEntry[]>(() => sanitizeCleanArray('vetsys_triage', INITIAL_TRIAGE));
   const [invoices, setInvoices] = useState<Invoice[]>(() => sanitizeCleanArray('vetsys_invoices', INITIAL_INVOICES));
@@ -1722,7 +1801,7 @@ export const VetProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const billEncounter = (
     encounterId: string,
     paymentMethod: PaymentMethod,
-    invoiceType: InvoiceType = 'FACTURA_B',
+    invoiceType: InvoiceType = 'RECIBO_X',
     discountAmount: number = 0
   ): Invoice => {
     const enc = encounters.find((e) => e.id === encounterId);
@@ -1747,7 +1826,7 @@ export const VetProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     const newInvoice: Invoice = {
       id: 'inv-' + Date.now(),
-      invoiceNumber: '0001-' + (invoices.length + 1).toString().padStart(8, '0'),
+      invoiceNumber: 'REC-0001-' + (invoices.length + 101).toString().padStart(8, '0'),
       type: invoiceType,
       pointOfSale: 1,
       date: new Date().toISOString().split('T')[0],
@@ -1759,8 +1838,7 @@ export const VetProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       items: invoiceItems,
       totalAmount: finalAmount,
       paymentMethod,
-      caeNumber: '',
-      caeExpirationDate: '',
+      status: 'EMITIDO',
       branchId: activeBranch.id,
       isFiscal: false,
     };
@@ -1802,6 +1880,593 @@ export const VetProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const updateServicePrice = (id: string, newPrice: number) => {
     setServicePrices((prev) => prev.map((sp) => (sp.id === id ? { ...sp, price: newPrice } : sp)));
     logAudit('PRECIO_SERVICIO_ACTUALIZADO', 'ServicePrice', id, `Precio actualizado a ${newPrice}`);
+  };
+
+  // --- VADEMÉCUM MAESTRO VETERINARIO & AUTO-KITS DE INSUMOS ---
+  const getSuggestedConsumablesForRoute = (
+    route: string,
+    volumeMl: number = 1
+  ): { name: string; quantity: number; product?: Product; defaultPrice: number }[] => {
+    const norm = (route || 'IV').toUpperCase().trim();
+    let ruleKey = 'IV';
+    if (norm.includes('SC') || norm.includes('SUBCUT')) ruleKey = 'SC';
+    else if (norm.includes('IM') || norm.includes('INTRAMUSC')) ruleKey = 'IM';
+    else if (norm.includes('PO') || norm.includes('ORAL')) ruleKey = 'PO';
+    else if (norm.includes('TOPIC')) ruleKey = 'TOPICA';
+    else if (norm.includes('FLUID') || norm.includes('SUERO')) ruleKey = 'FLUIDO';
+
+    const rule = ROUTE_CONSUMABLE_RULES[ruleKey] || ROUTE_CONSUMABLE_RULES.IV;
+    const results: { name: string; quantity: number; product?: Product; defaultPrice: number }[] = [];
+
+    // Selección de jeringa según volumen
+    let syringeName = rule.suggestedSyringe;
+    if (syringeName) {
+      if (volumeMl <= 1 && (ruleKey === 'SC' || ruleKey === 'IV')) {
+        syringeName = 'Jeringa 1ml Insulina / TBC';
+      } else if (volumeMl > 3 && volumeMl <= 5) {
+        syringeName = 'Jeringa 5ml cono luer';
+      } else if (volumeMl > 5) {
+        syringeName = 'Jeringa 10ml cono luer';
+      }
+      const prod =
+        products.find((p) => p.commercialName.toLowerCase().includes(syringeName.toLowerCase())) ||
+        products.find(
+          (p) => p.category === 'DESCARTABLE' && p.commercialName.toLowerCase().includes('jeringa')
+        );
+      results.push({
+        name: syringeName,
+        quantity: 1,
+        product: prod,
+        defaultPrice: prod?.salePrice || 400,
+      });
+    }
+
+    // Aguja o Catéter
+    if (rule.suggestedNeedleOrCatheter) {
+      const prod =
+        products.find((p) =>
+          p.commercialName.toLowerCase().includes(rule.suggestedNeedleOrCatheter.toLowerCase())
+        ) ||
+        products.find(
+          (p) =>
+            p.category === 'DESCARTABLE' &&
+            (p.commercialName.toLowerCase().includes('aguja') ||
+              p.commercialName.toLowerCase().includes('catéter'))
+        );
+      results.push({
+        name: rule.suggestedNeedleOrCatheter,
+        quantity: 1,
+        product: prod,
+        defaultPrice: prod?.salePrice || 200,
+      });
+    }
+
+    // Insumos adicionales
+    if (rule.additionalSupplies && rule.additionalSupplies.length > 0) {
+      rule.additionalSupplies.forEach((suppName) => {
+        const prod = products.find((p) =>
+          p.commercialName.toLowerCase().includes(suppName.toLowerCase())
+        );
+        results.push({
+          name: suppName,
+          quantity: 1,
+          product: prod,
+          defaultPrice: prod?.salePrice || 1500,
+        });
+      });
+    }
+
+    return results;
+  };
+
+  const importVademecumProduct = (vademecumId: string, customConfig?: Partial<Product>): Product => {
+    const vadItem = MASTER_VADEMECUM.find((v) => v.id === vademecumId || v.code === vademecumId);
+    if (!vadItem) {
+      throw new Error(`Ítem de vademécum no encontrado: ${vademecumId}`);
+    }
+
+    // Verificar si ya existe en stock activo
+    const existing = products.find(
+      (p) =>
+        p.code === vadItem.code ||
+        p.commercialName.toLowerCase() === vadItem.commercialName.toLowerCase()
+    );
+
+    if (existing) {
+      const updated: Product = {
+        ...existing,
+        ...customConfig,
+        costPrice: customConfig?.costPrice ?? existing.costPrice,
+        salePrice: customConfig?.salePrice ?? existing.salePrice,
+        currentStock: customConfig?.currentStock ?? existing.currentStock,
+        minStock: customConfig?.minStock ?? existing.minStock,
+        vademecumSourceId: vadItem.id,
+      };
+      setProducts((prev) => prev.map((p) => (p.id === existing.id ? updated : p)));
+      showToast('info', 'Producto Actualizado', `${updated.commercialName} actualizado en farmacia.`);
+      return updated;
+    }
+
+    const initialStock = customConfig?.currentStock ?? 15;
+    const newProd: Product = {
+      id: customConfig?.id || 'prod-' + vadItem.code.toLowerCase().replace(/[^a-z0-9]/g, '-'),
+      code: vadItem.code,
+      commercialName: customConfig?.commercialName || vadItem.commercialName,
+      activeIngredient: customConfig?.activeIngredient || vadItem.activeIngredient,
+      category: customConfig?.category || vadItem.category,
+      concentration: customConfig?.concentration || vadItem.concentration,
+      presentation: customConfig?.presentation || vadItem.presentation,
+      laboratory: customConfig?.laboratory || vadItem.laboratory,
+      supplier: customConfig?.supplier || 'Distribuidora Farmavet',
+      costPrice: customConfig?.costPrice ?? vadItem.suggestedCostPrice,
+      salePrice: customConfig?.salePrice ?? vadItem.suggestedSalePrice,
+      currentStock: initialStock,
+      minStock: customConfig?.minStock ?? vadItem.suggestedMinStock,
+      currentBatch:
+        customConfig?.currentBatch ||
+        `LOT-${new Date().getFullYear()}-${Math.floor(100 + Math.random() * 900)}`,
+      expirationDate: customConfig?.expirationDate || '2028-06-30',
+      requiresPrescription: customConfig?.requiresPrescription ?? vadItem.requiresPrescription ?? false,
+      isPsychotropic: customConfig?.isPsychotropic ?? vadItem.isPsychotropic ?? false,
+      isNarcotic: customConfig?.isNarcotic ?? vadItem.isNarcotic ?? false,
+      location:
+        customConfig?.location ||
+        (vadItem.isPsychotropic || vadItem.isNarcotic
+          ? 'Caja Fuerte / Controlados'
+          : 'Farmacia Central'),
+      branchId: activeBranch?.id || 'branch-1',
+      vademecumSourceId: vadItem.id,
+    };
+
+    setProducts((prev) => [newProd, ...prev]);
+
+    // Registro de movimiento inicial de stock
+    const movement: InventoryMovement = {
+      id: 'mov-' + Date.now(),
+      productId: newProd.id,
+      productName: newProd.commercialName,
+      type: 'ENTRADA',
+      quantity: initialStock,
+      previousStock: 0,
+      newStock: initialStock,
+      batch: newProd.currentBatch,
+      reason: 'Alta e importación desde Vademécum Veterinario Maestro',
+      performedBy: currentUser?.name || 'Dr. Diego Iván Irusta',
+      timestamp: new Date().toISOString(),
+    };
+    setInventoryMovements((prev) => [movement, ...prev]);
+
+    logAudit(
+      'IMPORTAR_VADEMECUM',
+      'Product',
+      newProd.id,
+      `Producto ${newProd.commercialName} importado del Vademécum ($${newProd.salePrice})`
+    );
+    showToast(
+      'success',
+      'Fármaco Incorporado al Stock',
+      `${newProd.commercialName} habilitado en farmacia a $${newProd.salePrice.toLocaleString('es-AR')}.`
+    );
+
+    return newProd;
+  };
+
+  const seedFullVademecumToInventory = (
+    categoryFilter?: string
+  ): { addedCount: number; totalCount: number } => {
+    const toImport = MASTER_VADEMECUM.filter((vadItem) => {
+      if (categoryFilter && categoryFilter !== 'TODOS') {
+        if (categoryFilter === 'FARMACO') {
+          if (!['MEDICAMENTO', 'PSICOTROPICO', 'ESTUPEFACIENTE'].includes(vadItem.category))
+            return false;
+        } else if (vadItem.category !== categoryFilter) {
+          return false;
+        }
+      }
+      return !products.some(
+        (p) =>
+          p.code === vadItem.code ||
+          p.commercialName.toLowerCase() === vadItem.commercialName.toLowerCase()
+      );
+    });
+
+    if (toImport.length === 0) {
+      showToast('info', 'Catálogo Completo', 'Todos los productos del Vademécum ya están cargados en Farmacia.');
+      return { addedCount: 0, totalCount: products.length };
+    }
+
+    const newProductsList: Product[] = toImport.map((vadItem) => {
+      const defaultStock =
+        vadItem.category === 'DESCARTABLE' || vadItem.category === 'INSUMO_QUIRURGICO' ? 40 : 15;
+      return {
+        id: 'prod-' + vadItem.code.toLowerCase().replace(/[^a-z0-9]/g, '-'),
+        code: vadItem.code,
+        commercialName: vadItem.commercialName,
+        activeIngredient: vadItem.activeIngredient,
+        category: vadItem.category,
+        concentration: vadItem.concentration,
+        presentation: vadItem.presentation,
+        laboratory: vadItem.laboratory,
+        supplier: 'Distribuidora Farmavet',
+        costPrice: vadItem.suggestedCostPrice,
+        salePrice: vadItem.suggestedSalePrice,
+        currentStock: defaultStock,
+        minStock: vadItem.suggestedMinStock,
+        currentBatch: `LOT-${new Date().getFullYear()}-VAD`,
+        expirationDate: '2028-12-31',
+        requiresPrescription: vadItem.requiresPrescription ?? false,
+        isPsychotropic: vadItem.isPsychotropic ?? false,
+        isNarcotic: vadItem.isNarcotic ?? false,
+        location:
+          vadItem.isPsychotropic || vadItem.isNarcotic
+            ? 'Caja Fuerte / Controlados'
+            : 'Estante Principal',
+        branchId: activeBranch?.id || 'branch-1',
+        vademecumSourceId: vadItem.id,
+      };
+    });
+
+    setProducts((prev) => [...newProductsList, ...prev]);
+
+    logAudit(
+      'PRECARGA_MASIVA_VADEMECUM',
+      'Product',
+      'all',
+      `Precarga masiva de ${newProductsList.length} productos desde Vademécum Veterinario Maestro`
+    );
+    showToast(
+      'success',
+      'Vademécum Precargado con Éxito',
+      `Se incorporaron ${newProductsList.length} medicamentos e insumos al stock activo de Farmacia.`
+    );
+
+    return { addedCount: newProductsList.length, totalCount: products.length + newProductsList.length };
+  };
+
+  // --- AUTOMATIZACIÓN DE FARMACIA Y CONSUMOS CLÍNICOS ---
+  const addPatientMedicationConsumption = (
+    patientId: string,
+    medicationNameOrId: string,
+    quantity: number = 1,
+    options?: {
+      encounterId?: string;
+      notes?: string;
+      route?: string;
+      dose?: string;
+      unitPriceOverride?: number;
+      includeConsumables?: boolean;
+    }
+  ): { success: boolean; consumption?: EncounterConsumptionItem; message: string } => {
+    const searchNormalized = medicationNameOrId.trim().toLowerCase();
+    const prod = products.find(
+      (p) =>
+        p.id === medicationNameOrId ||
+        p.commercialName.toLowerCase() === searchNormalized ||
+        p.activeIngredient.toLowerCase() === searchNormalized ||
+        p.commercialName.toLowerCase().includes(searchNormalized) ||
+        searchNormalized.includes(p.commercialName.toLowerCase())
+    );
+
+    const unitPrice =
+      options?.unitPriceOverride !== undefined
+        ? options.unitPriceOverride
+        : prod?.salePrice ?? 4500;
+    const costPrice = prod?.costPrice ?? 0;
+    const subtotal = unitPrice * Math.max(1, quantity);
+
+    // Descontar stock si el producto existe en inventario
+    if (prod) {
+      if (prod.currentStock < quantity) {
+        showToast(
+          'warning',
+          'Stock Bajo / Insuficiente',
+          `El producto ${prod.commercialName} tiene solo ${prod.currentStock} unidades disponibles (solicitadas: ${quantity}). Se registra el consumo.`
+        );
+      }
+      updateProductStock(
+        prod.id,
+        -quantity,
+        'USO_CONSULTA',
+        `Consumo clínico paciente ${patientId}: ${prod.commercialName} (${options?.dose || `${quantity} un.`})`
+      );
+    }
+
+    const conceptName = prod
+      ? `${prod.commercialName} ${prod.concentration ? `(${prod.concentration})` : ''}`
+      : medicationNameOrId;
+
+    const fullConcept = options?.dose
+      ? `${conceptName} - Dosis: ${options.dose} ${options.route ? `[${options.route}]` : ''}`
+      : conceptName;
+
+    const consumption: EncounterConsumptionItem = {
+      id: 'cons-' + Date.now() + '-med-' + Math.random().toString(36).substring(2, 6),
+      encounterId: options?.encounterId || activeEncounterId || ('enc-patient-' + patientId),
+      patientId,
+      sourceType: 'MEDICAMENTO',
+      sourceId: prod?.id || 'med-custom',
+      code: prod?.code || 'MED-AUTO',
+      concept: fullConcept,
+      quantity,
+      unitPrice,
+      costPrice,
+      subtotal,
+      status: 'CONFIRMADO',
+      performedAt: new Date().toISOString(),
+      performedBy: currentUser?.name || 'Veterinario',
+      isBilled: false,
+      productId: prod?.id,
+      batchNumber: prod?.currentBatch,
+    };
+
+    setEncounterConsumptions((prev) => [consumption, ...prev]);
+
+    // Cargar automáticamente los insumos descartables (jeringa + aguja / catéter) si está activado
+    if (options?.includeConsumables && options?.route) {
+      const consumables = getSuggestedConsumablesForRoute(options.route);
+      consumables.forEach((c) => {
+        if (c.name) {
+          const suppProd = products.find((p) =>
+            p.commercialName.toLowerCase().includes(c.name.toLowerCase())
+          );
+          const suppSubtotal = (suppProd?.salePrice || c.defaultPrice) * c.quantity;
+          if (suppProd) {
+            updateProductStock(
+              suppProd.id,
+              -c.quantity,
+              'USO_CONSULTA',
+              `Descartable por aplicación ${options.route} a paciente ${patientId}`
+            );
+          }
+          const suppConsumption: EncounterConsumptionItem = {
+            id: 'cons-' + Date.now() + '-supp-' + Math.random().toString(36).substring(2, 6),
+            encounterId: consumption.encounterId,
+            patientId,
+            sourceType: 'INSUMO',
+            sourceId: suppProd?.id || 'supp-auto',
+            code: suppProd?.code || 'INS-AUTO',
+            concept: `Insumo Descartable: ${c.name}`,
+            quantity: c.quantity,
+            unitPrice: suppProd?.salePrice || c.defaultPrice,
+            costPrice: suppProd?.costPrice || 0,
+            subtotal: suppSubtotal,
+            status: 'CONFIRMADO',
+            performedAt: new Date().toISOString(),
+            performedBy: currentUser?.name || 'Veterinario',
+            isBilled: false,
+            productId: suppProd?.id,
+          };
+          setEncounterConsumptions((prev) => [suppConsumption, ...prev]);
+        }
+      });
+    }
+
+    logAudit(
+      'CONSUMO_MEDICAMENTO_CARGADO',
+      'EncounterConsumptionItem',
+      consumption.id,
+      `Consumo de ${fullConcept} ($${subtotal}) cargado a la cuenta del paciente ${patientId}`
+    );
+
+    return {
+      success: true,
+      consumption,
+      message: `Fármaco cargado a la cuenta por $${subtotal.toLocaleString('es-AR')}.`,
+    };
+  };
+
+  const getPatientPendingConsumptions = (patientId: string): EncounterConsumptionItem[] => {
+    return encounterConsumptions.filter(
+      (c) => c.patientId === patientId && c.status !== 'ANULADO' && !c.isBilled
+    );
+  };
+
+  const billPatientPendingConsumptions = (
+    patientId: string,
+    paymentMethod: PaymentMethod,
+    invoiceType: InvoiceType = 'RECIBO_X',
+    discountAmount: number = 0
+  ): Invoice => {
+    const unbilled = getPatientPendingConsumptions(patientId);
+    if (unbilled.length === 0) {
+      showToast('warning', 'Sin Consumos Pendientes', 'El paciente no posee consumos pendientes de cobro.');
+      throw new Error('Sin consumos pendientes de cobro.');
+    }
+
+    const pat = patients.find((p) => p.id === patientId);
+    const own = owners.find((o) => o.id === pat?.ownerId);
+
+    const totalRaw = unbilled.reduce((sum, item) => sum + item.subtotal, 0);
+    const finalAmount = Math.max(0, totalRaw - discountAmount);
+
+    const invoiceItems = unbilled.map((it, idx) => ({
+      id: 'inv-it-' + Date.now() + '-' + idx,
+      description: it.concept,
+      quantity: it.quantity,
+      unitPrice: it.unitPrice,
+      subtotal: it.subtotal,
+    }));
+
+    const newInvoice: Invoice = {
+      id: 'inv-' + Date.now(),
+      invoiceNumber: 'REC-0001-' + (invoices.length + 101).toString().padStart(8, '0'),
+      type: invoiceType,
+      pointOfSale: 1,
+      date: new Date().toISOString().split('T')[0],
+      ownerId: own?.id || 'owner-general',
+      patientId: pat?.id,
+      customerName: own ? `${own.firstName} ${own.lastName}` : 'Consumidor Final',
+      customerDniCuit: own?.dni || own?.cuit || '00.000.000',
+      customerTaxCondition: own?.taxCondition || 'Consumidor Final',
+      items: invoiceItems,
+      totalAmount: finalAmount,
+      paymentMethod,
+      status: 'EMITIDO',
+      branchId: activeBranch.id,
+      isFiscal: false,
+    };
+
+    setInvoices((prev) => [newInvoice, ...prev]);
+    syncInvoiceToSupabase(newInvoice);
+
+    // Mark as billed
+    const billedIds = new Set(unbilled.map((u) => u.id));
+    setEncounterConsumptions((prev) =>
+      prev.map((c) => (billedIds.has(c.id) ? { ...c, isBilled: true, invoiceId: newInvoice.id } : c))
+    );
+
+    // Register financial movement
+    const finMovement: FinancialMovement = {
+      id: 'fin-' + Date.now() + '-' + Math.random().toString(36).substring(2, 6),
+      date: new Date().toISOString().split('T')[0],
+      type: 'INGRESO',
+      category: 'Consultas',
+      concept: `Cobro Recibo ${newInvoice.invoiceNumber} - Consumos de ${pat?.name || 'Paciente'}`,
+      description: invoiceItems.map((i) => i.description).join(', '),
+      amount: finalAmount,
+      paymentMethod: paymentMethod as any,
+      branchId: activeBranch.id,
+      clientId: own?.id,
+      clientName: own ? `${own.firstName} ${own.lastName}` : undefined,
+      status: 'COBRADO',
+      createdAt: new Date().toISOString(),
+      createdBy: currentUser?.name || 'Sistema',
+    };
+    setFinancialMovements((prev) => [finMovement, ...prev]);
+    syncFinancialMovementToSupabase(finMovement);
+
+    logAudit(
+      'COBRO_CONSUMOS_PACIENTE',
+      'Invoice',
+      newInvoice.id,
+      `Liquidación de ${unbilled.length} consumos por $${finalAmount} para paciente ${patientId}`
+    );
+    showToast(
+      'success',
+      'Cobro Registrado',
+      `Recibo ${newInvoice.invoiceNumber} emitido por $${finalAmount.toLocaleString('es-AR')}.`
+    );
+    return newInvoice;
+  };
+
+  const dispenseCounterProduct = (
+    productId: string,
+    quantity: number,
+    paymentMethod: PaymentMethod,
+    customerName: string = 'Cliente Mostrador'
+  ): { invoice: Invoice; movement: InventoryMovement } => {
+    const prod = products.find((p) => p.id === productId);
+    if (!prod) {
+      showToast('error', 'Producto No Encontrado', 'El producto seleccionado no existe.');
+      throw new Error('Producto no encontrado');
+    }
+
+    const subtotal = prod.salePrice * quantity;
+    updateProductStock(prod.id, -quantity, 'VENTA_MOSTRADOR', `Venta directa mostrador a ${customerName}`);
+
+    const newInvoice: Invoice = {
+      id: 'inv-' + Date.now(),
+      invoiceNumber: 'REC-0001-' + (invoices.length + 101).toString().padStart(8, '0'),
+      type: 'RECIBO_X',
+      pointOfSale: 1,
+      date: new Date().toISOString().split('T')[0],
+      ownerId: 'owner-general',
+      customerName,
+      customerDniCuit: '00.000.000',
+      customerTaxCondition: 'Consumidor Final',
+      items: [
+        {
+          id: 'inv-it-' + Date.now(),
+          description: `${prod.commercialName} (${prod.presentation || prod.concentration})`,
+          quantity,
+          unitPrice: prod.salePrice,
+          subtotal,
+        },
+      ],
+      totalAmount: subtotal,
+      paymentMethod,
+      status: 'EMITIDO',
+      branchId: activeBranch.id,
+      isFiscal: false,
+    };
+
+    setInvoices((prev) => [newInvoice, ...prev]);
+    syncInvoiceToSupabase(newInvoice);
+
+    const finMovement: FinancialMovement = {
+      id: 'fin-' + Date.now() + '-' + Math.random().toString(36).substring(2, 6),
+      date: new Date().toISOString().split('T')[0],
+      type: 'INGRESO',
+      category: 'Farmacia & Insumos',
+      concept: `Venta Mostrador ${newInvoice.invoiceNumber} - ${prod.commercialName} x${quantity}`,
+      description: `${prod.commercialName} (${prod.presentation})`,
+      amount: subtotal,
+      paymentMethod: paymentMethod as any,
+      branchId: activeBranch.id,
+      clientName: customerName,
+      status: 'COBRADO',
+      createdAt: new Date().toISOString(),
+      createdBy: currentUser?.name || 'Sistema',
+    };
+    setFinancialMovements((prev) => [finMovement, ...prev]);
+    syncFinancialMovementToSupabase(finMovement);
+
+    logAudit(
+      'VENTA_FARMACIA_MOSTRADOR',
+      'Invoice',
+      newInvoice.id,
+      `Venta mostrador de ${prod.commercialName} x${quantity} por $${subtotal}`
+    );
+    showToast(
+      'success',
+      'Venta Registrada',
+      `Comprobante ${newInvoice.invoiceNumber} generado por $${subtotal.toLocaleString('es-AR')}.`
+    );
+
+    const movement: InventoryMovement = {
+      id: 'mov-' + Date.now(),
+      productId: prod.id,
+      productName: prod.commercialName,
+      type: 'VENTA_MOSTRADOR',
+      quantity,
+      previousStock: prod.currentStock,
+      newStock: prod.currentStock - quantity,
+      batch: prod.currentBatch,
+      reason: `Venta directa mostrador a ${customerName}`,
+      performedBy: currentUser?.name || 'Sistema',
+      timestamp: new Date().toISOString(),
+    };
+
+    return { invoice: newInvoice, movement };
+  };
+
+  const getPharmacyFinancialSummary = (): PharmacyFinancialSummary => {
+    const activeProducts = products.filter((p) => !p.isArchived);
+    const totalUnitsInStock = activeProducts.reduce((sum, p) => sum + (p.currentStock || 0), 0);
+    const totalCostValue = activeProducts.reduce(
+      (sum, p) => sum + (p.currentStock || 0) * (p.costPrice || 0),
+      0
+    );
+    const totalSaleValue = activeProducts.reduce(
+      (sum, p) => sum + (p.currentStock || 0) * (p.salePrice || 0),
+      0
+    );
+    const projectedProfit = Math.max(0, totalSaleValue - totalCostValue);
+    const projectedMarginPercentage =
+      totalCostValue > 0 ? (projectedProfit / totalCostValue) * 100 : 0;
+
+    return {
+      totalProductsCount: activeProducts.length,
+      totalUnitsInStock,
+      totalCostValue,
+      totalSaleValue,
+      projectedProfit,
+      projectedMarginPercentage: Math.round(projectedMarginPercentage * 10) / 10,
+      lowStockCount: activeProducts.filter(
+        (p) => (p.currentStock || 0) > 0 && (p.currentStock || 0) <= (p.minStock || 5)
+      ).length,
+      outOfStockCount: activeProducts.filter((p) => (p.currentStock || 0) <= 0).length,
+    };
   };
 
 
@@ -1951,6 +2616,15 @@ export const VetProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           const adminAt = new Date().toISOString();
           const adminBy = currentUser?.name || 'Dr. Diego Iván Irusta';
 
+          // Compute deviation between scheduled time and actual execution time
+          const [schedH, schedM] = (slotTime || '08:00').split(':').map(Number);
+          const nowD = new Date();
+          const schedToday = new Date(nowD.getFullYear(), nowD.getMonth(), nowD.getDate(), schedH || 8, schedM || 0);
+          const diffMinutes = Math.round((nowD.getTime() - schedToday.getTime()) / 60000);
+          const isSignificantDelay = Math.abs(diffMinutes) > 60;
+          const delayText = Math.abs(diffMinutes) >= 60 ? `${Math.round(Math.abs(diffMinutes)/60)} hs` : `${Math.abs(diffMinutes)} min`;
+          const effectiveNote = notes || (isSignificantDelay ? `Aplicada ${diffMinutes > 0 ? 'con retraso de +' : 'con anticipación de -'}${delayText} (programada: ${slotTime} hs)` : sNotes => sNotes || `Toma de las ${slotTime} hs`);
+
           // Update or initialize doseSlots
           let currentSlots = med.doseSlots && med.doseSlots.length > 0
             ? med.doseSlots
@@ -1965,7 +2639,7 @@ export const VetProvider: React.FC<{ children: React.ReactNode }> = ({ children 
                 status: 'REALIZADA' as const,
                 administeredAt: adminAt,
                 administeredBy: adminBy,
-                notes: notes || s.notes,
+                notes: typeof effectiveNote === 'function' ? effectiveNote(s.notes) : effectiveNote,
               };
             }
             return s;
@@ -2667,33 +3341,58 @@ export const VetProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     showToast('info', 'Triage Reclasificado', `El paciente fue reclasificado a prioridad ${priority}.`);
   };
 
-  // Invoices & Estimates
-  const createInvoice = (data: Omit<Invoice, 'id' | 'invoiceNumber' | 'date' | 'caeNumber' | 'caeExpirationDate' | 'branchId'>): Invoice => {
-    const invNumber = `0001-${(invoices.length + 100).toString().padStart(8, '0')}`;
-    const cae = Math.floor(10000000000000 + Math.random() * 90000000000000).toString();
-    const exp = new Date(Date.now() + 10 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+  // Invoices & Estimates (Comprobantes Internos No Fiscales)
+  const createInvoice = (data: Omit<Invoice, 'id' | 'invoiceNumber' | 'date' | 'branchId'>): Invoice => {
+    const seq = (invoices.length + 101).toString().padStart(8, '0');
+    const invNumber = `REC-0001-${seq}`;
+    const id = typeof crypto !== 'undefined' && crypto.randomUUID ? `inv-${crypto.randomUUID()}` : `inv-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
 
     const newInv: Invoice = {
       ...data,
-      id: `inv-${Date.now()}`,
+      id,
       invoiceNumber: invNumber,
+      type: data.type === 'PRESUPUESTO' ? 'PRESUPUESTO' : (data.type === 'COMPROBANTE_INTERNO' ? 'COMPROBANTE_INTERNO' : 'RECIBO_X'),
       date: new Date().toISOString().split('T')[0],
-      caeNumber: cae,
-      caeExpirationDate: exp,
+      isFiscal: false,
+      status: 'EMITIDO',
       branchId: activeBranch.id,
     };
     setInvoices((prev) => [newInv, ...prev]);
     syncInvoiceToSupabase(newInv);
-    showToast('success', 'Factura AFIP Emitida', `Comprobante ${newInv.invoiceNumber} ($${newInv.totalAmount.toLocaleString()}) autorizado con CAE.`);
-    logAudit('EMISION_FACTURA', 'Invoice', newInv.id, `Factura emitida ${newInv.type} ${invNumber} por $${newInv.totalAmount.toLocaleString()} a ${newInv.customerName}`);
+    showToast('success', 'Recibo de Cobranza Registrado', `Comprobante Interno ${newInv.invoiceNumber} ($${newInv.totalAmount.toLocaleString()}) emitido.`);
+    logAudit('EMISION_COMPROBANTE_INTERNO', 'Invoice', newInv.id, `Comprobante interno emitido ${newInv.type} ${invNumber} por $${newInv.totalAmount.toLocaleString()} a ${newInv.customerName}`);
     return newInv;
+  };
+
+  const voidInvoice = (invoiceId: string, reason: string): boolean => {
+    const inv = invoices.find((i) => i.id === invoiceId);
+    if (!inv) return false;
+    if (inv.status === 'ANULADO') {
+      showToast('warning', 'Comprobante ya Anulado', `El recibo ${inv.invoiceNumber} ya se encuentra anulado.`);
+      return false;
+    }
+
+    const voidedInv: Invoice = {
+      ...inv,
+      status: 'ANULADO',
+      voidedAt: new Date().toISOString(),
+      voidedBy: currentUser?.name || 'Administrador',
+      voidReason: reason || 'Anulación solicitada por administración',
+    };
+
+    setInvoices((prev) => prev.map((i) => (i.id === invoiceId ? voidedInv : i)));
+    syncInvoiceToSupabase(voidedInv);
+    logAudit('ANULACION_COMPROBANTE', 'Invoice', invoiceId, `Comprobante ${inv.invoiceNumber} anulado por ${voidedInv.voidedBy}. Motivo: ${reason}`);
+    showToast('info', 'Comprobante Anulado', `El recibo interno ${inv.invoiceNumber} fue anulado correctamente.`);
+    return true;
   };
 
   const createEstimate = (data: Omit<Estimate, 'id' | 'estimateNumber' | 'date' | 'status'>): Estimate => {
     const estNumber = `PRES-${new Date().getFullYear()}-${(estimates.length + 1).toString().padStart(3, '0')}`;
+    const id = typeof crypto !== 'undefined' && crypto.randomUUID ? `est-${crypto.randomUUID()}` : `est-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
     const newEst: Estimate = {
       ...data,
-      id: `est-${Date.now()}`,
+      id,
       estimateNumber: estNumber,
       date: new Date().toISOString().split('T')[0],
       status: 'BORRADOR',
@@ -2709,7 +3408,7 @@ export const VetProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     const owner = owners.find((o) => o.id === est.ownerId);
     const invoice = createInvoice({
-      type: 'FACTURA_B',
+      type: 'RECIBO_X',
       pointOfSale: 1,
       ownerId: est.ownerId,
       patientId: est.patientId,
@@ -2725,7 +3424,7 @@ export const VetProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       prev.map((e) => (e.id === estimateId ? { ...e, status: 'ACEPTADO' } : e))
     );
 
-    logAudit('CONVERTIR_PRESUPUESTO_FACTURA', 'Estimate', estimateId, `Presupuesto ${est.estimateNumber} convertido a Factura ${invoice.invoiceNumber}`);
+    logAudit('CONVERTIR_PRESUPUESTO_RECIBO', 'Estimate', estimateId, `Presupuesto ${est.estimateNumber} convertido a Comprobante ${invoice.invoiceNumber}`);
     return invoice;
   };
 
@@ -2903,9 +3602,28 @@ export const VetProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     try {
       await supabase.auth.signOut();
     } catch {}
-    // Eliminar únicamente el artefacto legado de autenticación; los datos
-    // clínicos locales no deben borrarse al cerrar sesión.
-    localStorage.removeItem('vetsys_auth_user');
+    
+    const keysToRemove = [
+      'vetsys_auth_user',
+      'vetsys_patients',
+      'vetsys_owners',
+      'vetsys_consultations',
+      'vetsys_vitals',
+      'vetsys_surgeries',
+      'vetsys_lab_orders',
+      'vetsys_vaccinations',
+      'vetsys_hospitalizations',
+      'vetsys_encounters',
+      'vetsys_triage',
+      'vetsys_documents',
+      'vetsys_prescriptions',
+      'vetsys_invoices',
+      'vetsys_estimates',
+      'vetsys_cash_expenses',
+      'vetsys_encounter_consumptions',
+    ];
+    keysToRemove.forEach((k) => localStorage.removeItem(k));
+
     setCurrentUser(null);
     showToast('info', 'Sesión Finalizada', 'Has cerrado sesión correctamente.');
   };
@@ -3100,6 +3818,7 @@ export const VetProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         updateTriagePriority,
 
         createInvoice,
+        voidInvoice,
         createEstimate,
         convertEstimateToInvoice,
 
@@ -3127,6 +3846,17 @@ export const VetProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         getEncounterPreInvoice,
         billEncounter,
         updateServicePrice,
+
+        addPatientMedicationConsumption,
+        getPatientPendingConsumptions,
+        billPatientPendingConsumptions,
+        dispenseCounterProduct,
+        getPharmacyFinancialSummary,
+
+        masterVademecum: MASTER_VADEMECUM,
+        importVademecumProduct,
+        seedFullVademecumToInventory,
+        getSuggestedConsumablesForRoute,
 
 
         quickModal,

@@ -181,6 +181,7 @@ export const SurgeriesView: React.FC = () => {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('TODAS');
   const [showNewSurgeryModal, setShowNewSurgeryModal] = useState(false);
+  const [isSubmittingSurgery, setIsSubmittingSurgery] = useState(false);
   const [showChecklistModal, setShowChecklistModal] = useState<string | null>(null);
   const [showConsentModal, setShowConsentModal] = useState<SurgeryRecord | null>(null);
   const [selectedPresetId, setSelectedPresetId] = useState<string>('');
@@ -194,21 +195,16 @@ export const SurgeriesView: React.FC = () => {
   const [surgDate, setSurgDate] = useState(new Date().toISOString().split('T')[0]);
   const [surgStartTime, setSurgStartTime] = useState('09:00');
   const [surgDuration, setSurgDuration] = useState(45);
-  const [surgAsa, setSurgAsa] = useState<'I' | 'II' | 'III' | 'IV' | 'V' | 'E'>('I');
+  const [surgAsa, setSurgAsa] = useState<'I' | 'II' | 'III' | 'IV' | 'V' | 'E' | ''>('');
   const [surgFastingHours, setSurgFastingHours] = useState(8);
-  const [surgPremedication, setSurgPremedication] = useState('Acepromacina 0.03 mg/kg + Morfina 0.3 mg/kg');
-  const [surgInduction, setSurgInduction] = useState('Propofol 4 mg/kg IV a efecto');
-  const [surgMaintenance, setSurgMaintenance] = useState('Isoflurano 1.5% en Oxígeno 100%');
-  const [surgAnalgesia, setSurgAnalgesia] = useState('Meloxicam 0.2 mg/kg + Tramadol 2 mg/kg');
+  const [surgPremedication, setSurgPremedication] = useState('');
+  const [surgInduction, setSurgInduction] = useState('');
+  const [surgMaintenance, setSurgMaintenance] = useState('');
+  const [surgAnalgesia, setSurgAnalgesia] = useState('');
   const [surgTechnique, setSurgTechnique] = useState('');
   const [surgPostOpOrders, setSurgPostOpOrders] = useState('');
 
-  // Autoseleccionar primer paciente disponible si no está seteado
-  useEffect(() => {
-    if (!surgPatientId && patients.length > 0) {
-      setSurgPatientId(patients[0].id);
-    }
-  }, [patients, surgPatientId]);
+  // Selección explícita obligatoria de paciente
 
   // Checklist de Seguridad Quirúrgica OMS
   const [checklistState, setChecklistState] = useState({
@@ -278,7 +274,10 @@ export const SurgeriesView: React.FC = () => {
   // Crear Cirugía
   const handleCreateSurgery = (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSubmittingSurgery) return;
+    setIsSubmittingSurgery(true);
     if (!surgPatientId || !surgProcedureName) {
+      setIsSubmittingSurgery(false);
       showToast('error', 'Campos Incompletos', 'Por favor selecciona un paciente y el nombre del procedimiento.');
       return;
     }
@@ -321,6 +320,7 @@ export const SurgeriesView: React.FC = () => {
     };
 
     addSurgery(newSurg);
+    setIsSubmittingSurgery(false);
     setShowNewSurgeryModal(false);
     triggerHaptic('medium');
   };
@@ -919,7 +919,7 @@ export const SurgeriesView: React.FC = () => {
                         required
                         className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-slate-900 font-semibold focus:ring-2 focus:ring-teal-500 shadow-2xs"
                       >
-                        {patients.map((p) => (
+                        {patients.filter((p) => p.status !== 'ARCHIVADO' && !p.isArchived).map((p) => (
                           <option key={p.id} value={p.id}>
                             {p.name} ({p.species} - {p.breed}) • {p.weight ? formatWeight(p.weight) : 'S/P'}
                           </option>
