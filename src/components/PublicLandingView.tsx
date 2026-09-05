@@ -230,7 +230,7 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({
           {/* Desktop Nav Links */}
           <div className="hidden lg:flex items-center gap-6 text-xs font-bold text-[#5A3F47]">
             <a href="#servicios" className="hover:text-[#7E3A4D] transition-colors">Servicios</a>
-            <a href="#urgencias" className="hover:text-[#7E3A4D] transition-colors">Urgencias</a>
+            <a href="#consultas" className="hover:text-[#7E3A4D] transition-colors">Consultas</a>
             <a href="#equinos" className="hover:text-[#7E3A4D] transition-colors">Equinos & Campo</a>
             <a href="#direccion-medica" className="hover:text-[#7E3A4D] transition-colors">Dirección Médica</a>
             <a href="#sedes" className="hover:text-[#7E3A4D] transition-colors">Sede Las Lajas</a>
@@ -858,7 +858,7 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({
             <div className="flex items-center gap-2">
               <Phone className="w-3.5 h-3.5 text-[#E8A5B8]" />
               <a href={`tel:${EMERGENCY_PHONE}`} className="hover:text-white transition-colors">
-                Guardia: {WHATSAPP_DISPLAY}
+                Teléfono: {WHATSAPP_DISPLAY}
               </a>
             </div>
             <div className="flex items-center gap-2 text-emerald-400 font-bold">
@@ -899,7 +899,7 @@ export const PublicLandingView: React.FC<PublicLandingViewProps> = ({
       <div className="sm:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#FAF0F3]/95 backdrop-blur-md border-t border-[#EEDCE2] p-2.5 flex items-center gap-2 shadow-lg">
         <a
           href={`tel:${EMERGENCY_PHONE}`}
-          className="flex-1 py-2.5 bg-red-600 text-white text-xs font-black rounded-xl flex items-center justify-center gap-1.5 shadow-xs"
+          className="flex-1 py-2.5 bg-[#7E3A4D] hover:bg-[#662838] text-white text-xs font-black rounded-xl flex items-center justify-center gap-1.5 shadow-xs"
         >
           <Phone className="w-3.5 h-3.5" />
           <span>Contacto Telefónico</span>
